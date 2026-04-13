@@ -90,7 +90,7 @@ export default function MapSearchBar({ onSearch, onError }) {
   };
 
   return (
-    <div className="fixed bottom-32 left-6 z-[9998] pointer-events-auto">
+    <div className="fixed bottom-32 left-6 z-[99999] pointer-events-auto">
       {/* Search Icon Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
