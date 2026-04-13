@@ -490,11 +490,7 @@ function CheckoutModal({ data, rifles, ammunition, onSubmit, onChange, onClose }
                       type="text"
                       placeholder="Enter custom pest species"
                       value={data.pest_species}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        onChange('pest_species', val);
-                        onChange('deer_species', val);
-                      }}
+                      onChange={(e) => onChange('pest_species', e.target.value)}
                       className="w-full px-3 py-2 border border-border rounded-lg bg-background mt-2"
                       required
                     />
