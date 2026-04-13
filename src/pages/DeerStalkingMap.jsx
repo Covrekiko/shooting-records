@@ -55,11 +55,13 @@ export default function DeerStalkingMap() {
 
   useEffect(() => {
     loadData();
-    getUserLocation();
+    if (!isDrawingArea) {
+      getUserLocation();
+    }
     loadRiflesAndAmmo();
-  }, []);
+  }, [isDrawingArea]);
 
-  // GPS tracking for active outing
+  // GPS tracking for active outing (does NOT recenter map while drawing)
   useEffect(() => {
     if (!activeOuting) return;
 
@@ -69,15 +71,20 @@ export default function DeerStalkingMap() {
         const timestamp = Date.now();
         const newTrackPoint = { lat: latitude, lng: longitude, timestamp };
         const updatedTrack = [...(activeOuting.gps_track || []), newTrackPoint];
-        
+
         updateGpsTrack(activeOuting.id, updatedTrack);
+
+        // Only update location marker (not map center) while drawing
+        if (!isDrawingArea) {
+          setUserLocation([latitude, longitude]);
+        }
       },
       (error) => console.error('Geolocation error:', error),
       { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [activeOuting?.id, updateGpsTrack]);
+  }, [activeOuting?.id, updateGpsTrack, isDrawingArea]);
 
   const loadData = async () => {
     try {
