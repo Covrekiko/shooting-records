@@ -347,6 +347,7 @@ export default function DeerStalkingMap() {
           style={{ width: '100%', height: '100%', cursor: 'crosshair' }}
           zoomControl={true}
           ref={mapRef}
+          key={`map-drawing-${isDrawingArea}`}
         >
         <MapClickHandler onMapClick={handleMapClick} isSelectionMode={!!waitingForPin} />
         <TileLayer
