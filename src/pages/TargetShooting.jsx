@@ -18,6 +18,7 @@ export default function TargetShooting() {
   const { location } = useGeolocation();
   const [nearbyClub, setNearbyClub] = useState(null);
   const gpsTrack = useGpsTracking(!!activeSession);
+  const [savedGpsTrack, setSavedGpsTrack] = useState([]);
   const [viewingTrack, setViewingTrack] = useState(null);
 
   const [checkinData, setCheckinData] = useState({
@@ -121,6 +122,7 @@ export default function TargetShooting() {
         gps_track: gpsTrack,
       });
       setActiveSession(null);
+      setSavedGpsTrack([]);
       setShowCheckout(false);
       setCheckoutData({
         checkout_time: new Date().toTimeString().slice(0, 5),
