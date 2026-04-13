@@ -65,20 +65,23 @@ export default function DeerStalkingMap() {
   useEffect(() => {
     if (!activeOuting?.id) return;
 
+    let currentTrack = activeOuting.gps_track || [];
+
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         const timestamp = Date.now();
         const newTrackPoint = { lat: latitude, lng: longitude, timestamp };
-        const updatedTrack = [...(activeOuting.gps_track || []), newTrackPoint];
-        updateGpsTrack(activeOuting.id, updatedTrack);
+        currentTrack = [...currentTrack, newTrackPoint];
+        console.log('📍 GPS point recorded:', newTrackPoint, 'Total points:', currentTrack.length);
+        updateGpsTrack(activeOuting.id, currentTrack);
       },
-      (error) => console.error('Geolocation error:', error),
+      (error) => console.error('❌ Geolocation error:', error),
       { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [activeOuting?.id, activeOuting?.gps_track, updateGpsTrack]);
+  }, [activeOuting?.id, updateGpsTrack]);
 
   const loadData = async () => {
     try {
@@ -218,9 +221,14 @@ export default function DeerStalkingMap() {
   };
 
   const handleCheckoutSubmit = async (checkoutData) => {
-    console.log('🔴 DeerStalkingMap.handleCheckoutSubmit called with data:', checkoutData);
-    if (!activeOuting) return;
+    console.log('🟢 DeerStalkingMap.handleCheckoutSubmit called with data:', checkoutData);
+    if (!activeOuting) {
+      console.error('🔴 No active outing found for checkout');
+      return;
+    }
     try {
+      console.log('🟢 Current GPS track at checkout:', activeOuting.gps_track?.length || 0, 'points');
+      
       if (checkoutData.ammunition_id && checkoutData.total_count) {
         await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count));
       }
@@ -233,12 +241,13 @@ export default function DeerStalkingMap() {
         submitData.ammunition_used = null;
       }
 
-      console.log('🔴 DeerStalkingMap: calling endOutingWithData()...');
+      console.log('🟢 Calling endOutingWithData() with', activeOuting.gps_track?.length || 0, 'GPS points...');
       await endOutingWithData(activeOuting.id, submitData, activeOuting.gps_track || []);
+      console.log('🟢 Outing ended successfully');
       setShowCheckout(false);
       loadData();
     } catch (err) {
-      console.error('Error during checkout:', err);
+      console.error('🔴 Error during checkout:', err);
       setError(err.message);
     }
   };

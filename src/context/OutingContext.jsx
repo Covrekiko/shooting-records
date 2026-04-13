@@ -29,6 +29,7 @@ export function OutingProvider({ children }) {
 
   const startOuting = async (data) => {
     try {
+      console.log('🟢 startOuting called with data:', data);
       // Create DeerOuting (map system)
       const outing = await base44.entities.DeerOuting.create({
         location_name: data.place_name || data.location_name,
@@ -37,6 +38,8 @@ export function OutingProvider({ children }) {
         gps_track: [],
         active: true,
       });
+      
+      console.log('🟢 DeerOuting created with ID:', outing.id, 'GPS tracking will start immediately');
       
       // Create DeerManagement session (deer management system)
       if (data.place_name && data.date && data.start_time) {
@@ -47,12 +50,13 @@ export function OutingProvider({ children }) {
           start_time: data.start_time,
           active_checkin: true,
         });
+        console.log('🟢 DeerManagement session created');
       }
       
       setActiveOuting(outing);
       return outing;
     } catch (error) {
-      console.error('Error starting outing:', error);
+      console.error('🔴 Error starting outing:', error);
       throw error;
     }
   };
@@ -72,12 +76,15 @@ export function OutingProvider({ children }) {
 
   const endOutingWithData = async (outingId, checkoutData, gpsTrack) => {
     try {
+      console.log('🟢 endOutingWithData called - saving GPS track with', gpsTrack?.length || 0, 'points');
+      
       // Update DeerOuting
       await base44.entities.DeerOuting.update(outingId, {
         end_time: new Date().toISOString(),
         active: false,
         gps_track: gpsTrack || [],
       });
+      console.log('🟢 DeerOuting updated and closed with GPS track saved');
 
       // Update DeerManagement with checkout data if it exists
       if (checkoutData) {
@@ -91,12 +98,13 @@ export function OutingProvider({ children }) {
             end_time: checkoutData.end_time || new Date().toTimeString().slice(0, 5),
             gps_track: gpsTrack || [],
           });
+          console.log('🟢 DeerManagement session updated and closed');
         }
       }
       
       setActiveOuting(null);
     } catch (error) {
-      console.error('Error ending outing with data:', error);
+      console.error('🔴 Error ending outing with data:', error);
       throw error;
     }
   };
@@ -106,8 +114,11 @@ export function OutingProvider({ children }) {
       await base44.entities.DeerOuting.update(outingId, {
         gps_track: track,
       });
+      // Update local state so the map renders the updated track
+      setActiveOuting(prev => prev ? { ...prev, gps_track: track } : null);
+      console.log('✅ GPS track updated and synced to state - points:', track.length);
     } catch (error) {
-      console.error('Error updating GPS track:', error);
+      console.error('❌ Error updating GPS track:', error);
     }
   };
 
