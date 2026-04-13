@@ -212,6 +212,18 @@ export default function DeerStalkingMap() {
           </Marker>
         ))}
 
+        {/* Temporary Pin Preview */}
+        {waitingForPin && mapClick && (
+          <Marker
+            position={[mapClick.lat, mapClick.lng]}
+            icon={L.icon({
+              iconUrl: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%2310b981%22 stroke=%22white%22 stroke-width=%222%22%3E%3Cpath d=%22M12 2C7.58 2 4 5.58 4 10c0 5.25 8 13 8 13s8-7.75 8-13c0-4.42-3.58-8-8-8z%22/%3E%3C/svg%3E',
+              iconSize: [32, 40],
+              iconAnchor: [16, 40],
+            })}
+          />
+        )}
+
         {/* Harvest Markers */}
         {harvests.map((harvest) => (
           <Marker
@@ -270,6 +282,25 @@ export default function DeerStalkingMap() {
         <Home className="w-4 h-4" />
         Dashboard
       </Link>
+      {/* Selection Mode Instruction */}
+      {waitingForPin && (
+        <div className="fixed top-4 left-4 right-4 z-[9998] bg-blue-500 text-white p-4 rounded-lg flex items-center justify-between pointer-events-auto">
+          <div className="flex items-center gap-3">
+            <div className="text-xl">📍</div>
+            <div>
+              <p className="font-semibold">Tap on map to place pin</p>
+              <p className="text-xs opacity-90">{waitingForPin === 'poi' ? 'Point of Interest' : 'Harvest'} location</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setWaitingForPin(null)}
+            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm font-medium transition-all"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
+
       {error && (
         <div className="fixed top-4 left-4 right-4 z-[9998] bg-red-500 text-white p-3 rounded-lg flex items-center gap-2 pointer-events-auto">
           <AlertCircle className="w-4 h-4" />
