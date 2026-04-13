@@ -236,6 +236,8 @@ export default function Records() {
 }
 
 function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, onViewPhoto, rifles, shotguns, clubs, locations }) {
+  const [showPhotoMenu, setShowPhotoMenu] = useState(false);
+
   const getRecordTitle = () => {
     if (record.recordType === 'target') {
       const totalRounds = record.rifles_used?.reduce((sum, r) => sum + (parseInt(r.rounds_fired) || 0), 0) || 0;
@@ -274,17 +276,20 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
                 <button
                   className="px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center gap-1"
                   title="View photo"
-                  onClick={record.photos.length === 1 ? () => onViewPhoto(record.photos[0]) : undefined}
+                  onClick={record.photos.length === 1 ? () => onViewPhoto(record.photos[0]) : () => setShowPhotoMenu(!showPhotoMenu)}
                 >
                   <Image className="w-4 h-4" />
                   {record.photos.length > 1 && <ChevronDown className="w-3 h-3" />}
                 </button>
-                {record.photos.length > 1 && (
-                  <div className="absolute left-0 top-full mt-1 bg-card border border-border rounded shadow-lg z-10 hidden group-hover:block peer-hover:block hover:block">
+                {record.photos.length > 1 && showPhotoMenu && (
+                  <div className="absolute left-0 top-full mt-1 bg-card border border-border rounded shadow-lg z-10">
                     {record.photos.map((photo, idx) => (
                       <button
                         key={idx}
-                        onClick={() => onViewPhoto(photo)}
+                        onClick={() => {
+                          onViewPhoto(photo);
+                          setShowPhotoMenu(false);
+                        }}
                         className="block w-full text-left px-3 py-2 text-sm hover:bg-secondary transition-colors whitespace-nowrap first:rounded-t last:rounded-b"
                       >
                         Photo {idx + 1}
