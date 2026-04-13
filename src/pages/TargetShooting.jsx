@@ -344,6 +344,27 @@ async function handlePhotoUpload(files, data, onChange) {
 }
 
 function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose }) {
+  const [errors, setErrors] = useState({});
+
+  const validateAndSubmit = (e) => {
+    e.preventDefault();
+    const newErrors = {};
+
+    data.rifles_used.forEach((rifle, idx) => {
+      if (!rifle.ammunition_brand && !rifle.caliber && !rifle.bullet_type && !rifle.grain) {
+        newErrors[`rifle_${idx}`] = 'Ammunition details must be filled';
+      }
+    });
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setErrors({});
+    onSubmit(e);
+  };
+
   const updateRifleEntry = (index, field, value) => {
     const updated = [...data.rifles_used];
     updated[index] = { ...updated[index], [field]: value };
@@ -368,7 +389,7 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
     <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-card rounded-lg max-w-md w-full p-6 mt-4">
         <h2 className="text-xl font-bold mb-4">Check Out</h2>
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={validateAndSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Check-out Time</label>
             <input
@@ -394,6 +415,9 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
 
             {data.rifles_used.map((rifle, index) => (
               <div key={index} className="bg-secondary/30 p-3 rounded-lg mb-3 space-y-2">
+                {errors[`rifle_${index}`] && (
+                  <p className="text-red-600 text-xs font-medium">{errors[`rifle_${index}`]}</p>
+                )}
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-xs font-medium text-muted-foreground">Rifle {index + 1}</span>
                   {data.rifles_used.length > 1 && (
