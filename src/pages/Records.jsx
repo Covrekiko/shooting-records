@@ -123,7 +123,7 @@ export default function Records() {
                   Preview PDF
                 </button>
                 <button
-                  onClick={() => exportRecordsToPdf(filteredRecords)}
+                  onClick={() => exportRecordsToPdf(filteredRecords, user)}
                   className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
                 >
                   <Download className="w-4 h-4" />
@@ -189,7 +189,7 @@ export default function Records() {
         )}
         
         {previewingPdf && (
-          <PdfPreviewModal records={previewingPdf} onClose={() => setPreviewingPdf(null)} />
+          <PdfPreviewModal records={previewingPdf} userInfo={user} onClose={() => setPreviewingPdf(null)} />
         )}
       </main>
     </div>
@@ -322,13 +322,13 @@ function getBadgeLabel(type) {
   if (type === 'deer') return 'Deer Management';
 }
 
-function PdfPreviewModal({ records, onClose }) {
+function PdfPreviewModal({ records, userInfo, onClose }) {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const blob = await getRecordsPdfBlob(records);
+      const blob = await getRecordsPdfBlob(records, userInfo);
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       setLoading(false);
@@ -337,7 +337,7 @@ function PdfPreviewModal({ records, onClose }) {
     return () => {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
     };
-  }, [records]);
+  }, [records, userInfo]);
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -366,7 +366,7 @@ function PdfPreviewModal({ records, onClose }) {
         </div>
         <div className="p-4 border-t border-border flex justify-end gap-2">
           <button
-            onClick={() => exportRecordsToPdf(records)}
+            onClick={() => exportRecordsToPdf(records, userInfo)}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
           >
             <Download className="w-4 h-4" />

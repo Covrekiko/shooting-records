@@ -5,34 +5,70 @@ export async function generateRecordsPdf(records) {
   return doc;
 }
 
-export async function exportRecordsToPdf(records, fileName = 'shooting-records.pdf') {
+export async function exportRecordsToPdf(records, userInfo = null, fileName = 'shooting-records.pdf') {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  let yPosition = 15;
+  let yPosition = 10;
   const margin = 15;
   const lineHeight = 5;
 
   // Professional Header
-  doc.setFontSize(16);
+  doc.setFontSize(18);
   doc.setFont(undefined, 'bold');
+  doc.setTextColor(20, 60, 40);
   doc.text('OFFICIAL SHOOTING ACTIVITY RECORD', pageWidth / 2, yPosition, { align: 'center' });
-  yPosition += 8;
+  yPosition += 7;
   
   doc.setFontSize(9);
   doc.setFont(undefined, 'normal');
-  doc.setTextColor(80);
+  doc.setTextColor(100);
   doc.text('Comprehensive Activity Log for Regulatory Compliance', pageWidth / 2, yPosition, { align: 'center' });
   yPosition += 10;
-  doc.setTextColor(0);
-
+  
+  // User Information Header Box
+  if (userInfo) {
+    doc.setDrawColor(20, 60, 40);
+    doc.setFillColor(240, 248, 245);
+    doc.rect(margin, yPosition - 1, pageWidth - 2 * margin, 20, 'F');
+    doc.rect(margin, yPosition - 1, pageWidth - 2 * margin, 20);
+    
+    doc.setTextColor(0);
+    doc.setFont(undefined, 'bold');
+    doc.setFontSize(11);
+    doc.text('PARTICIPANT INFORMATION', margin + 3, yPosition + 2);
+    
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(9);
+    yPosition += 6;
+    
+    doc.text(`Name: ${userInfo.full_name || 'N/A'}`, margin + 3, yPosition);
+    yPosition += 4;
+    
+    if (userInfo.date_of_birth) {
+      const dob = new Date(userInfo.date_of_birth);
+      const dobStr = dob.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+      doc.text(`Date of Birth: ${dobStr}`, margin + 3, yPosition);
+    } else {
+      doc.text(`Date of Birth: N/A`, margin + 3, yPosition);
+    }
+    yPosition += 4;
+    
+    doc.text(`Address: ${userInfo.address || 'N/A'}`, margin + 3, yPosition, { maxWidth: pageWidth - 2 * margin - 6 });
+    yPosition += 8;
+  }
+  
+  yPosition += 3;
+  
   // Report metadata
   doc.setFontSize(8);
   doc.setFont(undefined, 'bold');
+  doc.setTextColor(20, 60, 40);
   doc.text('Report Details:', margin, yPosition);
   yPosition += 4;
   
   doc.setFont(undefined, 'normal');
+  doc.setTextColor(0);
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
   const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
@@ -76,22 +112,25 @@ export async function exportRecordsToPdf(records, fileName = 'shooting-records.p
 
     // Draw table headers with background
     doc.setFont(undefined, 'bold');
-    doc.setFillColor(220, 220, 220);
-    doc.setTextColor(0);
-    doc.setFontSize(8);
+    doc.setFillColor(230, 240, 235);
+    doc.setTextColor(20, 60, 40);
+    doc.setFontSize(8.5);
     
     const colWidth = (pageWidth - 2 * margin) / headers.length;
     const headerHeight = lineHeight + 2;
     
     headers.forEach((header, i) => {
       doc.rect(margin + i * colWidth, yPosition - headerHeight + 2, colWidth, headerHeight, 'F');
+      doc.setDrawColor(200, 200, 200);
+      doc.rect(margin + i * colWidth, yPosition - headerHeight + 2, colWidth, headerHeight);
       doc.text(header, margin + i * colWidth + 1.5, yPosition - 1, { maxWidth: colWidth - 3, align: 'left' });
     });
+    doc.setTextColor(0);
     yPosition += 3;
 
     // Draw table data with alternating row colors
     doc.setFont(undefined, 'normal');
-    doc.setFontSize(7);
+    doc.setFontSize(7.5);
     
     tableData.forEach((row, rowIdx) => {
       if (yPosition > pageHeight - 10) {
@@ -168,39 +207,75 @@ export async function exportRecordsToPdf(records, fileName = 'shooting-records.p
   doc.save(fileName);
 }
 
-export async function getRecordsPdfBlob(records) {
-  const doc = generateBase44Pdf(records);
+export async function getRecordsPdfBlob(records, userInfo = null) {
+  const doc = generateBase44Pdf(records, userInfo);
   return doc.output('blob');
 }
 
-function generateBase44Pdf(records) {
+function generateBase44Pdf(records, userInfo = null) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  let yPosition = 15;
+  let yPosition = 10;
   const margin = 15;
   const lineHeight = 5;
 
   // Professional Header
-  doc.setFontSize(16);
+  doc.setFontSize(18);
   doc.setFont(undefined, 'bold');
+  doc.setTextColor(20, 60, 40);
   doc.text('OFFICIAL SHOOTING ACTIVITY RECORD', pageWidth / 2, yPosition, { align: 'center' });
-  yPosition += 8;
+  yPosition += 7;
   
   doc.setFontSize(9);
   doc.setFont(undefined, 'normal');
-  doc.setTextColor(80);
+  doc.setTextColor(100);
   doc.text('Comprehensive Activity Log for Regulatory Compliance', pageWidth / 2, yPosition, { align: 'center' });
   yPosition += 10;
-  doc.setTextColor(0);
-
+  
+  // User Information Header Box
+  if (userInfo) {
+    doc.setDrawColor(20, 60, 40);
+    doc.setFillColor(240, 248, 245);
+    doc.rect(margin, yPosition - 1, pageWidth - 2 * margin, 20, 'F');
+    doc.rect(margin, yPosition - 1, pageWidth - 2 * margin, 20);
+    
+    doc.setTextColor(0);
+    doc.setFont(undefined, 'bold');
+    doc.setFontSize(11);
+    doc.text('PARTICIPANT INFORMATION', margin + 3, yPosition + 2);
+    
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(9);
+    yPosition += 6;
+    
+    doc.text(`Name: ${userInfo.full_name || 'N/A'}`, margin + 3, yPosition);
+    yPosition += 4;
+    
+    if (userInfo.date_of_birth) {
+      const dob = new Date(userInfo.date_of_birth);
+      const dobStr = dob.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+      doc.text(`Date of Birth: ${dobStr}`, margin + 3, yPosition);
+    } else {
+      doc.text(`Date of Birth: N/A`, margin + 3, yPosition);
+    }
+    yPosition += 4;
+    
+    doc.text(`Address: ${userInfo.address || 'N/A'}`, margin + 3, yPosition, { maxWidth: pageWidth - 2 * margin - 6 });
+    yPosition += 8;
+  }
+  
+  yPosition += 3;
+  
   // Report metadata
   doc.setFontSize(8);
   doc.setFont(undefined, 'bold');
+  doc.setTextColor(20, 60, 40);
   doc.text('Report Details:', margin, yPosition);
   yPosition += 4;
   
   doc.setFont(undefined, 'normal');
+  doc.setTextColor(0);
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
   const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
@@ -238,21 +313,24 @@ function generateBase44Pdf(records) {
     doc.setTextColor(0);
 
     doc.setFont(undefined, 'bold');
-    doc.setFillColor(220, 220, 220);
-    doc.setTextColor(0);
-    doc.setFontSize(8);
+    doc.setFillColor(230, 240, 235);
+    doc.setTextColor(20, 60, 40);
+    doc.setFontSize(8.5);
     
     const colWidth = (pageWidth - 2 * margin) / headers.length;
     const headerHeight = lineHeight + 2;
     
     headers.forEach((header, i) => {
       doc.rect(margin + i * colWidth, yPosition - headerHeight + 2, colWidth, headerHeight, 'F');
+      doc.setDrawColor(200, 200, 200);
+      doc.rect(margin + i * colWidth, yPosition - headerHeight + 2, colWidth, headerHeight);
       doc.text(header, margin + i * colWidth + 1.5, yPosition - 1, { maxWidth: colWidth - 3, align: 'left' });
     });
+    doc.setTextColor(0);
     yPosition += 3;
 
     doc.setFont(undefined, 'normal');
-    doc.setFontSize(7);
+    doc.setFontSize(7.5);
     
     tableData.forEach((row, rowIdx) => {
       if (yPosition > pageHeight - 10) {
