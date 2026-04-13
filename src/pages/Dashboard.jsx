@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Activity, Zap, Target, MapPin, BarChart3 } from 'lucide-react';
+import { Activity, Zap, Target, MapPin, BarChart3, Crosshair, BookOpen, Wind } from 'lucide-react';
 
 import {
   MonthlyActivityChart,
@@ -111,19 +111,19 @@ export default function Dashboard() {
               link="/deer-management"
             />
             <StatCard
-              icon={<Zap className="w-8 h-8" />}
+              icon={<Crosshair className="w-8 h-8" />}
               label="Target Shooting"
               value={stats?.targetRecords || 0}
               link="/target-shooting"
             />
             <StatCard
-              icon={<Zap className="w-8 h-8" />}
+              icon={<Wind className="w-8 h-8" />}
               label="Clay Shooting"
               value={stats?.clayRecords || 0}
               link="/clay-shooting"
             />
             <StatCard
-              icon={<Target className="w-8 h-8" />}
+              icon={<BookOpen className="w-8 h-8" />}
               label="Total Records"
               value={stats?.totalRecords || 0}
               link="/records"
@@ -132,13 +132,13 @@ export default function Dashboard() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <StatCard
-              icon={<Target className="w-8 h-8" />}
+              icon={<Crosshair className="w-8 h-8" />}
               label="Target Shooting Sessions"
               value={stats?.targetSessions || 0}
               link="/target-shooting"
             />
             <StatCard
-              icon={<Zap className="w-8 h-8" />}
+              icon={<Wind className="w-8 h-8" />}
               label="Clay Shooting Sessions"
               value={stats?.claySessions || 0}
               link="/clay-shooting"
