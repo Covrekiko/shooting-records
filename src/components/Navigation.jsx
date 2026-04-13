@@ -19,7 +19,6 @@ export default function Navigation() {
     { path: '/target-shooting', label: 'Target Shooting' },
     { path: '/clay-shooting', label: 'Clay Shooting' },
     { path: '/deer-management', label: 'Deer Management' },
-    { path: '/settings/ammunition', label: 'Ammunition' },
   ];
 
   return (
