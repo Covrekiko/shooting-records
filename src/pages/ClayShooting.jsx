@@ -205,7 +205,7 @@ export default function ClayShooting() {
           <button
             onClick={() => setShowCheckin(true)}
             disabled={!!activeSession}
-            className="w-full md:w-auto px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center gap-2 mb-6"
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center gap-2 mb-6"
           >
             <Plus className="w-5 h-5" />
             Start New Session
