@@ -1,34 +1,10 @@
-import { useState, useEffect } from 'react';
 import { ChevronDown, MapPin } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { useState } from 'react';
 
-export default function AreaSelector({ selectedAreaId, onSelectArea, userLocation }) {
-  const [areas, setAreas] = useState([]);
+export default function AreaSelector({ savedAreas, selectedAreaId, onSelectArea }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadAreas();
-  }, []);
-
-  const loadAreas = async () => {
-    try {
-      setLoading(true);
-      const currentUser = await base44.auth.me();
-      const areasList = await base44.entities.Area.filter({ created_by: currentUser.email });
-      setAreas(areasList || []);
-    } catch (error) {
-      console.error('Error loading areas:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const selectedArea = areas.find((a) => a.id === selectedAreaId);
-
-  if (loading) {
-    return <div className="text-sm text-muted-foreground">Loading areas...</div>;
-  }
+  const selectedArea = savedAreas.find((a) => a.id === selectedAreaId);
 
   return (
     <div className="relative">
@@ -45,10 +21,10 @@ export default function AreaSelector({ selectedAreaId, onSelectArea, userLocatio
 
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-[9997] max-h-48 overflow-y-auto">
-          {areas.length === 0 ? (
+          {savedAreas.length === 0 ? (
             <div className="px-4 py-3 text-sm text-muted-foreground">No saved areas</div>
           ) : (
-            areas.map((area) => (
+            savedAreas.map((area) => (
               <button
                 key={area.id}
                 onClick={() => {

@@ -49,7 +49,8 @@ export default function DeerStalkingMap() {
   const [showAreaForm, setShowAreaForm] = useState(false);
   const [drawnPolygon, setDrawnPolygon] = useState(null);
   const [searchMarker, setSearchMarker] = useState(null);
-  const [selectedArea, setSelectedArea] = useState(null);
+  const [savedAreas, setSavedAreas] = useState([]);
+  const [selectedAreaId, setSelectedAreaId] = useState(null);
   const [areaBounds, setAreaBounds] = useState(null);
   const [useSatellite, setUseSatellite] = useState(false);
   const mapRef = useRef(null);
@@ -83,14 +84,17 @@ export default function DeerStalkingMap() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [markersData, harvestsData, locationsData] = await Promise.all([
+      const currentUser = await base44.auth.me();
+      const [markersData, harvestsData, locationsData, areasData] = await Promise.all([
         base44.entities.MapMarker.list(),
         base44.entities.Harvest.list(),
         base44.entities.DeerLocation.list(),
+        base44.entities.Area.filter({ created_by: currentUser.email }),
       ]);
       setMarkers(markersData || []);
       setHarvests(harvestsData || []);
       setLocations(locationsData || []);
+      setSavedAreas(areasData || []);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -275,7 +279,8 @@ export default function DeerStalkingMap() {
   const handleSaveArea = async (areaData) => {
     try {
       const area = await base44.entities.Area.create(areaData);
-      setSelectedArea(area);
+      setSavedAreas([...savedAreas, area]);
+      setSelectedAreaId(area.id);
       setShowAreaForm(false);
       setDrawnPolygon(null);
       setError(null);
@@ -285,7 +290,7 @@ export default function DeerStalkingMap() {
   };
 
   const handleSelectArea = (area) => {
-    setSelectedArea(area);
+    setSelectedAreaId(area.id);
     
     // Pan and zoom to fit the area boundary
     if (mapRef.current && area.center_point) {
@@ -444,15 +449,16 @@ export default function DeerStalkingMap() {
           />
         )}
 
-        {/* Selected Area Boundary */}
-        {selectedArea && selectedArea.polygon_coordinates && (
+        {/* All Saved Area Boundaries */}
+        {savedAreas.map((area) => (
           <Polyline
-            positions={selectedArea.polygon_coordinates}
-            color="#3b82f6"
-            weight={5}
-            opacity={1}
+            key={area.id}
+            positions={area.polygon_coordinates}
+            color={selectedAreaId === area.id ? "#3b82f6" : "#9ca3af"}
+            weight={selectedAreaId === area.id ? 5 : 3}
+            opacity={selectedAreaId === area.id ? 1 : 0.6}
           />
-        )}
+        ))}
 
         {/* Search Result Marker */}
         {searchMarker && (
@@ -469,7 +475,8 @@ export default function DeerStalkingMap() {
       {/* Area Selector - Top Left */}
       <div className="fixed top-20 left-4 z-[9999] pointer-events-auto">
         <AreaSelector
-          selectedAreaId={selectedArea?.id}
+          savedAreas={savedAreas}
+          selectedAreaId={selectedAreaId}
           onSelectArea={handleSelectArea}
           userLocation={userLocation}
         />
@@ -562,7 +569,7 @@ export default function DeerStalkingMap() {
                 locations={locations}
                 onClose={() => setShowOuting(false)}
                 onSubmit={handleStartOuting}
-                selectedArea={selectedArea}
+                selectedArea={savedAreas.find(a => a.id === selectedAreaId)}
               />
             </div>
           )}
