@@ -300,7 +300,7 @@ export default function DeerManagement() {
                />
              </div>
            )}
-           {showCheckout && activeSession && (
+           {showCheckout && (
              <div className="fixed inset-0 z-[50001] flex items-center justify-center">
                <CheckoutModal
                  data={checkoutData}
