@@ -50,10 +50,11 @@ export default function DeerStalkingMap() {
   const [drawnPolygon, setDrawnPolygon] = useState(null);
   const [searchMarker, setSearchMarker] = useState(null);
   const [selectedArea, setSelectedArea] = useState(null);
-   const [isDrawingArea, setIsDrawingArea] = useState(false);
-   const mapRef = useRef(null);
-   const isDrawingAreaRef = useRef(false);
-   const geoWatchIdRef = useRef(null);
+  const [isDrawingArea, setIsDrawingArea] = useState(false);
+  const mapRef = useRef(null);
+  const isDrawingAreaRef = useRef(false);
+  const geoWatchIdRef = useRef(null);
+  const frozenCenterRef = useRef(null);
 
   useEffect(() => {
     loadData();
@@ -292,6 +293,12 @@ export default function DeerStalkingMap() {
     console.log('🎯 CREATE AREA CLICKED');
     console.log('📍 Current watch ID:', geoWatchIdRef.current);
     
+    // Freeze the map center to prevent jumping
+    if (mapRef.current) {
+      frozenCenterRef.current = mapRef.current.getCenter();
+      console.log('❄️ MAP CENTER FROZEN:', frozenCenterRef.current);
+    }
+    
     // Hard stop: clear any active geolocation watch
     if (geoWatchIdRef.current !== null) {
       console.log('🛑 CLEARING geolocation watch:', geoWatchIdRef.current);
@@ -313,6 +320,8 @@ export default function DeerStalkingMap() {
     setShowAreaDrawer(false);
     setIsDrawingArea(false);
     isDrawingAreaRef.current = false;
+    frozenCenterRef.current = null;
+    console.log('❌ MAP CENTER UNFROZEN');
     setShowAreaForm(true);
   };
 
@@ -378,7 +387,7 @@ export default function DeerStalkingMap() {
     <div className={`w-full h-screen bg-slate-900 relative overflow-hidden ${waitingForPin ? 'cursor-crosshair' : ''}`}>
       <div className={`absolute inset-0 z-0 ${showPOI || showHarvest || showOuting ? 'pointer-events-none' : ''}`}>
         <MapContainer
-          center={userLocation}
+          center={isDrawingArea && frozenCenterRef.current ? frozenCenterRef.current : userLocation}
           zoom={13}
           style={{ width: '100%', height: '100%', cursor: 'crosshair' }}
           zoomControl={true}
