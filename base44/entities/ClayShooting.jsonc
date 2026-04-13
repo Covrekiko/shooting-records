@@ -23,6 +23,9 @@
     "rounds_fired": {
       "type": "integer"
     },
+    "ammunition_used": {
+      "type": "string"
+    },
     "notes": {
       "type": "string"
     },
