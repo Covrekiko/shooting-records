@@ -152,42 +152,234 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
     yPosition += 6;
   };
 
-  // Target Shooting Section
+  // Target Shooting Section - Detailed Vertical Format
   if (targetRecords.length > 0) {
-    const targetData = targetRecords.map(r => [
-      r.date,
-      r.checkin_time || '-',
-      r.checkout_time || '-',
-      String(r.rounds_fired || '-'),
-      r.caliber || '-',
-      r.ammunition_brand || '-',
-    ]);
-    addSection('TARGET SHOOTING SESSIONS', targetData, ['Date', 'Check-in', 'Check-out', 'Rounds', 'Caliber', 'Ammunition'], targetRecords.length);
+    if (yPosition > pageHeight - 50) {
+      doc.addPage();
+      yPosition = margin;
+    }
+    
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(30, 100, 45);
+    doc.text('TARGET SHOOTING SESSIONS - DETAILED REPORT', margin, yPosition);
+    yPosition += 4;
+    
+    doc.setDrawColor(30, 100, 45);
+    doc.line(margin, yPosition - 2, pageWidth - margin, yPosition - 2);
+    yPosition += 6;
+    
+    targetRecords.forEach((record, idx) => {
+      if (yPosition > pageHeight - 60) {
+        doc.addPage();
+        yPosition = margin;
+      }
+      
+      // Session header
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(20, 60, 40);
+      doc.text(`Session ${idx + 1} - ${record.date}`, margin, yPosition);
+      yPosition += 4;
+      
+      // Session basic info
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(0);
+      doc.text(`Check-in: ${record.checkin_time || 'N/A'} | Check-out: ${record.checkout_time || 'N/A'}`, margin + 2, yPosition);
+      yPosition += 4;
+      
+      // Firearms used
+      if (record.rifles_used && record.rifles_used.length > 0) {
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Firearms & Ammunition:', margin + 2, yPosition);
+        yPosition += 3;
+        
+        record.rifles_used.forEach((rifle, rIdx) => {
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(7.5);
+          doc.setTextColor(0);
+          
+          doc.text(`Rifle ${rIdx + 1}:`, margin + 4, yPosition);
+          yPosition += 2.5;
+          
+          doc.text(`  Rounds Fired: ${rifle.rounds_fired || '-'}`, margin + 6, yPosition);
+          yPosition += 2.5;
+          
+          doc.text(`  Ammunition Brand: ${rifle.ammunition_brand || '-'}`, margin + 6, yPosition);
+          yPosition += 2.5;
+          
+          doc.text(`  Bullet Type: ${rifle.bullet_type || '-'} | Grain: ${rifle.grain || '-'}`, margin + 6, yPosition);
+          yPosition += 2.5;
+          
+          doc.text(`  Range Distance: ${rifle.meters_range ? rifle.meters_range + 'm' : '-'}`, margin + 6, yPosition);
+          yPosition += 3;
+        });
+      }
+      
+      // Notes
+      if (record.notes) {
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Notes:', margin + 2, yPosition);
+        yPosition += 2;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0);
+        doc.setFontSize(7);
+        const wrappedNotes = doc.splitTextToSize(record.notes, pageWidth - 2 * margin - 4);
+        wrappedNotes.forEach(line => {
+          if (yPosition > pageHeight - 10) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          doc.text(line, margin + 4, yPosition);
+          yPosition += 2;
+        });
+      }
+      
+      yPosition += 3;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 4;
+    });
   }
 
-  // Clay Shooting Section
+  // Clay Shooting Section - Detailed Vertical Format
   if (clayRecords.length > 0) {
-    const clayData = clayRecords.map(r => [
-      r.date,
-      r.checkin_time || '-',
-      r.checkout_time || '-',
-      String(r.rounds_fired || '-'),
-    ]);
-    addSection('CLAY SHOOTING SESSIONS', clayData, ['Date', 'Check-in', 'Check-out', 'Rounds Fired'], clayRecords.length);
+    if (yPosition > pageHeight - 50) {
+      doc.addPage();
+      yPosition = margin;
+    }
+    
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(30, 100, 45);
+    doc.text('CLAY SHOOTING SESSIONS - DETAILED REPORT', margin, yPosition);
+    yPosition += 4;
+    
+    doc.setDrawColor(30, 100, 45);
+    doc.line(margin, yPosition - 2, pageWidth - margin, yPosition - 2);
+    yPosition += 6;
+    
+    clayRecords.forEach((record, idx) => {
+      if (yPosition > pageHeight - 40) {
+        doc.addPage();
+        yPosition = margin;
+      }
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(20, 60, 40);
+      doc.text(`Session ${idx + 1} - ${record.date}`, margin, yPosition);
+      yPosition += 4;
+      
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(0);
+      doc.text(`Check-in: ${record.checkin_time || 'N/A'} | Check-out: ${record.checkout_time || 'N/A'} | Rounds: ${record.rounds_fired || '-'}`, margin + 2, yPosition);
+      yPosition += 4;
+      
+      if (record.notes) {
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Notes:', margin + 2, yPosition);
+        yPosition += 2;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0);
+        doc.setFontSize(7);
+        const wrappedNotes = doc.splitTextToSize(record.notes, pageWidth - 2 * margin - 4);
+        wrappedNotes.forEach(line => {
+          if (yPosition > pageHeight - 10) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          doc.text(line, margin + 4, yPosition);
+          yPosition += 2;
+        });
+      }
+      
+      yPosition += 3;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 4;
+    });
   }
 
-  // Deer Management Section
+  // Deer Management Section - Detailed Vertical Format
   if (deerRecords.length > 0) {
-    const deerData = deerRecords.map(r => [
-      r.date,
-      r.start_time || '-',
-      r.end_time || '-',
-      r.place_name || '-',
-      r.deer_species || '-',
-      String(r.number_shot || '0'),
-      r.caliber || '-',
-    ]);
-    addSection('DEER MANAGEMENT ACTIVITY LOG', deerData, ['Date', 'Start', 'End', 'Location', 'Species', 'Count', 'Caliber'], deerRecords.length);
+    if (yPosition > pageHeight - 50) {
+      doc.addPage();
+      yPosition = margin;
+    }
+    
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(30, 100, 45);
+    doc.text('DEER MANAGEMENT ACTIVITY LOG - DETAILED REPORT', margin, yPosition);
+    yPosition += 4;
+    
+    doc.setDrawColor(30, 100, 45);
+    doc.line(margin, yPosition - 2, pageWidth - margin, yPosition - 2);
+    yPosition += 6;
+    
+    deerRecords.forEach((record, idx) => {
+      if (yPosition > pageHeight - 50) {
+        doc.addPage();
+        yPosition = margin;
+      }
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(20, 60, 40);
+      doc.text(`Activity ${idx + 1} - ${record.date}`, margin, yPosition);
+      yPosition += 4;
+      
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(0);
+      doc.text(`Location: ${record.place_name || '-'} | Species: ${record.deer_species || '-'} | Harvested: ${record.number_shot || '0'}`, margin + 2, yPosition);
+      yPosition += 3;
+      
+      doc.text(`Time: ${record.start_time || '-'} - ${record.end_time || '-'} | Caliber: ${record.caliber || '-'}`, margin + 2, yPosition);
+      yPosition += 3;
+      
+      if (record.ammunition_used) {
+        doc.text(`Ammunition: ${record.ammunition_used}`, margin + 2, yPosition);
+        yPosition += 3;
+      }
+      
+      if (record.notes) {
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Notes:', margin + 2, yPosition);
+        yPosition += 2;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0);
+        doc.setFontSize(7);
+        const wrappedNotes = doc.splitTextToSize(record.notes, pageWidth - 2 * margin - 4);
+        wrappedNotes.forEach(line => {
+          if (yPosition > pageHeight - 10) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          doc.text(line, margin + 4, yPosition);
+          yPosition += 2;
+        });
+      }
+      
+      yPosition += 3;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 4;
+    });
   }
 
   // Footer with compliance notice
@@ -352,38 +544,226 @@ function generateBase44Pdf(records, userInfo = null) {
   };
 
   if (targetRecords.length > 0) {
-    const targetData = targetRecords.map(r => [
-      r.date,
-      r.checkin_time || '-',
-      r.checkout_time || '-',
-      String(r.rounds_fired || '-'),
-      r.caliber || '-',
-      r.ammunition_brand || '-',
-    ]);
-    addSection('TARGET SHOOTING SESSIONS', targetData, ['Date', 'Check-in', 'Check-out', 'Rounds', 'Caliber', 'Ammunition'], targetRecords.length);
+    if (yPosition > pageHeight - 50) {
+      doc.addPage();
+      yPosition = margin;
+    }
+    
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(30, 100, 45);
+    doc.text('TARGET SHOOTING SESSIONS - DETAILED REPORT', margin, yPosition);
+    yPosition += 4;
+    
+    doc.setDrawColor(30, 100, 45);
+    doc.line(margin, yPosition - 2, pageWidth - margin, yPosition - 2);
+    yPosition += 6;
+    
+    targetRecords.forEach((record, idx) => {
+      if (yPosition > pageHeight - 60) {
+        doc.addPage();
+        yPosition = margin;
+      }
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(20, 60, 40);
+      doc.text(`Session ${idx + 1} - ${record.date}`, margin, yPosition);
+      yPosition += 4;
+      
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(0);
+      doc.text(`Check-in: ${record.checkin_time || 'N/A'} | Check-out: ${record.checkout_time || 'N/A'}`, margin + 2, yPosition);
+      yPosition += 4;
+      
+      if (record.rifles_used && record.rifles_used.length > 0) {
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Firearms & Ammunition:', margin + 2, yPosition);
+        yPosition += 3;
+        
+        record.rifles_used.forEach((rifle, rIdx) => {
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(7.5);
+          doc.setTextColor(0);
+          
+          doc.text(`Rifle ${rIdx + 1}:`, margin + 4, yPosition);
+          yPosition += 2.5;
+          
+          doc.text(`  Rounds Fired: ${rifle.rounds_fired || '-'}`, margin + 6, yPosition);
+          yPosition += 2.5;
+          
+          doc.text(`  Ammunition Brand: ${rifle.ammunition_brand || '-'}`, margin + 6, yPosition);
+          yPosition += 2.5;
+          
+          doc.text(`  Bullet Type: ${rifle.bullet_type || '-'} | Grain: ${rifle.grain || '-'}`, margin + 6, yPosition);
+          yPosition += 2.5;
+          
+          doc.text(`  Range Distance: ${rifle.meters_range ? rifle.meters_range + 'm' : '-'}`, margin + 6, yPosition);
+          yPosition += 3;
+        });
+      }
+      
+      if (record.notes) {
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Notes:', margin + 2, yPosition);
+        yPosition += 2;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0);
+        doc.setFontSize(7);
+        const wrappedNotes = doc.splitTextToSize(record.notes, pageWidth - 2 * margin - 4);
+        wrappedNotes.forEach(line => {
+          if (yPosition > pageHeight - 10) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          doc.text(line, margin + 4, yPosition);
+          yPosition += 2;
+        });
+      }
+      
+      yPosition += 3;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 4;
+    });
   }
 
   if (clayRecords.length > 0) {
-    const clayData = clayRecords.map(r => [
-      r.date,
-      r.checkin_time || '-',
-      r.checkout_time || '-',
-      String(r.rounds_fired || '-'),
-    ]);
-    addSection('CLAY SHOOTING SESSIONS', clayData, ['Date', 'Check-in', 'Check-out', 'Rounds Fired'], clayRecords.length);
+    if (yPosition > pageHeight - 50) {
+      doc.addPage();
+      yPosition = margin;
+    }
+    
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(30, 100, 45);
+    doc.text('CLAY SHOOTING SESSIONS - DETAILED REPORT', margin, yPosition);
+    yPosition += 4;
+    
+    doc.setDrawColor(30, 100, 45);
+    doc.line(margin, yPosition - 2, pageWidth - margin, yPosition - 2);
+    yPosition += 6;
+    
+    clayRecords.forEach((record, idx) => {
+      if (yPosition > pageHeight - 40) {
+        doc.addPage();
+        yPosition = margin;
+      }
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(20, 60, 40);
+      doc.text(`Session ${idx + 1} - ${record.date}`, margin, yPosition);
+      yPosition += 4;
+      
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(0);
+      doc.text(`Check-in: ${record.checkin_time || 'N/A'} | Check-out: ${record.checkout_time || 'N/A'} | Rounds: ${record.rounds_fired || '-'}`, margin + 2, yPosition);
+      yPosition += 4;
+      
+      if (record.notes) {
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Notes:', margin + 2, yPosition);
+        yPosition += 2;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0);
+        doc.setFontSize(7);
+        const wrappedNotes = doc.splitTextToSize(record.notes, pageWidth - 2 * margin - 4);
+        wrappedNotes.forEach(line => {
+          if (yPosition > pageHeight - 10) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          doc.text(line, margin + 4, yPosition);
+          yPosition += 2;
+        });
+      }
+      
+      yPosition += 3;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 4;
+    });
   }
 
   if (deerRecords.length > 0) {
-    const deerData = deerRecords.map(r => [
-      r.date,
-      r.start_time || '-',
-      r.end_time || '-',
-      r.place_name || '-',
-      r.deer_species || '-',
-      String(r.number_shot || '0'),
-      r.caliber || '-',
-    ]);
-    addSection('DEER MANAGEMENT ACTIVITY LOG', deerData, ['Date', 'Start', 'End', 'Location', 'Species', 'Count', 'Caliber'], deerRecords.length);
+    if (yPosition > pageHeight - 50) {
+      doc.addPage();
+      yPosition = margin;
+    }
+    
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(30, 100, 45);
+    doc.text('DEER MANAGEMENT ACTIVITY LOG - DETAILED REPORT', margin, yPosition);
+    yPosition += 4;
+    
+    doc.setDrawColor(30, 100, 45);
+    doc.line(margin, yPosition - 2, pageWidth - margin, yPosition - 2);
+    yPosition += 6;
+    
+    deerRecords.forEach((record, idx) => {
+      if (yPosition > pageHeight - 50) {
+        doc.addPage();
+        yPosition = margin;
+      }
+      
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(20, 60, 40);
+      doc.text(`Activity ${idx + 1} - ${record.date}`, margin, yPosition);
+      yPosition += 4;
+      
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(0);
+      doc.text(`Location: ${record.place_name || '-'} | Species: ${record.deer_species || '-'} | Harvested: ${record.number_shot || '0'}`, margin + 2, yPosition);
+      yPosition += 3;
+      
+      doc.text(`Time: ${record.start_time || '-'} - ${record.end_time || '-'} | Caliber: ${record.caliber || '-'}`, margin + 2, yPosition);
+      yPosition += 3;
+      
+      if (record.ammunition_used) {
+        doc.text(`Ammunition: ${record.ammunition_used}`, margin + 2, yPosition);
+        yPosition += 3;
+      }
+      
+      if (record.notes) {
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Notes:', margin + 2, yPosition);
+        yPosition += 2;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0);
+        doc.setFontSize(7);
+        const wrappedNotes = doc.splitTextToSize(record.notes, pageWidth - 2 * margin - 4);
+        wrappedNotes.forEach(line => {
+          if (yPosition > pageHeight - 10) {
+            doc.addPage();
+            yPosition = margin;
+          }
+          doc.text(line, margin + 4, yPosition);
+          yPosition += 2;
+        });
+      }
+      
+      yPosition += 3;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPosition, pageWidth - margin, yPosition);
+      yPosition += 4;
+    });
   }
 
   yPosition += 5;
