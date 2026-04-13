@@ -238,8 +238,9 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, r
     }
     if (record.recordType === 'clay') return `Clay Shooting - ${record.rounds_fired || 0} rounds`;
     if (record.recordType === 'deer') {
-      if (!record.number_shot) return 'Deer Management - No shots fired';
-      return `Deer: ${record.number_shot} ${record.deer_species || 'Unknown'}`;
+      if (!record.total_count) return 'Deer Management - No shots fired';
+      const speciesList = record.species_list?.map(s => `${s.species}(${s.count})`).join(', ') || 'Unknown';
+      return `Deer: ${speciesList} - ${record.total_count} shots fired`;
     }
   };
 
