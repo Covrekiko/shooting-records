@@ -149,14 +149,23 @@ export default function DeerManagement() {
         />
       )}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Deer Management</h1>
-          <p className="text-muted-foreground">Record your deer stalking outings</p>
+        <div className="flex items-start justify-between mb-8">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Deer Management</h1>
+            <p className="text-muted-foreground">Record your deer stalking outings</p>
+          </div>
+          {!activeSession && (
+            <button
+              onClick={() => setShowCheckin(true)}
+              className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2 whitespace-nowrap mt-2"
+            >
+              <Plus className="w-5 h-5" />
+              Start New Outing
+            </button>
+          )}
         </div>
 
-        <LegalShootingHours />
-
-        {activeSession ? (
+        {activeSession && (
           <div className="bg-accent border border-border rounded-lg p-6 mb-6">
             <div className="flex items-start justify-between">
               <div>
@@ -179,15 +188,9 @@ export default function DeerManagement() {
               </button>
             </div>
           </div>
-        ) : (
-          <button
-            onClick={() => setShowCheckin(true)}
-            className="w-full md:w-auto px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2 mb-6"
-          >
-            <Plus className="w-5 h-5" />
-            Start New Outing
-          </button>
         )}
+
+        <LegalShootingHours />
 
         {showCheckin && (
           <CheckinModal
