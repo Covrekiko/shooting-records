@@ -438,12 +438,17 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
                     value={rifle.ammunition_id || ''}
                     onChange={(e) => {
                       const selectedAmmo = ammunition.find(a => a.id === e.target.value);
+                      updateRifleEntry(index, 'ammunition_id', e.target.value);
                       if (selectedAmmo) {
-                        updateRifleEntry(index, 'ammunition_id', e.target.value);
-                        updateRifleEntry(index, 'ammunition_brand', selectedAmmo.brand);
-                        updateRifleEntry(index, 'caliber', selectedAmmo.caliber);
-                        updateRifleEntry(index, 'bullet_type', selectedAmmo.bullet_type);
-                        updateRifleEntry(index, 'grain', selectedAmmo.grain);
+                        updateRifleEntry(index, 'ammunition_brand', selectedAmmo.brand || '');
+                        updateRifleEntry(index, 'caliber', selectedAmmo.caliber || '');
+                        updateRifleEntry(index, 'bullet_type', selectedAmmo.bullet_type || '');
+                        updateRifleEntry(index, 'grain', selectedAmmo.grain || '');
+                      } else {
+                        updateRifleEntry(index, 'ammunition_brand', '');
+                        updateRifleEntry(index, 'caliber', '');
+                        updateRifleEntry(index, 'bullet_type', '');
+                        updateRifleEntry(index, 'grain', '');
                       }
                     }}
                     className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background mb-2"
