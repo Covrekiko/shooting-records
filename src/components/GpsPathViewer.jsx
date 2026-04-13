@@ -64,8 +64,8 @@ export default function GpsPathViewer({ track, onClose }) {
           </button>
         </div>
 
-        <div className="flex-1 overflow-hidden" style={{ minHeight: '400px' }}>
-          <MapContainer center={[center.lat, center.lng]} zoom={15} style={{ width: '100%', height: '100%' }}>
+        <div className="flex-1 overflow-hidden" style={{ height: '500px', width: '100%' }}>
+          <MapContainer center={[center.lat, center.lng]} zoom={15} style={{ width: '100%', height: '100%' }} key={`map-${center.lat}-${center.lng}`}>
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; OpenStreetMap'
