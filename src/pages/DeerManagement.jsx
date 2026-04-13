@@ -432,8 +432,8 @@ function CheckoutModal({ data, rifles, ammunition, onSubmit, onChange, onClose }
  };
 
  return (
-   <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-     <div className="bg-card rounded-lg max-w-md w-full p-6 my-8">
+   <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[9997] overflow-y-auto">
+     <div className="bg-card rounded-lg max-w-md w-full p-6 my-8 relative z-[9998]">
        <h2 className="text-xl font-bold mb-4">Check Out</h2>
        <form onSubmit={onSubmit} className="space-y-4">
          <div>
