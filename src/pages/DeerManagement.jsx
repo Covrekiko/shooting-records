@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
+import LegalShootingHours from '@/components/LegalShootingHours';
 import { Plus } from 'lucide-react';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
@@ -124,6 +125,8 @@ export default function DeerManagement() {
           <h1 className="text-4xl font-bold mb-2">Deer Management</h1>
           <p className="text-muted-foreground">Record your deer stalking outings</p>
         </div>
+
+        <LegalShootingHours />
 
         <button
           onClick={() => setShowForm(!showForm)}
