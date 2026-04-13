@@ -67,13 +67,11 @@ export async function generateFormalReport(records, user, options = {}) {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   
-  // Count pages for header/footer
-  const estimatedPages = Math.ceil(records.length / 8) + 2;
   let pageNum = 1;
   let yPos = 35;
   
   // Title page
-  addHeader(doc, pageNum, estimatedPages);
+  addHeader(doc, pageNum, 'TBD');
   
   // Report title
   doc.setFontSize(24);
@@ -124,7 +122,7 @@ export async function generateFormalReport(records, user, options = {}) {
   // Page 2: Executive Summary
   doc.addPage();
   pageNum++;
-  addHeader(doc, pageNum, estimatedPages);
+  addHeader(doc, pageNum, 'TBD');
   yPos = 35;
   
   yPos = addSection(doc, 'EXECUTIVE SUMMARY', yPos);
@@ -196,7 +194,7 @@ export async function generateFormalReport(records, user, options = {}) {
   while (recordIndex < records.length) {
     doc.addPage();
     pageNum++;
-    addHeader(doc, pageNum, estimatedPages);
+    addHeader(doc, pageNum, 'TBD');
     yPos = 35;
     
     yPos = addSection(doc, 'DETAILED ACTIVITY RECORDS', yPos);
@@ -207,7 +205,7 @@ export async function generateFormalReport(records, user, options = {}) {
       if (yPos > pageHeight - 30) {
         doc.addPage();
         pageNum++;
-        addHeader(doc, pageNum, estimatedPages);
+        addHeader(doc, pageNum, 'TBD');
         yPos = 35;
         yPos = addSection(doc, 'DETAILED ACTIVITY RECORDS (continued)', yPos);
       }
@@ -253,7 +251,19 @@ export async function generateFormalReport(records, user, options = {}) {
   // Final page: Certification
   doc.addPage();
   pageNum++;
-  addHeader(doc, pageNum, estimatedPages);
+  const totalPages = doc.getNumberOfPages();
+  addHeader(doc, pageNum, totalPages);
+  
+  // Update all previous pages with correct total
+  for (let i = 1; i < totalPages; i++) {
+    doc.setPage(i);
+    const pageWidth = doc.internal.pageSize.getWidth();
+    doc.setFontSize(9);
+    doc.setTextColor(LIGHT_TEXT[0], LIGHT_TEXT[1], LIGHT_TEXT[2]);
+    doc.text(`Page ${i} of ${totalPages}`, pageWidth - 15, 20);
+  }
+  
+  doc.setPage(totalPages);
   yPos = 40;
   
   yPos = addSection(doc, 'CERTIFICATION & SIGNATURE', yPos);
