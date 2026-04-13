@@ -10,6 +10,7 @@ import HarvestModal from '@/components/deer-stalking/HarvestModal';
 import OutingModal from '@/components/deer-stalking/OutingModal';
 import MapClickHandler from '@/components/deer-stalking/MapClickHandler';
 import { AlertCircle, Home } from 'lucide-react';
+import DeerStalkingCheckoutModal from '@/components/deer-stalking/DeerStalkingCheckoutModal';
 
 // Fix Leaflet default icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -33,6 +34,7 @@ export default function DeerStalkingMap() {
   const [showPOI, setShowPOI] = useState(false);
   const [showHarvest, setShowHarvest] = useState(false);
   const [showOuting, setShowOuting] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
   const [focusedHarvestId, setFocusedHarvestId] = useState(null);
   const [waitingForPin, setWaitingForPin] = useState(null); // 'poi' or 'harvest'
 
@@ -135,12 +137,13 @@ export default function DeerStalkingMap() {
     }
   };
 
-  const handleEndOuting = async () => {
-    console.log('🔴 DeerStalkingMap.handleEndOuting called - activeOuting:', activeOuting?.id);
+  const handleCheckoutConfirm = async (checkoutData) => {
+    console.log('🔴 DeerStalkingMap.handleCheckoutConfirm called with:', checkoutData);
     if (!activeOuting) return;
     try {
-      console.log('🔴 DeerStalkingMap.handleEndOuting - calling endOuting()');
+      console.log('🔴 DeerStalkingMap.handleCheckoutConfirm - calling endOuting()');
       await endOuting(activeOuting.id);
+      setShowCheckout(false);
       loadData();
     } catch (err) {
       setError(err.message);
@@ -333,7 +336,10 @@ export default function DeerStalkingMap() {
         onOuting={() => setShowOuting(true)}
         onRecenter={() => {}} 
         activeOuting={activeOuting}
-        onEndOuting={handleEndOuting}
+        onEndOuting={() => {
+          console.log('🔴 DeerStalkingMap FAB End Outing clicked - opening checkout modal');
+          setShowCheckout(true);
+        }}
       />
 
       {/* Modals - rendered at top level with highest z-index */}
@@ -373,6 +379,17 @@ export default function DeerStalkingMap() {
             locations={locations}
             onClose={() => setShowOuting(false)}
             onSubmit={handleStartOuting}
+          />
+        </div>
+      )}
+
+      {showCheckout && activeOuting && (
+        <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+          {console.log('🔴 DeerStalkingMap CHECK-OUT MODAL RENDERING')}
+          <DeerStalkingCheckoutModal
+            activeOuting={activeOuting}
+            onConfirm={handleCheckoutConfirm}
+            onClose={() => setShowCheckout(false)}
           />
         </div>
       )}
