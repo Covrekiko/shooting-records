@@ -127,8 +127,11 @@ export default function TargetShooting() {
          await decrementAmmoStock(rifle.ammunition_id, parseInt(rifle.rounds_fired));
        }
      }
+     // Extract photo URLs from photo objects
+     const photoUrls = checkoutData.photos.map(photo => typeof photo === 'string' ? photo : photo.url);
      await base44.entities.TargetShooting.update(activeSession.id, {
        ...checkoutData,
+       photos: photoUrls,
        active_checkin: false,
        gps_track: gpsTrack,
      });
