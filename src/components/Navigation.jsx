@@ -1,10 +1,16 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { Menu, X, Settings } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
 
 export default function Navigation() {
   const [open, setOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const location = useLocation();
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   const isActive = (path) => location.pathname === path;
 
@@ -37,6 +43,19 @@ export default function Navigation() {
               {item.label}
             </Link>
           ))}
+          {user?.role === 'admin' && (
+            <Link
+              to="/admin/users"
+              className={`text-sm font-medium transition-colors flex items-center gap-1 ${
+                isActive('/admin/users')
+                  ? 'text-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Settings className="w-4 h-4" />
+              Admin
+            </Link>
+          )}
           <Link
             to="/profile"
             className={`text-sm font-medium transition-colors ${
@@ -75,6 +94,20 @@ export default function Navigation() {
                   {item.label}
                 </Link>
               ))}
+              {user?.role === 'admin' && (
+                <Link
+                  to="/admin/users"
+                  onClick={() => setOpen(false)}
+                  className={`text-sm font-medium py-2 px-3 rounded transition-colors flex items-center gap-1 ${
+                    isActive('/admin/users')
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-foreground hover:bg-secondary'
+                  }`}
+                >
+                  <Settings className="w-4 h-4" />
+                  Admin
+                </Link>
+              )}
               <Link
                 to="/profile"
                 onClick={() => setOpen(false)}

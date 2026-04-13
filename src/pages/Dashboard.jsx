@@ -99,29 +99,28 @@ export default function Dashboard() {
         {user?.role === 'admin' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <StatCard
-              icon={<Activity className="w-8 h-8" />}
-              label="Total Users"
-              value={stats?.totalUsers || 0}
-            />
-            <StatCard
-              icon={<Target className="w-8 h-8" />}
-              label="Total Records"
-              value={stats?.totalRecords || 0}
+              icon={<MapPin className="w-8 h-8" />}
+              label="Deer Management"
+              value={stats?.deerRecords || 0}
+              link="/admin/users"
             />
             <StatCard
               icon={<Zap className="w-8 h-8" />}
               label="Target Shooting"
               value={stats?.targetRecords || 0}
+              link="/admin/users"
             />
             <StatCard
               icon={<Zap className="w-8 h-8" />}
               label="Clay Shooting"
               value={stats?.clayRecords || 0}
+              link="/admin/users"
             />
             <StatCard
-              icon={<MapPin className="w-8 h-8" />}
-              label="Deer Management"
-              value={stats?.deerRecords || 0}
+              icon={<Target className="w-8 h-8" />}
+              label="Total Records"
+              value={stats?.totalRecords || 0}
+              link="/admin/users"
             />
           </div>
         ) : (
@@ -251,16 +250,28 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
     .slice(0, 8);
 }
 
-function StatCard({ icon, label, value }) {
+function StatCard({ icon, label, value, link }) {
+  const content = (
+    <div className="flex items-start justify-between">
+      <div>
+        <p className="text-sm text-muted-foreground mb-2">{label}</p>
+        <p className="text-4xl font-bold text-primary">{value}</p>
+      </div>
+      <div className="text-muted-foreground cursor-pointer hover:text-primary transition-colors">{icon}</div>
+    </div>
+  );
+
+  if (link) {
+    return (
+      <Link to={link} className="bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-shadow block">
+        {content}
+      </Link>
+    );
+  }
+
   return (
     <div className="bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-shadow">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-muted-foreground mb-2">{label}</p>
-          <p className="text-4xl font-bold text-primary">{value}</p>
-        </div>
-        <div className="text-muted-foreground">{icon}</div>
-      </div>
+      {content}
     </div>
   );
 }

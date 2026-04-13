@@ -10,10 +10,32 @@
       ],
       "default": "user"
     },
-    "active": {
-      "type": "boolean",
-      "default": true
+    "phone": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "vehicle_make": {
+      "type": "string"
+    },
+    "vehicle_model": {
+      "type": "string"
+    },
+    "vehicle_color": {
+      "type": "string"
+    },
+    "vehicle_registration": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "banned"
+      ],
+      "default": "active"
     }
-  },
-  "required": []
+  }
 }
