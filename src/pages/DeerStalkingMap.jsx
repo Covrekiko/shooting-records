@@ -63,7 +63,7 @@ export default function DeerStalkingMap() {
 
   // GPS tracking for active outing
   useEffect(() => {
-    if (!activeOuting) return;
+    if (!activeOuting?.id) return;
 
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
@@ -71,7 +71,6 @@ export default function DeerStalkingMap() {
         const timestamp = Date.now();
         const newTrackPoint = { lat: latitude, lng: longitude, timestamp };
         const updatedTrack = [...(activeOuting.gps_track || []), newTrackPoint];
-        
         updateGpsTrack(activeOuting.id, updatedTrack);
       },
       (error) => console.error('Geolocation error:', error),
@@ -79,7 +78,7 @@ export default function DeerStalkingMap() {
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [activeOuting?.id, updateGpsTrack]);
+  }, [activeOuting?.id, activeOuting?.gps_track, updateGpsTrack]);
 
   const loadData = async () => {
     try {
