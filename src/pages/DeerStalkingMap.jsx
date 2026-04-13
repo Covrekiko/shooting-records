@@ -33,6 +33,7 @@ export default function DeerStalkingMap() {
   const [showHarvest, setShowHarvest] = useState(false);
   const [showOuting, setShowOuting] = useState(false);
   const [focusedHarvestId, setFocusedHarvestId] = useState(null);
+  const [pinMode, setPinMode] = useState(null); // 'poi' or 'harvest' or null
 
   useEffect(() => {
     loadData();
@@ -75,7 +76,16 @@ export default function DeerStalkingMap() {
   };
 
   const handleMapClick = (e) => {
-    setMapClick({ lat: e.latlng.lat, lng: e.latlng.lng });
+    const location = { lat: e.latlng.lat, lng: e.latlng.lng };
+    setMapClick(location);
+    
+    if (pinMode === 'poi') {
+      setShowPOI(true);
+      setPinMode(null);
+    } else if (pinMode === 'harvest') {
+      setShowHarvest(true);
+      setPinMode(null);
+    }
   };
 
   const handlePOISubmit = async (data) => {
@@ -248,10 +258,16 @@ export default function DeerStalkingMap() {
         </div>
       )}
 
+      {pinMode && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9998] bg-slate-900 text-white px-4 py-2 rounded-lg text-sm">
+          Click on map to pin {pinMode === 'poi' ? 'POI' : 'Harvest'}
+        </div>
+      )}
+
       {/* Floating Action Bar */}
       <FloatingActionBar
-        onPOI={() => setShowPOI(true)}
-        onHarvest={() => setShowHarvest(true)}
+        onPOI={() => setPinMode('poi')}
+        onHarvest={() => setPinMode('harvest')}
         onOuting={() => setShowOuting(true)}
         onRecenter={() => {}} 
         activeOuting={activeOuting}
