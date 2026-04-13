@@ -5,6 +5,7 @@ import { base44 } from '@/api/base44Client';
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
 
 export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition, onSubmit, onClose }) {
+  console.log('🔴 UnifiedCheckoutModal RENDERING - activeOuting:', activeOuting?.id, 'rifles:', rifles.length, 'ammunition:', ammunition.length);
   const [checkoutData, setCheckoutData] = useState({
     end_time: new Date().toTimeString().slice(0, 5),
     shot_anything: false,
@@ -59,6 +60,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   };
 
   const handleSubmit = () => {
+    console.log('🔴 UnifiedCheckoutModal.handleSubmit called - checkoutData:', checkoutData);
     if (checkoutData.shot_anything && checkoutData.species_list?.length) {
       const totalCount = checkoutData.species_list.reduce((sum, s) => sum + (parseInt(s.count) || 0), 0);
       if (!checkoutData.total_count || parseInt(checkoutData.total_count) !== totalCount) {
@@ -70,7 +72,10 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   };
 
   return (
-    <div className="bg-card rounded-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+    <div className="bg-card rounded-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => {
+      console.log('🔴 UnifiedCheckoutModal modal container clicked');
+      e.stopPropagation();
+    }}>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold">Check Out</h2>
         <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded">

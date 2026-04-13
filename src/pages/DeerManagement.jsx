@@ -74,7 +74,9 @@ export default function DeerManagement() {
 
   const handleCheckin = async (e) => {
     e.preventDefault();
+    console.log('🔵 CHECK-IN BUTTON CLICKED - handleCheckin called');
     try {
+      console.log('🔵 CHECK-IN: startOuting completed, closing modal via setShowCheckin(false)');
       await startOuting(checkinData);
       setShowCheckin(false);
       setCheckinData({
@@ -89,6 +91,7 @@ export default function DeerManagement() {
   };
 
   const handleCheckout = async (checkoutData) => {
+    console.log('🔴 CHECK-OUT BUTTON CLICKED - handleCheckout called with data:', checkoutData);
     if (!activeOuting) {
       alert('No active outing to check out from');
       return;
@@ -106,6 +109,7 @@ export default function DeerManagement() {
         submitData.ammunition_used = null;
       }
 
+      console.log('🔴 CHECK-OUT: endOutingWithData completed, closing modal via setShowCheckout(false)');
       await endOutingWithData(activeOuting.id, submitData, []);
       setShowCheckout(false);
     } catch (error) {
@@ -124,6 +128,8 @@ export default function DeerManagement() {
     );
   }
 
+  console.log('🎯 DeerManagement RENDER - showCheckin:', showCheckin, 'showCheckout:', showCheckout, 'activeOuting:', activeOuting?.id);
+  
   return (
     <div>
       <Navigation />
@@ -143,7 +149,10 @@ export default function DeerManagement() {
           </div>
           {!activeOuting && (
             <button
-              onClick={() => setShowCheckin(true)}
+              onClick={() => {
+                console.log('🔵 CHECK-IN BUTTON CLICKED - setShowCheckin(true) called');
+                setShowCheckin(true);
+              }}
               className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2 whitespace-nowrap mt-2"
             >
               <Plus className="w-5 h-5" />
@@ -174,7 +183,10 @@ export default function DeerManagement() {
               </div>
               <div className="flex gap-2">
                 <button
-                  onClick={() => setShowCheckout(true)}
+                  onClick={() => {
+                    console.log('🔴 CHECK-OUT BUTTON CLICKED - setShowCheckout(true) called');
+                    setShowCheckout(true);
+                  }}
                   className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
                 >
                   Check Out
@@ -191,28 +203,34 @@ export default function DeerManagement() {
               <div className="fixed inset-0 z-[50000] bg-black/50" />
             )}
             {showCheckin && (
-              <div className="fixed inset-0 z-[50001] flex items-center justify-center">
-                <CheckinModal
-                  data={checkinData}
-                  locations={locations}
-                  onSubmit={handleCheckin}
-                  onChange={(field, value) =>
-                    setCheckinData({ ...checkinData, [field]: value })
-                  }
-                  onClose={() => setShowCheckin(false)}
-                />
-              </div>
+              <>
+                {console.log('🔵 CHECK-IN MODAL RENDERING - showCheckin is TRUE')}
+                <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+                    <CheckinModal
+                    data={checkinData}
+                    locations={locations}
+                    onSubmit={handleCheckin}
+                    onChange={(field, value) =>
+                      setCheckinData({ ...checkinData, [field]: value })
+                    }
+                    onClose={() => setShowCheckin(false)}
+                  />
+                </div>
+              </>
             )}
-            {showCheckout && activeOuting && (
-              <div className="fixed inset-0 z-[50001] flex items-center justify-center">
-                <UnifiedCheckoutModal
-                  activeOuting={activeOuting}
-                  rifles={rifles}
-                  ammunition={ammunition}
-                  onSubmit={handleCheckout}
-                  onClose={() => setShowCheckout(false)}
-                />
-              </div>
+            {showCheckout && (
+              <>
+                {console.log('🔴 CHECK-OUT MODAL RENDERING - showCheckout is TRUE, activeOuting:', activeOuting?.id)}
+                <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+                  <UnifiedCheckoutModal
+                    activeOuting={activeOuting}
+                    rifles={rifles}
+                    ammunition={ammunition}
+                    onSubmit={handleCheckout}
+                    onClose={() => setShowCheckout(false)}
+                  />
+                </div>
+              </>
             )}
           </>,
           document.body

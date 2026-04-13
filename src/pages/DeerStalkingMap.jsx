@@ -136,8 +136,10 @@ export default function DeerStalkingMap() {
   };
 
   const handleEndOuting = async () => {
+    console.log('🔴 DeerStalkingMap.handleEndOuting called - activeOuting:', activeOuting?.id);
     if (!activeOuting) return;
     try {
+      console.log('🔴 DeerStalkingMap.handleEndOuting - calling endOuting()');
       await endOuting(activeOuting.id);
       loadData();
     } catch (err) {
@@ -171,6 +173,8 @@ export default function DeerStalkingMap() {
     );
   }
 
+  console.log('🔴 DeerStalkingMap RENDER - showOuting:', showOuting, 'activeOuting:', activeOuting?.id);
+  
   return (
     <div className={`w-full h-screen bg-slate-900 relative overflow-hidden ${waitingForPin ? 'cursor-crosshair' : ''}`}>
       <div className={`absolute inset-0 z-0 ${showPOI || showHarvest || showOuting ? 'pointer-events-none' : ''}`}>
