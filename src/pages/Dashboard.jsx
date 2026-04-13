@@ -105,7 +105,7 @@ export default function Dashboard() {
         {user?.role === 'admin' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <StatCard
-              icon={<MapPin className="w-8 h-8" />}
+              icon={<span className="text-2xl">🦌</span>}
               label="Deer Management"
               value={stats?.deerRecords || 0}
               link="/deer-management"
@@ -144,7 +144,7 @@ export default function Dashboard() {
               link="/clay-shooting"
             />
             <StatCard
-              icon={<MapPin className="w-8 h-8" />}
+              icon={<span className="text-2xl">🦌</span>}
               label="Deer Management Outings"
               value={stats?.deerOutings || 0}
               link="/deer-management"
