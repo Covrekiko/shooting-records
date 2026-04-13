@@ -349,7 +349,7 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
         {record.recordType === 'target' && (
           <>
             {/* Venue Information */}
-            {getClubName(record.club_id) && (
+            {record.club_id && (
               <div className="mb-6 pb-4 border-b border-border">
                 <h3 className="font-bold text-lg mb-3 text-primary">Venue Details</h3>
                 <div className="bg-secondary/30 p-4 rounded-lg">
@@ -536,7 +536,7 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
               </div>
             </div>
 
-            {record.rifle_id && rifles[record.rifle_id] && (
+            {record.rifle_id && (
               <div className="mb-6 pb-4 border-b border-border">
                 <h3 className="font-bold text-lg mb-3 text-primary">Rifle Details</h3>
                 <div className="bg-secondary/30 p-4 rounded-lg">
