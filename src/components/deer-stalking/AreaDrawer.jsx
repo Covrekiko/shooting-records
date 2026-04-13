@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { Undo, X, Check, Lock } from 'lucide-react';
+import { Undo, X, Check, Lock, Satellite } from 'lucide-react';
 import MapSearchBar from './MapSearchBar';
 
 function SetInitialView({ center, zoom }) {
@@ -26,6 +26,7 @@ function DrawingMap({ points, onAddPoint, onUndo, onCancel, onFinish }) {
 export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter, mapZoom }) {
   const [points, setPoints] = useState([]);
   const [isClosed, setIsClosed] = useState(false);
+  const [useSatellite, setUseSatellite] = useState(false);
   const mapRef = useRef(null);
 
   const handleAddPoint = (point) => {
@@ -76,8 +77,8 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         ref={mapRef}
       >
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; OpenStreetMap contributors'
+          url={useSatellite ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'}
+          attribution={useSatellite ? '&copy; Esri' : '&copy; OpenStreetMap contributors'}
         />
         <DrawingMap points={points} onAddPoint={handleAddPoint} onUndo={handleUndo} onCancel={onCancel} onFinish={handleFinish} />
 
@@ -103,6 +104,15 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
           />
         )}
       </MapContainer>
+
+      {/* Satellite Toggle */}
+      <button
+        onClick={() => setUseSatellite(!useSatellite)}
+        className="fixed top-4 right-4 z-[9999] p-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all"
+        title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
+      >
+        <Satellite className="w-5 h-5" />
+      </button>
 
       {/* Floating Controls */}
       <div className="fixed bottom-6 left-6 z-[9999] flex flex-col gap-2 bg-card rounded-lg p-4 shadow-lg">
