@@ -127,6 +127,7 @@ export default function Clubs() {
     <div>
       <Navigation />
       <main className="max-w-4xl mx-auto px-4 py-8">
+        <datalist id="club-list" />
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Clubs</h1>
           <p className="text-muted-foreground">Manage your shooting clubs</p>
@@ -156,9 +157,11 @@ export default function Clubs() {
                   value={clubNameInput}
                   onChange={(e) => handleClubNameChange(e.target.value)}
                   autoComplete="new-password"
+                  list="club-list"
                   className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                   required
                 />
+                <datalist id="club-list" />
                {(loadingSuggestions || clubSuggestions.length > 0) && (
                    <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
                      {loadingSuggestions ? (
