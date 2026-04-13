@@ -151,7 +151,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
       </div>
 
       {/* Instructions */}
-      <div className="fixed top-4 left-4 z-[9998] bg-blue-500 text-white px-4 py-3 rounded-lg max-w-sm pointer-events-none">
+      <div className="fixed top-4 right-4 z-[9998] bg-blue-500 text-white px-4 py-3 rounded-lg max-w-sm pointer-events-none">
         <p className="text-sm font-semibold mb-1">Draw Boundary</p>
         <p className="text-xs opacity-90">
           {isClosed ? 'Boundary closed. Tap Finish to save.' : 'Tap on the map to add points. Need at least 3 points.'}
