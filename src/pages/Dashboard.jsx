@@ -155,8 +155,14 @@ export default function Dashboard() {
               value={stats?.totalShotgunRounds || 0}
               link="/records"
             />
-          </div>
-        )}
+            <StatCard
+              icon={<MapPin className="w-8 h-8" />}
+              label="Stalking Map"
+              value="Open"
+              link="/deer-stalking"
+            />
+            </div>
+            )}
 
         {/* Widgets */}
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
