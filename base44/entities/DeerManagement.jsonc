@@ -52,13 +52,16 @@
       "items": {
         "type": "string"
       }
+    },
+    "active_checkin": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [
     "date",
     "start_time",
     "location_id",
-    "place_name",
-    "deer_species"
+    "place_name"
   ]
 }
