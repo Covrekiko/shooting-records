@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { X } from 'lucide-react';
+import AddRifleForm from './AddRifleForm';
 
 async function handlePhotoUpload(files, data, setFormData) {
   if (!files || files.length === 0) return;
@@ -223,6 +224,34 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                   />
                 </div>
               </div>
+              <div className="border-t pt-4">
+                <h3 className="font-medium mb-4">Rifles Used</h3>
+                {formData.rifles_used && formData.rifles_used.length > 0 && (
+                  <div className="space-y-3 mb-4">
+                    {formData.rifles_used.map((rifle, idx) => (
+                      <div key={idx} className="bg-secondary/30 p-3 rounded-lg">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="font-medium">{rifles[rifle.rifle_id]?.name || 'Unknown Rifle'}</div>
+                          <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, rifles_used: formData.rifles_used.filter((_, i) => i !== idx) })}
+                            className="text-destructive text-sm hover:underline"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+                          <div>Rounds: {rifle.rounds_fired}</div>
+                          <div>Distance: {rifle.meters_range}m</div>
+                          <div>Ammo: {rifle.ammunition_brand}</div>
+                          <div>Caliber: {rifle.caliber}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <AddRifleForm rifles={rifles} ammunition={ammunition} formData={formData} setFormData={setFormData} />
+              </div>
             </>
           )}
 
@@ -376,50 +405,50 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                   />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium mb-2">Rifle</label>
-                    <select
-                      value={formData.rifle_id}
-                      onChange={(e) => setFormData({ ...formData, rifle_id: e.target.value })}
-                      className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                    >
-                      <option value="">Select a rifle</option>
-                      {rifles.map((rifle) => (
-                        <option key={rifle.id} value={rifle.id}>{rifle.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Ammunition</label>
+                  <label className="block text-sm font-medium mb-2">Rifle</label>
                   <select
-                    value={formData.ammunition_id || ''}
-                    onChange={(e) => {
-                      const selectedAmmo = ammunition.find(a => a.id === e.target.value);
-                      setFormData({ ...formData, ammunition_id: e.target.value });
-                      if (selectedAmmo) {
-                        setFormData(prev => ({ ...prev, ammunition_used: `${selectedAmmo.brand} ${selectedAmmo.caliber || ''} ${selectedAmmo.bullet_type || ''}`.trim() }));
-                      }
-                    }}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background mb-2"
+                    value={formData.rifle_id}
+                    onChange={(e) => setFormData({ ...formData, rifle_id: e.target.value })}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                   >
-                    <option value="">Select saved ammunition</option>
-                    {ammunition.length > 0 ? ammunition.map((ammo) => (
-                      <option key={ammo.id} value={ammo.id}>
-                        {ammo.brand} {ammo.caliber ? `(${ammo.caliber})` : ''} {ammo.bullet_type ? `- ${ammo.bullet_type}` : ''}
-                      </option>
-                    )) : <option disabled>No ammunition available</option>}
+                    <option value="">Select a rifle</option>
+                    {rifles.map((rifle) => (
+                      <option key={rifle.id} value={rifle.id}>{rifle.name}</option>
+                    ))}
                   </select>
-                  <span className="text-xs text-muted-foreground">Or enter manually:</span>
-                  <input
-                    type="text"
-                    placeholder="e.g. Federal .308"
-                    value={formData.ammunition_used}
-                    onChange={(e) => setFormData({ ...formData, ammunition_used: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background mt-1"
-                  />
                 </div>
-                </>
-                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Ammunition</label>
+                <select
+                  value={formData.ammunition_id || ''}
+                  onChange={(e) => {
+                    const selectedAmmo = ammunition.find(a => a.id === e.target.value);
+                    setFormData({ ...formData, ammunition_id: e.target.value });
+                    if (selectedAmmo) {
+                      setFormData(prev => ({ ...prev, ammunition_used: `${selectedAmmo.brand} ${selectedAmmo.caliber || ''} ${selectedAmmo.bullet_type || ''}`.trim() }));
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background mb-2"
+                >
+                  <option value="">Select saved ammunition</option>
+                  {ammunition.length > 0 ? ammunition.map((ammo) => (
+                    <option key={ammo.id} value={ammo.id}>
+                      {ammo.brand} {ammo.caliber ? `(${ammo.caliber})` : ''} {ammo.bullet_type ? `- ${ammo.bullet_type}` : ''}
+                    </option>
+                  )) : <option disabled>No ammunition available</option>}
+                </select>
+                <span className="text-xs text-muted-foreground">Or enter manually:</span>
+                <input
+                  type="text"
+                  placeholder="e.g. Federal .308"
+                  value={formData.ammunition_used}
+                  onChange={(e) => setFormData({ ...formData, ammunition_used: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background mt-1"
+                />
+              </div>
+            </>
+          )}
 
           {/* Notes */}
           <div>
