@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Activity, Zap, Target, MapPin, BarChart3, UserPlus } from 'lucide-react';
-import InviteUserModal from '@/components/InviteUserModal';
+import { Activity, Zap, Target, MapPin, BarChart3 } from 'lucide-react';
 import {
   MonthlyActivityChart,
   RoundsPerFirearmChart,
@@ -19,7 +18,6 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState(null);
-  const [showInviteModal, setShowInviteModal] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -98,20 +96,9 @@ export default function Dashboard() {
     <div>
       <Navigation />
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-foreground mb-2">Dashboard</h1>
-            <p className="text-muted-foreground">Welcome, {user?.full_name}</p>
-          </div>
-          {user?.role === 'admin' && (
-            <button
-              onClick={() => setShowInviteModal(true)}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2"
-            >
-              <UserPlus className="w-4 h-4" />
-              Invite User
-            </button>
-          )}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-foreground mb-2">Dashboard</h1>
+          <p className="text-muted-foreground">Welcome, {user?.full_name}</p>
         </div>
 
         {user?.role === 'admin' ? (
@@ -200,13 +187,6 @@ export default function Dashboard() {
             <DeerSuccessRateChart data={chartData.deerSuccessRate} />
             <ClubActivityHeatmap data={chartData.location} />
           </div>
-        )}
-
-        {showInviteModal && (
-          <InviteUserModal
-            onClose={() => setShowInviteModal(false)}
-            onSuccess={() => setShowInviteModal(false)}
-          />
         )}
       </main>
     </div>
