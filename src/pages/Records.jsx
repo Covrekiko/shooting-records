@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import GpsPathViewer from '@/components/GpsPathViewer';
-import { Download, Eye, Trash2, X, FileText, Map, Image, ChevronDown } from 'lucide-react';
+import ManualRecordModal from '@/components/ManualRecordModal';
+import { Download, Eye, Trash2, X, FileText, Map, Image, ChevronDown, Plus, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { exportRecordsToPdf, getRecordsPdfBlob } from '@/utils/recordsPdfExport';
 
@@ -20,6 +21,7 @@ export default function Records() {
   const [previewingPdf, setPreviewingPdf] = useState(null);
   const [viewingTrack, setViewingTrack] = useState(null);
   const [viewingPhoto, setViewingPhoto] = useState(null);
+  const [manualRecordModal, setManualRecordModal] = useState(null);
 
   const [filters, setFilters] = useState({
     type: 'all',
@@ -126,6 +128,24 @@ export default function Records() {
     }
   };
 
+  const handleSaveManualRecord = async (data, recordType, recordId) => {
+    try {
+      const entityName = recordType === 'target' ? 'TargetShooting' : recordType === 'clay' ? 'ClayShooting' : 'DeerManagement';
+      
+      if (recordId) {
+        // Update existing
+        await base44.entities[entityName].update(recordId, data);
+        setAllRecords(allRecords.map(r => r.id === recordId ? { ...r, ...data, recordType } : r));
+      } else {
+        // Create new
+        const newRecord = await base44.entities[entityName].create(data);
+        setAllRecords([{ ...newRecord, recordType }, ...allRecords]);
+      }
+    } catch (error) {
+      console.error('Error saving record:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div>
@@ -144,24 +164,33 @@ export default function Records() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold">All Records</h1>
-            {filteredRecords.length > 0 && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPreviewingPdf(filteredRecords)}
-                  className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
-                  >
-                  <FileText className="w-4 h-4" />
-                  Preview PDF
-                  </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setManualRecordModal({ isNew: true })}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Add Manual Record
+              </button>
+              {filteredRecords.length > 0 && (
+                <>
                   <button
-                    onClick={() => exportRecordsToPdf(filteredRecords, user, 'shooting-records.pdf', rifles, clubs, shotguns)}
-                    className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
-                  >
-                    <Download className="w-4 h-4" />
-                    Export PDF
-                  </button>
-              </div>
-            )}
+                    onClick={() => setPreviewingPdf(filteredRecords)}
+                    className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+                    >
+                    <FileText className="w-4 h-4" />
+                    Preview PDF
+                    </button>
+                    <button
+                      onClick={() => exportRecordsToPdf(filteredRecords, user, 'shooting-records.pdf', rifles, clubs, shotguns)}
+                      className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      Export PDF
+                    </button>
+                </>
+              )}
+            </div>
           </div>
           <p className="text-muted-foreground mb-6">View and manage all your shooting records</p>
 
@@ -210,7 +239,7 @@ export default function Records() {
         ) : (
           <div className="space-y-3">
             {filteredRecords.map((record) => (
-              <RecordCard key={record.id} record={record} onDelete={handleDelete} user={user} onView={setViewingRecord} recordUser={users[record.created_by]} onViewTrack={setViewingTrack} onViewPhoto={setViewingPhoto} rifles={rifles} shotguns={shotguns} clubs={clubs} locations={deerLocations} />
+              <RecordCard key={record.id} record={record} onDelete={handleDelete} user={user} onView={setViewingRecord} recordUser={users[record.created_by]} onViewTrack={setViewingTrack} onViewPhoto={setViewingPhoto} rifles={rifles} shotguns={shotguns} clubs={clubs} locations={deerLocations} onEdit={() => setManualRecordModal({ isNew: false, record })} />
             ))}
           </div>
         )}
@@ -230,12 +259,20 @@ export default function Records() {
         {viewingPhoto && (
           <PhotoModal photo={viewingPhoto} onClose={() => setViewingPhoto(null)} />
         )}
+
+        {manualRecordModal && (
+          <ManualRecordModal
+            record={manualRecordModal.record}
+            onClose={() => setManualRecordModal(null)}
+            onSave={handleSaveManualRecord}
+          />
+        )}
       </main>
     </div>
   );
 }
 
-function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, onViewPhoto, rifles, shotguns, clubs, locations }) {
+function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, onViewPhoto, rifles, shotguns, clubs, locations, onEdit }) {
   const [showPhotoMenu, setShowPhotoMenu] = useState(false);
 
   const getRecordTitle = () => {
@@ -314,6 +351,13 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
                 <Map className="w-4 h-4" />
               </button>
             )}
+            <button
+              onClick={onEdit}
+              className="px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center gap-1"
+              title="Edit record"
+            >
+              <Edit className="w-4 h-4" />
+            </button>
             <button
               onClick={() => onDelete(record.id, record.recordType)}
               className="px-3 py-1 text-sm bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded transition-colors flex items-center gap-1"
