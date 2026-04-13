@@ -16,6 +16,15 @@ function MapResizer() {
 }
 
 export default function GpsPathViewer({ track, onClose }) {
+  // Validate GPS coordinates
+  const isValidCoord = (lat, lng) => {
+    return lat && lng && 
+           lat !== 0 && lng !== 0 && 
+           Math.abs(lat) <= 90 && 
+           Math.abs(lng) <= 180 &&
+           !isNaN(lat) && !isNaN(lng);
+  };
+
   if (!track || track.length === 0) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -40,9 +49,6 @@ export default function GpsPathViewer({ track, onClose }) {
 
   const center = track[0];
   const pathCoordinates = track.map(p => [p.lat, p.lng]);
-
-  // Validate GPS coordinates
-  const isValidCoord = (lat, lng) => lat && lng && lat !== 0 && lng !== 0 && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
   const hasValidCoords = pathCoordinates.some(([lat, lng]) => isValidCoord(lat, lng));
 
   if (!hasValidCoords || !isValidCoord(center.lat, center.lng)) {
