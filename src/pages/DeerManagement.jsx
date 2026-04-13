@@ -52,7 +52,7 @@ export default function DeerManagement() {
       try {
         const currentUser = await base44.auth.me();
 
-        const [locationsList, riflesList, ammoList, activeSession] = await Promise.all([
+        const [locationsList, riflesList, ammoList, activeSession, activeOuting] = await Promise.all([
           base44.entities.DeerLocation.filter({ created_by: currentUser.email }),
           base44.entities.Rifle.filter({ created_by: currentUser.email }),
           base44.entities.Ammunition.filter({ created_by: currentUser.email }),
@@ -60,12 +60,20 @@ export default function DeerManagement() {
             created_by: currentUser.email,
             active_checkin: true,
           }),
+          base44.entities.DeerOuting.filter({
+            created_by: currentUser.email,
+            active: true,
+          }),
         ]);
 
         setLocations(locationsList);
         setRifles(riflesList);
         setAmmunition(ammoList);
-        if (activeSession.length > 0) {
+        
+        // If there's an active outing on the map, don't allow checking in
+        if (activeOuting.length > 0) {
+          setActiveSession(null);
+        } else if (activeSession.length > 0) {
           setActiveSession(activeSession[0]);
         }
       } catch (error) {
