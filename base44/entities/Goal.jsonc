@@ -1,0 +1,54 @@
+{
+  "name": "Goal",
+  "type": "object",
+  "properties": {
+    "activity_type": {
+      "type": "string",
+      "enum": [
+        "target",
+        "clay",
+        "deer"
+      ],
+      "description": "Type of shooting activity"
+    },
+    "goal_type": {
+      "type": "string",
+      "enum": [
+        "accuracy",
+        "sessions",
+        "success_rate",
+        "rounds",
+        "distance"
+      ],
+      "description": "Type of goal"
+    },
+    "target_value": {
+      "type": "number",
+      "description": "Target value to achieve (e.g., 85% accuracy, 12 sessions)"
+    },
+    "period": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "quarterly",
+        "yearly"
+      ],
+      "default": "monthly",
+      "description": "Goal period"
+    },
+    "description": {
+      "type": "string",
+      "description": "Goal description"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether goal is active"
+    }
+  },
+  "required": [
+    "activity_type",
+    "goal_type",
+    "target_value"
+  ]
+}

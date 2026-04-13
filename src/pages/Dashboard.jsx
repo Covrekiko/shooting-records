@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { Activity, Zap, Target, MapPin, BarChart3 } from 'lucide-react';
+import GoalsWidget from '@/components/GoalsWidget';
 import {
   MonthlyActivityChart,
   RoundsPerFirearmChart,
@@ -163,9 +164,10 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Ammo Stock Widget */}
-        <div className="mt-8">
+        {/* Widgets */}
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
           <AmmoStockWidget />
+          <GoalsWidget />
         </div>
 
         {/* Charts Section */}

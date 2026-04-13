@@ -19,6 +19,7 @@ export default function Navigation() {
     { path: '/target-shooting', label: 'Target Shooting' },
     { path: '/clay-shooting', label: 'Clay Shooting' },
     { path: '/deer-management', label: 'Deer Management' },
+    { path: '/goals', label: 'Goals' },
   ];
 
   return (
@@ -60,6 +61,16 @@ export default function Navigation() {
               Admin
             </Link>
           )}
+          <Link
+            to="/goals"
+            className={`text-sm font-medium transition-colors ${
+              isActive('/goals')
+                ? 'text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Goals
+          </Link>
           <Link
             to="/profile"
             className={`text-sm font-medium transition-colors ${
@@ -116,6 +127,17 @@ export default function Navigation() {
                   Admin
                 </Link>
               )}
+              <Link
+                to="/goals"
+                onClick={() => setOpen(false)}
+                className={`text-sm font-medium py-2 px-3 rounded transition-colors ${
+                  isActive('/goals')
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-foreground hover:bg-secondary'
+                }`}
+              >
+                Goals
+              </Link>
               <Link
                 to="/profile"
                 onClick={() => setOpen(false)}

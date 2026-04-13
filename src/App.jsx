@@ -11,6 +11,7 @@ import TargetShooting from './pages/TargetShooting';
 import ClayShooting from './pages/ClayShooting';
 import DeerManagement from './pages/DeerManagement';
 import Records from './pages/Records';
+import Goals from './pages/Goals';
 
 import Rifles from './pages/settings/Rifles';
 import Shotguns from './pages/settings/Shotguns';
@@ -53,6 +54,7 @@ const AuthenticatedApp = () => {
       <Route path="/deer-management" element={<DeerManagement />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/records" element={<Records />} />
+      <Route path="/goals" element={<Goals />} />
 
       <Route path="/settings/rifles" element={<Rifles />} />
       <Route path="/settings/shotguns" element={<Shotguns />} />
