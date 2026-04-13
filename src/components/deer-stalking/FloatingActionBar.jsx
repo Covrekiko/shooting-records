@@ -11,19 +11,17 @@ export default function FloatingActionBar({
 }) {
   const [expanded, setExpanded] = useState(false);
 
-  const actions = [
-    { icon: Plus, label: 'New Outing', onClick: onOuting },
-    { icon: Crosshair, label: 'Live Location', onClick: onRecenter },
-    { icon: MapPin, label: 'Add POI', onClick: onPOI },
-    { icon: 'deer', label: 'Add Harvest', onClick: onHarvest },
-  ];
+  const handleAction = (callback) => {
+    callback();
+    setExpanded(false);
+  };
 
   return (
     <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3">
       {/* End Outing Button */}
       {activeOuting && (
         <button
-          onClick={onEndOuting}
+          onClick={() => handleAction(onEndOuting)}
           className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-all animate-pulse"
         >
           <LogOut className="w-5 h-5" />
@@ -34,23 +32,34 @@ export default function FloatingActionBar({
       {/* Menu Items */}
       {expanded && (
         <>
-          {actions.map((action, idx) => (
-            <button
-              key={idx}
-              onClick={() => {
-                action.onClick();
-                setExpanded(false);
-              }}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-full shadow-lg hover:bg-slate-600 transition-all"
-            >
-              {action.icon === 'deer' ? (
-                <span className="text-lg">🦌</span>
-              ) : (
-                <action.icon className="w-5 h-5" />
-              )}
-              <span className="text-sm font-medium">{action.label}</span>
-            </button>
-          ))}
+          <button
+            onClick={() => handleAction(onOuting)}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-full shadow-lg hover:bg-slate-600 transition-all"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="text-sm font-medium">New Outing</span>
+          </button>
+          <button
+            onClick={() => handleAction(onRecenter)}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-full shadow-lg hover:bg-slate-600 transition-all"
+          >
+            <Crosshair className="w-5 h-5" />
+            <span className="text-sm font-medium">Live Location</span>
+          </button>
+          <button
+            onClick={() => handleAction(onPOI)}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-full shadow-lg hover:bg-slate-600 transition-all"
+          >
+            <MapPin className="w-5 h-5" />
+            <span className="text-sm font-medium">Add POI</span>
+          </button>
+          <button
+            onClick={() => handleAction(onHarvest)}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-full shadow-lg hover:bg-slate-600 transition-all"
+          >
+            <span className="text-lg">🦌</span>
+            <span className="text-sm font-medium">Add Harvest</span>
+          </button>
         </>
       )}
 
