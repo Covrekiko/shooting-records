@@ -454,9 +454,9 @@ export default function DeerStalkingMap() {
           <Polyline
             key={area.id}
             positions={area.polygon_coordinates}
-            color={selectedAreaId === area.id ? "#3b82f6" : "#9ca3af"}
-            weight={selectedAreaId === area.id ? 5 : 3}
-            opacity={selectedAreaId === area.id ? 1 : 0.6}
+            color="#3b82f6"
+            weight={5}
+            opacity={1}
           />
         ))}
 
