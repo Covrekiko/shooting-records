@@ -4,6 +4,7 @@ import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import { Clock, Plus } from 'lucide-react';
+import { useGpsTracking } from '@/hooks/useGpsTracking';
 
 export default function ClayShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -14,6 +15,7 @@ export default function ClayShooting() {
   const [loading, setLoading] = useState(true);
   const { location } = useGeolocation();
   const [nearbyClub, setNearbyClub] = useState(null);
+  const gpsTrack = useGpsTracking(!!activeSession);
 
   const [checkinData, setCheckinData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -104,6 +106,7 @@ export default function ClayShooting() {
       await base44.entities.ClayShooting.update(activeSession.id, {
         ...checkoutData,
         active_checkin: false,
+        gps_track: gpsTrack,
       });
       setActiveSession(null);
       setShowCheckout(false);
@@ -199,6 +202,7 @@ export default function ClayShooting() {
               setCheckoutData({ ...checkoutData, [field]: value })
             }
             onClose={() => setShowCheckout(false)}
+            gpsTrack={gpsTrack}
           />
         )}
       </main>
