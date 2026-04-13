@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Activity, Zap, Target, MapPin, BarChart3, Crosshair, BookOpen, Search } from 'lucide-react';
+import { Activity, Zap, Target, MapPin, BarChart3, Crosshair, BookOpen } from 'lucide-react';
 
 import {
   MonthlyActivityChart,
@@ -12,7 +12,6 @@ import {
 import { RoundsPerMonthChart } from '@/components/RoundsPerMonthChart';
 import { DeerSuccessRateChart } from '@/components/DeerSuccessRateChart';
 import AmmoStockWidget from '@/components/AmmoStockWidget';
-import LocationSearchModal from '@/components/LocationSearchModal';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
@@ -20,7 +19,6 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState(null);
-  const [showSearchModal, setShowSearchModal] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -84,11 +82,6 @@ export default function Dashboard() {
     loadData();
   }, []);
 
-  const handleLocationSelect = (location) => {
-    // Navigate to the deer stalking map with search result
-    window.location.href = `/deer-stalking?lat=${location.lat}&lng=${location.lng}&zoom=15`;
-  };
-
   if (loading) {
     return (
       <div>
@@ -103,22 +96,6 @@ export default function Dashboard() {
   return (
     <div>
       <Navigation />
-      
-      {/* Search Modal */}
-      <LocationSearchModal
-        isOpen={showSearchModal}
-        onClose={() => setShowSearchModal(false)}
-        onSelect={handleLocationSelect}
-      />
-
-      {/* Search Button */}
-      <button
-        onClick={() => setShowSearchModal(true)}
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:shadow-xl hover:bg-primary/90 transition-all"
-      >
-        <Search className="w-6 h-6" />
-      </button>
-
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-2">Dashboard</h1>
