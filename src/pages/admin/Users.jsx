@@ -59,7 +59,7 @@ export default function AdminUsers() {
 
   const handleStatusChange = async (userId, newStatus) => {
     try {
-      await base44.auth.updateMe({ status: newStatus });
+      await base44.entities.User.update(userId, { status: newStatus });
       setUsers(users.map(u => u.id === userId ? { ...u, status: newStatus } : u));
       setSelectedUserMenu(null);
     } catch (error) {

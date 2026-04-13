@@ -120,6 +120,12 @@ export default function TargetShooting() {
 
   const handleCheckout = async (e) => {
    e.preventDefault();
+   // Validate at least one rifle with required fields
+   const hasValidRifle = checkoutData.rifles_used.some(r => r.rifle_id && r.rounds_fired && r.meters_range);
+   if (!hasValidRifle) {
+     alert('Please add at least one rifle with rounds and distance');
+     return;
+   }
    try {
      // Decrement ammo stock for each rifle used
      const uniqueAmmoIds = new Set();

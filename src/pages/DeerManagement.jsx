@@ -117,6 +117,13 @@ export default function DeerManagement() {
 
   const handleCheckout = async (e) => {
   e.preventDefault();
+  if (checkoutData.shot_anything && checkoutData.species_list?.length) {
+    const totalCount = checkoutData.species_list.reduce((sum, s) => sum + (parseInt(s.count) || 0), 0);
+    if (!checkoutData.total_count || parseInt(checkoutData.total_count) !== totalCount) {
+      alert(`Total shots (${checkoutData.total_count}) must match sum of species (${totalCount})`);
+      return;
+    }
+  }
   try {
     const uploadedPhotos = [];
     if (checkoutData.photos && checkoutData.photos.length > 0) {
@@ -162,6 +169,7 @@ export default function DeerManagement() {
          notes: '',
          photos: [],
        });
+      setViewingTrack(null);
     } catch (error) {
       console.error('Error checking out:', error);
     }
@@ -362,8 +370,21 @@ function CheckinModal({ data, locations, onSubmit, onChange, onClose }) {
 async function handlePhotoUpload(files, data, onChange) {
   if (!files || files.length === 0) return;
   
+  const maxFileSize = 5 * 1024 * 1024; // 5MB
+  const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  
   const uploadedPhotos = [];
   for (const file of files) {
+    // Validate file
+    if (file.size > maxFileSize) {
+      console.error(`File ${file.name} exceeds 5MB limit`);
+      continue;
+    }
+    if (!validTypes.includes(file.type)) {
+      console.error(`File ${file.name} is not a valid image type`);
+      continue;
+    }
+    
     try {
       const response = await base44.integrations.Core.UploadFile({ file });
       uploadedPhotos.push(response.file_url);

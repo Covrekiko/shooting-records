@@ -52,10 +52,10 @@ export default function Records() {
 
       // Load rifles, shotguns, clubs, and locations
       const [allRifles, allShotguns, allClubs, allLocations] = await Promise.all([
-        base44.entities.Rifle.list(),
-        base44.entities.Shotgun.list(),
-        base44.entities.Club.list(),
-        base44.entities.DeerLocation.list(),
+        base44.entities.Rifle.filter({ created_by: currentUser.email }),
+        base44.entities.Shotgun.filter({ created_by: currentUser.email }),
+        base44.entities.Club.filter({ created_by: currentUser.email }),
+        base44.entities.DeerLocation.filter({ created_by: currentUser.email }),
       ]);
 
       const rifleMap = {};

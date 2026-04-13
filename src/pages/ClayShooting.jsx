@@ -110,6 +110,10 @@ export default function ClayShooting() {
 
   const handleCheckout = async (e) => {
     e.preventDefault();
+    if (!checkoutData.shotgun_id || !checkoutData.rounds_fired) {
+      alert('Please select a shotgun and enter rounds fired');
+      return;
+    }
     try {
       const uploadedPhotos = [];
       if (checkoutData.photos && checkoutData.photos.length > 0) {
