@@ -1,0 +1,19 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user"
+      ],
+      "default": "user"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": []
+}

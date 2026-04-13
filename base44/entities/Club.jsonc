@@ -1,0 +1,28 @@
+{
+  "name": "Club",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "Target Shooting",
+        "Clay Shooting",
+        "Both"
+      ]
+    },
+    "location": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "type",
+    "location"
+  ]
+}

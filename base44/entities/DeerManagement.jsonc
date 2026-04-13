@@ -1,0 +1,64 @@
+{
+  "name": "DeerManagement",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "start_time": {
+      "type": "string",
+      "format": "time"
+    },
+    "end_time": {
+      "type": "string",
+      "format": "time"
+    },
+    "location_id": {
+      "type": "string"
+    },
+    "place_name": {
+      "type": "string"
+    },
+    "deer_species": {
+      "type": "string",
+      "enum": [
+        "Roe",
+        "Muntjac",
+        "Fallow",
+        "Red",
+        "Sika",
+        "Chinese Water Deer",
+        "Other"
+      ]
+    },
+    "number_shot": {
+      "type": "integer"
+    },
+    "rifle_id": {
+      "type": "string"
+    },
+    "caliber": {
+      "type": "string"
+    },
+    "ammunition_used": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "date",
+    "start_time",
+    "location_id",
+    "place_name",
+    "deer_species"
+  ]
+}

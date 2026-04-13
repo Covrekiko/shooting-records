@@ -1,0 +1,45 @@
+{
+  "name": "ClayShooting",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "club_id": {
+      "type": "string"
+    },
+    "checkin_time": {
+      "type": "string",
+      "format": "time"
+    },
+    "checkout_time": {
+      "type": "string",
+      "format": "time"
+    },
+    "shotgun_id": {
+      "type": "string"
+    },
+    "rounds_fired": {
+      "type": "integer"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "active_checkin": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "date",
+    "club_id",
+    "checkin_time"
+  ]
+}

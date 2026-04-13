@@ -1,0 +1,25 @@
+{
+  "name": "DeerLocation",
+  "type": "object",
+  "properties": {
+    "place_name": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "place_name",
+    "location"
+  ]
+}

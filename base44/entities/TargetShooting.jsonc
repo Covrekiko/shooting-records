@@ -1,0 +1,57 @@
+{
+  "name": "TargetShooting",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "club_id": {
+      "type": "string"
+    },
+    "checkin_time": {
+      "type": "string",
+      "format": "time"
+    },
+    "checkout_time": {
+      "type": "string",
+      "format": "time"
+    },
+    "rifle_id": {
+      "type": "string"
+    },
+    "caliber": {
+      "type": "string"
+    },
+    "rounds_fired": {
+      "type": "integer"
+    },
+    "ammunition_brand": {
+      "type": "string"
+    },
+    "bullet_type": {
+      "type": "string"
+    },
+    "grain": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "active_checkin": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "date",
+    "club_id",
+    "checkin_time"
+  ]
+}
