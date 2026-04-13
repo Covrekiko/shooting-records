@@ -10,6 +10,7 @@ import {
 } from '@/components/Charts';
 import { RoundsPerMonthChart } from '@/components/RoundsPerMonthChart';
 import { DeerSuccessRateChart } from '@/components/DeerSuccessRateChart';
+import AmmoStockWidget from '@/components/AmmoStockWidget';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
@@ -159,6 +160,15 @@ export default function Dashboard() {
               value={stats?.totalShotgunRounds || 0}
               link="/records"
             />
+          </div>
+        )}
+
+        {/* Ammo Stock Widget */}
+        {user?.role !== 'admin' && (
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="lg:col-span-1">
+              <AmmoStockWidget />
+            </div>
           </div>
         )}
 

@@ -13,6 +13,32 @@
     },
     "grain": {
       "type": "string"
+    },
+    "quantity_in_stock": {
+      "type": "integer",
+      "default": 0
+    },
+    "units": {
+      "type": "string",
+      "enum": [
+        "rounds",
+        "boxes"
+      ],
+      "default": "rounds"
+    },
+    "cost_per_unit": {
+      "type": "number"
+    },
+    "date_purchased": {
+      "type": "string",
+      "format": "date"
+    },
+    "low_stock_threshold": {
+      "type": "integer",
+      "default": 50
+    },
+    "notes": {
+      "type": "string"
     }
   },
   "required": [

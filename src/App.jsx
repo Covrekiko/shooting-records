@@ -17,6 +17,7 @@ import Shotguns from './pages/settings/Shotguns';
 import Clubs from './pages/settings/Clubs';
 import Locations from './pages/settings/Locations';
 import Ammunition from './pages/settings/Ammunition';
+import AmmunitionInventory from './pages/settings/AmmunitionInventory';
 import Reports from './pages/Reports';
 import AdminUsers from './pages/admin/Users';
 
@@ -58,6 +59,7 @@ const AuthenticatedApp = () => {
       <Route path="/settings/clubs" element={<Clubs />} />
       <Route path="/settings/locations" element={<Locations />} />
       <Route path="/settings/ammunition" element={<Ammunition />} />
+      <Route path="/settings/ammunition-inventory" element={<AmmunitionInventory />} />
       <Route path="/reports" element={<Reports />} />
       <Route path="/admin/users" element={<AdminUsers />} />
       <Route path="*" element={<PageNotFound />} />

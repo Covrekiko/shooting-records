@@ -5,11 +5,13 @@ import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import { Clock, Plus } from 'lucide-react';
 import { useGpsTracking } from '@/hooks/useGpsTracking';
+import { decrementAmmoStock } from '@/lib/ammoUtils';
 
 export default function ClayShooting() {
-  const [activeSession, setActiveSession] = useState(null);
-  const [clubs, setClubs] = useState([]);
-  const [shotguns, setShotguns] = useState([]);
+   const [activeSession, setActiveSession] = useState(null);
+   const [clubs, setClubs] = useState([]);
+   const [shotguns, setShotguns] = useState([]);
+   const [ammunition, setAmmunition] = useState([]);
   const [showCheckin, setShowCheckin] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -28,6 +30,7 @@ export default function ClayShooting() {
     checkout_time: new Date().toTimeString().slice(0, 5),
     shotgun_id: '',
     rounds_fired: '',
+    ammunition_id: '',
     ammunition_used: '',
     notes: '',
     photos: [],
@@ -38,9 +41,10 @@ export default function ClayShooting() {
       try {
         const currentUser = await base44.auth.me();
 
-        const [clubsList, shotgunsList, activeSession] = await Promise.all([
+        const [clubsList, shotgunsList, ammoList, activeSession] = await Promise.all([
           base44.entities.Club.filter({ created_by: currentUser.email }),
           base44.entities.Shotgun.filter({ created_by: currentUser.email }),
+          base44.entities.Ammunition.filter({ created_by: currentUser.email }),
           base44.entities.ClayShooting.filter({
             created_by: currentUser.email,
             active_checkin: true,
@@ -49,6 +53,7 @@ export default function ClayShooting() {
 
         setClubs(clubsList);
         setShotguns(shotgunsList);
+        setAmmunition(ammoList);
         if (activeSession.length > 0) {
           setActiveSession(activeSession[0]);
         }
@@ -121,6 +126,10 @@ export default function ClayShooting() {
           }
         }
       }
+      // Decrement ammo stock
+      if (checkoutData.ammunition_id && checkoutData.rounds_fired) {
+        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.rounds_fired));
+      }
       await base44.entities.ClayShooting.update(activeSession.id, {
        ...checkoutData,
        rounds_fired: checkoutData.rounds_fired ? parseInt(checkoutData.rounds_fired) : 0,
@@ -134,6 +143,7 @@ export default function ClayShooting() {
        checkout_time: new Date().toTimeString().slice(0, 5),
        shotgun_id: '',
        rounds_fired: '',
+       ammunition_id: '',
        ammunition_used: '',
        notes: '',
        photos: [],
@@ -218,6 +228,7 @@ export default function ClayShooting() {
           <CheckoutModal
             data={checkoutData}
             shotguns={shotguns}
+            ammunition={ammunition}
             onSubmit={handleCheckout}
             onChange={(field, value) =>
               setCheckoutData({ ...checkoutData, [field]: value })
@@ -321,7 +332,7 @@ async function handlePhotoUpload(files, data, onChange) {
   }
 }
 
-function CheckoutModal({ data, shotguns, onSubmit, onChange, onClose }) {
+function CheckoutModal({ data, shotguns, ammunition, onSubmit, onChange, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-card rounded-lg max-w-md w-full p-6 my-8">
@@ -363,13 +374,32 @@ function CheckoutModal({ data, shotguns, onSubmit, onChange, onClose }) {
            />
           </div>
           <div>
-           <label className="block text-sm font-medium mb-1">Ammunition Used</label>
+           <label className="block text-sm font-medium mb-1">Ammunition</label>
+           <select
+             value={data.ammunition_id || ''}
+             onChange={(e) => {
+               const selectedAmmo = ammunition.find(a => a.id === e.target.value);
+               onChange('ammunition_id', e.target.value);
+               if (selectedAmmo) {
+                 onChange('ammunition_used', `${selectedAmmo.brand} ${selectedAmmo.caliber || ''} ${selectedAmmo.bullet_type || ''}`.trim());
+               }
+             }}
+             className="w-full px-3 py-2 border border-border rounded-lg bg-background mb-2"
+           >
+             <option value="">Select saved ammunition</option>
+             {ammunition.length > 0 ? ammunition.map((ammo) => (
+               <option key={ammo.id} value={ammo.id}>
+                 {ammo.brand} {ammo.caliber ? `(${ammo.caliber})` : ''} {ammo.bullet_type ? `- ${ammo.bullet_type}` : ''}
+               </option>
+             )) : <option disabled>No ammunition available</option>}
+           </select>
+           <span className="text-xs text-muted-foreground">Or enter manually:</span>
            <input
              type="text"
              placeholder="e.g. Federal 12 Gauge"
              value={data.ammunition_used}
              onChange={(e) => onChange('ammunition_used', e.target.value)}
-             className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+             className="w-full px-3 py-2 border border-border rounded-lg bg-background mt-1"
            />
           </div>
           <div>

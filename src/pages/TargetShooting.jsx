@@ -6,6 +6,7 @@ import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import { useGpsTracking } from '@/hooks/useGpsTracking';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import { Clock, CheckCircle, Plus } from 'lucide-react';
+import { decrementAmmoStock } from '@/lib/ammoUtils';
 
 export default function TargetShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -120,6 +121,12 @@ export default function TargetShooting() {
   const handleCheckout = async (e) => {
    e.preventDefault();
    try {
+     // Decrement ammo stock for each rifle used
+     for (const rifle of checkoutData.rifles_used) {
+       if (rifle.ammunition_id && rifle.rounds_fired) {
+         await decrementAmmoStock(rifle.ammunition_id, parseInt(rifle.rounds_fired));
+       }
+     }
      await base44.entities.TargetShooting.update(activeSession.id, {
        ...checkoutData,
        active_checkin: false,

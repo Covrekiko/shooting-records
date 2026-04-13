@@ -8,6 +8,7 @@ import LocationMap from '@/components/LocationMap';
 import BoundaryMapViewer from '@/components/BoundaryMapViewer';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import { Plus, Clock, Map } from 'lucide-react';
+import { decrementAmmoStock } from '@/lib/ammoUtils';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
 
@@ -115,28 +116,32 @@ export default function DeerManagement() {
   };
 
   const handleCheckout = async (e) => {
-   e.preventDefault();
-   try {
-     const uploadedPhotos = [];
-     if (checkoutData.photos && checkoutData.photos.length > 0) {
-       for (const photoData of checkoutData.photos) {
-         try {
-           if (photoData.startsWith('data:')) {
-             const res = await fetch(photoData);
-             const blob = await res.blob();
-             const result = await base44.integrations.Core.UploadFile({ file: blob });
-             if (result?.file_url) {
-               uploadedPhotos.push(result.file_url);
-             }
-           } else {
-             uploadedPhotos.push(photoData);
-           }
-         } catch (photoError) {
-           console.error('Error uploading photo:', photoError);
-         }
-       }
-     }
-     const submitData = { ...checkoutData, photos: uploadedPhotos, active_checkin: false, gps_track: gpsTrack };
+  e.preventDefault();
+  try {
+    const uploadedPhotos = [];
+    if (checkoutData.photos && checkoutData.photos.length > 0) {
+      for (const photoData of checkoutData.photos) {
+        try {
+          if (photoData.startsWith('data:')) {
+            const res = await fetch(photoData);
+            const blob = await res.blob();
+            const result = await base44.integrations.Core.UploadFile({ file: blob });
+            if (result?.file_url) {
+              uploadedPhotos.push(result.file_url);
+            }
+          } else {
+            uploadedPhotos.push(photoData);
+          }
+        } catch (photoError) {
+          console.error('Error uploading photo:', photoError);
+        }
+      }
+    }
+    // Decrement ammo stock
+    if (checkoutData.ammunition_id && checkoutData.total_count) {
+      await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count));
+    }
+    const submitData = { ...checkoutData, photos: uploadedPhotos, active_checkin: false, gps_track: gpsTrack };
      if (!checkoutData.shot_anything) {
        submitData.species_list = [];
        submitData.total_count = null;
