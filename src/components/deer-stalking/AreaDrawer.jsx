@@ -100,7 +100,8 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
             fillColor="#3b82f6"
             weight={3}
             opacity={1}
-            fillOpacity={0.2}
+            fillOpacity={0.4}
+            interactive={false}
           />
         )}
       </MapContainer>
