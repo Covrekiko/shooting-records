@@ -448,7 +448,7 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
                     className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background mb-2"
                   >
                     <option value="">Select saved ammunition</option>
-                    {ammunition.filter(a => a.rifle_id === rifle.rifle_id).map((ammo) => (
+                    {ammunition.map((ammo) => (
                       <option key={ammo.id} value={ammo.id}>
                         {ammo.brand} {ammo.bullet_type ? `- ${ammo.bullet_type}` : ''}
                       </option>
