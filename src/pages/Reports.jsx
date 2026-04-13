@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { Download, TrendingUp } from 'lucide-react';
+import { format } from 'date-fns';
 import TargetShootingAnalytics from '@/components/analytics/TargetShootingAnalytics';
 import ClayShootingAnalytics from '@/components/analytics/ClayShootingAnalytics';
 import DeerManagementAnalytics from '@/components/analytics/DeerManagementAnalytics';
@@ -10,6 +11,7 @@ import {
   generateMonthlySummaryPDF,
   generateCategoryReportPDF,
 } from '@/utils/pdfExport';
+import { generateFormalReport } from '@/utils/formalReportPDF';
 
 export default function Reports() {
   const [records, setRecords] = useState([]);
@@ -20,9 +22,14 @@ export default function Reports() {
   const [category, setCategory] = useState('all');
   const [includeSignature, setIncludeSignature] = useState(false);
   const [selectedAnalyticsType, setSelectedAnalyticsType] = useState('target');
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     loadRecords();
+  }, []);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(console.error);
   }, []);
 
   const loadRecords = async () => {
@@ -53,7 +60,14 @@ export default function Reports() {
     try {
       let filteredRecords = records;
 
-      if (reportType === 'monthly') {
+      if (reportType === 'formal') {
+        if (records.length === 0) {
+          alert('No records found to generate report');
+          return;
+        }
+        const doc = await generateFormalReport(records, user, {});
+        doc.save(`Shooting_Activity_Report_${format(new Date(), 'yyyyMMdd_HHmmss')}.pdf`);
+      } else if (reportType === 'monthly') {
         filteredRecords = records.filter((r) => {
           const recordDate = new Date(r.date);
           return recordDate.getMonth() === month && recordDate.getFullYear() === year;
@@ -146,6 +160,16 @@ export default function Reports() {
                   className="w-4 h-4"
                 />
                 <span className="text-sm">Category Report PDF</span>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="radio"
+                  value="formal"
+                  checked={reportType === 'formal'}
+                  onChange={(e) => setReportType(e.target.value)}
+                  className="w-4 h-4"
+                />
+                <span className="text-sm">Formal Official Report PDF</span>
               </label>
             </div>
           </div>
@@ -255,14 +279,20 @@ export default function Reports() {
             </label>
           </div>
 
+          {reportType === 'formal' && (
+           <div className="bg-blue-50/30 border border-blue-200/50 rounded-lg p-3">
+             <p className="text-sm text-blue-900">📋 This generates a professional formal report suitable for submission to authorities including police and licensing bodies.</p>
+           </div>
+          )}
+
           {reportType !== 'analytics' && (
-            <button
-              onClick={handleGenerateReport}
-              className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 font-medium"
-            >
-              <Download className="w-5 h-5" />
-              Generate PDF Report
-            </button>
+           <button
+             onClick={handleGenerateReport}
+             className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 font-medium"
+           >
+             <Download className="w-5 h-5" />
+             Generate PDF Report
+           </button>
           )}
         </div>
 
@@ -281,15 +311,28 @@ export default function Reports() {
 
         {/* Info */}
         {reportType !== 'analytics' && (
-          <div className="mt-8 bg-secondary/20 border border-border rounded-lg p-4">
-            <h3 className="font-semibold mb-2">Report Information</h3>
-            <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-              <li>Monthly summaries include all records from the selected month</li>
-              <li>Category reports group records by shooting type</li>
-              <li>PDFs are professionally formatted and ready for printing</li>
-              <li>Optional signature lines for official documentation</li>
-            </ul>
-          </div>
+         <div className="mt-8 bg-secondary/20 border border-border rounded-lg p-4">
+           <h3 className="font-semibold mb-2">Report Information</h3>
+           <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+             {reportType === 'formal' && (
+               <>
+                 <li>Comprehensive formal report with official formatting</li>
+                 <li>Includes executive summary and detailed activity records</li>
+                 <li>Suitable for submission to authorities and licensing bodies</li>
+                 <li>Includes certification and signature sections</li>
+                 <li>Professional header, footer, and page numbering</li>
+               </>
+             )}
+             {reportType !== 'formal' && (
+               <>
+                 <li>Monthly summaries include all records from the selected month</li>
+                 <li>Category reports group records by shooting type</li>
+                 <li>PDFs are professionally formatted and ready for printing</li>
+                 <li>Optional signature lines for official documentation</li>
+               </>
+             )}
+           </ul>
+         </div>
         )}
       </main>
     </div>
