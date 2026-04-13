@@ -5,7 +5,7 @@ export async function generateRecordsPdf(records) {
   return doc;
 }
 
-export async function exportRecordsToPdf(records, userInfo = null, fileName = 'shooting-records.pdf', rifles = {}) {
+export async function exportRecordsToPdf(records, userInfo = null, fileName = 'shooting-records.pdf', rifles = {}, clubs = {}) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -181,6 +181,22 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
       doc.setTextColor(20, 60, 40);
       doc.text(`Session ${idx + 1} - ${record.date}`, margin, yPosition);
       yPosition += 4;
+      
+      // Venue info
+      if (record.club_id && clubs[record.club_id]) {
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Venue:', margin + 2, yPosition);
+        yPosition += 2.5;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0);
+        doc.text(`${clubs[record.club_id].name}`, margin + 4, yPosition);
+        yPosition += 2.5;
+        doc.text(`${clubs[record.club_id].location || ''}`, margin + 4, yPosition);
+        yPosition += 3;
+      }
       
       // Session basic info
       doc.setFontSize(8);
@@ -396,12 +412,12 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
   doc.save(fileName);
 }
 
-export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}) {
-  const doc = generateBase44Pdf(records, userInfo, rifles);
+export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, clubs = {}) {
+  const doc = generateBase44Pdf(records, userInfo, rifles, clubs);
   return doc.output('blob');
 }
 
-function generateBase44Pdf(records, userInfo = null, rifles = {}) {
+function generateBase44Pdf(records, userInfo = null, rifles = {}, clubs = {}) {
 
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -568,6 +584,21 @@ function generateBase44Pdf(records, userInfo = null, rifles = {}) {
       doc.setTextColor(20, 60, 40);
       doc.text(`Session ${idx + 1} - ${record.date}`, margin, yPosition);
       yPosition += 4;
+      
+      if (record.club_id && clubs[record.club_id]) {
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Venue:', margin + 2, yPosition);
+        yPosition += 2.5;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0);
+        doc.text(`${clubs[record.club_id].name}`, margin + 4, yPosition);
+        yPosition += 2.5;
+        doc.text(`${clubs[record.club_id].location || ''}`, margin + 4, yPosition);
+        yPosition += 3;
+      }
       
       doc.setFontSize(8);
       doc.setFont(undefined, 'normal');
