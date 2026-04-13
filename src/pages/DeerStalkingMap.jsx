@@ -124,15 +124,17 @@ export default function DeerStalkingMap() {
 
   const handleRecenter = () => {
     console.log('🔵 handleRecenter clicked - isDrawingArea:', isDrawingArea);
-    if (!mapRef.current || isDrawingArea) return;
+    if (!mapRef?.current || isDrawingArea) return;
     
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         console.log('🔵 Current position:', { latitude, longitude });
-        mapRef.current.setView([latitude, longitude], 16);
-        setUserLocation([latitude, longitude]);
-        console.log('🔵 Map centered to:', { latitude, longitude });
+        if (mapRef?.current) {
+          mapRef.current.setView([latitude, longitude], 16);
+          setUserLocation([latitude, longitude]);
+          console.log('🔵 Map centered to:', { latitude, longitude });
+        }
       },
       (error) => {
         console.error('🔵 Geolocation error:', error);
