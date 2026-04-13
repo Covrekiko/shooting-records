@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Activity, Zap, Target, MapPin, BarChart3, Crosshair, BookOpen } from 'lucide-react';
+import { Activity, Zap, Target, MapPin, BarChart3, Crosshair, BookOpen, Map } from 'lucide-react';
 
 import {
   MonthlyActivityChart,
@@ -138,23 +138,29 @@ export default function Dashboard() {
              link="/clay-shooting"
             />
             <StatCard
-              icon={<span className="text-2xl">🦌</span>}
-              label="Deer Management Outings"
-              value={stats?.deerOutings || 0}
-              link="/deer-management"
-            />
-            <StatCard
-              icon={<Activity className="w-8 h-8" />}
-              label="Total Rifle Rounds"
-              value={stats?.totalRifleRounds || 0}
-              link="/records"
-            />
-            <StatCard
-              icon={<Activity className="w-8 h-8" />}
-              label="Total Shotgun Rounds"
-              value={stats?.totalShotgunRounds || 0}
-              link="/records"
-            />
+               icon={<span className="text-2xl">🦌</span>}
+               label="Deer Management Outings"
+               value={stats?.deerOutings || 0}
+               link="/deer-management"
+             />
+             <StatCard
+               icon={<Activity className="w-8 h-8" />}
+               label="Total Rifle Rounds"
+               value={stats?.totalRifleRounds || 0}
+               link="/records"
+             />
+             <StatCard
+               icon={<Activity className="w-8 h-8" />}
+               label="Total Shotgun Rounds"
+               value={stats?.totalShotgunRounds || 0}
+               link="/records"
+             />
+             <StatCard
+               icon={<Map className="w-8 h-8" />}
+               label="Stalking Map"
+               value="Open"
+               link="/deer-stalking"
+             />
           </div>
         )}
 
