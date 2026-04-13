@@ -13,10 +13,16 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-function DrawControl({ onDataChange, mapData }) {
+function DrawControl({ onDataChange, mapData, onMapReady }) {
   const map = useMap();
   const featureGroupRef = useRef(null);
   const drawControlRef = useRef(null);
+
+  useEffect(() => {
+    if (map && onMapReady) {
+      onMapReady(map);
+    }
+  }, [map, onMapReady]);
 
   useEffect(() => {
     if (!map) return;
@@ -95,14 +101,14 @@ function DrawControl({ onDataChange, mapData }) {
   return null;
 }
 
-function MapControls({ mapRef }) {
+function MapControls({ map }) {
   const handleFindLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          if (mapRef.current) {
-            mapRef.current.setView([latitude, longitude], 15);
+          if (map) {
+            map.setView([latitude, longitude], 15);
           }
         },
         (error) => console.log('Geolocation error:', error),
@@ -125,7 +131,7 @@ function MapControls({ mapRef }) {
 
 export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData = {} }) {
   const [mapType, setMapType] = useState('map');
-  const mapRef = useRef(null);
+  const [map, setMap] = useState(null);
   const center = initialCenter || [54.5973, -3.1578];
 
   const clearAll = () => {
@@ -141,7 +147,7 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
     <div className="space-y-3">
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
-          <MapControls mapRef={mapRef} />
+          <MapControls map={map} />
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -182,14 +188,13 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
           center={center} 
           zoom={13} 
           style={{ height: '400px', width: '100%', position: 'absolute', top: 0, left: 0 }}
-          ref={mapRef}
         >
           <TileLayer
             key={tileUrl}
             attribution='&copy; OpenStreetMap contributors'
             url={tileUrl}
           />
-          <DrawControl onDataChange={onDataChange} mapData={mapData} />
+          <DrawControl onDataChange={onDataChange} mapData={mapData} onMapReady={setMap} />
         </MapContainer>
       </div>
     </div>
