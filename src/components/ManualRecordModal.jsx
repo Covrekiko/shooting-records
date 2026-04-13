@@ -186,41 +186,41 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
 
           {/* Target Shooting */}
           {recordType === 'target' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium mb-2">Club</label>
-                <select
-                  value={formData.club_id}
-                  onChange={(e) => setFormData({ ...formData, club_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                >
-                  <option value="">Select a club</option>
-                  {clubs.filter(c => c.type === 'Target Shooting' || c.type === 'Both').map((club) => (
-                    <option key={club.id} value={club.id}>{club.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Check-in Time</label>
-                  <input
-                    type="time"
-                    value={formData.checkin_time}
-                    onChange={(e) => setFormData({ ...formData, checkin_time: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Check-out Time</label>
-                  <input
-                    type="time"
-                    value={formData.checkout_time}
-                    onChange={(e) => setFormData({ ...formData, checkout_time: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  />
-                </div>
-              </div>
-            </>
+           <>
+             <div>
+               <label className="block text-sm font-medium mb-2">Club</label>
+               <select
+                 value={formData.club_id}
+                 onChange={(e) => setFormData({ ...formData, club_id: e.target.value })}
+                 className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+               >
+                 <option value="">Select a club</option>
+                 {clubs.filter(c => c.type === 'Target Shooting' || c.type === 'Both').map((club) => (
+                   <option key={club.id} value={club.id}>{club.name}</option>
+                 ))}
+               </select>
+             </div>
+             <div className="grid grid-cols-2 gap-4">
+               <div>
+                 <label className="block text-sm font-medium mb-2">Check-in Time</label>
+                 <input
+                   type="time"
+                   value={formData.checkin_time}
+                   onChange={(e) => setFormData({ ...formData, checkin_time: e.target.value })}
+                   className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                 />
+               </div>
+               <div>
+                 <label className="block text-sm font-medium mb-2">Check-out Time</label>
+                 <input
+                   type="time"
+                   value={formData.checkout_time}
+                   onChange={(e) => setFormData({ ...formData, checkout_time: e.target.value })}
+                   className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                 />
+               </div>
+             </div>
+           </>
           )}
 
           {/* Clay Shooting */}
@@ -272,6 +272,30 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                   ))}
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Ammunition</label>
+                <select
+                  value={formData.ammunition_id || ''}
+                  onChange={(e) => {
+                    const selectedAmmo = ammunition.find(a => a.id === e.target.value);
+                    setFormData({ ...formData, ammunition_id: e.target.value, ammunition_used: selectedAmmo ? `${selectedAmmo.brand} ${selectedAmmo.caliber || ''} ${selectedAmmo.bullet_type || ''}`.trim() : '' });
+                  }}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background mb-2"
+                >
+                  <option value="">Select saved ammunition</option>
+                  {ammunition.length > 0 ? ammunition.map((ammo) => (
+                    <option key={ammo.id} value={ammo.id}>{ammo.brand} {ammo.caliber ? `(${ammo.caliber})` : ''} {ammo.bullet_type ? `- ${ammo.bullet_type}` : ''}</option>
+                  )) : <option disabled>No ammunition available</option>}
+                </select>
+                <span className="text-xs text-muted-foreground">Or enter manually:</span>
+                <input
+                  type="text"
+                  placeholder="e.g. Federal 12 Gauge"
+                  value={formData.ammunition_used}
+                  onChange={(e) => setFormData({ ...formData, ammunition_used: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background mt-1"
+                />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-2">Rounds Fired</label>
@@ -280,16 +304,6 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                     min="0"
                     value={formData.rounds_fired}
                     onChange={(e) => setFormData({ ...formData, rounds_fired: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Ammunition Used</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Federal 12 Gauge"
-                    value={formData.ammunition_used}
-                    onChange={(e) => setFormData({ ...formData, ammunition_used: e.target.value })}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                   />
                 </div>
