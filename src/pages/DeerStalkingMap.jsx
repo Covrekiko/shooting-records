@@ -27,7 +27,7 @@ L.Icon.Default.mergeOptions({
 });
 
 export default function DeerStalkingMap() {
-  const { activeOuting, loading: outingLoading, startOuting, endOuting, endOutingWithData } = useOuting();
+  const { activeOuting, loading: outingLoading, startOuting, endOuting, endOutingWithData, updateGpsTrack } = useOuting();
   const [markers, setMarkers] = useState([]);
   const [harvests, setHarvests] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -57,6 +57,26 @@ export default function DeerStalkingMap() {
     getUserLocation();
     loadRiflesAndAmmo();
   }, []);
+
+  // GPS tracking for active outing
+  useEffect(() => {
+    if (!activeOuting) return;
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const timestamp = Date.now();
+        const newTrackPoint = { lat: latitude, lng: longitude, timestamp };
+        const updatedTrack = [...(activeOuting.gps_track || []), newTrackPoint];
+        
+        updateGpsTrack(activeOuting.id, updatedTrack);
+      },
+      (error) => console.error('Geolocation error:', error),
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [activeOuting?.id, updateGpsTrack]);
 
   const loadData = async () => {
     try {
