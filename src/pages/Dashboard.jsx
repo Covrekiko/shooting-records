@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Activity, Zap, Target, MapPin, BarChart3, Crosshair, BookOpen } from 'lucide-react';
+import { Activity, Zap, Target, MapPin, BarChart3, Crosshair, BookOpen, ArrowRight } from 'lucide-react';
 
 import {
   MonthlyActivityChart,
@@ -171,11 +171,15 @@ export default function Dashboard() {
             </div>
             <Link
               to="/deer-stalking"
-              className="bg-card border border-border rounded-xl p-8 hover:shadow-lg transition-shadow block text-center"
+              className="bg-card border border-border rounded-xl p-8 hover:shadow-lg transition-shadow block text-center group"
             >
               <div className="text-4xl mb-3">🗺️</div>
               <p className="text-lg font-semibold text-foreground mb-2">Open Deer Stalking Map</p>
-              <p className="text-sm text-muted-foreground">View boundaries, track outings, and log harvests</p>
+              <p className="text-sm text-muted-foreground mb-4">View boundaries, track outings, and log harvests</p>
+              <div className="flex items-center justify-center gap-2 text-primary font-medium group-hover:gap-3 transition-all">
+                Launch Map
+                <ArrowRight className="w-4 h-4" />
+              </div>
             </Link>
           </div>
         )}
