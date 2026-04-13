@@ -104,6 +104,7 @@ export default function DeerStalkingMap() {
       });
       setShowPOI(false);
       setMapClick(null);
+      setWaitingForPin('poi'); // Stay in POI selection mode
       loadData();
     } catch (err) {
       setError(err.message);
@@ -123,6 +124,7 @@ export default function DeerStalkingMap() {
       });
       setShowHarvest(false);
       setMapClick(null);
+      setWaitingForPin('harvest'); // Stay in harvest selection mode
       loadData();
     } catch (err) {
       setError(err.message);
