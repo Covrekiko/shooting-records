@@ -33,17 +33,17 @@ export default function DeerManagement() {
   });
 
   const [checkoutData, setCheckoutData] = useState({
-    end_time: new Date().toTimeString().slice(0, 5),
-    shot_anything: false,
-    deer_species: '',
-    pest_species: '',
-    deer_species_other: '',
-    number_shot: '',
-    rifle_id: '',
-    ammunition_used: '',
-    notes: '',
-    photos: [],
-  });
+     end_time: new Date().toTimeString().slice(0, 5),
+     shot_anything: false,
+     deer_species: '',
+     deer_species_other: '',
+     pest_species: '',
+     number_shot: '',
+     rifle_id: '',
+     ammunition_used: '',
+     notes: '',
+     photos: [],
+   });
 
   useEffect(() => {
     async function loadData() {
@@ -148,17 +148,17 @@ export default function DeerManagement() {
       setActiveSession(null);
       setShowCheckout(false);
       setCheckoutData({
-        end_time: new Date().toTimeString().slice(0, 5),
-        shot_anything: false,
-        deer_species: '',
-        pest_species: '',
-        deer_species_other: '',
-        number_shot: '',
-        rifle_id: '',
-        ammunition_used: '',
-        notes: '',
-        photos: [],
-      });
+         end_time: new Date().toTimeString().slice(0, 5),
+         shot_anything: false,
+         deer_species: '',
+         deer_species_other: '',
+         pest_species: '',
+         number_shot: '',
+         rifle_id: '',
+         ammunition_used: '',
+         notes: '',
+         photos: [],
+       });
     } catch (error) {
       console.error('Error checking out:', error);
     }
@@ -438,7 +438,7 @@ function CheckoutModal({ data, rifles, ammunition, onSubmit, onChange, onClose }
                 <div>
                   <label className="block text-sm font-medium mb-1">Deer Species</label>
                   <select
-                    value={data.deer_species_other || ''}
+                    value={data.deer_species_other}
                     onChange={(e) => {
                       const val = e.target.value;
                       onChange('deer_species_other', val);
