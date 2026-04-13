@@ -17,26 +17,31 @@
       "type": "string",
       "format": "time"
     },
-    "rifle_id": {
-      "type": "string"
-    },
-    "caliber": {
-      "type": "string"
-    },
-    "rounds_fired": {
-      "type": "integer"
-    },
-    "meters_range": {
-      "type": "integer"
-    },
-    "ammunition_brand": {
-      "type": "string"
-    },
-    "bullet_type": {
-      "type": "string"
-    },
-    "grain": {
-      "type": "string"
+    "rifles_used": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rifle_id": {
+            "type": "string"
+          },
+          "rounds_fired": {
+            "type": "integer"
+          },
+          "meters_range": {
+            "type": "integer"
+          },
+          "ammunition_brand": {
+            "type": "string"
+          },
+          "bullet_type": {
+            "type": "string"
+          },
+          "grain": {
+            "type": "string"
+          }
+        }
+      }
     },
     "notes": {
       "type": "string"

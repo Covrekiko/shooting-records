@@ -29,12 +29,16 @@ export default function TargetShooting() {
 
   const [checkoutData, setCheckoutData] = useState({
     checkout_time: new Date().toTimeString().slice(0, 5),
-    rifle_id: '',
-    rounds_fired: '',
-    meters_range: '',
-    ammunition_brand: '',
-    bullet_type: '',
-    grain: '',
+    rifles_used: [
+      {
+        rifle_id: '',
+        rounds_fired: '',
+        meters_range: '',
+        ammunition_brand: '',
+        bullet_type: '',
+        grain: '',
+      }
+    ],
     notes: '',
     photos: [],
   });
@@ -120,12 +124,16 @@ export default function TargetShooting() {
       setShowCheckout(false);
       setCheckoutData({
         checkout_time: new Date().toTimeString().slice(0, 5),
-        rifle_id: '',
-        rounds_fired: '',
-        meters_range: '',
-        ammunition_brand: '',
-        bullet_type: '',
-        grain: '',
+        rifles_used: [
+          {
+            rifle_id: '',
+            rounds_fired: '',
+            meters_range: '',
+            ammunition_brand: '',
+            bullet_type: '',
+            grain: '',
+          }
+        ],
         notes: '',
         photos: [],
       });
@@ -213,14 +221,9 @@ export default function TargetShooting() {
         {showCheckout && activeSession && (
           <CheckoutModal
             data={checkoutData}
+            setData={setCheckoutData}
             rifles={rifles}
             onSubmit={handleCheckout}
-            onChange={(field, value) =>
-              setCheckoutData({ ...checkoutData, [field]: value })
-            }
-            onPhotosChange={(photos) =>
-              setCheckoutData({ ...checkoutData, photos })
-            }
             onClose={() => setShowCheckout(false)}
           />
         )}
@@ -301,7 +304,27 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
   );
 }
 
-function CheckoutModal({ data, rifles, onSubmit, onChange, onPhotosChange, onClose }) {
+function CheckoutModal({ data, setData, rifles, onSubmit, onClose }) {
+  const updateRifleEntry = (index, field, value) => {
+    const updated = [...data.rifles_used];
+    updated[index] = { ...updated[index], [field]: value };
+    setData({ ...data, rifles_used: updated });
+  };
+
+  const addRifleEntry = () => {
+    setData({
+      ...data,
+      rifles_used: [...data.rifles_used, { rifle_id: '', rounds_fired: '', meters_range: '', ammunition_brand: '', bullet_type: '', grain: '' }]
+    });
+  };
+
+  const removeRifleEntry = (index) => {
+    setData({
+      ...data,
+      rifles_used: data.rifles_used.filter((_, i) => i !== index)
+    });
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-card rounded-lg max-w-md w-full p-6 mt-4">
@@ -312,76 +335,94 @@ function CheckoutModal({ data, rifles, onSubmit, onChange, onPhotosChange, onClo
             <input
               type="time"
               value={data.checkout_time}
-              onChange={(e) => onChange('checkout_time', e.target.value)}
+              onChange={(e) => setData({ ...data, checkout_time: e.target.value })}
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
               required
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Rifle Used</label>
-            <select
-              value={data.rifle_id}
-              onChange={(e) => onChange('rifle_id', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            >
-              <option value="">Select a rifle</option>
-              {rifles.map((rifle) => (
-                <option key={rifle.id} value={rifle.id}>
-                  {rifle.name}
-                </option>
-              ))}
-            </select>
+
+          <div className="border-t border-border pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <label className="block text-sm font-bold">Firearms Used</label>
+              <button
+                type="button"
+                onClick={addRifleEntry}
+                className="text-xs bg-secondary hover:bg-primary hover:text-primary-foreground px-2 py-1 rounded"
+              >
+                + Add Rifle
+              </button>
+            </div>
+
+            {data.rifles_used.map((rifle, index) => (
+              <div key={index} className="bg-secondary/30 p-3 rounded-lg mb-3 space-y-2">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-xs font-medium text-muted-foreground">Rifle {index + 1}</span>
+                  {data.rifles_used.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeRifleEntry(index)}
+                      className="text-xs text-destructive hover:underline"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+                <select
+                  value={rifle.rifle_id}
+                  onChange={(e) => updateRifleEntry(index, 'rifle_id', e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
+                >
+                  <option value="">Select rifle</option>
+                  {rifles.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  placeholder="Rounds fired"
+                  value={rifle.rounds_fired}
+                  onChange={(e) => updateRifleEntry(index, 'rounds_fired', e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
+                />
+                <input
+                  type="number"
+                  placeholder="Meters range"
+                  value={rifle.meters_range}
+                  onChange={(e) => updateRifleEntry(index, 'meters_range', e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
+                />
+                <input
+                  type="text"
+                  placeholder="Ammunition brand"
+                  value={rifle.ammunition_brand}
+                  onChange={(e) => updateRifleEntry(index, 'ammunition_brand', e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
+                />
+                <input
+                  type="text"
+                  placeholder="Bullet type"
+                  value={rifle.bullet_type}
+                  onChange={(e) => updateRifleEntry(index, 'bullet_type', e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
+                />
+                <input
+                  type="text"
+                  placeholder="Grain"
+                  value={rifle.grain}
+                  onChange={(e) => updateRifleEntry(index, 'grain', e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
+                />
+              </div>
+            ))}
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Rounds Fired</label>
-            <input
-              type="number"
-              value={data.rounds_fired}
-              onChange={(e) => onChange('rounds_fired', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Meters Range</label>
-            <input
-              type="number"
-              value={data.meters_range}
-              onChange={(e) => onChange('meters_range', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Ammunition Brand</label>
-            <input
-              type="text"
-              value={data.ammunition_brand}
-              onChange={(e) => onChange('ammunition_brand', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Bullet Type</label>
-            <input
-              type="text"
-              value={data.bullet_type}
-              onChange={(e) => onChange('bullet_type', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Grain</label>
-            <input
-              type="text"
-              value={data.grain}
-              onChange={(e) => onChange('grain', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            />
-          </div>
+
           <div>
             <label className="block text-sm font-medium mb-1">Notes</label>
             <textarea
               value={data.notes}
-              onChange={(e) => onChange('notes', e.target.value)}
+              onChange={(e) => setData({ ...data, notes: e.target.value })}
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
               rows="2"
             />
