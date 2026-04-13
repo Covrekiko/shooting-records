@@ -4,6 +4,7 @@ import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import LegalShootingHours from '@/components/LegalShootingHours';
+import LocationMap from '@/components/LocationMap';
 import { Plus, Clock } from 'lucide-react';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
@@ -165,6 +166,26 @@ export default function DeerManagement() {
           )}
         </div>
 
+        <LegalShootingHours />
+
+        {!activeSession && (
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold mb-3">Your Hunting Locations</h3>
+            <LocationMap
+              locations={locations}
+              onLocationClick={(location) => {
+                setCheckinData({
+                  date: new Date().toISOString().split('T')[0],
+                  location_id: location.id,
+                  place_name: location.place_name,
+                  start_time: new Date().toTimeString().slice(0, 5),
+                });
+                setShowCheckin(true);
+              }}
+            />
+          </div>
+        )}
+
         {activeSession && (
           <div className="bg-accent border border-border rounded-lg p-6 mb-6">
             <div className="flex items-start justify-between">
@@ -189,8 +210,6 @@ export default function DeerManagement() {
             </div>
           </div>
         )}
-
-        <LegalShootingHours />
 
         {showCheckin && (
           <CheckinModal
