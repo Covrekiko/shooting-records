@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import { Settings, FileText, LogOut } from 'lucide-react';
+import { Settings, FileText, LogOut, BarChart3 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function Profile() {
@@ -51,6 +51,17 @@ export default function Profile() {
               >
                 <FileText className="w-5 h-5" />
                 Records
+              </Link>
+              <Link
+                to="/reports"
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  isActive('/reports')
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-foreground hover:bg-secondary'
+                }`}
+              >
+                <BarChart3 className="w-5 h-5" />
+                Reports
               </Link>
               <button
                 onClick={handleLogout}

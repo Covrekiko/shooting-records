@@ -94,24 +94,13 @@ export default function Navigation() {
                 <Link
                   to="/profile"
                   onClick={() => setProfileOpen(false)}
-                  className={`block px-4 py-2 text-sm font-medium rounded-t-lg ${
+                  className={`block px-4 py-2 text-sm font-medium rounded-lg ${
                     isActive('/profile')
                       ? 'bg-primary text-primary-foreground'
                       : 'text-foreground hover:bg-secondary'
                   }`}
                 >
                   Profile
-                </Link>
-                <Link
-                  to="/reports"
-                  onClick={() => setProfileOpen(false)}
-                  className={`block px-4 py-2 text-sm font-medium rounded-b-lg ${
-                    isActive('/reports')
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-foreground hover:bg-secondary'
-                  }`}
-                >
-                  Reports
                 </Link>
               </div>
             )}
@@ -172,17 +161,6 @@ export default function Navigation() {
                }`}
               >
                Profile
-              </Link>
-              <Link
-               to="/reports"
-               onClick={() => setOpen(false)}
-               className={`text-sm font-medium py-2 px-3 rounded transition-colors ${
-                 isActive('/reports')
-                   ? 'bg-primary text-primary-foreground'
-                   : 'text-foreground hover:bg-secondary'
-               }`}
-              >
-               Reports
               </Link>
             </div>
           </div>
