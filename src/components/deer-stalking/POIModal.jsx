@@ -15,16 +15,12 @@ export default function POIModal({ location, onClose, onSubmit }) {
   const [notes, setNotes] = useState('');
 
   const handleSubmit = () => {
-    if (!type) {
-      alert('Please select a POI type');
-      return;
-    }
     onSubmit({ type, notes, photos: [] });
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000]">
-      <div className="bg-card rounded-lg p-6 w-full max-w-md shadow-xl relative">
+      <div className="bg-white rounded-lg p-6 w-96 max-w-full shadow-xl relative">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">Add Point of Interest</h2>
           <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded">

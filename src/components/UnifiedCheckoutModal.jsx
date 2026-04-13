@@ -43,83 +43,31 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
     const files = e.target.files;
     if (!files) return;
 
-    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-    const MAX_SIZE = 5 * 1024 * 1024;
-    const errors = [];
-    const successful = [];
-
     for (const file of files) {
-      // Validate type
-      if (!ALLOWED_TYPES.includes(file.type)) {
-        errors.push(`${file.name}: Only JPEG, PNG, WebP allowed`);
+      if (file.size > 5 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
         continue;
       }
-      
-      // Validate size
-      if (file.size > MAX_SIZE) {
-        errors.push(`${file.name}: File must be < 5MB`);
-        continue;
-      }
-
       try {
-        const { url } = await base44.functions.invoke('uploadHarvestPhoto', {
-          file
-        });
-        successful.push(url);
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        setCheckoutData(prev => ({
+          ...prev,
+          photos: [...prev.photos, file_url],
+        }));
       } catch (error) {
-        errors.push(`${file.name}: Upload failed`);
+        console.error('Error uploading photo:', error);
       }
-    }
-
-    if (successful.length > 0) {
-      setCheckoutData(prev => ({
-        ...prev,
-        photos: [...prev.photos, ...successful],
-      }));
-    }
-
-    if (errors.length > 0) {
-      alert('Some photos failed to upload:\n' + errors.join('\n'));
     }
   };
 
   const handleSubmit = () => {
-    const errors = [];
-
-    // Validate checkout time
-    if (!checkoutData.end_time) {
-      errors.push('Check-out time is required');
-    }
-
-    // Validate harvest data if shot something
-    if (checkoutData.shot_anything) {
-      if (!checkoutData.species_list || checkoutData.species_list.length === 0) {
-        errors.push('Must specify at least one species');
-      }
-
-      // Check all species have valid values
-      const invalidSpecies = checkoutData.species_list.filter(s => !s.species || !s.count);
-      if (invalidSpecies.length > 0) {
-        errors.push('All species entries must have species and count');
-      }
-
-      if (!checkoutData.rifle_id) {
-        errors.push('Rifle is required');
-      }
-
-      if (checkoutData.species_list?.length) {
-        const totalCount = checkoutData.species_list.reduce((sum, s) => sum + (parseInt(s.count) || 0), 0);
-        if (!checkoutData.total_count || parseInt(checkoutData.total_count) !== totalCount) {
-          errors.push(`Total shots (${checkoutData.total_count}) must equal sum of species (${totalCount})`);
-        }
+    console.log('🔴 UnifiedCheckoutModal.handleSubmit called - checkoutData:', checkoutData);
+    if (checkoutData.shot_anything && checkoutData.species_list?.length) {
+      const totalCount = checkoutData.species_list.reduce((sum, s) => sum + (parseInt(s.count) || 0), 0);
+      if (!checkoutData.total_count || parseInt(checkoutData.total_count) !== totalCount) {
+        alert(`Total shots (${checkoutData.total_count}) must match sum of species (${totalCount})`);
+        return;
       }
     }
-
-    if (errors.length > 0) {
-      alert('Please fix these errors:\n' + errors.join('\n'));
-      return;
-    }
-
     onSubmit(checkoutData);
   };
 

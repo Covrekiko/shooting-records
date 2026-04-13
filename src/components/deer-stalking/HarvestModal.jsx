@@ -15,51 +15,19 @@ export default function HarvestModal({ location, onClose, onSubmit }) {
     if (!files) return;
 
     setUploading(true);
-    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-    const MAX_SIZE = 5 * 1024 * 1024;
-    const errors = [];
-
     try {
       for (const file of files) {
-        // Validate type
-        if (!ALLOWED_TYPES.includes(file.type)) {
-          errors.push(`${file.name}: Only JPEG, PNG, WebP allowed`);
-          continue;
-        }
-        
-        // Validate size
-        if (file.size > MAX_SIZE) {
-          errors.push(`${file.name}: File must be < 5MB`);
-          continue;
-        }
-
-        try {
-          const { url } = await base44.functions.invoke('uploadHarvestPhoto', { file });
-          setPhotos((prev) => [...prev, url]);
-        } catch (err) {
-          errors.push(`${file.name}: Upload failed`);
-        }
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        setPhotos((prev) => [...prev, file_url]);
       }
-
-      if (errors.length > 0) {
-        alert('Some photos failed:\n' + errors.join('\n'));
-      }
+    } catch (err) {
+      console.error('Upload failed:', err);
     } finally {
       setUploading(false);
     }
   };
 
-  const handleSubmit = async () => {
-    const errors = [];
-
-    if (!species) errors.push('Species is required');
-    if (!date) errors.push('Date is required');
-
-    if (errors.length > 0) {
-      alert('Please fix these errors:\n' + errors.join('\n'));
-      return;
-    }
-
+  const handleSubmit = () => {
     onSubmit({ species, sex, notes, photos, date });
   };
 

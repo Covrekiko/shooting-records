@@ -2,7 +2,6 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
-import { sessionManager } from './sessionManager';
 
 const AuthContext = createContext();
 
@@ -17,27 +16,6 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     checkAppState();
   }, []);
-
-  // Session timeout management
-  useEffect(() => {
-    if (isAuthenticated) {
-      sessionManager.start(() => {
-        console.warn('Session expired, logging out');
-        logout(true);
-      });
-
-      // Record activity on user interaction
-      const handleActivity = () => sessionManager.recordActivity();
-      window.addEventListener('click', handleActivity);
-      window.addEventListener('keydown', handleActivity);
-
-      return () => {
-        sessionManager.stop();
-        window.removeEventListener('click', handleActivity);
-        window.removeEventListener('keydown', handleActivity);
-      };
-    }
-  }, [isAuthenticated]);
 
   const checkAppState = async () => {
     try {

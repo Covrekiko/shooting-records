@@ -17,7 +17,6 @@ import AreaDrawer from '@/components/deer-stalking/AreaDrawer';
 import AreaSaveForm from '@/components/deer-stalking/AreaSaveForm';
 import AreaSelector from '@/components/deer-stalking/AreaSelector';
 import MapSearchBar from '@/components/deer-stalking/MapSearchBar';
-import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Fix Leaflet default icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -62,40 +61,18 @@ export default function DeerStalkingMap() {
     loadRiflesAndAmmo();
   }, []);
 
-  // GPS tracking for active outing with deduplication and accuracy filtering
+  // GPS tracking for active outing
   useEffect(() => {
     if (!activeOuting) return;
 
-    let lastRecordedPoint = activeOuting.gps_track?.[activeOuting.gps_track.length - 1] || null;
-    let pendingUpdate = false;
-
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-        
-        // Skip if accuracy is poor (> 50m)
-        if (accuracy > 50) return;
-        
-        // Skip if too close to last point (< 10m away)
-        if (lastRecordedPoint) {
-          const distance = Math.sqrt(
-            Math.pow(latitude - lastRecordedPoint.lat, 2) +
-            Math.pow(longitude - lastRecordedPoint.lng, 2)
-          ) * 111; // approximate km per degree
-          
-          if (distance < 0.01) return; // Less than 10m
-        }
-        
-        // Prevent duplicate updates
-        if (pendingUpdate) return;
-        pendingUpdate = true;
-        
-        const newTrackPoint = { lat: latitude, lng: longitude, timestamp: Date.now() };
-        lastRecordedPoint = newTrackPoint;
+        const { latitude, longitude } = position.coords;
+        const timestamp = Date.now();
+        const newTrackPoint = { lat: latitude, lng: longitude, timestamp };
         const updatedTrack = [...(activeOuting.gps_track || []), newTrackPoint];
         
         updateGpsTrack(activeOuting.id, updatedTrack);
-        setTimeout(() => { pendingUpdate = false; }, 5000); // Prevent updates faster than 5s
       },
       (error) => console.error('Geolocation error:', error),
       { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
@@ -268,9 +245,6 @@ export default function DeerStalkingMap() {
   };
 
   const handleDeletePOI = async (id) => {
-    if (!confirm('Are you sure you want to delete this POI? This cannot be undone.')) {
-      return;
-    }
     try {
       await base44.entities.MapMarker.delete(id);
       loadData();
@@ -280,9 +254,6 @@ export default function DeerStalkingMap() {
   };
 
   const handleDeleteHarvest = async (id) => {
-    if (!confirm('Are you sure you want to delete this harvest record? This cannot be undone.')) {
-      return;
-    }
     try {
       await base44.entities.Harvest.delete(id);
       loadData();
@@ -550,12 +521,6 @@ export default function DeerStalkingMap() {
         <div className="fixed top-4 left-4 right-4 z-[9998] bg-red-500 text-white p-3 rounded-lg flex items-center gap-2 pointer-events-auto">
           <AlertCircle className="w-4 h-4" />
           {error}
-          <button
-            onClick={() => setError(null)}
-            className="ml-auto text-white hover:opacity-80"
-          >
-            ✕
-          </button>
         </div>
       )}
 
@@ -570,15 +535,15 @@ export default function DeerStalkingMap() {
         onCreateArea={handleStartAreaCreation}
       />
 
-      {/* Modals - rendered via portal with error boundary for consistent z-index handling */}
+      {/* Modals - rendered via portal for consistent z-index handling */}
       {createPortal(
-        <ErrorBoundary>
+        <>
           {(showPOI || showHarvest || showOuting || showCheckout || showAreaDrawer || showAreaForm) && (
             <div className="fixed inset-0 z-[50000] pointer-events-auto" />
           )}
           
           {showPOI && mapClick && (
-            <div className="fixed inset-0 z-[50001] flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[50001] flex items-center justify-center">
               <POIModal
                 location={mapClick}
                 onClose={() => {
@@ -591,7 +556,7 @@ export default function DeerStalkingMap() {
           )}
 
           {showHarvest && mapClick && (
-            <div className="fixed inset-0 z-[50001] flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[50001] flex items-center justify-center">
               <HarvestModal
                 location={mapClick}
                 onClose={() => {
@@ -604,7 +569,7 @@ export default function DeerStalkingMap() {
           )}
 
           {showOuting && (
-            <div className="fixed inset-0 z-[50001] flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[50001] flex items-center justify-center">
               <OutingModal
                 locations={locations}
                 onClose={() => setShowOuting(false)}
@@ -615,7 +580,7 @@ export default function DeerStalkingMap() {
           )}
 
           {showCheckout && activeOuting && (
-            <div className="fixed inset-0 z-[50001] flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[50001] flex items-center justify-center">
               <UnifiedCheckoutModal
                 activeOuting={activeOuting}
                 rifles={rifles}
@@ -643,7 +608,7 @@ export default function DeerStalkingMap() {
           )}
 
           {showAreaForm && drawnPolygon && (
-            <div className="fixed inset-0 z-[50001] flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[50001] flex items-center justify-center">
               <AreaSaveForm
                 polygon={drawnPolygon}
                 onSave={handleSaveArea}
@@ -654,7 +619,7 @@ export default function DeerStalkingMap() {
               />
             </div>
           )}
-        </ErrorBoundary>,
+        </>,
         document.body
       )}
     </div>

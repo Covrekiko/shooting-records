@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { UserPlus, MoreVertical, Ban, Pause } from 'lucide-react';
@@ -7,8 +6,6 @@ import { UserPlus, MoreVertical, Ban, Pause } from 'lucide-react';
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [authError, setAuthError] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -24,25 +21,15 @@ export default function AdminUsers() {
   const [selectedUserMenu, setSelectedUserMenu] = useState(null);
 
   useEffect(() => {
-    checkAdminAccess();
+    loadUsers();
   }, []);
 
-  const checkAdminAccess = async () => {
+  const loadUsers = async () => {
     try {
-      const user = await base44.auth.me();
-      setCurrentUser(user);
-      
-      // Verify admin role
-      if (user.role !== 'admin') {
-        setAuthError(true);
-        return;
-      }
-      
       const allUsers = await base44.entities.User.list();
       setUsers(allUsers);
     } catch (error) {
-      console.error('Error:', error);
-      setAuthError(true);
+      console.error('Error loading users:', error);
     } finally {
       setLoading(false);
     }
@@ -50,22 +37,8 @@ export default function AdminUsers() {
 
   const handleInviteUser = async (e) => {
     e.preventDefault();
-    // Only admins can invite admins
-    const roleToInvite = formData.role;
-    if (roleToInvite === 'admin' && currentUser.role !== 'admin') {
-      alert('Only admins can invite other admins');
-      return;
-    }
-    
     try {
       await base44.users.inviteUser(formData.email, formData.role);
-      
-      // Log this action
-      await base44.functions.invoke('auditLog', {
-        event: { type: 'invite', entity_name: 'User' },
-        data: { email: formData.email, role: formData.role }
-      });
-      
       setShowForm(false);
       setFormData({
         email: '',
@@ -78,10 +51,9 @@ export default function AdminUsers() {
         vehicle_registration: '',
         role: 'user',
       });
-      await checkAdminAccess();
+      loadUsers();
     } catch (error) {
       console.error('Error inviting user:', error);
-      alert('Failed to invite user');
     }
   };
 
@@ -104,10 +76,6 @@ export default function AdminUsers() {
         </div>
       </div>
     );
-  }
-
-  if (authError || !currentUser || currentUser.role !== 'admin') {
-    return <Navigate to="/" />;
   }
 
   return (

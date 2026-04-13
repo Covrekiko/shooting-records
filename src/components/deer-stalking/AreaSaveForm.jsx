@@ -53,24 +53,16 @@ export default function AreaSaveForm({ polygon, onSave, onCancel }) {
     const centerPoint = calculateCenter();
     const areaData = {
       name: formData.name,
-      polygon_coordinates: polygon, // Array of [lat, lng]
-      center_point: {
-        lat: parseFloat(centerPoint.lat),
-        lng: parseFloat(centerPoint.lng),
-      },
-      deer_species: formData.deer_species || [],
-      notes: formData.notes || '',
-      location_address: formData.location_address || '',
-      postcode: formData.postcode || '',
+      polygon_coordinates: polygon,
+      center_point: centerPoint,
+      deer_species: formData.deer_species,
+      notes: formData.notes,
+      location_address: formData.location_address,
+      postcode: formData.postcode,
       active: true,
     };
 
-    try {
-      onSave(areaData);
-    } catch (error) {
-      console.error('Error saving area:', error);
-      alert('Failed to save area. Please try again.');
-    }
+    onSave(areaData);
   };
 
   const toggleSpecies = (species) => {
