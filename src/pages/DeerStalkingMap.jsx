@@ -154,14 +154,14 @@ export default function DeerStalkingMap() {
 
   return (
     <div className="w-full h-screen bg-slate-900 relative overflow-hidden">
-      <MapContainer
-        center={userLocation}
-        zoom={13}
-        className="z-0"
-        style={{ width: '100%', height: '100%' }}
-        onClick={handleMapClick}
-        zoomControl={true}
-      >
+      <div className="absolute inset-0 z-0">
+        <MapContainer
+          center={userLocation}
+          zoom={13}
+          style={{ width: '100%', height: '100%' }}
+          onClick={handleMapClick}
+          zoomControl={true}
+        >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; OpenStreetMap contributors'
@@ -214,6 +214,7 @@ export default function DeerStalkingMap() {
           />
         )}
       </MapContainer>
+      </div>
 
       {/* Back to Dashboard */}
       <Link
