@@ -148,12 +148,12 @@ export default function Records() {
                 <button
                   onClick={() => setPreviewingPdf(filteredRecords)}
                   className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
-                >
+                  >
                   <FileText className="w-4 h-4" />
                   Preview PDF
-                </button>
-                <button
-                  onClick={() => exportRecordsToPdf(filteredRecords, user)}
+                  </button>
+                  <button
+                  onClick={() => exportRecordsToPdf(filteredRecords, user, 'shooting-records.pdf', rifles)}
                   className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
                 >
                   <Download className="w-4 h-4" />
@@ -219,7 +219,7 @@ export default function Records() {
         )}
         
         {previewingPdf && (
-          <PdfPreviewModal records={previewingPdf} userInfo={user} onClose={() => setPreviewingPdf(null)} />
+          <PdfPreviewModal records={previewingPdf} userInfo={user} rifles={rifles} onClose={() => setPreviewingPdf(null)} />
         )}
         
         {viewingTrack && (
@@ -607,13 +607,13 @@ function getBadgeLabel(type) {
   if (type === 'deer') return 'Deer Management';
 }
 
-function PdfPreviewModal({ records, userInfo, onClose }) {
+function PdfPreviewModal({ records, userInfo, rifles, onClose }) {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const blob = await getRecordsPdfBlob(records, userInfo);
+      const blob = await getRecordsPdfBlob(records, userInfo, rifles);
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       setLoading(false);

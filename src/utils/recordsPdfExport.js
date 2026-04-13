@@ -5,7 +5,7 @@ export async function generateRecordsPdf(records) {
   return doc;
 }
 
-export async function exportRecordsToPdf(records, userInfo = null, fileName = 'shooting-records.pdf') {
+export async function exportRecordsToPdf(records, userInfo = null, fileName = 'shooting-records.pdf', rifles = {}) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -198,12 +198,21 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
         yPosition += 3;
         
         record.rifles_used.forEach((rifle, rIdx) => {
+          const rifleData = rifles[rifle.rifle_id];
           doc.setFont(undefined, 'normal');
           doc.setFontSize(7.5);
           doc.setTextColor(0);
           
-          doc.text(`Rifle ${rIdx + 1}:`, margin + 4, yPosition);
+          doc.text(`Rifle ${rIdx + 1}: ${rifleData ? rifleData.name : 'N/A'}`, margin + 4, yPosition);
           yPosition += 2.5;
+          
+          if (rifleData) {
+            doc.text(`  Make: ${rifleData.make || '-'} | Model: ${rifleData.model || '-'}`, margin + 6, yPosition);
+            yPosition += 2.5;
+            
+            doc.text(`  Caliber: ${rifleData.caliber || '-'} | Serial: ${rifleData.serial_number || '-'}`, margin + 6, yPosition);
+            yPosition += 2.5;
+          }
           
           doc.text(`  Rounds Fired: ${rifle.rounds_fired || '-'}`, margin + 6, yPosition);
           yPosition += 2.5;
@@ -399,12 +408,13 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
   doc.save(fileName);
 }
 
-export async function getRecordsPdfBlob(records, userInfo = null) {
-  const doc = generateBase44Pdf(records, userInfo);
+export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}) {
+  const doc = generateBase44Pdf(records, userInfo, rifles);
   return doc.output('blob');
 }
 
-function generateBase44Pdf(records, userInfo = null) {
+function generateBase44Pdf(records, userInfo = null, rifles = {}) {
+
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -585,12 +595,21 @@ function generateBase44Pdf(records, userInfo = null) {
         yPosition += 3;
         
         record.rifles_used.forEach((rifle, rIdx) => {
+          const rifleData = rifles[rifle.rifle_id];
           doc.setFont(undefined, 'normal');
           doc.setFontSize(7.5);
           doc.setTextColor(0);
           
-          doc.text(`Rifle ${rIdx + 1}:`, margin + 4, yPosition);
+          doc.text(`Rifle ${rIdx + 1}: ${rifleData ? rifleData.name : 'N/A'}`, margin + 4, yPosition);
           yPosition += 2.5;
+          
+          if (rifleData) {
+            doc.text(`  Make: ${rifleData.make || '-'} | Model: ${rifleData.model || '-'}`, margin + 6, yPosition);
+            yPosition += 2.5;
+            
+            doc.text(`  Caliber: ${rifleData.caliber || '-'} | Serial: ${rifleData.serial_number || '-'}`, margin + 6, yPosition);
+            yPosition += 2.5;
+          }
           
           doc.text(`  Rounds Fired: ${rifle.rounds_fired || '-'}`, margin + 6, yPosition);
           yPosition += 2.5;
