@@ -1,104 +1,133 @@
-import { Sunrise, Sunset, AlertCircle, MapPin } from 'lucide-react';
+import { Sunrise, Sunset, AlertCircle, Sun, CheckCircle } from 'lucide-react';
 import { useSunTimes } from '@/hooks/useSunTimes';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function LegalShootingHours() {
   const sunTimes = useSunTimes();
-  const [showManual, setShowManual] = useState(false);
-  const [manualHours, setManualHours] = useState({ start: '06:00', end: '20:00' });
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [timeRemaining, setTimeRemaining] = useState('');
+  const [isLegalHours, setIsLegalHours] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!sunTimes || sunTimes.type !== 'normal') return;
+
+    const now = new Date();
+    const legalStart = new Date(sunTimes.sunrise.getTime() - 60 * 60000);
+    const legalEnd = new Date(sunTimes.sunset.getTime() + 60 * 60000);
+
+    const isLegal = now >= legalStart && now <= legalEnd;
+    setIsLegalHours(isLegal);
+
+    if (isLegal) {
+      const msRemaining = legalEnd - now;
+      const hours = Math.floor(msRemaining / 3600000);
+      const minutes = Math.floor((msRemaining % 3600000) / 60000);
+      setTimeRemaining(`${hours}h ${minutes}m`);
+    }
+  }, [sunTimes, currentTime]);
 
   if (!sunTimes || sunTimes.type !== 'normal') {
-    return (
-      <div className="bg-card border border-border rounded-lg p-6 mb-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <MapPin className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
-            <div>
-              <p className="font-semibold text-sm mb-1">Geolocation Unavailable</p>
-              <p className="text-sm text-muted-foreground">Enable location access or set shooting hours manually</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setShowManual(!showManual)}
-            className="text-xs font-medium px-3 py-1 bg-primary/10 text-primary hover:bg-primary/20 rounded transition-colors flex-shrink-0"
-          >
-            {showManual ? 'Hide' : 'Set'}
-          </button>
-        </div>
-        {showManual && (
-          <div className="mt-4 pt-4 border-t border-border space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium mb-1">Start Time</label>
-                <input
-                  type="time"
-                  value={manualHours.start}
-                  onChange={(e) => setManualHours({ ...manualHours, start: e.target.value })}
-                  className="w-full px-2 py-1 border border-border rounded text-sm bg-background"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium mb-1">End Time</label>
-                <input
-                  type="time"
-                  value={manualHours.end}
-                  onChange={(e) => setManualHours({ ...manualHours, end: e.target.value })}
-                  className="w-full px-2 py-1 border border-border rounded text-sm bg-background"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-        {!showManual && manualHours.start && (
-          <div className="mt-3 pt-3 border-t border-border text-xs text-muted-foreground">
-            Window: {manualHours.start} - {manualHours.end}
-          </div>
-        )}
-      </div>
-    );
+    return null;
   }
 
   const sunrise = sunTimes.sunrise;
   const sunset = sunTimes.sunset;
-  const legalStartTime = new Date(sunrise.getTime() + 30 * 60000); // 30 min before sunrise = after sunrise - 30 min... actually legal start is 30 min BEFORE sunrise
-  const legalStartActual = new Date(sunrise.getTime() - 30 * 60000);
-  const legalEndTime = new Date(sunset.getTime() + 30 * 60000);
+  const legalStart = new Date(sunrise.getTime() - 60 * 60000);
+  const legalEnd = new Date(sunset.getTime() + 60 * 60000);
 
   const formatTime = (date) => date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+  const formatSunTime = (date) => date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+  const getTimelinePosition = () => {
+    const dayStart = new Date(currentTime);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(currentTime);
+    dayEnd.setHours(23, 59, 59, 999);
+    const dayDuration = dayEnd - dayStart;
+
+    const timeSinceStart = currentTime - dayStart;
+    return (timeSinceStart / dayDuration) * 100;
+  };
+
+  const legalStartPercent = ((legalStart - new Date(legalStart).setHours(0, 0, 0, 0)) / 86400000) * 100;
+  const legalEndPercent = ((legalEnd - new Date(legalEnd).setHours(0, 0, 0, 0)) / 86400000) * 100;
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6 mb-6">
-      <h3 className="text-lg font-semibold mb-4">Legal Shooting Hours</h3>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="flex items-start gap-3">
-          <Sunrise className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
-          <div>
-            <p className="text-sm text-muted-foreground">Sunrise</p>
-            <p className="font-semibold text-lg">{formatTime(sunrise)}</p>
-          </div>
-        </div>
-
-        <div className="bg-primary/10 rounded-lg p-4 border border-primary/20">
-          <p className="text-xs text-muted-foreground font-medium uppercase mb-2">Legal Shooting Window</p>
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-primary">{formatTime(legalStartActual)} - {formatTime(legalEndTime)}</p>
-            <p className="text-xs text-muted-foreground">30 minutes before sunrise to 30 minutes after sunset</p>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3">
-          <Sunset className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
-          <div>
-            <p className="text-sm text-muted-foreground">Sunset</p>
-            <p className="font-semibold text-lg">{formatTime(sunset)}</p>
-          </div>
-        </div>
+    <div className="mb-6">
+      <div className="mb-4">
+        <h2 className="text-3xl font-bold mb-1">Legal Shooting Hours</h2>
+        <p className="text-muted-foreground">Check the legal shooting hours for your current location</p>
       </div>
 
-      <p className="text-xs text-muted-foreground mt-4 pt-4 border-t border-border">
-        Times calculated based on your device's GPS location. Always check local hunting regulations for your specific area.
-      </p>
+      <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 mb-6">
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Sun className="w-5 h-5 text-green-600" />
+            <h3 className="text-lg font-bold text-green-900">Legal Shooting Hours</h3>
+          </div>
+          {isLegalHours && <CheckCircle className="w-6 h-6 text-green-600" />}
+        </div>
+
+        <p className="text-sm font-semibold text-slate-600 mb-3">Legal Window</p>
+
+        {/* Timeline */}
+        <div className="mb-6">
+          <div className="relative h-10 bg-gradient-to-r from-red-200 via-green-400 to-red-200 rounded-full overflow-hidden">
+            <div
+              className="absolute top-0 bottom-0 w-0.5 bg-black"
+              style={{ left: `${getTimelinePosition()}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Times */}
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <div>
+            <div className="flex items-center gap-1 text-slate-600 text-xs mb-1">
+              <Sunrise className="w-4 h-4" />
+              <span>Legal Start</span>
+            </div>
+            <p className="font-bold text-slate-900">{formatTime(legalStart)}</p>
+            <p className="text-xs text-slate-600">Sunrise {formatSunTime(sunrise)}</p>
+          </div>
+
+          <div className="text-center">
+            <p className="text-xs text-slate-600 uppercase font-semibold mb-1">Current Time</p>
+            <p className="font-bold text-slate-900 text-lg">{currentTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</p>
+          </div>
+
+          <div className="text-right">
+            <div className="flex items-center gap-1 text-slate-600 text-xs mb-1 justify-end">
+              <Sunset className="w-4 h-4" />
+              <span>Legal End</span>
+            </div>
+            <p className="font-bold text-slate-900">{formatTime(legalEnd)}</p>
+            <p className="text-xs text-slate-600">Sunset {formatSunTime(sunset)}</p>
+          </div>
+        </div>
+
+        {isLegalHours && (
+          <div className="text-sm font-semibold text-green-600 flex items-center gap-2">
+            <CheckCircle className="w-4 h-4" />
+            Shooting permitted for another {timeRemaining}
+          </div>
+        )}
+
+        <p className="text-xs text-slate-700 mt-4 pt-4 border-t border-green-200">
+          Under the Deer Act 1991, deer may be shot from one hour before sunrise to one hour after sunset. Night shooting is prohibited without special licence.
+        </p>
+      </div>
+
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <p className="text-sm text-blue-900">
+          <span className="font-semibold">Note:</span> Legal shooting hours vary by location and time of year. Always check local regulations and with the estate manager before shooting.
+        </p>
+      </div>
     </div>
   );
 }
