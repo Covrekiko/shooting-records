@@ -350,11 +350,10 @@ function CheckoutModal({ data, shotguns, onSubmit, onChange, onClose }) {
            <label className="block text-sm font-medium mb-1">Rounds Fired</label>
            <input
              type="number"
-             min="1"
+             min="0"
              value={data.rounds_fired}
              onChange={(e) => onChange('rounds_fired', e.target.value)}
              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-             required
            />
           </div>
           <div>
