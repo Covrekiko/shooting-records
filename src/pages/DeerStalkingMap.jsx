@@ -320,7 +320,7 @@ export default function DeerStalkingMap() {
       </Link>
       {/* Selection Mode Instruction */}
       {waitingForPin && (
-        <div className="fixed top-4 left-4 z-[9998] bg-blue-500 text-white px-2 py-0.5 rounded flex items-center justify-between pointer-events-auto gap-1 h-6 w-20">
+        <div className="fixed top-4 left-4 z-[9998] bg-blue-500 text-white px-2 py-0.5 rounded flex items-center justify-between pointer-events-auto gap-1 h-6 w-48">
           <p className="text-xs font-semibold">Tap to place</p>
           <button
             onClick={() => setWaitingForPin(null)}
