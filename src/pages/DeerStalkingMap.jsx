@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { Link } from 'react-router-dom';
 import L from 'leaflet';
 import { base44 } from '@/api/base44Client';
 import FloatingActionBar from '@/components/deer-stalking/FloatingActionBar';
 import POIModal from '@/components/deer-stalking/POIModal';
 import HarvestModal from '@/components/deer-stalking/HarvestModal';
 import OutingModal from '@/components/deer-stalking/OutingModal';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Home } from 'lucide-react';
 
 // Fix Leaflet default icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -150,6 +151,14 @@ export default function DeerStalkingMap() {
 
   return (
     <div className="fixed inset-0 bg-slate-900">
+      {/* Back to Dashboard */}
+      <Link
+        to="/"
+        className="absolute top-4 left-4 z-50 flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all"
+      >
+        <Home className="w-4 h-4" />
+        Dashboard
+      </Link>
       {error && (
         <div className="absolute top-4 left-4 right-4 z-50 bg-red-500 text-white p-3 rounded-lg flex items-center gap-2">
           <AlertCircle className="w-4 h-4" />
