@@ -1,9 +1,7 @@
-import { MapContainer, TileLayer, useMap } from 'react-leaflet';
-import { useEffect, useRef, useState } from 'react';
+import { MapContainer, TileLayer, Polygon, Marker, Popup } from 'react-leaflet';
+import { useState } from 'react';
 import L from 'leaflet';
-import 'leaflet-draw/dist/leaflet.draw.css';
-import 'leaflet-draw';
-import { Map, Satellite, Trash2, Locate, Zap, MapPin } from 'lucide-react';
+import { Map, Satellite, Trash2, Locate } from 'lucide-react';
 
 // Fix marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -13,92 +11,23 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-function DrawControl({ onDataChange, mapData, onMapReady }) {
-  const map = useMap();
-  const featureGroupRef = useRef(null);
-  const drawControlRef = useRef(null);
-
-  useEffect(() => {
-    if (map && onMapReady) {
-      onMapReady(map);
+function MapRenderer({ mapData }) {
+  if (!mapData || !mapData.features) return null;
+  
+  return mapData.features.map((feature, idx) => {
+    if (feature.geometry.type === 'Point') {
+      return (
+        <Marker key={idx} position={[feature.geometry.coordinates[1], feature.geometry.coordinates[0]]}>
+          <Popup>{feature.properties?.name || 'Marker'}</Popup>
+        </Marker>
+      );
     }
-  }, [map, onMapReady]);
-
-  useEffect(() => {
-    if (!map) return;
-
-    try {
-      const featureGroup = L.featureGroup();
-      featureGroup.addTo(map);
-      featureGroupRef.current = featureGroup;
-
-      const drawControl = new L.Control.Draw({
-        position: 'topleft',
-        draw: {
-          polygon: true,
-          marker: true,
-          rectangle: false,
-          circle: false,
-          circlemarker: false,
-          polyline: false,
-        },
-        edit: {
-          featureGroup: featureGroup,
-          edit: true,
-          remove: true,
-        },
-      });
-      
-      map.addControl(drawControl);
-      drawControlRef.current = drawControl;
-
-      const handleCreated = (e) => {
-        featureGroup.addLayer(e.layer);
-        updateMapData();
-      };
-
-      const handleEdited = () => {
-        updateMapData();
-      };
-
-      const handleDeleted = () => {
-        updateMapData();
-      };
-
-      const updateMapData = () => {
-        const geoJson = featureGroup.toGeoJSON();
-        onDataChange(geoJson);
-      };
-
-      if (mapData && mapData.features) {
-        L.geoJSON(mapData, {
-          onEachFeature: (feature, layer) => {
-            featureGroup.addLayer(layer);
-          },
-        });
-      }
-
-      map.on('draw:created', handleCreated);
-      map.on('draw:edited', handleEdited);
-      map.on('draw:deleted', handleDeleted);
-
-      return () => {
-        map.off('draw:created', handleCreated);
-        map.off('draw:edited', handleEdited);
-        map.off('draw:deleted', handleDeleted);
-        if (drawControlRef.current) {
-          map.removeControl(drawControlRef.current);
-        }
-        if (featureGroupRef.current) {
-          map.removeLayer(featureGroupRef.current);
-        }
-      };
-    } catch (error) {
-      console.error('Error initializing draw control:', error);
+    if (feature.geometry.type === 'Polygon') {
+      const positions = feature.geometry.coordinates[0].map(coord => [coord[1], coord[0]]);
+      return <Polygon key={idx} positions={positions} pathOptions={{ color: 'orange' }} />;
     }
-  }, [map, onDataChange]);
-
-  return null;
+    return null;
+  });
 }
 
 function MapControls({ map }) {
@@ -135,8 +64,7 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
   const center = initialCenter || [54.5973, -3.1578];
 
   const clearAll = () => {
-    onDataChange(null);
-    window.location.reload();
+    onDataChange({ features: [] });
   };
 
   const tileUrl = mapType === 'satellite'
@@ -188,13 +116,14 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
           center={center} 
           zoom={13} 
           style={{ height: '400px', width: '100%', position: 'absolute', top: 0, left: 0 }}
+          ref={(instance) => instance && setMap(instance)}
         >
           <TileLayer
             key={tileUrl}
             attribution='&copy; OpenStreetMap contributors'
             url={tileUrl}
           />
-          <DrawControl onDataChange={onDataChange} mapData={mapData} onMapReady={setMap} />
+          <MapRenderer mapData={mapData} />
         </MapContainer>
       </div>
     </div>
