@@ -1,27 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Settings, ChevronDown } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { Menu, X, Settings } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 
 export default function Navigation() {
   const [open, setOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
   const [user, setUser] = useState(null);
   const location = useLocation();
-  const profileRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
-        setProfileOpen(false);
-      }
-    }
-
-    if (profileOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [profileOpen]);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -75,36 +60,16 @@ export default function Navigation() {
               Admin
             </Link>
           )}
-          <div className="relative" ref={profileRef}>
-            <button
-              onClick={() => setProfileOpen(!profileOpen)}
-              className={`text-sm font-medium transition-colors flex items-center gap-1 ${
-                isActive('/profile') || isActive('/reports')
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Profile
-              <ChevronDown className={`w-4 h-4 transition-transform ${
-                profileOpen ? 'rotate-180' : ''
-              }`} />
-            </button>
-            {profileOpen && (
-              <div className="absolute right-0 mt-2 w-40 bg-card border border-border rounded-lg shadow-lg z-50">
-                <Link
-                  to="/profile"
-                  onClick={() => setProfileOpen(false)}
-                  className={`block px-4 py-2 text-sm font-medium rounded-lg ${
-                    isActive('/profile')
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-foreground hover:bg-secondary'
-                  }`}
-                >
-                  Profile
-                </Link>
-              </div>
-            )}
-          </div>
+          <Link
+            to="/profile"
+            className={`text-sm font-medium transition-colors ${
+              isActive('/profile')
+                ? 'text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Profile
+          </Link>
         </div>
 
         {/* Mobile Menu Button */}
@@ -152,15 +117,15 @@ export default function Navigation() {
                </Link>
               )}
               <Link
-               to="/profile"
-               onClick={() => setOpen(false)}
-               className={`text-sm font-medium py-2 px-3 rounded transition-colors ${
-                 isActive('/profile')
-                   ? 'bg-primary text-primary-foreground'
-                   : 'text-foreground hover:bg-secondary'
-               }`}
+                to="/profile"
+                onClick={() => setOpen(false)}
+                className={`text-sm font-medium py-2 px-3 rounded transition-colors ${
+                  isActive('/profile')
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-foreground hover:bg-secondary'
+                }`}
               >
-               Profile
+                Profile
               </Link>
             </div>
           </div>
