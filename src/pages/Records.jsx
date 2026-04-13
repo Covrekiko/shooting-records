@@ -349,15 +349,13 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
         {record.recordType === 'target' && (
           <>
             {/* Venue Information */}
-            {record.club_id && (
+            {record.club_id && clubs[record.club_id] && (
               <div className="mb-6 pb-4 border-b border-border">
                 <h3 className="font-bold text-lg mb-3 text-primary">Venue Details</h3>
                 <div className="bg-secondary/30 p-4 rounded-lg">
-                  <p className="font-semibold text-base">{getClubName(record.club_id)}</p>
-                  {clubs[record.club_id]?.location && (
-                    <p className="text-sm text-muted-foreground mt-1">{clubs[record.club_id].location}</p>
-                  )}
-                  {clubs[record.club_id]?.notes && (
+                  <p className="font-semibold text-base">{clubs[record.club_id].name}</p>
+                  <p className="text-sm text-muted-foreground mt-2">{clubs[record.club_id].location}</p>
+                  {clubs[record.club_id].notes && (
                     <p className="text-sm mt-2">{clubs[record.club_id].notes}</p>
                   )}
                 </div>
@@ -518,9 +516,9 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
             <div className="mb-6 pb-4 border-b border-border">
               <h3 className="font-bold text-lg mb-3 text-primary">Location & Hunting Details</h3>
               <div className="bg-secondary/30 p-4 rounded-lg">
-                <p className="font-semibold text-base">{getLocationName(record.location_id) || record.place_name || 'N/A'}</p>
+                <p className="font-semibold text-base">{locations[record.location_id]?.place_name || record.place_name || 'N/A'}</p>
                 {locations[record.location_id]?.location && (
-                  <p className="text-sm text-muted-foreground mt-1">{locations[record.location_id].location}</p>
+                  <p className="text-sm text-muted-foreground mt-2">{locations[record.location_id].location}</p>
                 )}
               </div>
             </div>
