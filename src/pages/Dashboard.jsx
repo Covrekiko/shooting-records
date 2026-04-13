@@ -1,12 +1,20 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Activity, Zap, Target, MapPin } from 'lucide-react';
+import { Activity, Zap, Target, MapPin, BarChart3 } from 'lucide-react';
+import {
+  MonthlyActivityChart,
+  RoundsPerFirearmChart,
+  ClubActivityHeatmap,
+  AdminActivityChart,
+} from '@/components/Charts';
+import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [chartData, setChartData] = useState(null);
 
   useEffect(() => {
     async function loadData() {
@@ -30,10 +38,14 @@ export default function Dashboard() {
             deerRecords: deerMgmt.length,
           });
         } else {
-          const [targetShoots, clayShoots, deerMgmt] = await Promise.all([
+          const [targetShoots, clayShoots, deerMgmt, rifles, shotguns, clubs, locations] = await Promise.all([
             base44.entities.TargetShooting.filter({ created_by: currentUser.email }),
             base44.entities.ClayShooting.filter({ created_by: currentUser.email }),
             base44.entities.DeerManagement.filter({ created_by: currentUser.email }),
+            base44.entities.Rifle.filter({ created_by: currentUser.email }),
+            base44.entities.Shotgun.filter({ created_by: currentUser.email }),
+            base44.entities.Club.filter({ created_by: currentUser.email }),
+            base44.entities.DeerLocation.filter({ created_by: currentUser.email }),
           ]);
 
           const totalRounds = targetShoots.reduce((sum, s) => sum + (s.rounds_fired || 0), 0);
@@ -46,6 +58,13 @@ export default function Dashboard() {
             totalRifleRounds: totalRounds,
             totalShotgunRounds: totalShotgunRounds,
           });
+
+          // Prepare chart data
+          const monthlyData = getMonthlyData(targetShoots, clayShoots, deerMgmt);
+          const firearmData = getFirearmData(targetShoots, clayShoots, rifles, shotguns);
+          const locationData = getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations);
+
+          setChartData({ monthly: monthlyData, firearm: firearmData, location: locationData });
         }
       } catch (error) {
         console.error('Error loading dashboard:', error);
@@ -134,9 +153,102 @@ export default function Dashboard() {
             />
           </div>
         )}
+
+        {/* Charts Section */}
+        {user?.role !== 'admin' && chartData && (
+          <div className="mt-12 space-y-6">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold">Performance Analytics</h2>
+              <Link
+                to="/reports"
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
+              >
+                <BarChart3 className="w-4 h-4" />
+                Generate Report
+              </Link>
+            </div>
+            <MonthlyActivityChart data={chartData.monthly} />
+            <RoundsPerFirearmChart data={chartData.firearm} />
+            <ClubActivityHeatmap data={chartData.location} />
+          </div>
+        )}
       </main>
     </div>
   );
+}
+
+function getMonthlyData(targetShoots, clayShoots, deerMgmt) {
+  const monthlyMap = {};
+  const allRecords = [
+    ...targetShoots.map((r) => ({ ...r, type: 'target' })),
+    ...clayShoots.map((r) => ({ ...r, type: 'clay' })),
+    ...deerMgmt.map((r) => ({ ...r, type: 'deer' })),
+  ];
+
+  allRecords.forEach((record) => {
+    const date = new Date(record.date);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+    if (!monthlyMap[monthKey]) {
+      monthlyMap[monthKey] = { month: monthKey, targetSessions: 0, claySessions: 0, deerOutings: 0 };
+    }
+
+    if (record.type === 'target') monthlyMap[monthKey].targetSessions++;
+    else if (record.type === 'clay') monthlyMap[monthKey].claySessions++;
+    else if (record.type === 'deer') monthlyMap[monthKey].deerOutings++;
+  });
+
+  return Object.values(monthlyMap).slice(-6);
+}
+
+function getFirearmData(targetShoots, clayShoots, rifles, shotguns) {
+  const firearmMap = {};
+
+  // Map rifles
+  const rifleMap = rifles.reduce((acc, r) => ({ ...acc, [r.id]: r.name }), {});
+  const shotgunMap = shotguns.reduce((acc, s) => ({ ...acc, [s.id]: s.name }), {});
+
+  targetShoots.forEach((record) => {
+    const name = rifleMap[record.rifle_id] || 'Unknown Rifle';
+    firearmMap[name] = (firearmMap[name] || 0) + (record.rounds_fired || 0);
+  });
+
+  clayShoots.forEach((record) => {
+    const name = shotgunMap[record.shotgun_id] || 'Unknown Shotgun';
+    firearmMap[name] = (firearmMap[name] || 0) + (record.rounds_fired || 0);
+  });
+
+  return Object.entries(firearmMap)
+    .map(([name, rounds]) => ({ name, rounds }))
+    .sort((a, b) => b.rounds - a.rounds)
+    .slice(0, 8);
+}
+
+function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
+  const locationMap = {};
+
+  const clubMap = clubs.reduce((acc, c) => ({ ...acc, [c.id]: c.name }), {});
+  const locationMap2 = locations.reduce((acc, l) => ({ ...acc, [l.id]: l.place_name }), {});
+
+  targetShoots.forEach((record) => {
+    const name = clubMap[record.club_id] || 'Unknown Club';
+    locationMap[name] = (locationMap[name] || 0) + 1;
+  });
+
+  clayShoots.forEach((record) => {
+    const name = clubMap[record.club_id] || 'Unknown Club';
+    locationMap[name] = (locationMap[name] || 0) + 1;
+  });
+
+  deerMgmt.forEach((record) => {
+    const name = locationMap2[record.location_id] || record.place_name || 'Unknown Location';
+    locationMap[name] = (locationMap[name] || 0) + 1;
+  });
+
+  return Object.entries(locationMap)
+    .map(([name, visits]) => ({ name, visits }))
+    .sort((a, b) => b.visits - a.visits)
+    .slice(0, 8);
 }
 
 function StatCard({ icon, label, value }) {
