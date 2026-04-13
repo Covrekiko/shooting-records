@@ -11,6 +11,7 @@ export default function TargetShooting() {
   const [activeSession, setActiveSession] = useState(null);
   const [clubs, setClubs] = useState([]);
   const [rifles, setRifles] = useState([]);
+  const [ammunition, setAmmunition] = useState([]);
   const [showCheckin, setShowCheckin] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -50,9 +51,10 @@ export default function TargetShooting() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
 
-        const [clubsList, riflesList, activeSession] = await Promise.all([
+        const [clubsList, riflesList, ammoList, activeSession] = await Promise.all([
           base44.entities.Club.filter({ created_by: currentUser.email }),
           base44.entities.Rifle.filter({ created_by: currentUser.email }),
+          base44.entities.Ammunition.filter({ created_by: currentUser.email }),
           base44.entities.TargetShooting.filter({
             created_by: currentUser.email,
             active_checkin: true,
@@ -61,6 +63,7 @@ export default function TargetShooting() {
 
         setClubs(clubsList);
         setRifles(riflesList);
+        setAmmunition(ammoList);
         if (activeSession.length > 0) {
           setActiveSession(activeSession[0]);
         }
@@ -244,6 +247,7 @@ export default function TargetShooting() {
             data={checkoutData}
             setData={setCheckoutData}
             rifles={rifles}
+            ammunition={ammunition}
             onSubmit={handleCheckout}
             onClose={() => setShowCheckout(false)}
           />
@@ -337,7 +341,7 @@ async function handlePhotoUpload(files, data, onChange) {
   }
 }
 
-function CheckoutModal({ data, setData, rifles, onSubmit, onClose }) {
+function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose }) {
   const updateRifleEntry = (index, field, value) => {
     const updated = [...data.rifles_used];
     updated[index] = { ...updated[index], [field]: value };
@@ -426,6 +430,32 @@ function CheckoutModal({ data, setData, rifles, onSubmit, onClose }) {
                   onChange={(e) => updateRifleEntry(index, 'meters_range', e.target.value)}
                   className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
                 />
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground block mb-1">Ammunition</label>
+                  <select
+                    value={rifle.ammunition_id || ''}
+                    onChange={(e) => {
+                      const selectedAmmo = ammunition.find(a => a.id === e.target.value);
+                      if (selectedAmmo) {
+                        updateRifleEntry(index, 'ammunition_id', e.target.value);
+                        updateRifleEntry(index, 'ammunition_brand', selectedAmmo.brand);
+                        updateRifleEntry(index, 'bullet_type', selectedAmmo.bullet_type || '');
+                        updateRifleEntry(index, 'grain', selectedAmmo.grain || '');
+                      } else {
+                        updateRifleEntry(index, 'ammunition_id', '');
+                      }
+                    }}
+                    className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background mb-2"
+                  >
+                    <option value="">Select saved ammunition</option>
+                    {ammunition.filter(a => a.rifle_id === rifle.rifle_id).map((ammo) => (
+                      <option key={ammo.id} value={ammo.id}>
+                        {ammo.brand} {ammo.bullet_type ? `- ${ammo.bullet_type}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-xs text-muted-foreground">Or enter manually:</span>
+                </div>
                 <input
                   type="text"
                   placeholder="Ammunition brand"

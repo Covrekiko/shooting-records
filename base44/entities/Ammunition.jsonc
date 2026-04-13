@@ -1,0 +1,22 @@
+{
+  "name": "Ammunition",
+  "type": "object",
+  "properties": {
+    "rifle_id": {
+      "type": "string"
+    },
+    "brand": {
+      "type": "string"
+    },
+    "bullet_type": {
+      "type": "string"
+    },
+    "grain": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "rifle_id",
+    "brand"
+  ]
+}
