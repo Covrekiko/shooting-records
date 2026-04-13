@@ -1,14 +1,34 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
 
 export default function HarvestModal({ location, onClose, onSubmit }) {
   const [species, setSpecies] = useState('Roe');
   const [sex, setSex] = useState('unknown');
   const [notes, setNotes] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [photos, setPhotos] = useState([]);
+  const [uploading, setUploading] = useState(false);
+
+  const handlePhotoUpload = async (e) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    setUploading(true);
+    try {
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        setPhotos((prev) => [...prev, file_url]);
+      }
+    } catch (err) {
+      console.error('Upload failed:', err);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = () => {
-    onSubmit({ species, sex, notes, photos: [], date });
+    onSubmit({ species, sex, notes, photos, date });
   };
 
   return (
@@ -79,6 +99,39 @@ export default function HarvestModal({ location, onClose, onSubmit }) {
             rows="3"
             placeholder="Add details about the harvest..."
           />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2">Photos (Optional)</label>
+          <div className="flex items-center gap-2">
+            <label className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-primary transition-all">
+              <Upload className="w-4 h-4" />
+              <span className="text-sm">Add Photos</span>
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                disabled={uploading}
+                className="hidden"
+              />
+            </label>
+          </div>
+          {photos.length > 0 && (
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {photos.map((photo, idx) => (
+                <div key={idx} className="relative">
+                  <img src={photo} alt="harvest" className="w-full h-20 object-cover rounded" />
+                  <button
+                    onClick={() => setPhotos((prev) => prev.filter((_, i) => i !== idx))}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex gap-2">
