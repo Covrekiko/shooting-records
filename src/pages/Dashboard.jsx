@@ -117,17 +117,11 @@ export default function Dashboard() {
               link="/target-shooting"
             />
             <StatCard
-             icon={<span className="text-2xl">🎯</span>}
-             label="Clay Shooting"
-             value={stats?.clayRecords || 0}
-             link="/clay-shooting"
-            />
-            <StatCard
-              icon={<BookOpen className="w-8 h-8" />}
-              label="Total Records"
-              value={stats?.totalRecords || 0}
-              link="/records"
-            />
+              icon={<span className="text-2xl">🎯</span>}
+              label="Clay Shooting"
+              value={stats?.clayRecords || 0}
+              link="/clay-shooting"
+             />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
