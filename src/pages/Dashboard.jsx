@@ -102,19 +102,19 @@ export default function Dashboard() {
               icon={<MapPin className="w-8 h-8" />}
               label="Deer Management"
               value={stats?.deerRecords || 0}
-              link="/records"
+              link="/deer-management"
             />
             <StatCard
               icon={<Zap className="w-8 h-8" />}
               label="Target Shooting"
               value={stats?.targetRecords || 0}
-              link="/records"
+              link="/target-shooting"
             />
             <StatCard
               icon={<Zap className="w-8 h-8" />}
               label="Clay Shooting"
               value={stats?.clayRecords || 0}
-              link="/records"
+              link="/clay-shooting"
             />
             <StatCard
               icon={<Target className="w-8 h-8" />}
