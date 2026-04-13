@@ -7,6 +7,14 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import TargetShooting from './pages/TargetShooting';
+import ClayShooting from './pages/ClayShooting';
+import DeerManagement from './pages/DeerManagement';
+import Records from './pages/Records';
+import Rifles from './pages/settings/Rifles';
+import Shotguns from './pages/settings/Shotguns';
+import Clubs from './pages/settings/Clubs';
+import Locations from './pages/settings/Locations';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -35,7 +43,15 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route path="/" element={<Dashboard />} />
+      <Route path="/target-shooting" element={<TargetShooting />} />
+      <Route path="/clay-shooting" element={<ClayShooting />} />
+      <Route path="/deer-management" element={<DeerManagement />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/records" element={<Records />} />
+      <Route path="/settings/rifles" element={<Rifles />} />
+      <Route path="/settings/shotguns" element={<Shotguns />} />
+      <Route path="/settings/clubs" element={<Clubs />} />
+      <Route path="/settings/locations" element={<Locations />} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
