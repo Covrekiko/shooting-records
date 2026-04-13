@@ -447,8 +447,8 @@ export default function DeerStalkingMap() {
       {/* Map Search Bar */}
       <MapSearchBar onSearch={handleMapSearch} />
 
-      {/* Area Selector - Top Center */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9997] pointer-events-auto">
+      {/* Area Selector - Top Left */}
+      <div className="fixed top-20 left-4 z-[9999] pointer-events-auto">
         <AreaSelector
           selectedAreaId={selectedArea?.id}
           onSelectArea={handleSelectArea}
