@@ -416,11 +416,16 @@ export default function DeerStalkingMap() {
                 {harvest.harvest_date && <p className="text-xs text-slate-600 mb-2"><strong>Date:</strong> {new Date(harvest.harvest_date).toLocaleDateString()}</p>}
                 {harvest.notes && <p className="text-xs mb-3">{harvest.notes}</p>}
                 {harvest.photos && harvest.photos.length > 0 && (
-                  <div className="grid grid-cols-2 gap-2 mb-2">
-                    {harvest.photos.map((photo, idx) => (
-                      <img key={idx} src={photo} alt="harvest" className="w-full h-20 object-cover rounded" />
-                    ))}
-                  </div>
+                  <details className="mb-2">
+                    <summary className="cursor-pointer text-xs font-semibold text-primary hover:underline mb-2">View Photos ({harvest.photos.length})</summary>
+                    <div className="grid grid-cols-2 gap-2">
+                      {harvest.photos.map((photo, idx) => (
+                        <a key={idx} href={photo} target="_blank" rel="noopener noreferrer">
+                          <img src={photo} alt="harvest" className="w-full h-24 object-cover rounded hover:opacity-80 transition-opacity" />
+                        </a>
+                      ))}
+                    </div>
+                  </details>
                 )}
                 <button
                   onClick={() => setFocusedHarvestId(focusedHarvestId === harvest.id ? null : harvest.id)}
