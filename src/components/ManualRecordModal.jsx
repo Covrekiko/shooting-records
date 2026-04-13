@@ -337,19 +337,30 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Deer Species</label>
+                <label className="block text-sm font-medium mb-2">Species</label>
                 <select
                   value={formData.deer_species}
                   onChange={(e) => setFormData({ ...formData, deer_species: e.target.value })}
                   className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                 >
-                  <option>Roe</option>
-                  <option>Muntjac</option>
-                  <option>Fallow</option>
-                  <option>Red</option>
-                  <option>Sika</option>
-                  <option>Chinese Water Deer</option>
-                  <option>Pest Control</option>
+                  <option value="">Select a species</option>
+                  <optgroup label="Deer">
+                    <option>Roe</option>
+                    <option>Muntjac</option>
+                    <option>Fallow</option>
+                    <option>Red</option>
+                    <option>Sika</option>
+                    <option>Chinese Water Deer</option>
+                  </optgroup>
+                  <optgroup label="Pest Control">
+                    <option>Rabbit</option>
+                    <option>Grey Squirrel</option>
+                    <option>Rat</option>
+                    <option>Fox</option>
+                    <option>Crow</option>
+                    <option>Wood Pigeon</option>
+                    <option>Feral Cat</option>
+                  </optgroup>
                   <option>Other</option>
                 </select>
               </div>
