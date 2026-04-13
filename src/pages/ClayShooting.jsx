@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
+import CheckinBanner from '@/components/CheckinBanner';
+import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import { Clock, Plus } from 'lucide-react';
 
 export default function ClayShooting() {
@@ -10,6 +12,8 @@ export default function ClayShooting() {
   const [showCheckin, setShowCheckin] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { location } = useGeolocation();
+  const [nearbyClub, setNearbyClub] = useState(null);
 
   const [checkinData, setCheckinData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -54,6 +58,25 @@ export default function ClayShooting() {
 
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (location && clubs.length > 0) {
+      clubs.forEach((club) => {
+        const match = club.location?.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
+        if (match) {
+          const distance = calculateDistance(
+            location.latitude,
+            location.longitude,
+            parseFloat(match[1]),
+            parseFloat(match[2])
+          );
+          if (distance < 0.5) {
+            setNearbyClub({ name: club.name, distance });
+          }
+        }
+      });
+    }
+  }, [location, clubs]);
 
   const handleCheckin = async (e) => {
     e.preventDefault();
@@ -110,6 +133,14 @@ export default function ClayShooting() {
   return (
     <div>
       <Navigation />
+      {nearbyClub && (
+        <CheckinBanner
+          location={nearbyClub.name}
+          distance={nearbyClub.distance}
+          onDismiss={() => setNearbyClub(null)}
+          onCheckin={() => setShowCheckin(true)}
+        />
+      )}
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Clay Shooting</h1>

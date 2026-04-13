@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
+import CheckinBanner from '@/components/CheckinBanner';
+import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import { Plus } from 'lucide-react';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
@@ -11,6 +13,8 @@ export default function DeerManagement() {
   const [records, setRecords] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { location } = useGeolocation();
+  const [nearbyLocation, setNearbyLocation] = useState(null);
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -50,6 +54,25 @@ export default function DeerManagement() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (location && locations.length > 0) {
+      locations.forEach((loc) => {
+        const match = loc.location?.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
+        if (match) {
+          const distance = calculateDistance(
+            location.latitude,
+            location.longitude,
+            parseFloat(match[1]),
+            parseFloat(match[2])
+          );
+          if (distance < 0.5) {
+            setNearbyLocation({ name: loc.place_name, distance });
+          }
+        }
+      });
+    }
+  }, [location, locations]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -88,6 +111,14 @@ export default function DeerManagement() {
   return (
     <div>
       <Navigation />
+      {nearbyLocation && (
+        <CheckinBanner
+          location={nearbyLocation.name}
+          distance={nearbyLocation.distance}
+          onDismiss={() => setNearbyLocation(null)}
+          onCheckin={() => setShowForm(true)}
+        />
+      )}
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Deer Management</h1>
