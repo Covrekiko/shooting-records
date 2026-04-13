@@ -69,7 +69,7 @@ export default function GpsPathViewer({ track, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" style={{ pointerEvents: 'auto' }}>
-      <div className="bg-card rounded-lg w-full max-w-2xl flex flex-col" style={{ pointerEvents: 'auto', maxHeight: '85vh', height: '85vh' }}>
+      <div className="bg-card rounded-lg w-full max-w-2xl flex flex-col" style={{ pointerEvents: 'auto', maxHeight: '90vh' }}>
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <h2 className="text-xl font-bold">GPS Track Visualization</h2>
           <button onClick={onClose} className="p-1 hover:bg-secondary rounded">
