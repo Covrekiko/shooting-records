@@ -351,8 +351,13 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
     const newErrors = {};
 
     data.rifles_used.forEach((rifle, idx) => {
-      if (!rifle.ammunition_brand && !rifle.caliber && !rifle.bullet_type && !rifle.grain) {
-        newErrors[`rifle_${idx}`] = 'Ammunition details must be filled';
+      const missing = [];
+      if (!rifle.rifle_id) missing.push('Rifle');
+      if (!rifle.rounds_fired) missing.push('Rounds fired');
+      if (!rifle.meters_range) missing.push('Meters range');
+      if (!rifle.ammunition_brand && !rifle.caliber && !rifle.bullet_type && !rifle.grain) missing.push('Ammunition details');
+      if (missing.length > 0) {
+        newErrors[`rifle_${idx}`] = `Required: ${missing.join(', ')}`;
       }
     });
 
