@@ -111,10 +111,14 @@ export default function DeerManagement() {
   const handleCheckout = async (e) => {
     e.preventDefault();
     try {
-      await base44.entities.DeerManagement.update(activeSession.id, {
-        ...checkoutData,
-        active_checkin: false,
-      });
+      const submitData = { ...checkoutData, active_checkin: false };
+      if (!checkoutData.shot_anything) {
+        submitData.number_shot = null;
+        submitData.deer_species = null;
+        submitData.rifle_id = null;
+        submitData.ammunition_used = null;
+      }
+      await base44.entities.DeerManagement.update(activeSession.id, submitData);
       setActiveSession(null);
       setShowCheckout(false);
       setCheckoutData({
@@ -478,7 +482,7 @@ function CheckoutModal({ data, rifles, onSubmit, onChange, onClose }) {
                   value={data.number_shot}
                   onChange={(e) => onChange('number_shot', parseInt(e.target.value) || 0)}
                   className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  required
+                  required={data.shot_anything}
                 />
               </div>
               <div>
