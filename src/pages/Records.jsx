@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import GpsPathViewer from '@/components/GpsPathViewer';
-import { Download, Eye, Trash2, X, FileText, Map } from 'lucide-react';
+import { Download, Eye, Trash2, X, FileText, Map, Image } from 'lucide-react';
 import { format } from 'date-fns';
 import { exportRecordsToPdf, getRecordsPdfBlob } from '@/utils/recordsPdfExport';
 
@@ -19,6 +19,7 @@ export default function Records() {
   const [deerLocations, setDeerLocations] = useState({});
   const [previewingPdf, setPreviewingPdf] = useState(null);
   const [viewingTrack, setViewingTrack] = useState(null);
+  const [viewingPhoto, setViewingPhoto] = useState(null);
 
   const [filters, setFilters] = useState({
     type: 'all',
@@ -209,7 +210,7 @@ export default function Records() {
         ) : (
           <div className="space-y-3">
             {filteredRecords.map((record) => (
-              <RecordCard key={record.id} record={record} onDelete={handleDelete} user={user} onView={setViewingRecord} recordUser={users[record.created_by]} onViewTrack={setViewingTrack} rifles={rifles} shotguns={shotguns} clubs={clubs} locations={deerLocations} />
+              <RecordCard key={record.id} record={record} onDelete={handleDelete} user={user} onView={setViewingRecord} recordUser={users[record.created_by]} onViewTrack={setViewingTrack} onViewPhoto={setViewingPhoto} rifles={rifles} shotguns={shotguns} clubs={clubs} locations={deerLocations} />
             ))}
           </div>
         )}
@@ -225,12 +226,16 @@ export default function Records() {
         {viewingTrack && (
           <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />
         )}
+        
+        {viewingPhoto && (
+          <PhotoModal photo={viewingPhoto} onClose={() => setViewingPhoto(null)} />
+        )}
       </main>
     </div>
   );
 }
 
-function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, rifles, shotguns, clubs, locations }) {
+function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, onViewPhoto, rifles, shotguns, clubs, locations }) {
   const getRecordTitle = () => {
     if (record.recordType === 'target') {
       const totalRounds = record.rifles_used?.reduce((sum, r) => sum + (parseInt(r.rounds_fired) || 0), 0) || 0;
@@ -264,7 +269,15 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, r
         </div>
         <div className="flex gap-2 flex-shrink-0">
           {record.photos && record.photos.length > 0 && (
-            <img src={record.photos[0]} alt="record" className="w-20 h-20 object-cover rounded" />
+            <div className="relative group">
+              <img src={record.photos[0]} alt="record" className="w-20 h-20 object-cover rounded" />
+              <button
+                onClick={() => onViewPhoto(record.photos[0])}
+                className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center"
+              >
+                <Image className="w-5 h-5 text-white" />
+              </button>
+            </div>
           )}
           <div className="flex gap-2">
             <button
@@ -657,6 +670,22 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
         >
           Close Report
         </button>
+      </div>
+    </div>
+  );
+}
+
+function PhotoModal({ photo, onClose }) {
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+      <div className="relative max-w-2xl w-full">
+        <button
+          onClick={onClose}
+          className="absolute -top-10 right-0 text-white hover:text-gray-300"
+        >
+          <X className="w-8 h-8" />
+        </button>
+        <img src={photo} alt="Full view" className="w-full h-auto rounded-lg" />
       </div>
     </div>
   );
