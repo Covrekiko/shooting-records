@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import GpsPathViewer from '@/components/GpsPathViewer';
-import { Download, Eye, Trash2, X, FileText, Map, Image } from 'lucide-react';
+import { Download, Eye, Trash2, X, FileText, Map, Image, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { exportRecordsToPdf, getRecordsPdfBlob } from '@/utils/recordsPdfExport';
 
@@ -270,13 +270,35 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
         <div className="flex gap-2 flex-shrink-0">
           <div className="flex gap-2">
             {record.photos && record.photos.length > 0 && (
-              <button
-                onClick={() => onViewPhoto(record.photos[0])}
-                className="px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center gap-1"
-                title="View photo"
-              >
-                <Image className="w-4 h-4" />
-              </button>
+              <div className="relative group">
+                <button
+                  className="px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center gap-1"
+                  title="View photo"
+                >
+                  <Image className="w-4 h-4" />
+                  {record.photos.length > 1 && <ChevronDown className="w-3 h-3" />}
+                </button>
+                {record.photos.length > 1 && (
+                  <div className="absolute left-0 mt-1 bg-card border border-border rounded shadow-lg opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto z-10">
+                    {record.photos.map((photo, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => onViewPhoto(photo)}
+                        className="block w-full text-left px-3 py-2 text-sm hover:bg-secondary transition-colors whitespace-nowrap"
+                      >
+                        Photo {idx + 1}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {record.photos.length === 1 && (
+                  <button
+                    onClick={() => onViewPhoto(record.photos[0])}
+                    className="absolute inset-0"
+                    title="View photo"
+                  />
+                )}
+              </div>
             )}
             <button
               onClick={() => onView(record)}
