@@ -205,7 +205,7 @@ export default function AdminUsers() {
           </div>
         )}
 
-        <div className="bg-card border border-border rounded-lg overflow-hidden">
+        <div className="bg-card border border-border rounded-lg overflow-x-auto">
           <table className="w-full">
             <thead className="border-b border-border bg-secondary/50">
               <tr>
