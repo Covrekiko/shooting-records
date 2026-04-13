@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Settings, Wrench } from 'lucide-react';
+import { Menu, X, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 
@@ -19,7 +19,6 @@ export default function Navigation() {
     { path: '/target-shooting', label: 'Target Shooting' },
     { path: '/clay-shooting', label: 'Clay Shooting' },
     { path: '/deer-management', label: 'Deer Management' },
-    { path: '/equipment', label: 'Equipment', icon: Wrench },
   ];
 
   return (
