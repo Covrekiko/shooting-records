@@ -33,6 +33,7 @@ export default function DeerStalkingMap() {
   const [showHarvest, setShowHarvest] = useState(false);
   const [showOuting, setShowOuting] = useState(false);
   const [focusedHarvestId, setFocusedHarvestId] = useState(null);
+  const [waitingForPin, setWaitingForPin] = useState(null); // 'poi' or 'harvest'
 
   useEffect(() => {
     loadData();
@@ -75,7 +76,17 @@ export default function DeerStalkingMap() {
   };
 
   const handleMapClick = (e) => {
-    setMapClick({ lat: e.latlng.lat, lng: e.latlng.lng });
+    const clickLocation = { lat: e.latlng.lat, lng: e.latlng.lng };
+    setMapClick(clickLocation);
+    
+    // If waiting for pin, open the appropriate modal
+    if (waitingForPin === 'poi') {
+      setShowPOI(true);
+      setWaitingForPin(null);
+    } else if (waitingForPin === 'harvest') {
+      setShowHarvest(true);
+      setWaitingForPin(null);
+    }
   };
 
   const handlePOISubmit = async (data) => {
@@ -268,8 +279,8 @@ export default function DeerStalkingMap() {
 
       {/* Floating Action Bar */}
       <FloatingActionBar
-        onPOI={() => setShowPOI(true)}
-        onHarvest={() => setShowHarvest(true)}
+        onPOI={() => setWaitingForPin('poi')}
+        onHarvest={() => setWaitingForPin('harvest')}
         onOuting={() => setShowOuting(true)}
         onRecenter={() => {}} 
         activeOuting={activeOuting}
@@ -277,18 +288,24 @@ export default function DeerStalkingMap() {
       />
 
       {/* Modals */}
-      {showPOI && (
+      {showPOI && mapClick && (
         <POIModal
-          location={mapClick || { lat: userLocation[0], lng: userLocation[1] }}
-          onClose={() => setShowPOI(false)}
+          location={mapClick}
+          onClose={() => {
+            setShowPOI(false);
+            setWaitingForPin(null);
+          }}
           onSubmit={handlePOISubmit}
         />
       )}
 
-      {showHarvest && (
+      {showHarvest && mapClick && (
         <HarvestModal
-          location={mapClick || { lat: userLocation[0], lng: userLocation[1] }}
-          onClose={() => setShowHarvest(false)}
+          location={mapClick}
+          onClose={() => {
+            setShowHarvest(false);
+            setWaitingForPin(null);
+          }}
           onSubmit={handleHarvestSubmit}
         />
       )}
