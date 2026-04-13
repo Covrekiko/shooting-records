@@ -284,7 +284,7 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
     if (record.recordType === 'deer') {
       if (!record.total_count) return 'Deer Management - No shots fired';
       const speciesList = record.species_list?.map(s => `${s.species}(${s.count})`).join(', ') || 'Unknown';
-      return `Deer: ${speciesList} - ${record.total_count} shots fired`;
+      return `Deer Management: ${speciesList} - ${record.total_count} shots fired`;
     }
   };
 
