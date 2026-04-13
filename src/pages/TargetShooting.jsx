@@ -3,7 +3,6 @@ import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
-import { useGpsTracking } from '@/hooks/useGpsTracking';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import { Clock, CheckCircle, Plus } from 'lucide-react';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
@@ -20,8 +19,7 @@ export default function TargetShooting() {
   const [user, setUser] = useState(null);
   const { location } = useGeolocation();
   const [nearbyClub, setNearbyClub] = useState(null);
-  const gpsTrack = useGpsTracking(!!activeSession);
-  const [savedGpsTrack, setSavedGpsTrack] = useState([]);
+  const [gpsTrack, setGpsTrack] = useState([]);
   const [viewingTrack, setViewingTrack] = useState(null);
 
   const [checkinData, setCheckinData] = useState({
@@ -69,7 +67,11 @@ export default function TargetShooting() {
         setRifles(riflesList);
         setAmmunition(ammoList);
         if (activeSession.length > 0) {
-          setActiveSession(activeSession[0]);
+          const session = activeSession[0];
+          setActiveSession(session);
+          // Initialize GPS track from existing session
+          setGpsTrack(session.gps_track || []);
+          console.log('✅ TargetShooting: Loaded active session with', session.gps_track?.length || 0, 'GPS points');
         }
       } catch (error) {
         console.error('Error loading data:', error);
@@ -80,6 +82,28 @@ export default function TargetShooting() {
 
     loadData();
   }, []);
+
+  // GPS tracking for active session
+  useEffect(() => {
+    if (!activeSession?.id) return;
+
+    let currentTrack = gpsTrack;
+
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        const timestamp = Date.now();
+        const newPoint = { lat: latitude, lng: longitude, timestamp };
+        currentTrack = [...currentTrack, newPoint];
+        setGpsTrack(currentTrack);
+        console.log('📍 TargetShooting: GPS point recorded -', currentTrack.length, 'total points');
+      },
+      (error) => console.error('❌ GPS error:', error),
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [activeSession?.id]);
 
   useEffect(() => {
     if (location && clubs.length > 0) {
@@ -146,7 +170,7 @@ export default function TargetShooting() {
        gps_track: gpsTrack,
      });
       setActiveSession(null);
-      setSavedGpsTrack([]);
+      setGpsTrack([]);
       setShowCheckout(false);
       setCheckoutData({
         checkout_time: new Date().toTimeString().slice(0, 5),
