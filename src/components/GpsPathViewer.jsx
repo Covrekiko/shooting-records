@@ -64,8 +64,8 @@ export default function GpsPathViewer({ track, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-50 pt-16">
-      <div className="bg-card rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-50 pt-16 overflow-hidden">
+      <div className="bg-card rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-bold">GPS Track Visualization</h2>
           <button onClick={onClose} className="p-1 hover:bg-secondary rounded">
@@ -73,7 +73,7 @@ export default function GpsPathViewer({ track, onClose }) {
           </button>
         </div>
 
-        <div className="flex-1 overflow-hidden" style={{ height: '500px', width: '100%' }}>
+        <div className="flex-1 overflow-hidden touch-none" style={{ height: '500px', width: '100%', touchAction: 'none' }}>
           <MapContainer center={[center.lat, center.lng]} zoom={15} style={{ width: '100%', height: '100%' }}>
             <MapResizer />
             <TileLayer
