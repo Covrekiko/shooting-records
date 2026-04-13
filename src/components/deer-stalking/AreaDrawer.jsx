@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Undo, X, Check, Lock } from 'lucide-react';
+import MapSearchBar from './MapSearchBar';
 
 function SetInitialView({ center, zoom }) {
   const map = useMap();
@@ -55,8 +56,18 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
     onFinish(points);
   };
 
+  const handleMapSearch = (result) => {
+    // Pan to search location
+    if (mapRef.current) {
+      mapRef.current.setView([result.lat, result.lng], 15);
+    }
+  };
+
   return (
     <>
+      {/* Map Search Bar */}
+      <MapSearchBar onSearch={handleMapSearch} />
+
       {/* Drawing Map */}
       <MapContainer
         center={mapCenter || [51.5, -0.1]}
