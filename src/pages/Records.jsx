@@ -296,6 +296,22 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, r
 }
 
 function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user }) {
+  const [currentRecord, setCurrentRecord] = useState(record);
+
+  useEffect(() => {
+    const refreshRecord = async () => {
+      try {
+        const entityName = record.recordType === 'target' ? 'TargetShooting' : record.recordType === 'clay' ? 'ClayShooting' : 'DeerManagement';
+        const updatedRecord = await base44.entities[entityName].get(record.id);
+        setCurrentRecord({ ...updatedRecord, recordType: record.recordType });
+      } catch (error) {
+        console.error('Error refreshing record:', error);
+      }
+    };
+
+    refreshRecord();
+  }, [record.id, record.recordType]);
+
   const getRifleName = (rifleId) => rifles[rifleId]?.name || 'Unknown Rifle';
   const getRifleDetails = (rifleId) => rifles[rifleId];
   const getShotgunName = (shotgunId) => shotguns[shotgunId]?.name || 'Unknown Shotgun';
@@ -321,11 +337,11 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
         </div>
 
         {/* Photos Section */}
-        {record.photos && record.photos.length > 0 && (
+        {currentRecord.photos && currentRecord.photos.length > 0 && (
           <div className="mb-6 pb-4 border-b border-border">
             <h3 className="font-bold text-lg mb-3">Evidence Photos</h3>
             <div className="grid grid-cols-4 gap-2">
-              {record.photos.map((photo, idx) => (
+              {currentRecord.photos.map((photo, idx) => (
                 <img key={idx} src={photo} alt="record" className="h-28 w-28 object-cover rounded-lg border border-border" />
               ))}
             </div>
@@ -336,24 +352,24 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
         <div className="grid grid-cols-2 gap-4 mb-6 pb-4 border-b border-border">
           <div>
             <label className="font-bold text-sm text-primary">Session Date</label>
-            <p className="text-lg">{format(new Date(record.date), 'EEEE, MMMM d, yyyy')}</p>
+            <p className="text-lg">{format(new Date(currentRecord.date), 'EEEE, MMMM d, yyyy')}</p>
           </div>
           <div>
             <label className="font-bold text-sm text-primary">Session Type</label>
-            <p className="text-lg">{record.recordType === 'target' ? 'Target Shooting' : record.recordType === 'clay' ? 'Clay Shooting' : 'Deer Management'}</p>
+            <p className="text-lg">{currentRecord.recordType === 'target' ? 'Target Shooting' : currentRecord.recordType === 'clay' ? 'Clay Shooting' : 'Deer Management'}</p>
           </div>
           <div>
             <label className="font-bold text-sm text-primary">Check-In Time</label>
-            <p className="text-lg">{record.recordType === 'deer' ? record.start_time : record.checkin_time}</p>
+            <p className="text-lg">{currentRecord.recordType === 'deer' ? currentRecord.start_time : currentRecord.checkin_time}</p>
           </div>
           <div>
             <label className="font-bold text-sm text-primary">Check-Out Time</label>
-            <p className="text-lg">{record.end_time || record.checkout_time || 'N/A'}</p>
+            <p className="text-lg">{currentRecord.end_time || currentRecord.checkout_time || 'N/A'}</p>
           </div>
         </div>
 
         {/* Target Shooting Section */}
-        {record.recordType === 'target' && (
+        {currentRecord.recordType === 'target' && (
           <>
             {/* Venue Information */}
             {record.club_id && clubs[record.club_id] && (
@@ -459,7 +475,7 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
         )}
 
         {/* Clay Shooting Section */}
-        {record.recordType === 'clay' && (
+        {currentRecord.recordType === 'clay' && (
           <>
             {getClubName(record.club_id) && (
               <div className="mb-6 pb-4 border-b border-border">
@@ -524,7 +540,7 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
         )}
 
         {/* Deer Management Section */}
-        {record.recordType === 'deer' && (
+        {currentRecord.recordType === 'deer' && (
           <>
             <div className="mb-6 pb-4 border-b border-border">
               <h3 className="font-bold text-lg mb-3 text-primary">Location & Hunting Details</h3>
@@ -608,11 +624,11 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
         )}
 
         {/* Photos Section */}
-        {record.photos && record.photos.length > 0 && (
+        {currentRecord.photos && currentRecord.photos.length > 0 && (
           <div className="mb-6 pb-4 border-b border-border">
             <h3 className="font-bold text-lg mb-3 text-primary">Photos</h3>
             <div className="grid grid-cols-2 gap-3">
-              {record.photos.map((photo, idx) => (
+              {currentRecord.photos.map((photo, idx) => (
                 <img key={idx} src={photo} alt="Session photo" className="rounded-lg w-full h-40 object-cover" />
               ))}
             </div>
@@ -620,19 +636,19 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
         )}
 
         {/* Notes Section */}
-        {record.notes && (
+        {currentRecord.notes && (
           <div className="mb-6 pb-4 border-b border-border">
             <h3 className="font-bold text-lg mb-2 text-primary">Session Notes</h3>
             <div className="bg-secondary/20 p-4 rounded-lg">
-              <p className="whitespace-pre-wrap text-sm">{record.notes}</p>
+              <p className="whitespace-pre-wrap text-sm">{currentRecord.notes}</p>
             </div>
           </div>
         )}
 
         {/* Footer with record info */}
         <div className="text-xs text-muted-foreground bg-secondary/20 p-3 rounded-lg text-center">
-          <p>Record ID: {record.id}</p>
-          <p>Created: {format(new Date(record.created_date), 'PPpp')}</p>
+          <p>Record ID: {currentRecord.id}</p>
+          <p>Created: {format(new Date(currentRecord.created_date), 'PPpp')}</p>
         </div>
 
         <button
