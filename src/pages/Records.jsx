@@ -268,19 +268,16 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
           )}
         </div>
         <div className="flex gap-2 flex-shrink-0">
-          {record.photos && record.photos.length > 0 && (
-            <button
-              onClick={() => onViewPhoto(record.photos[0])}
-              className="relative w-20 h-20 rounded overflow-hidden hover:opacity-80 transition-opacity flex-shrink-0"
-              title="View photo"
-            >
-              <img src={record.photos[0]} alt="record" className="w-full h-full object-cover" onError={(e) => e.target.style.display = 'none'} />
-              <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
-                <Image className="w-5 h-5 text-white" />
-              </div>
-            </button>
-          )}
           <div className="flex gap-2">
+            {record.photos && record.photos.length > 0 && (
+              <button
+                onClick={() => onViewPhoto(record.photos[0])}
+                className="px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center gap-1"
+                title="View photo"
+              >
+                <Image className="w-4 h-4" />
+              </button>
+            )}
             <button
               onClick={() => onView(record)}
               className="px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center gap-1"
