@@ -177,7 +177,7 @@ export default function DeerStalkingMap() {
         <MapContainer
           center={userLocation}
           zoom={13}
-          style={{ width: '100%', height: '100%', cursor: waitingForPin ? 'crosshair' : 'grab' }}
+          style={{ width: '100%', height: '100%', cursor: 'crosshair' }}
           zoomControl={true}
         >
         <MapClickHandler onMapClick={handleMapClick} isSelectionMode={!!waitingForPin} />
