@@ -215,7 +215,7 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
   yPosition += 8;
 
   const contentWidth = (pageWidth - 2 * margin) * 0.6;
-  const photoX = margin + contentWidth + 5;
+  const photoX = margin + contentWidth + 28.35;
   const photoMaxWidth = pageWidth - photoX - margin;
 
   records.forEach((record, idx) => {
@@ -359,7 +359,7 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
   yPosition += 8;
 
   const contentWidth = (pageWidth - 2 * margin) * 0.6;
-  const photoX = margin + contentWidth + 5;
+  const photoX = margin + contentWidth + 28.35;
   const photoMaxWidth = pageWidth - photoX - margin;
 
   records.forEach((record, idx) => {
@@ -527,7 +527,7 @@ function renderDeerManagementSection(doc, records, startY, pageWidth, pageHeight
   yPosition += 8;
 
   const contentWidth = (pageWidth - 2 * margin) * 0.6;
-  const photoX = margin + contentWidth + 5;
+  const photoX = margin + contentWidth + 28.35;
   const photoMaxWidth = pageWidth - photoX - margin;
 
   records.forEach((record, idx) => {
