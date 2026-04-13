@@ -85,10 +85,17 @@ export default function TargetShooting() {
   }, []);
 
   // Subscribe to live GPS updates
-   useEffect(() => {
-     const unsubscribe = trackingService.subscribe(setGpsTrack);
-     return unsubscribe;
-   }, []);
+  useEffect(() => {
+    console.log('🟡 TargetShooting: Subscribed to trackingService');
+    const unsubscribe = trackingService.subscribe((track) => {
+      console.log('🟡 TargetShooting: trackingService listener fired with', track.length, 'points');
+      setGpsTrack(track);
+    });
+    return () => {
+      console.log('🟡 TargetShooting: Unsubscribed from trackingService');
+      unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     if (location && clubs.length > 0) {

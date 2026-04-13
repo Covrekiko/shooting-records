@@ -14,6 +14,7 @@ export const trackingService = {
   // Start GPS tracking for a session
   startTracking(sessionId, sessionType) {
     console.log('🟢 TRACKING STARTED - sessionId:', sessionId, 'type:', sessionType);
+    console.log('🟢 WATCH ID ASSIGNED:', trackingState.watchId);
     
     if (trackingState.isTracking) {
       console.warn('⚠️ Tracking already active, stopping previous...');
@@ -26,48 +27,77 @@ export const trackingService = {
     trackingState.track = [];
 
     if (!navigator.geolocation) {
-      console.error('❌ Geolocation not supported');
+      console.error('❌ GEOLOCATION NOT SUPPORTED');
       return;
     }
 
+    // Create wrapper function to ensure proper context
+    const handlePositionUpdate = (position) => {
+      if (!trackingState.isTracking) {
+        console.warn('⚠️ Tracking is off, ignoring GPS update');
+        return;
+      }
+      
+      const { latitude, longitude } = position.coords;
+      const timestamp = Date.now();
+      const point = { lat: latitude, lng: longitude, timestamp };
+      trackingState.track.push(point);
+      
+      console.log('📍 GPS UPDATE RECEIVED - sessionId:', trackingState.sessionId, 'type:', trackingState.sessionType);
+      console.log('   Points:', trackingState.track.length, 'Location:', latitude, longitude);
+      
+      // Notify all listeners with fresh copy
+      const trackSnapshot = [...trackingState.track];
+      trackingListeners.forEach(listener => listener(trackSnapshot));
+    };
+
+    const handlePositionError = (error) => {
+      console.error('❌ GPS ERROR - Code:', error?.code, 'Message:', error?.message || error);
+      if (error?.code === 1) {
+        console.error('   → Permission denied. User must allow geolocation access.');
+      } else if (error?.code === 2) {
+        console.error('   → Position unavailable. Check GPS/network.');
+      } else if (error?.code === 3) {
+        console.error('   → Timeout. GPS signal lost or delayed.');
+      }
+    };
+
     trackingState.watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        const timestamp = Date.now();
-        const point = { lat: latitude, lng: longitude, timestamp };
-        trackingState.track.push(point);
-        
-        console.log('📍 GPS UPDATE RECEIVED -', trackingState.track.length, 'total points');
-        console.log('   Location:', latitude, longitude);
-        
-        // Notify all listeners
-        trackingListeners.forEach(listener => listener(trackingState.track));
-      },
-      (error) => {
-        console.error('❌ GPS ERROR:', error?.message || error);
-      },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+      handlePositionUpdate,
+      handlePositionError,
+      { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }  // 30s timeout for mobile
     );
+    
+    console.log('🟢 WATCH STARTED with ID:', trackingState.watchId);
   },
 
   // Stop GPS tracking and return the track
   stopTracking() {
-    console.log('🔴 TRACKING STOPPED - saved', trackingState.track.length, 'points');
+    console.log('🔴 TRACKING STOPPED - sessionId:', trackingState.sessionId, 'type:', trackingState.sessionType);
+    console.log('🔴 ROUTE SAVED with', trackingState.track.length, 'GPS points');
     
-    if (trackingState.watchId !== null) {
-      navigator.geolocation.clearWatch(trackingState.watchId);
-    }
-
+    // Save track before clearing
     const finalTrack = [...trackingState.track];
     
+    // Clear watch
+    if (trackingState.watchId !== null) {
+      console.log('🔴 WATCH CLEARED - ID:', trackingState.watchId);
+      navigator.geolocation.clearWatch(trackingState.watchId);
+    } else {
+      console.warn('⚠️ Watch ID was null, possibly never started');
+    }
+
+    // Reset state
     trackingState.isTracking = false;
     trackingState.sessionId = null;
     trackingState.sessionType = null;
     trackingState.track = [];
     trackingState.watchId = null;
 
+    // Notify listeners
     trackingListeners.forEach(listener => listener([]));
     
+    console.log('🔴 POINTS SAVED TO DATABASE:', finalTrack.length, 'coordinates');
     return finalTrack;
   },
 

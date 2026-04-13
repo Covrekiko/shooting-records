@@ -10,6 +10,8 @@ import { decrementAmmoStock } from '@/lib/ammoUtils';
 import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal';
 import { trackingService } from '@/lib/trackingService';
 
+let liveGpsTrack = [];  // Shared reference for GPS updates
+
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
 
 export default function DeerManagement() {
@@ -22,6 +24,7 @@ export default function DeerManagement() {
   const [loading, setLoading] = useState(true);
   const { location } = useGeolocation();
   const [nearbyLocation, setNearbyLocation] = useState(null);
+  const [gpsTrack, setGpsTrack] = useState([]);  // Track live GPS updates
 
   const [checkinData, setCheckinData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -52,6 +55,20 @@ export default function DeerManagement() {
     }
 
     loadData();
+  }, []);
+
+  // Subscribe to live GPS updates
+  useEffect(() => {
+    console.log('🟣 DeerManagement: Subscribed to trackingService');
+    const unsubscribe = trackingService.subscribe((track) => {
+      console.log('🟣 DeerManagement: trackingService listener fired with', track.length, 'points');
+      liveGpsTrack = track;  // Keep reference
+      setGpsTrack(track);    // Update state
+    });
+    return () => {
+      console.log('🟣 DeerManagement: Unsubscribed from trackingService');
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -113,7 +130,9 @@ export default function DeerManagement() {
        }
 
        const finalTrack = trackingService.stopTracking();
-       console.log('🔴 TRACKING STOPPED - saved', finalTrack.length, 'GPS points');
+       console.log('🟣 DeerManagement CHECK-OUT: finalTrack has', finalTrack.length, 'points');
+       console.log('🟣 DeerManagement CHECK-OUT: liveGpsTrack had', liveGpsTrack.length, 'points');
+       console.log('🟣 DeerManagement CHECK-OUT: gpsTrack state had', gpsTrack.length, 'points');
 
        await endOutingWithData(activeOuting.id, submitData, finalTrack);
        setShowCheckout(false);

@@ -172,10 +172,17 @@ export default function ClayShooting() {
    };
 
    // Subscribe to live GPS updates
-   useEffect(() => {
-     const unsubscribe = trackingService.subscribe(setGpsTrack);
-     return unsubscribe;
-   }, []);
+    useEffect(() => {
+      console.log('🔵 ClayShooting: Subscribed to trackingService');
+      const unsubscribe = trackingService.subscribe((track) => {
+        console.log('🔵 ClayShooting: trackingService listener fired with', track.length, 'points');
+        setGpsTrack(track);
+      });
+      return () => {
+        console.log('🔵 ClayShooting: Unsubscribed from trackingService');
+        unsubscribe();
+      };
+    }, []);
 
   if (loading) {
     return (
