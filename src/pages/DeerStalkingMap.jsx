@@ -140,13 +140,17 @@ export default function DeerStalkingMap() {
 
   const handleRecenter = () => {
     console.log('🔵 handleRecenter clicked - isDrawingArea:', isDrawingArea);
-    if (!mapRef?.current || isDrawingArea) return;
+    if (!mapRef?.current || isDrawingArea) {
+      console.log('🚫 RECENTER BLOCKED: drawing mode active');
+      return;
+    }
     
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         console.log('🔵 Current position:', { latitude, longitude });
         if (mapRef?.current) {
+          console.log('🗺️ SETVIEW: handleRecenter - setView to:', [latitude, longitude]);
           mapRef.current.setView([latitude, longitude], 16);
           setUserLocation([latitude, longitude]);
           console.log('🔵 Map centered to:', { latitude, longitude });
@@ -326,8 +330,11 @@ export default function DeerStalkingMap() {
     setSelectedArea(area);
     
     // Pan and zoom to fit the area boundary
-    if (mapRef.current && area.center_point) {
+    if (mapRef.current && area.center_point && !isDrawingAreaRef.current) {
+      console.log('🗺️ SETVIEW: AreaSelector - setView to:', [area.center_point.lat, area.center_point.lng], 'isDrawingArea:', isDrawingAreaRef.current);
       mapRef.current.setView([area.center_point.lat, area.center_point.lng], 14);
+    } else if (isDrawingAreaRef.current) {
+      console.log('🚫 SETVIEW BLOCKED: AreaSelector - drawing mode active');
     }
   };
 
@@ -340,8 +347,11 @@ export default function DeerStalkingMap() {
     });
 
     // Pan and zoom to location
-    if (mapRef.current) {
+    if (mapRef.current && !isDrawingAreaRef.current) {
+      console.log('🗺️ SETVIEW: MapSearch - setView to:', [result.lat, result.lng], 'isDrawingArea:', isDrawingAreaRef.current);
       mapRef.current.setView([result.lat, result.lng], 15);
+    } else if (isDrawingAreaRef.current) {
+      console.log('🚫 SETVIEW BLOCKED: MapSearch - drawing mode active');
     }
 
     // Auto-clear marker after 10 seconds

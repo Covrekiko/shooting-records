@@ -19,6 +19,7 @@ export function useGeolocation() {
 
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
+        console.log('🔔 USEGEOLOCATION CALLBACK FIRED:', { lat: position.coords.latitude, lng: position.coords.longitude });
         setLocation({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
@@ -37,8 +38,12 @@ export function useGeolocation() {
         timeout: 5000,
       }
     );
+    console.log('✅ WATCH STARTED (useGeolocation):', watchId);
 
-    return () => navigator.geolocation.clearWatch(watchId);
+    return () => {
+      console.log('🛑 WATCH CLEARED (useGeolocation):', watchId);
+      navigator.geolocation.clearWatch(watchId);
+    };
   }, []);
 
   return { location, loading, error };
