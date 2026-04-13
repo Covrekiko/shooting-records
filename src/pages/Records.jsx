@@ -705,7 +705,7 @@ function PhotoModal({ photo, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50" onClick={onClose}>
-      <div className="relative max-w-2xl w-full max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={onClose}
           className="absolute -top-12 right-0 text-white hover:text-gray-300 z-10 p-1"
@@ -713,7 +713,9 @@ function PhotoModal({ photo, onClose }) {
         >
           <X className="w-8 h-8" />
         </button>
-        <img src={typeof photo === 'string' ? photo : photo.url} alt="Full view" className="w-full h-auto rounded-lg" onError={(e) => e.target.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2218%22 dominant-baseline=%22middle%22%3EPhoto not found%3C/text%3E%3C/svg%3E'} />
+        <div className="flex-1 overflow-auto flex items-center justify-center">
+          <img src={typeof photo === 'string' ? photo : photo.url} alt="Full view" className="rounded-lg max-h-[85vh] max-w-full object-contain" onError={(e) => e.target.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2218%22 dominant-baseline=%22middle%22%3EPhoto not found%3C/text%3E%3C/svg%3E'} />
+        </div>
       </div>
     </div>
   );
