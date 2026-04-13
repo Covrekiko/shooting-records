@@ -30,11 +30,9 @@ export function useGpsTracking(isTracking) {
       timeout: 10000,
       maximumAge: 0
     });
-    console.log('✅ WATCH STARTED (useGpsTracking):', watchIdRef.current);
 
     return () => {
       if (watchIdRef.current) {
-        console.log('🛑 WATCH CLEARED (useGpsTracking):', watchIdRef.current);
         navigator.geolocation.clearWatch(watchIdRef.current);
       }
     };

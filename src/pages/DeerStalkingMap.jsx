@@ -9,7 +9,7 @@ import POIModal from '@/components/deer-stalking/POIModal';
 import HarvestModal from '@/components/deer-stalking/HarvestModal';
 import OutingModal from '@/components/deer-stalking/OutingModal';
 import MapClickHandler from '@/components/deer-stalking/MapClickHandler';
-import { AlertCircle, Home, X } from 'lucide-react';
+import { AlertCircle, Home } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
@@ -50,12 +50,7 @@ export default function DeerStalkingMap() {
   const [drawnPolygon, setDrawnPolygon] = useState(null);
   const [searchMarker, setSearchMarker] = useState(null);
   const [selectedArea, setSelectedArea] = useState(null);
-  const [isDrawingArea, setIsDrawingArea] = useState(false);
   const mapRef = useRef(null);
-  const isDrawingAreaRef = useRef(false);
-  const geoWatchIdRef = useRef(null);
-  const frozenCenterRef = useRef(null);
-  const originalMapMethodsRef = useRef({});
 
   useEffect(() => {
     loadData();
@@ -63,7 +58,7 @@ export default function DeerStalkingMap() {
     loadRiflesAndAmmo();
   }, []);
 
-  // GPS tracking for active outing (does NOT recenter map while drawing)
+  // GPS tracking for active outing
   useEffect(() => {
     if (!activeOuting) return;
 
@@ -73,68 +68,15 @@ export default function DeerStalkingMap() {
         const timestamp = Date.now();
         const newTrackPoint = { lat: latitude, lng: longitude, timestamp };
         const updatedTrack = [...(activeOuting.gps_track || []), newTrackPoint];
-
+        
         updateGpsTrack(activeOuting.id, updatedTrack);
-
-        // Only update map location if NOT in drawing mode
-        if (!isDrawingAreaRef.current) {
-          console.log('📍 GPS update (drawing mode OFF):', { latitude, longitude });
-          setUserLocation([latitude, longitude]);
-        } else {
-          console.log('🎨 GPS update BLOCKED (drawing mode ON):', { latitude, longitude });
-        }
       },
       (error) => console.error('Geolocation error:', error),
       { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
 
-    geoWatchIdRef.current = watchId;
-    console.log('✅ WATCH STARTED (main outing effect):', watchId);
-    return () => {
-      console.log('🛑 GPS watch cleanup on outing change:', watchId);
-      navigator.geolocation.clearWatch(watchId);
-      geoWatchIdRef.current = null;
-    };
+    return () => navigator.geolocation.clearWatch(watchId);
   }, [activeOuting?.id, updateGpsTrack]);
-
-  // Pause GPS updates when entering drawing mode
-  useEffect(() => {
-    if (isDrawingArea && geoWatchIdRef.current !== null) {
-      console.log('🎨 DRAWING MODE ACTIVE - pausing GPS watch:', geoWatchIdRef.current);
-      navigator.geolocation.clearWatch(geoWatchIdRef.current);
-      const pausedWatchId = geoWatchIdRef.current;
-      geoWatchIdRef.current = null;
-      
-      return () => {
-        // Restart GPS when exiting drawing mode
-        if (activeOuting && pausedWatchId !== null) {
-          console.log('🎨 DRAWING MODE EXITED - restarting GPS watch');
-          const restartedWatchId = navigator.geolocation.watchPosition(
-            (position) => {
-              const { latitude, longitude } = position.coords;
-              const timestamp = Date.now();
-              const newTrackPoint = { lat: latitude, lng: longitude, timestamp };
-              const updatedTrack = [...(activeOuting.gps_track || []), newTrackPoint];
-              updateGpsTrack(activeOuting.id, updatedTrack);
-              setUserLocation([latitude, longitude]);
-            },
-            (error) => console.error('Geolocation error:', error),
-            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-          );
-          geoWatchIdRef.current = restartedWatchId;
-          console.log('✅ WATCH RESTARTED:', restartedWatchId);
-        }
-      };
-    }
-  }, [isDrawingArea, activeOuting, updateGpsTrack]);
-
-  // Log every userLocation change - CRITICAL DEBUG
-  useEffect(() => {
-    console.log('🔴 USERLOCATION CHANGED TO:', userLocation, 'isDrawingArea:', isDrawingArea);
-    if (isDrawingArea) {
-      console.error('🚨 CRITICAL: userLocation changed DURING DRAWING MODE - stack:', new Error().stack);
-    }
-  }, [userLocation]);
 
   const loadData = async () => {
     try {
@@ -158,7 +100,6 @@ export default function DeerStalkingMap() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          console.log('📍 getUserLocation - getCurrentPosition fired, isDrawingArea:', isDrawingAreaRef.current);
           setUserLocation([position.coords.latitude, position.coords.longitude]);
         },
         () => {} // Silent fail, use default
@@ -181,25 +122,15 @@ export default function DeerStalkingMap() {
   };
 
   const handleRecenter = () => {
-    console.log('🔵 handleRecenter clicked - isDrawingArea:', isDrawingArea);
-    if (!mapRef?.current || isDrawingArea) {
-      console.log('🚫 RECENTER BLOCKED: drawing mode active');
-      return;
-    }
+    if (!mapRef.current) return;
     
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        console.log('🔵 Current position:', { latitude, longitude });
-        if (mapRef?.current) {
-          console.log('🗺️ SETVIEW: handleRecenter - setView to:', [latitude, longitude]);
-          mapRef.current.setView([latitude, longitude], 16);
-          setUserLocation([latitude, longitude]);
-          console.log('🔵 Map centered to:', { latitude, longitude });
-        }
+        mapRef.current.setView([latitude, longitude], 16);
+        setUserLocation([latitude, longitude]);
       },
       (error) => {
-        console.error('🔵 Geolocation error:', error);
         let errorMsg = 'Unable to get location';
         if (error.code === error.PERMISSION_DENIED) {
           errorMsg = 'Location permission denied';
@@ -207,8 +138,7 @@ export default function DeerStalkingMap() {
           errorMsg = 'Location unavailable';
         }
         setError(errorMsg);
-      },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      }
     );
   };
 
@@ -327,105 +257,12 @@ export default function DeerStalkingMap() {
   };
 
   const handleStartAreaCreation = () => {
-    console.log('🎯 CREATE AREA CLICKED');
-    console.log('📍 Current watch ID:', geoWatchIdRef.current);
-    
-    // Freeze the map center to prevent jumping
-    if (mapRef.current) {
-      frozenCenterRef.current = mapRef.current.getCenter();
-      console.log('❄️ MAP CENTER FROZEN:', frozenCenterRef.current);
-    }
-    
-    // HARD PROTECTION: Override all map movement methods
-    if (mapRef.current) {
-      const map = mapRef.current;
-      
-      // Store originals if not already stored
-      if (!originalMapMethodsRef.current.setView) {
-        originalMapMethodsRef.current.setView = map.setView.bind(map);
-        originalMapMethodsRef.current.panTo = map.panTo.bind(map);
-        originalMapMethodsRef.current.setCenter = map.setCenter ? map.setCenter.bind(map) : null;
-        originalMapMethodsRef.current.fitBounds = map.fitBounds.bind(map);
-        console.log('💾 Original map methods stored');
-      }
-      
-      // Override setView
-      map.setView = (...args) => {
-        if (isDrawingAreaRef.current) {
-          console.log('🚫 BLOCKED setView during drawing:', args);
-          return map;
-        }
-        return originalMapMethodsRef.current.setView(...args);
-      };
-      
-      // Override panTo
-      map.panTo = (...args) => {
-        if (isDrawingAreaRef.current) {
-          console.log('🚫 BLOCKED panTo during drawing:', args);
-          return map;
-        }
-        return originalMapMethodsRef.current.panTo(...args);
-      };
-      
-      // Override setCenter if it exists
-      if (originalMapMethodsRef.current.setCenter) {
-        map.setCenter = (...args) => {
-          if (isDrawingAreaRef.current) {
-            console.log('🚫 BLOCKED setCenter during drawing:', args);
-            return;
-          }
-          return originalMapMethodsRef.current.setCenter(...args);
-        };
-      }
-      
-      // Override fitBounds
-      map.fitBounds = (...args) => {
-        if (isDrawingAreaRef.current) {
-          console.log('🚫 BLOCKED fitBounds during drawing:', args);
-          return map;
-        }
-        return originalMapMethodsRef.current.fitBounds(...args);
-      };
-      
-      console.log('🔒 MAP METHODS LOCKED');
-    }
-    
-    // Hard stop: clear any active geolocation watch
-    if (geoWatchIdRef.current !== null) {
-      console.log('🛑 CLEARING geolocation watch:', geoWatchIdRef.current);
-      navigator.geolocation.clearWatch(geoWatchIdRef.current);
-      geoWatchIdRef.current = null;
-      console.log('✅ Watch cleared. geoWatchIdRef is now:', geoWatchIdRef.current);
-    } else {
-      console.log('⚠️ No active watch to clear');
-    }
-    
-    setIsDrawingArea(true);
-    isDrawingAreaRef.current = true;
-    console.log('🎨 Drawing mode ENABLED - isDrawingArea:', true, 'isDrawingAreaRef:', isDrawingAreaRef.current);
     setShowAreaDrawer(true);
   };
 
   const handleFinishDrawing = (polygon) => {
     setDrawnPolygon(polygon);
     setShowAreaDrawer(false);
-    setIsDrawingArea(false);
-    isDrawingAreaRef.current = false;
-    frozenCenterRef.current = null;
-    console.log('❌ MAP CENTER UNFROZEN');
-    
-    // RESTORE original map methods
-    if (mapRef.current && originalMapMethodsRef.current.setView) {
-      const map = mapRef.current;
-      map.setView = originalMapMethodsRef.current.setView;
-      map.panTo = originalMapMethodsRef.current.panTo;
-      if (originalMapMethodsRef.current.setCenter) {
-        map.setCenter = originalMapMethodsRef.current.setCenter;
-      }
-      map.fitBounds = originalMapMethodsRef.current.fitBounds;
-      console.log('🔓 MAP METHODS UNLOCKED');
-    }
-    
     setShowAreaForm(true);
   };
 
@@ -435,21 +272,6 @@ export default function DeerStalkingMap() {
       setSelectedArea(area);
       setShowAreaForm(false);
       setDrawnPolygon(null);
-      setIsDrawingArea(false);
-      isDrawingAreaRef.current = false;
-      
-      // RESTORE original map methods
-      if (mapRef.current && originalMapMethodsRef.current.setView) {
-        const map = mapRef.current;
-        map.setView = originalMapMethodsRef.current.setView;
-        map.panTo = originalMapMethodsRef.current.panTo;
-        if (originalMapMethodsRef.current.setCenter) {
-          map.setCenter = originalMapMethodsRef.current.setCenter;
-        }
-        map.fitBounds = originalMapMethodsRef.current.fitBounds;
-        console.log('🔓 MAP METHODS UNLOCKED');
-      }
-      
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -460,11 +282,8 @@ export default function DeerStalkingMap() {
     setSelectedArea(area);
     
     // Pan and zoom to fit the area boundary
-    if (mapRef.current && area.center_point && !isDrawingAreaRef.current) {
-      console.log('🗺️ SETVIEW: AreaSelector - setView to:', [area.center_point.lat, area.center_point.lng], 'isDrawingArea:', isDrawingAreaRef.current);
+    if (mapRef.current && area.center_point) {
       mapRef.current.setView([area.center_point.lat, area.center_point.lng], 14);
-    } else if (isDrawingAreaRef.current) {
-      console.log('🚫 SETVIEW BLOCKED: AreaSelector - drawing mode active');
     }
   };
 
@@ -477,11 +296,8 @@ export default function DeerStalkingMap() {
     });
 
     // Pan and zoom to location
-    if (mapRef.current && !isDrawingAreaRef.current) {
-      console.log('🗺️ SETVIEW: MapSearch - setView to:', [result.lat, result.lng], 'isDrawingArea:', isDrawingAreaRef.current);
+    if (mapRef.current) {
       mapRef.current.setView([result.lat, result.lng], 15);
-    } else if (isDrawingAreaRef.current) {
-      console.log('🚫 SETVIEW BLOCKED: MapSearch - drawing mode active');
     }
 
     // Auto-clear marker after 10 seconds
@@ -504,7 +320,7 @@ export default function DeerStalkingMap() {
     <div className={`w-full h-screen bg-slate-900 relative overflow-hidden ${waitingForPin ? 'cursor-crosshair' : ''}`}>
       <div className={`absolute inset-0 z-0 ${showPOI || showHarvest || showOuting ? 'pointer-events-none' : ''}`}>
         <MapContainer
-          center={isDrawingArea && frozenCenterRef.current ? frozenCenterRef.current : userLocation}
+          center={userLocation}
           zoom={13}
           style={{ width: '100%', height: '100%', cursor: 'crosshair' }}
           zoomControl={true}
@@ -675,18 +491,9 @@ export default function DeerStalkingMap() {
       )}
 
       {error && (
-        <div className="fixed top-4 left-4 right-4 z-[9998] bg-red-500 text-white p-3 rounded-lg flex items-center gap-2 justify-between pointer-events-auto">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>{error}</span>
-          </div>
-          <button
-            onClick={() => setError(null)}
-            className="flex-shrink-0 text-white hover:text-red-100 transition-colors"
-            aria-label="Close error"
-          >
-            <X className="w-5 h-5" />
-          </button>
+        <div className="fixed top-4 left-4 right-4 z-[9998] bg-red-500 text-white p-3 rounded-lg flex items-center gap-2 pointer-events-auto">
+          <AlertCircle className="w-4 h-4" />
+          {error}
         </div>
       )}
 
@@ -758,17 +565,16 @@ export default function DeerStalkingMap() {
           )}
 
           {showAreaDrawer && (
-           <div className="fixed inset-0 z-[50001] w-full h-full">
-             <AreaDrawer
-               userLocation={userLocation}
-               onFinish={handleFinishDrawing}
-               onCancel={() => {
-                 setShowAreaDrawer(false);
-                 setIsDrawingArea(false);
-                 setDrawnPolygon(null);
-               }}
-             />
-           </div>
+            <div className="fixed inset-0 z-[50001] w-full h-full">
+              <AreaDrawer
+                userLocation={userLocation}
+                onFinish={handleFinishDrawing}
+                onCancel={() => {
+                  setShowAreaDrawer(false);
+                  setDrawnPolygon(null);
+                }}
+              />
+            </div>
           )}
 
           {showAreaForm && drawnPolygon && (

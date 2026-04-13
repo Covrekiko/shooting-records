@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { Undo, X, Check, Lock } from 'lucide-react';
@@ -16,7 +16,6 @@ function DrawingMap({ points, onAddPoint, onUndo, onCancel, onFinish }) {
 export default function AreaDrawer({ userLocation, onFinish, onCancel }) {
   const [points, setPoints] = useState([]);
   const [isClosed, setIsClosed] = useState(false);
-  const initialCenterRef = useRef(userLocation);
 
   const handleAddPoint = (point) => {
     // If boundary is closed, don't add new points
@@ -50,7 +49,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel }) {
     <>
       {/* Drawing Map */}
       <MapContainer
-        center={initialCenterRef.current}
+        center={userLocation}
         zoom={13}
         style={{ width: '100%', height: '100%', zIndex: 10 }}
       >
