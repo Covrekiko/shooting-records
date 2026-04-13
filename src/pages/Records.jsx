@@ -529,23 +529,30 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-6 pb-4 border-b border-border">
-             {record.number_shot ? (
-               <>
-                 <div>
-                   <label className="font-bold text-sm text-primary">Species</label>
-                   <p className="text-lg font-semibold">{record.deer_species || '-'}</p>
-                 </div>
-                 <div>
-                   <label className="font-bold text-sm text-primary">Number Harvested</label>
-                   <p className="text-lg font-semibold">{record.number_shot}</p>
-                 </div>
-               </>
-             ) : (
-               <div className="col-span-2 bg-blue-50/30 p-4 rounded-lg border border-blue-200/50">
-                 <p className="text-base font-semibold text-blue-600">No shots fired during this session</p>
-               </div>
-             )}
+            <div className="mb-6 pb-4 border-b border-border">
+              {record.total_count ? (
+                <>
+                  <h3 className="font-bold text-lg mb-3 text-primary">Species Harvested</h3>
+                  {record.species_list && record.species_list.length > 0 ? (
+                    <div className="space-y-2 mb-4">
+                      {record.species_list.map((s, idx) => (
+                        <div key={idx} className="bg-secondary/30 p-3 rounded-lg flex justify-between">
+                          <span className="font-medium">{s.species}</span>
+                          <span className="font-semibold">{s.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className="bg-primary/10 p-3 rounded-lg">
+                    <label className="text-xs font-bold text-primary">Total Shots Fired</label>
+                    <p className="text-lg font-semibold">{record.total_count}</p>
+                  </div>
+                </>
+              ) : (
+                <div className="bg-blue-50/30 p-4 rounded-lg border border-blue-200/50">
+                  <p className="text-base font-semibold text-blue-600">No shots fired during this session</p>
+                </div>
+              )}
             </div>
 
             {record.rifle_id && (
