@@ -88,12 +88,44 @@ export default function DeerStalkingMap() {
     );
 
     geoWatchIdRef.current = watchId;
+    console.log('✅ WATCH STARTED (main outing effect):', watchId);
     return () => {
-      console.log('🛑 GPS watch cleanup on outing change');
+      console.log('🛑 GPS watch cleanup on outing change:', watchId);
       navigator.geolocation.clearWatch(watchId);
       geoWatchIdRef.current = null;
     };
   }, [activeOuting?.id, updateGpsTrack]);
+
+  // Pause GPS updates when entering drawing mode
+  useEffect(() => {
+    if (isDrawingArea && geoWatchIdRef.current !== null) {
+      console.log('🎨 DRAWING MODE ACTIVE - pausing GPS watch:', geoWatchIdRef.current);
+      navigator.geolocation.clearWatch(geoWatchIdRef.current);
+      const pausedWatchId = geoWatchIdRef.current;
+      geoWatchIdRef.current = null;
+      
+      return () => {
+        // Restart GPS when exiting drawing mode
+        if (activeOuting && pausedWatchId !== null) {
+          console.log('🎨 DRAWING MODE EXITED - restarting GPS watch');
+          const restartedWatchId = navigator.geolocation.watchPosition(
+            (position) => {
+              const { latitude, longitude } = position.coords;
+              const timestamp = Date.now();
+              const newTrackPoint = { lat: latitude, lng: longitude, timestamp };
+              const updatedTrack = [...(activeOuting.gps_track || []), newTrackPoint];
+              updateGpsTrack(activeOuting.id, updatedTrack);
+              setUserLocation([latitude, longitude]);
+            },
+            (error) => console.error('Geolocation error:', error),
+            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+          );
+          geoWatchIdRef.current = restartedWatchId;
+          console.log('✅ WATCH RESTARTED:', restartedWatchId);
+        }
+      };
+    }
+  }, [isDrawingArea, activeOuting, updateGpsTrack]);
 
   // Log every userLocation change
   useEffect(() => {
