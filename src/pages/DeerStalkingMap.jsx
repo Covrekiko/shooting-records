@@ -226,30 +226,27 @@ export default function DeerStalkingMap() {
         )}
       </MapContainer>
 
-      {/* Floating Action Bar - Outside Map */}
-      <div className="absolute bottom-6 right-6 z-[9999]">
-        <FloatingActionBar
-          userLocation={userLocation}
-          onPOI={() => {
-            if (!mapClick) {
-              alert('Please click on the map to add a POI');
-            } else {
-              setShowPOI(true);
-            }
-          }}
-          onHarvest={() => {
-            if (!mapClick) {
-              alert('Please click on the map to record a harvest');
-            } else {
-              setShowHarvest(true);
-            }
-          }}
-          onOuting={() => setShowOuting(true)}
-          onRecenter={() => {}} 
-          activeOuting={activeOuting}
-          onEndOuting={handleEndOuting}
-        />
-      </div>
+      {/* Floating Action Bar */}
+      <FloatingActionBar
+        onPOI={() => {
+          if (!mapClick) {
+            alert('Please click on the map to add a POI');
+          } else {
+            setShowPOI(true);
+          }
+        }}
+        onHarvest={() => {
+          if (!mapClick) {
+            alert('Please click on the map to record a harvest');
+          } else {
+            setShowHarvest(true);
+          }
+        }}
+        onOuting={() => setShowOuting(true)}
+        onRecenter={() => {}} 
+        activeOuting={activeOuting}
+        onEndOuting={handleEndOuting}
+      />
 
       {/* Modals */}
       {showPOI && mapClick && (
