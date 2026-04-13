@@ -1,4 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useFormValidation } from '@/lib/formValidation';
+import { useMobileKeyboardHandler } from '@/lib/mobileKeyboardHandler';
+import { cameraPermissionHandler } from '@/lib/cameraPermissionHandler';
 import { base44 } from '@/api/base44Client';
 import { X } from 'lucide-react';
 import AddRifleForm from './AddRifleForm';
@@ -22,6 +25,9 @@ async function handlePhotoUpload(files, data, setFormData) {
 }
 
 export default function ManualRecordModal({ record = null, onClose, onSave, recordTypes = ['target', 'clay', 'deer'] }) {
+  const modalRef = useRef(null);
+  const { errors, validateField, clearError, hasErrors } = useFormValidation();
+  useMobileKeyboardHandler(modalRef);
   const [recordType, setRecordType] = useState(record?.recordType || 'target');
   const [date, setDate] = useState(record?.date || new Date().toISOString().split('T')[0]);
   const [clubs, setClubs] = useState([]);
@@ -90,6 +96,28 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate required fields
+    let hasValidationErrors = false;
+    if (!date) {
+      validateField('date', 'Date is required');
+      hasValidationErrors = true;
+    }
+    if (recordType === 'target' && !formData.club_id) {
+      validateField('club', 'Club is required');
+      hasValidationErrors = true;
+    }
+    if (recordType === 'clay' && !formData.club_id) {
+      validateField('club', 'Club is required');
+      hasValidationErrors = true;
+    }
+    if (recordType === 'deer' && !formData.location_id) {
+      validateField('location', 'Location is required');
+      hasValidationErrors = true;
+    }
+    
+    if (hasValidationErrors) return;
+    
     try {
       const baseData = {
         date,
@@ -151,7 +179,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto" ref={modalRef}>
       <div className="bg-card rounded-lg max-w-2xl w-full p-6 my-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold">{record ? 'Edit Record' : 'Add Manual Record'}</h2>
@@ -181,10 +209,16 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
               <input
                 type="date"
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                onChange={(e) => {
+                  setDate(e.target.value);
+                  clearError('date');
+                }}
+                className={`w-full px-3 py-2 border rounded-lg bg-background ${
+                  errors.date ? 'border-destructive' : 'border-border'
+                }`}
                 required
               />
+              {errors.date && <p className="text-xs text-destructive mt-1">{errors.date}</p>}
             </div>
           </div>
 
@@ -195,14 +229,20 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                 <label className="block text-sm font-medium mb-2">Club</label>
                 <select
                   value={formData.club_id}
-                  onChange={(e) => setFormData({ ...formData, club_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  onChange={(e) => {
+                    setFormData({ ...formData, club_id: e.target.value });
+                    clearError('club');
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg bg-background ${
+                    errors.club ? 'border-destructive' : 'border-border'
+                  }`}
                 >
                   <option value="">Select a club</option>
                   {clubs.filter(c => c.type === 'Target Shooting' || c.type === 'Both').map((club) => (
                     <option key={club.id} value={club.id}>{club.name}</option>
                   ))}
                 </select>
+                {errors.club && <p className="text-xs text-destructive mt-1">{errors.club}</p>}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -262,14 +302,20 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                 <label className="block text-sm font-medium mb-2">Club</label>
                 <select
                   value={formData.club_id}
-                  onChange={(e) => setFormData({ ...formData, club_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  onChange={(e) => {
+                    setFormData({ ...formData, club_id: e.target.value });
+                    clearError('club');
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg bg-background ${
+                    errors.club ? 'border-destructive' : 'border-border'
+                  }`}
                 >
                   <option value="">Select a club</option>
                   {clubs.filter(c => c.type === 'Clay Shooting' || c.type === 'Both').map((club) => (
                     <option key={club.id} value={club.id}>{club.name}</option>
                   ))}
                 </select>
+                {errors.club && <p className="text-xs text-destructive mt-1">{errors.club}</p>}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -336,14 +382,20 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                 <label className="block text-sm font-medium mb-2">Location</label>
                 <select
                   value={formData.location_id}
-                  onChange={(e) => setFormData({ ...formData, location_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  onChange={(e) => {
+                    setFormData({ ...formData, location_id: e.target.value });
+                    clearError('location');
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg bg-background ${
+                    errors.location ? 'border-destructive' : 'border-border'
+                  }`}
                 >
                   <option value="">Select a location</option>
                   {locations.map((loc) => (
                     <option key={loc.id} value={loc.id}>{loc.place_name}</option>
                   ))}
                 </select>
+                {errors.location && <p className="text-xs text-destructive mt-1">{errors.location}</p>}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -465,28 +517,33 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
           <div>
             <label className="block text-sm font-medium mb-2">Photos</label>
             <div className="flex gap-2 mb-3">
-              <label className="flex-1 px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors text-sm">
-                📁 Choose Photo
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(e) => handlePhotoUpload(e.target.files, formData, setFormData)}
-                  className="hidden"
-                />
-              </label>
-              <label className="flex-1 px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors text-sm">
-                📷 Take Photo
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  multiple
-                  onChange={(e) => handlePhotoUpload(e.target.files, formData, setFormData)}
-                  className="hidden"
-                />
-              </label>
+            <label className="flex-1 px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors text-sm">
+              📁 Choose Photo
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => handlePhotoUpload(e.target.files, formData, setFormData)}
+                className="hidden"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={async () => {
+                const result = await cameraPermissionHandler.capturePhoto();
+                if (result.success) {
+                  clearError('camera');
+                  handlePhotoUpload([result.file], formData, setFormData);
+                } else {
+                  validateField('camera', result.error);
+                }
+              }}
+              className="flex-1 px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors text-sm"
+            >
+              📷 Take Photo
+            </button>
             </div>
+            {errors.camera && <p className="text-xs text-destructive mb-2">{errors.camera}</p>}
             {formData.photos && formData.photos.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {formData.photos.map((photo, idx) => (
