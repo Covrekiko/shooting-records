@@ -100,11 +100,21 @@ export default function DeerManagement() {
   const handleCheckin = async (e) => {
     e.preventDefault();
     try {
-      const session = await base44.entities.DeerManagement.create({
+      // Create in DeerManagement (existing system)
+      const deerSession = await base44.entities.DeerManagement.create({
         ...checkinData,
         active_checkin: true,
       });
-      setActiveSession(session);
+
+      // Also create in DeerOuting (map system) with same start time
+      await base44.entities.DeerOuting.create({
+        location_name: checkinData.place_name,
+        start_time: new Date(checkinData.date + 'T' + checkinData.start_time).toISOString(),
+        gps_track: [],
+        active: true,
+      });
+
+      setActiveSession(deerSession);
       setShowCheckin(false);
       setCheckinData({
         date: new Date().toISOString().split('T')[0],
