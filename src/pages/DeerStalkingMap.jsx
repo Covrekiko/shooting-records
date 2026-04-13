@@ -482,9 +482,6 @@ export default function DeerStalkingMap() {
       </MapContainer>
       </div>
 
-      {/* Map Search Bar */}
-      <MapSearchBar onSearch={handleMapSearch} />
-
       {/* Area Selector - Top Left */}
       <div className="fixed top-20 left-4 z-[9999] pointer-events-auto">
         <AreaSelector
@@ -512,9 +509,14 @@ export default function DeerStalkingMap() {
         <Home className="w-4 h-4" />
         Dashboard
       </Link>
+      {/* Map Search Bar - Bottom */}
+      <div className="fixed bottom-6 left-4 right-4 z-[9999] pointer-events-auto">
+        <MapSearchBar onSearch={handleMapSearch} />
+      </div>
+
       {/* Selection Mode Instruction */}
       {waitingForPin && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[9998] bg-blue-500 text-white px-2 py-0.5 rounded flex items-center justify-between pointer-events-auto gap-1 h-6 w-48">
+        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-[9998] bg-blue-500 text-white px-2 py-0.5 rounded flex items-center justify-between pointer-events-auto gap-1 h-6 w-48">
           <p className="text-xs font-semibold">Tap to place</p>
           <button
             onClick={() => setWaitingForPin(null)}
