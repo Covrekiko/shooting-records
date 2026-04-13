@@ -138,8 +138,8 @@ export default function DeerManagement() {
      }
      const submitData = { ...checkoutData, photos: uploadedPhotos, active_checkin: false, gps_track: gpsTrack };
      if (!checkoutData.shot_anything) {
-       submitData.number_shot = null;
-       submitData.deer_species = null;
+       submitData.species_list = [];
+       submitData.total_count = null;
        submitData.rifle_id = null;
        submitData.ammunition_used = null;
      }
