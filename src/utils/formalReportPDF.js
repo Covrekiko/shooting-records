@@ -99,10 +99,12 @@ export async function generateFormalReport(records, user, options = {}) {
   doc.setFont(undefined, 'normal');
   doc.setFontSize(10);
   const reportInfo = [
+    `Name: ${user.full_name || 'Unknown'}`,
+    `Email: ${user.email}`,
+    `Address: ${user.address || 'Not provided'}`,
+    `Date of Birth: ${user.date_of_birth ? format(new Date(user.date_of_birth), 'dd/MM/yyyy') : 'Not provided'}`,
     `Generated: ${format(new Date(), 'EEEE, MMMM dd, yyyy HH:mm:ss')}`,
     `Report Type: Comprehensive Activity Summary`,
-    `User: ${user.full_name || 'Unknown'}`,
-    `Email: ${user.email}`,
     `Records Included: ${records.length}`,
     `Period: ${records.length > 0 ? `${records[records.length - 1].date} to ${records[0].date}` : 'N/A'}`,
   ];
