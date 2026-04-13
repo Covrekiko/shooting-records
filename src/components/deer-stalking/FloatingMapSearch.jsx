@@ -98,23 +98,23 @@ export default function FloatingMapSearch({ onSearch, onError }) {
   };
 
   return (
-    <div className="fixed top-6 right-6 z-[9999] pointer-events-auto">
+    <div className="fixed bottom-24 right-6 z-[9999] pointer-events-auto sm:bottom-32">
       {/* Floating Search Icon Button */}
       {!isOpen ? (
         <button
           onClick={() => setIsOpen(true)}
-          className="w-12 h-12 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl hover:bg-primary/90 transition-all flex items-center justify-center"
+          className="w-10 h-10 sm:w-12 sm:h-12 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl hover:bg-primary/90 transition-all flex items-center justify-center"
           title="Search location"
         >
-          <Search className="w-5 h-5" />
+          <Search className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
       ) : (
         /* Expanded Search Bar */
-        <form onSubmit={handleSearch} className="absolute top-0 right-0 w-80 max-w-[calc(100vw-2rem)] pointer-events-auto">
-          <div className="bg-card rounded-lg shadow-lg overflow-hidden border border-border animate-in fade-in slide-in-from-top-2 duration-200">
+        <form onSubmit={handleSearch} className="absolute bottom-0 right-0 w-72 sm:w-80 max-w-[calc(100vw-2rem)] pointer-events-auto">
+          <div className="bg-card rounded-lg shadow-lg overflow-hidden border border-border animate-in fade-in slide-in-from-bottom-2 duration-200">
             {/* Search Input */}
-            <div className="flex items-center gap-2 px-3 py-3">
-              <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <div className="flex items-center gap-1.5 px-2 py-2">
+              <Search className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
               <input
                 type="text"
                 value={query}
@@ -122,8 +122,8 @@ export default function FloatingMapSearch({ onSearch, onError }) {
                   setQuery(e.target.value);
                   setError('');
                 }}
-                placeholder="Address, postcode, or coordinates..."
-                className="flex-1 bg-transparent text-sm outline-none"
+                placeholder="Address, postcode..."
+                className="flex-1 bg-transparent text-xs sm:text-sm outline-none"
                 disabled={loading}
                 autoFocus
               />
@@ -131,26 +131,26 @@ export default function FloatingMapSearch({ onSearch, onError }) {
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="p-1 hover:bg-secondary rounded transition-colors"
+                  className="p-0.5 hover:bg-secondary rounded transition-colors"
                   disabled={loading}
                 >
-                  <X className="w-4 h-4 text-muted-foreground" />
+                  <X className="w-3 h-3 text-muted-foreground" />
                 </button>
               )}
               <button
                 type="button"
                 onClick={handleClose}
-                className="p-1 hover:bg-secondary rounded transition-colors"
+                className="p-0.5 hover:bg-secondary rounded transition-colors"
               >
-                <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                <ChevronUp className="w-3 h-3 text-muted-foreground" />
               </button>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="px-3 py-2 bg-destructive/10 text-destructive text-xs flex items-center gap-2 border-t border-border">
-                <AlertCircle className="w-3 h-3 flex-shrink-0" />
-                {error}
+              <div className="px-2 py-1.5 bg-destructive/10 text-destructive text-xs flex items-center gap-1.5 border-t border-border">
+                <AlertCircle className="w-2.5 h-2.5 flex-shrink-0" />
+                <span className="text-xs">{error}</span>
               </div>
             )}
 
@@ -158,7 +158,7 @@ export default function FloatingMapSearch({ onSearch, onError }) {
             <button
               type="submit"
               disabled={loading || !query.trim()}
-              className="w-full px-3 py-2 bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors border-t border-border"
+              className="w-full px-2 py-1.5 bg-primary text-primary-foreground text-xs sm:text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors border-t border-border"
             >
               {loading ? 'Searching...' : 'Search'}
             </button>
