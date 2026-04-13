@@ -36,10 +36,6 @@ export default function AreaSelector({ savedAreas, selectedAreaId, onSelectArea 
                 }`}
               >
                 <p className="font-medium text-sm">{area.name}</p>
-                {area.location_address && <p className="text-xs text-muted-foreground">{area.location_address}</p>}
-                {area.deer_species && area.deer_species.length > 0 && (
-                  <p className="text-xs text-muted-foreground mt-1">{area.deer_species.join(', ')}</p>
-                )}
               </button>
             ))
           )}
