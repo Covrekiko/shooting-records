@@ -533,6 +533,7 @@ export default function DeerStalkingMap() {
                 locations={locations}
                 onClose={() => setShowOuting(false)}
                 onSubmit={handleStartOuting}
+                selectedArea={selectedArea}
               />
             </div>
           )}

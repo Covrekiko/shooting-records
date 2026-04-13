@@ -1,10 +1,11 @@
 import { useState } from 'react';
 
-export default function OutingModal({ onClose, onSubmit, locations = [] }) {
+export default function OutingModal({ onClose, onSubmit, locations = [], selectedArea = null }) {
   const [data, setData] = useState({
     date: new Date().toISOString().split('T')[0],
     location_id: '',
-    place_name: '',
+    place_name: selectedArea?.name || '',
+    area_id: selectedArea?.id || '',
     start_time: new Date().toTimeString().slice(0, 5),
   });
 

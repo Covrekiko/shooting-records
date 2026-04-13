@@ -6,6 +6,10 @@
       "type": "string",
       "description": "Name of the outing location"
     },
+    "area_id": {
+      "type": "string",
+      "description": "Associated area ID"
+    },
     "start_time": {
       "type": "string",
       "format": "date-time",

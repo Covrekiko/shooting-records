@@ -32,6 +32,7 @@ export function OutingProvider({ children }) {
       // Create DeerOuting (map system)
       const outing = await base44.entities.DeerOuting.create({
         location_name: data.place_name || data.location_name,
+        area_id: data.area_id || '',
         start_time: new Date((data.date || data.start_time) + 'T' + (data.start_time || '').slice(0, 5)).toISOString(),
         gps_track: [],
         active: true,
