@@ -34,6 +34,7 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
     addPageId(doc, docId, pageNum, pageWidth);
     pageNum++;
     doc.addPage();
+    addPageId(doc, docId, pageNum, pageWidth);
   }
 
   let yPosition = STYLES.margin;
@@ -79,6 +80,7 @@ export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, c
     addPageId(doc, docId, pageNum, pageWidth);
     pageNum++;
     doc.addPage();
+    addPageId(doc, docId, pageNum, pageWidth);
   }
 
   let yPosition = STYLES.margin;
