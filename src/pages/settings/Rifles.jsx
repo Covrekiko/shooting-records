@@ -141,7 +141,7 @@ export default function Rifles() {
         </button>
 
         {showForm && (
-          <form onSubmit={handleSubmit} className="bg-card border border-border rounded-lg p-6 mb-6 space-y-4">
+          <form onSubmit={handleSubmit} autoComplete="off" className="bg-card border border-border rounded-lg p-6 mb-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input
                 type="text"
