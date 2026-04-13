@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { X, Search } from 'lucide-react';
+import { X, Search, MapPin } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
 
-export default function AreaSaveForm({ polygon, onSave, onCancel }) {
+export default function AreaSaveForm({ polygon, onSave, onCancel, onMapNavigate }) {
   const [formData, setFormData] = useState({
     name: '',
     notes: '',
@@ -12,8 +12,10 @@ export default function AreaSaveForm({ polygon, onSave, onCancel }) {
     location_address: '',
     postcode: '',
   });
-  const [searchResults, setSearchResults] = useState([]);
+  const [coordsData, setCoordsData] = useState({ lat: '', lng: '' });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [locatingUser, setLocatingUser] = useState(false);
 
   // Calculate center point
   const calculateCenter = () => {
@@ -25,23 +27,73 @@ export default function AreaSaveForm({ polygon, onSave, onCancel }) {
     };
   };
 
-  const handleSearchAddress = async () => {
+  const handleSearchAddressPostcode = async () => {
     if (!formData.location_address && !formData.postcode) {
-      alert('Enter an address or postcode');
+      setError('Enter an address or postcode');
       return;
     }
+    setError(null);
     setLoading(true);
     try {
       const response = await base44.integrations.Core.InvokeLLM({
         prompt: `Search for location coordinates for: ${formData.location_address || ''} ${formData.postcode || ''}. Return only JSON with lat and lng as numbers.`,
         response_json_schema: { type: 'object', properties: { lat: { type: 'number' }, lng: { type: 'number' } } },
+        add_context_from_internet: true,
       });
-      setSearchResults([response]);
+      if (response.lat && response.lng) {
+        onMapNavigate(response.lat, response.lng, 14);
+      } else {
+        setError('Location not found');
+      }
     } catch (error) {
+      setError('Search failed. Try a different address or postcode.');
       console.error('Search error:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearchCoordinates = async () => {
+    if (!coordsData.lat || !coordsData.lng) {
+      setError('Enter both latitude and longitude');
+      return;
+    }
+    setError(null);
+    const lat = parseFloat(coordsData.lat);
+    const lng = parseFloat(coordsData.lng);
+    if (isNaN(lat) || isNaN(lng)) {
+      setError('Invalid coordinates. Use decimal format.');
+      return;
+    }
+    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      setError('Coordinates out of range. Latitude: -90 to 90, Longitude: -180 to 180');
+      return;
+    }
+    onMapNavigate(lat, lng, 15);
+  };
+
+  const handleMyLocation = async () => {
+    setError(null);
+    setLocatingUser(true);
+    if (!navigator.geolocation) {
+      setError('Geolocation not supported by your browser');
+      setLocatingUser(false);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        onMapNavigate(position.coords.latitude, position.coords.longitude, 16);
+        setLocatingUser(false);
+      },
+      (err) => {
+        let errorMsg = 'Unable to get location';
+        if (err.code === 1) errorMsg = 'Location permission denied. Enable location in settings.';
+        else if (err.code === 2) errorMsg = 'Location unavailable. Check connection.';
+        else if (err.code === 3) errorMsg = 'Location request timeout.';
+        setError(errorMsg);
+        setLocatingUser(false);
+      }
+    );
   };
 
   const handleSubmit = async () => {
@@ -84,6 +136,12 @@ export default function AreaSaveForm({ polygon, onSave, onCancel }) {
       </div>
 
       <div className="space-y-4">
+        {error && (
+          <div className="p-3 bg-destructive/10 text-destructive text-sm rounded-lg">
+            {error}
+          </div>
+        )}
+
         <div>
           <label className="block text-sm font-medium mb-1">Area Name *</label>
           <input
@@ -96,35 +154,79 @@ export default function AreaSaveForm({ polygon, onSave, onCancel }) {
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-1">Address</label>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={formData.location_address}
-              onChange={(e) => setFormData({ ...formData, location_address: e.target.value })}
-              placeholder="Enter address"
-              className="flex-1 px-3 py-2 border border-border rounded-lg bg-background"
-            />
+        {/* Location Search Section */}
+        <div className="border border-border rounded-lg p-4 bg-slate-50 dark:bg-slate-900">
+          <h3 className="text-sm font-semibold mb-3">Jump to Location</h3>
+
+          {/* My Location */}
+          <button
+            onClick={handleMyLocation}
+            disabled={locatingUser || loading}
+            className="w-full px-4 py-2 mb-3 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
+            <MapPin className="w-4 h-4" />
+            {locatingUser ? 'Getting location...' : 'My Location'}
+          </button>
+
+          {/* Address / Postcode Search */}
+          <div className="space-y-2 mb-3 pb-3 border-b border-border">
+            <label className="block text-xs font-medium text-muted-foreground">Address / Postcode</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={formData.location_address}
+                onChange={(e) => setFormData({ ...formData, location_address: e.target.value })}
+                placeholder="Address"
+                className="flex-1 px-3 py-2 text-sm border border-border rounded-lg bg-background"
+              />
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={formData.postcode}
+                onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
+                placeholder="Postcode (e.g. SW1A 1AA)"
+                className="flex-1 px-3 py-2 text-sm border border-border rounded-lg bg-background"
+              />
+              <button
+                onClick={handleSearchAddressPostcode}
+                disabled={loading || locatingUser}
+                className="px-4 py-2 bg-secondary hover:bg-secondary/80 disabled:opacity-50 rounded-lg transition-colors"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Coordinates Search */}
+          <div className="space-y-2">
+            <label className="block text-xs font-medium text-muted-foreground">Latitude / Longitude</label>
+            <div className="flex gap-2 mb-2">
+              <input
+                type="number"
+                value={coordsData.lat}
+                onChange={(e) => setCoordsData({ ...coordsData, lat: e.target.value })}
+                placeholder="Latitude"
+                step="0.0001"
+                className="flex-1 px-3 py-2 text-sm border border-border rounded-lg bg-background"
+              />
+              <input
+                type="number"
+                value={coordsData.lng}
+                onChange={(e) => setCoordsData({ ...coordsData, lng: e.target.value })}
+                placeholder="Longitude"
+                step="0.0001"
+                className="flex-1 px-3 py-2 text-sm border border-border rounded-lg bg-background"
+              />
+            </div>
             <button
-              onClick={handleSearchAddress}
-              disabled={loading}
-              className="px-3 py-2 bg-secondary hover:bg-secondary/80 rounded-lg transition-colors"
+              onClick={handleSearchCoordinates}
+              disabled={loading || locatingUser}
+              className="w-full px-4 py-2 bg-secondary hover:bg-secondary/80 disabled:opacity-50 rounded-lg transition-colors text-sm"
             >
-              <Search className="w-4 h-4" />
+              Search Coordinates
             </button>
           </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium mb-1">Postcode</label>
-          <input
-            type="text"
-            value={formData.postcode}
-            onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
-            placeholder="e.g. SW1A 1AA"
-            className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-          />
         </div>
 
         <div>
