@@ -111,7 +111,7 @@ export default function DeerManagement() {
    };
 
   const handleCheckout = async (checkoutData) => {
-     console.log('🔴 CHECK OUT TRIGGERED - DeerManagement');
+     console.log('🔴 CHECK OUT TRIGGERED - DeerManagement', 'outingId:', activeOuting?.id);
      if (!activeOuting) {
        alert('No active outing to check out from');
        return;
@@ -130,14 +130,16 @@ export default function DeerManagement() {
        }
 
        const finalTrack = trackingService.stopTracking();
-       console.log('🟣 DeerManagement CHECK-OUT: finalTrack has', finalTrack.length, 'points');
-       console.log('🟣 DeerManagement CHECK-OUT: liveGpsTrack had', liveGpsTrack.length, 'points');
-       console.log('🟣 DeerManagement CHECK-OUT: gpsTrack state had', gpsTrack.length, 'points');
+       console.log('🔴 DeerManagement CHECKOUT: finalTrack has', finalTrack.length, 'points');
+       console.log('🔴 DeerManagement CHECKOUT: submitData.shot_anything:', submitData.shot_anything);
+       console.log('🔴 DeerManagement CHECKOUT: submitData keys:', Object.keys(submitData).join(', '));
 
        await endOutingWithData(activeOuting.id, submitData, finalTrack);
+       console.log('🔴 CHECKOUT SUCCESS - Outing finalized:', activeOuting.id);
        setShowCheckout(false);
      } catch (error) {
-       console.error('Error checking out:', error);
+       console.error('🔴 CHECKOUT ERROR:', error.message, error.status, error.response?.data);
+       alert('Error during checkout: ' + error.message);
      }
    };
 

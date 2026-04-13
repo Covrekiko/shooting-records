@@ -116,7 +116,7 @@ export default function ClayShooting() {
 
   const handleCheckout = async (e) => {
      e.preventDefault();
-     console.log('🔴 CHECK OUT TRIGGERED - ClayShooting');
+     console.log('🔴 CHECK OUT TRIGGERED - ClayShooting', 'sessionId:', activeSession?.id);
      if (!checkoutData.shotgun_id || !checkoutData.rounds_fired) {
        alert('Please select a shotgun and enter rounds fired');
        return;
@@ -146,13 +146,18 @@ export default function ClayShooting() {
        const finalTrack = trackingService.stopTracking();
        console.log('🔴 TRACKING STOPPED - saved', finalTrack.length, 'GPS points');
 
-       await base44.entities.ClayShooting.update(activeSession.id, {
+       const updatePayload = {
         ...checkoutData,
         rounds_fired: checkoutData.rounds_fired ? parseInt(checkoutData.rounds_fired) : 0,
         photos: uploadedPhotos,
         active_checkin: false,
         gps_track: finalTrack,
-       });
+       };
+       console.log('🔴 UPDATE PAYLOAD:', JSON.stringify(updatePayload).substring(0, 200) + '...');
+
+       await base44.entities.ClayShooting.update(activeSession.id, updatePayload);
+       console.log('🔴 CHECKOUT SUCCESS - Record updated:', activeSession.id);
+
        setActiveSession(null);
        setGpsTrack([]);
        setShowCheckout(false);
@@ -167,7 +172,8 @@ export default function ClayShooting() {
        });
        setViewingTrack(null);
      } catch (error) {
-       console.error('Error checking out:', error);
+       console.error('🔴 CHECKOUT ERROR:', error.message, error.status, error.response?.data);
+       alert('Error during checkout: ' + error.message);
      }
    };
 

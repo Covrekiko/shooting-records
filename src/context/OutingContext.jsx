@@ -76,35 +76,48 @@ export function OutingProvider({ children }) {
 
   const endOutingWithData = async (outingId, checkoutData, gpsTrack) => {
     try {
-      console.log('🟢 endOutingWithData called - saving GPS track with', gpsTrack?.length || 0, 'points');
-      
+      const currentUser = await base44.auth.me();
+      console.log('🟢 endOutingWithData called - outingId:', outingId, 'gpsTrack:', gpsTrack?.length || 0, 'points');
+
       // Update DeerOuting
-      await base44.entities.DeerOuting.update(outingId, {
+      const updateOutingPayload = {
         end_time: new Date().toISOString(),
         active: false,
         gps_track: gpsTrack || [],
-      });
-      console.log('🟢 DeerOuting updated and closed with GPS track saved');
+      };
+      console.log('🟢 Updating DeerOuting with payload:', JSON.stringify(updateOutingPayload).substring(0, 100));
+
+      await base44.entities.DeerOuting.update(outingId, updateOutingPayload);
+      console.log('🟢 DeerOuting updated and closed - ID:', outingId, 'GPS points saved:', gpsTrack?.length || 0);
 
       // Update DeerManagement with checkout data if it exists
       if (checkoutData) {
         const deerManagements = await base44.entities.DeerManagement.filter({
+          created_by: currentUser.email,
           active_checkin: true,
         });
+        console.log('🟢 Found', deerManagements.length, 'active DeerManagement sessions for user');
+
         if (deerManagements.length > 0) {
-          await base44.entities.DeerManagement.update(deerManagements[0].id, {
+          const dmId = deerManagements[0].id;
+          const updateDmPayload = {
             ...checkoutData,
             active_checkin: false,
             end_time: checkoutData.end_time || new Date().toTimeString().slice(0, 5),
             gps_track: gpsTrack || [],
-          });
-          console.log('🟢 DeerManagement session updated and closed');
+          };
+          console.log('🟢 Updating DeerManagement ID:', dmId, 'with checkout data - gps:', gpsTrack?.length || 0, 'points');
+
+          await base44.entities.DeerManagement.update(dmId, updateDmPayload);
+          console.log('🟢 DeerManagement session updated and closed - ID:', dmId);
+        } else {
+          console.warn('⚠️ No active DeerManagement session found to update');
         }
       }
-      
+
       setActiveOuting(null);
     } catch (error) {
-      console.error('🔴 Error ending outing with data:', error);
+      console.error('🔴 Error ending outing with data:', error.message, error.status, error.response?.data);
       throw error;
     }
   };

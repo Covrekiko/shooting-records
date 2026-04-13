@@ -143,7 +143,7 @@ export default function TargetShooting() {
 
   const handleCheckout = async (e) => {
    e.preventDefault();
-   console.log('🔴 CHECK OUT TRIGGERED - TargetShooting');
+   console.log('🔴 CHECK OUT TRIGGERED - TargetShooting', 'sessionId:', activeSession?.id);
    // Validate at least one rifle with required fields
    const hasValidRifle = checkoutData.rifles_used.some(r => r.rifle_id && r.rounds_fired && r.meters_range);
    if (!hasValidRifle) {
@@ -164,12 +164,17 @@ export default function TargetShooting() {
      const finalTrack = trackingService.stopTracking();
      console.log('🔴 TRACKING STOPPED - saved', finalTrack.length, 'GPS points');
 
-     await base44.entities.TargetShooting.update(activeSession.id, {
+     const updatePayload = {
        ...checkoutData,
        photos: photoUrls,
        active_checkin: false,
        gps_track: finalTrack,
-     });
+     };
+     console.log('🔴 UPDATE PAYLOAD - rifles:', checkoutData.rifles_used.length, 'photos:', photoUrls.length, 'gps:', finalTrack.length);
+
+     await base44.entities.TargetShooting.update(activeSession.id, updatePayload);
+     console.log('🔴 CHECKOUT SUCCESS - Record updated:', activeSession.id);
+
       setActiveSession(null);
       setGpsTrack([]);
       setShowCheckout(false);
@@ -191,7 +196,8 @@ export default function TargetShooting() {
       });
       setViewingTrack(null);
     } catch (error) {
-      console.error('Error checking out:', error);
+      console.error('🔴 CHECKOUT ERROR:', error.message, error.status, error.response?.data);
+      alert('Error during checkout: ' + error.message);
     }
   };
 
