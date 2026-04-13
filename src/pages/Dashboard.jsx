@@ -164,11 +164,9 @@ export default function Dashboard() {
         )}
 
         {/* Ammo Stock Widget */}
-        {user?.role !== 'admin' && (
-          <div className="mt-8">
-            <AmmoStockWidget />
-          </div>
-        )}
+        <div className="mt-8">
+          <AmmoStockWidget />
+        </div>
 
         {/* Charts Section */}
         {user?.role !== 'admin' && chartData && (
