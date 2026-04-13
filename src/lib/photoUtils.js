@@ -7,10 +7,14 @@ export async function convertHeicToJpg(file) {
   }
 
   try {
-    const blob = await heic2any({ blob: file });
+    let blob = await heic2any({ blob: file, toType: 'image/jpeg' });
+    // heic2any can return an array of blobs
+    if (Array.isArray(blob)) {
+      blob = blob[0];
+    }
     return new File([blob], file.name.replace(/\.heic$/i, '.jpg'), { type: 'image/jpeg' });
   } catch (error) {
-    console.warn('HEIC conversion failed, using original:', error);
+    console.error('HEIC conversion failed:', error);
     return file;
   }
 }
