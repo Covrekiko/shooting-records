@@ -12,6 +12,11 @@ export function useGeolocation() {
       return;
     }
 
+    // Request permission if available (iOS 13+)
+    if (navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'geolocation' }).catch(() => {});
+    }
+
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
         setLocation({
