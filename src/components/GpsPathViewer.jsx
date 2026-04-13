@@ -73,7 +73,7 @@ export default function GpsPathViewer({ track, onClose }) {
           </button>
         </div>
 
-        <div className="flex-1 relative w-full" style={{ pointerEvents: 'auto', minHeight: '400px' }}>
+        <div className="flex-1 w-full" style={{ pointerEvents: 'auto', display: 'flex', minHeight: '400px' }}>
           <MapContainer center={[center.lat, center.lng]} zoom={15} style={{ width: '100%', height: '100%', pointerEvents: 'auto' }}>
             <MapResizer />
             <TileLayer
