@@ -482,8 +482,10 @@ export default function DeerStalkingMap() {
       </MapContainer>
       </div>
 
-      {/* Floating Map Search */}
-       <FloatingMapSearch onSearch={handleMapSearch} />
+      {/* Floating Map Search - Top Right */}
+      <div className="fixed top-16 right-4 z-[9999] pointer-events-auto">
+        <FloatingMapSearch onSearch={handleMapSearch} />
+      </div>
 
       {/* Area Selector - Top Left */}
       <div className="fixed top-16 left-4 z-[9999] pointer-events-auto">
@@ -525,13 +527,13 @@ export default function DeerStalkingMap() {
 
       {/* Floating Controls - Bottom Right Stack */}
       <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-auto">
-        {/* Satellite Toggle */}
+        {/* Satellite Toggle - Small */}
         <button
           onClick={() => setUseSatellite(!useSatellite)}
-          className="p-3 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all shadow-lg"
+          className="p-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all shadow-lg"
           title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
         >
-          <Satellite className="w-5 h-5" />
+          <Satellite className="w-4 h-4" />
         </button>
 
         {/* Floating Action Bar */}
