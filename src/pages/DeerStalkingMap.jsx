@@ -77,6 +77,8 @@ export default function DeerStalkingMap() {
   };
 
   const handleMapClick = (e) => {
+    if (!waitingForPin) return;
+    
     const clickLocation = { lat: e.latlng.lat, lng: e.latlng.lng };
     setMapClick(clickLocation);
     
