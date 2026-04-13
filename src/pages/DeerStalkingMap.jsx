@@ -428,10 +428,9 @@ export default function DeerStalkingMap() {
         {selectedArea && selectedArea.polygon_coordinates && (
           <Polyline
             positions={selectedArea.polygon_coordinates}
-            color="#10b981"
-            weight={3}
-            opacity={0.6}
-            dashArray="5, 5"
+            color="#3b82f6"
+            weight={5}
+            opacity={1}
           />
         )}
 
