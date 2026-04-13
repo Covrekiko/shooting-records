@@ -1,9 +1,12 @@
-import { MapContainer, TileLayer, FeatureGroup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import { useState } from 'react';
 import { Map, Satellite, Trash2, Locate, Zap, MapPin } from 'lucide-react';
+
+// Import leaflet-draw
+import 'leaflet-draw';
 
 // Fix marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -13,87 +16,93 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Import leaflet-draw
-import 'leaflet-draw';
-
-function DrawControl({ onDataChange, mapData, onMapReady }) {
+function DrawControl({ onDataChange, mapData }) {
   const map = useMap();
-
-  useEffect(() => {
-    onMapReady(map);
-  }, [map, onMapReady]);
   const featureGroupRef = useRef(null);
+  const drawControlRef = useRef(null);
 
   useEffect(() => {
     if (!map) return;
 
-    // Create feature group for storing drawn items
-    const featureGroup = L.featureGroup();
-    featureGroup.addTo(map);
-    featureGroupRef.current = featureGroup;
+    try {
+      // Create feature group for storing drawn items
+      const featureGroup = L.featureGroup();
+      featureGroup.addTo(map);
+      featureGroupRef.current = featureGroup;
 
-    // Add draw control
-    const drawControl = new L.Control.Draw({
-      position: 'topleft',
-      draw: {
-        polygon: true,
-        marker: true,
-        rectangle: false,
-        circle: false,
-        circlemarker: false,
-        polyline: false,
-      },
-      edit: {
-        featureGroup: featureGroup,
-      },
-    });
-    map.addControl(drawControl);
-
-    // Handle draw events
-    const handleCreated = (e) => {
-      featureGroup.addLayer(e.layer);
-      updateMapData();
-    };
-
-    const handleEdited = () => {
-      updateMapData();
-    };
-
-    const handleDeleted = () => {
-      updateMapData();
-    };
-
-    const updateMapData = () => {
-      const geoJson = featureGroup.toGeoJSON();
-      onDataChange(geoJson);
-    };
-
-    // Load existing data if provided
-    if (mapData && mapData.features) {
-      L.geoJSON(mapData, {
-        onEachFeature: (feature, layer) => {
-          featureGroup.addLayer(layer);
+      // Add draw control
+      const drawControl = new L.Control.Draw({
+        position: 'topleft',
+        draw: {
+          polygon: true,
+          marker: true,
+          rectangle: false,
+          circle: false,
+          circlemarker: false,
+          polyline: false,
+        },
+        edit: {
+          featureGroup: featureGroup,
+          edit: true,
+          remove: true,
         },
       });
+      
+      map.addControl(drawControl);
+      drawControlRef.current = drawControl;
+
+      // Handle draw events
+      const handleCreated = (e) => {
+        featureGroup.addLayer(e.layer);
+        updateMapData();
+      };
+
+      const handleEdited = () => {
+        updateMapData();
+      };
+
+      const handleDeleted = () => {
+        updateMapData();
+      };
+
+      const updateMapData = () => {
+        const geoJson = featureGroup.toGeoJSON();
+        onDataChange(geoJson);
+      };
+
+      // Load existing data if provided
+      if (mapData && mapData.features) {
+        L.geoJSON(mapData, {
+          onEachFeature: (feature, layer) => {
+            featureGroup.addLayer(layer);
+          },
+        });
+      }
+
+      map.on('draw:created', handleCreated);
+      map.on('draw:edited', handleEdited);
+      map.on('draw:deleted', handleDeleted);
+
+      return () => {
+        map.off('draw:created', handleCreated);
+        map.off('draw:edited', handleEdited);
+        map.off('draw:deleted', handleDeleted);
+        if (drawControlRef.current) {
+          map.removeControl(drawControlRef.current);
+        }
+        if (featureGroupRef.current) {
+          map.removeLayer(featureGroupRef.current);
+        }
+      };
+    } catch (error) {
+      console.error('Error initializing draw control:', error);
     }
-
-    map.on('draw:created', handleCreated);
-    map.on('draw:edited', handleEdited);
-    map.on('draw:deleted', handleDeleted);
-
-    return () => {
-      map.off('draw:created', handleCreated);
-      map.off('draw:edited', handleEdited);
-      map.off('draw:deleted', handleDeleted);
-      map.removeControl(drawControl);
-      map.removeLayer(featureGroup);
-    };
   }, [map, onDataChange]);
 
   return null;
 }
 
-function MapControls({ mapRef, onLocationFound }) {
+function MapControls({ mapRef }) {
   const handleFindLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -101,7 +110,6 @@ function MapControls({ mapRef, onLocationFound }) {
           const { latitude, longitude } = position.coords;
           if (mapRef.current) {
             mapRef.current.setView([latitude, longitude], 15);
-            onLocationFound?.();
           }
         },
         (error) => console.log('Geolocation error:', error),
@@ -132,10 +140,6 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
     window.location.reload();
   };
 
-  const setMapRef = (mapInstance) => {
-    mapRef.current = mapInstance;
-  };
-
   return (
     <div className="space-y-3">
       <div className="space-y-3">
@@ -143,7 +147,7 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
           <MapControls mapRef={mapRef} />
         </div>
         <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm text-blue-900">
-          <div className="font-semibold mb-2">Drawing Tools:</div>
+          <div className="font-semibold mb-2">Drawing Tools (toolbar on map):</div>
           <ul className="space-y-1 text-xs">
             <li className="flex items-center gap-2"><Zap className="w-3 h-3" /> Draw boundary polygon around your hunting ground</li>
             <li className="flex items-center gap-2"><MapPin className="w-3 h-3" /> Pin locations of high seats or stands</li>
@@ -183,7 +187,7 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
       </div>
 
       <div className="bg-card border border-border rounded-lg overflow-hidden h-96">
-        <MapContainer center={center} zoom={13} className="w-full h-full" ref={setMapRef}>
+        <MapContainer center={center} zoom={13} className="w-full h-full" ref={mapRef}>
           <TileLayer
             attribution='&copy; OpenStreetMap contributors'
             url={
@@ -192,11 +196,9 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
                 : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
             }
           />
-          <DrawControl onDataChange={onDataChange} mapData={mapData} onMapReady={setMapRef} />
+          <DrawControl onDataChange={onDataChange} mapData={mapData} />
         </MapContainer>
       </div>
-
-
     </div>
   );
 }
