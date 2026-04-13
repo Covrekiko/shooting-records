@@ -23,6 +23,8 @@ export default function Reports() {
   const [includeSignature, setIncludeSignature] = useState(false);
   const [selectedAnalyticsType, setSelectedAnalyticsType] = useState('target');
   const [user, setUser] = useState(null);
+  const [previewPdf, setPreviewPdf] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   useEffect(() => {
     loadRecords();
@@ -53,6 +55,58 @@ export default function Reports() {
       console.error('Error loading records:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePreviewReport = async () => {
+    setPreviewLoading(true);
+    try {
+      let filteredRecords = records;
+      let doc;
+
+      if (reportType === 'formal') {
+        if (records.length === 0) {
+          alert('No records found to generate report');
+          setPreviewLoading(false);
+          return;
+        }
+        doc = await generateFormalReport(records, user, {});
+      } else if (reportType === 'monthly') {
+        filteredRecords = records.filter((r) => {
+          const recordDate = new Date(r.date);
+          return recordDate.getMonth() === month && recordDate.getFullYear() === year;
+        });
+
+        if (filteredRecords.length === 0) {
+          alert('No records found for the selected month');
+          setPreviewLoading(false);
+          return;
+        }
+        doc = await generateMonthlySummaryPDF(filteredRecords, month, year, {
+          includeSignatureLine: includeSignature,
+        });
+      } else if (reportType === 'category') {
+        if (category === 'all') {
+          doc = await generateCategoryReportPDF(records, 'target', {});
+        } else {
+          filteredRecords = records.filter((r) => r.recordType === category);
+          if (filteredRecords.length === 0) {
+            alert('No records found for this category');
+            setPreviewLoading(false);
+            return;
+          }
+          doc = await generateCategoryReportPDF(filteredRecords, category, {});
+        }
+      }
+
+      const blob = doc.output('blob');
+      const url = URL.createObjectURL(blob);
+      setPreviewPdf(url);
+    } catch (error) {
+      console.error('Error generating preview:', error);
+      alert('Error generating preview');
+    } finally {
+      setPreviewLoading(false);
     }
   };
 
@@ -280,19 +334,28 @@ export default function Reports() {
           </div>
 
           {reportType === 'formal' && (
-           <div className="bg-blue-50/30 border border-blue-200/50 rounded-lg p-3">
-             <p className="text-sm text-blue-900">📋 This generates a professional formal report suitable for submission to authorities including police and licensing bodies.</p>
-           </div>
+            <div className="bg-blue-50/30 border border-blue-200/50 rounded-lg p-3">
+              <p className="text-sm text-blue-900">📋 This generates a professional formal report suitable for submission to authorities including police and licensing bodies.</p>
+            </div>
           )}
 
           {reportType !== 'analytics' && (
-           <button
-             onClick={handleGenerateReport}
-             className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 font-medium"
-           >
-             <Download className="w-5 h-5" />
-             Generate PDF Report
-           </button>
+            <div className="flex gap-3">
+              <button
+                onClick={handlePreviewReport}
+                disabled={previewLoading}
+                className="flex-1 px-6 py-3 bg-secondary text-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 font-medium disabled:opacity-50"
+              >
+                {previewLoading ? '⏳ Generating...' : '👁️ Preview PDF'}
+              </button>
+              <button
+                onClick={handleGenerateReport}
+                className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 font-medium"
+              >
+                <Download className="w-5 h-5" />
+                Download PDF
+              </button>
+            </div>
           )}
         </div>
 
@@ -310,8 +373,12 @@ export default function Reports() {
         )}
 
         {/* Info */}
+        {previewPdf && (
+          <PdfPreviewModal pdfUrl={previewPdf} onClose={() => setPreviewPdf(null)} />
+        )}
+
         {reportType !== 'analytics' && (
-         <div className="mt-8 bg-secondary/20 border border-border rounded-lg p-4">
+          <div className="mt-8 bg-secondary/20 border border-border rounded-lg p-4">
            <h3 className="font-semibold mb-2">Report Information</h3>
            <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
              {reportType === 'formal' && (
@@ -335,6 +402,35 @@ export default function Reports() {
          </div>
         )}
       </main>
+    </div>
+  );
+}
+
+function PdfPreviewModal({ pdfUrl, onClose }) {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-card rounded-lg w-full max-w-4xl h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h2 className="text-xl font-bold">PDF Preview</h2>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-secondary rounded transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="flex-1 overflow-auto">
+          <iframe src={pdfUrl} className="w-full h-full border-0" />
+        </div>
+        <div className="p-4 border-t border-border flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
