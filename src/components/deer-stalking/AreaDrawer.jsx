@@ -134,49 +134,52 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
       </button>
 
       {/* Floating Controls */}
-      <div className="fixed bottom-6 left-6 z-[9999] flex flex-col gap-1 bg-card rounded-lg p-2.5 shadow-lg sm:gap-2 sm:p-4">
-        <p className="text-xs sm:text-sm font-semibold text-muted-foreground mb-1 sm:mb-2">Points: {points.length}</p>
+      <div className="fixed bottom-6 left-6 z-[9999] bg-card rounded-md p-2 shadow-md sm:rounded-lg sm:p-4 sm:gap-2">
+        <p className="hidden sm:block text-xs font-semibold text-muted-foreground mb-2">Points: {points.length}</p>
 
-        <button
-          onClick={handleUndo}
-          disabled={points.length === 0 || isClosed}
-          className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-secondary hover:bg-secondary/80 disabled:opacity-50 rounded-lg transition-colors text-sm sm:text-base"
-        >
-          <Undo className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          <span className="hidden sm:inline">Undo</span>
-        </button>
-
-        {!isClosed ? (
+        {/* Mobile Grid Layout */}
+        <div className="grid grid-cols-2 gap-1 sm:flex sm:flex-col sm:gap-2">
           <button
-            onClick={handleCloseBoundary}
-            disabled={points.length < 3}
-            className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-accent hover:bg-accent/90 disabled:opacity-50 rounded-lg transition-colors text-accent-foreground font-medium text-sm sm:text-base"
+            onClick={handleUndo}
+            disabled={points.length === 0 || isClosed}
+            className="flex items-center justify-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-secondary hover:bg-secondary/80 disabled:opacity-50 rounded transition-colors text-xs sm:text-sm"
           >
-            <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span>Close</span>
+            <Undo className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Undo</span>
           </button>
-        ) : (
-          <div className="px-3 py-1.5 sm:px-4 sm:py-2 bg-green-500/20 text-green-700 rounded-lg text-xs sm:text-sm font-medium text-center">
-            ✓ Closed
-          </div>
-        )}
 
-        <button
-          onClick={handleFinish}
-          disabled={points.length < 3}
-          className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 rounded-lg transition-colors text-sm sm:text-base"
-        >
-          <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          <span>Finish</span>
-        </button>
+          {!isClosed ? (
+            <button
+              onClick={handleCloseBoundary}
+              disabled={points.length < 3}
+              className="flex items-center justify-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-accent hover:bg-accent/90 disabled:opacity-50 rounded text-accent-foreground font-medium transition-colors text-xs sm:text-sm"
+            >
+              <Lock className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>Close</span>
+            </button>
+          ) : (
+            <div className="flex items-center justify-center px-2 py-1 sm:px-4 sm:py-2 bg-green-500/20 text-green-700 rounded text-xs sm:text-sm font-medium">
+              ✓
+            </div>
+          )}
 
-        <button
-          onClick={onCancel}
-          className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-destructive/10 text-destructive hover:bg-destructive/20 rounded-lg transition-colors text-sm sm:text-base"
-        >
-          <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-          <span>Cancel</span>
-        </button>
+          <button
+            onClick={handleFinish}
+            disabled={points.length < 3}
+            className="flex items-center justify-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 rounded transition-colors text-xs sm:text-sm"
+          >
+            <Check className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span>Finish</span>
+          </button>
+
+          <button
+            onClick={onCancel}
+            className="flex items-center justify-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-destructive/10 text-destructive hover:bg-destructive/20 rounded transition-colors text-xs sm:text-sm"
+          >
+            <X className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span>Cancel</span>
+          </button>
+        </div>
       </div>
 
       {/* Instructions Badge */}
