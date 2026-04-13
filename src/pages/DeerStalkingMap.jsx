@@ -13,6 +13,9 @@ import { AlertCircle, Home } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
+import AreaDrawer from '@/components/deer-stalking/AreaDrawer';
+import AreaSaveForm from '@/components/deer-stalking/AreaSaveForm';
+import AreaSelector from '@/components/deer-stalking/AreaSelector';
 
 // Fix Leaflet default icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -41,6 +44,10 @@ export default function DeerStalkingMap() {
   const [waitingForPin, setWaitingForPin] = useState(null); // 'poi' or 'harvest'
   const [rifles, setRifles] = useState([]);
   const [ammunition, setAmmunition] = useState([]);
+  const [showAreaDrawer, setShowAreaDrawer] = useState(false);
+  const [showAreaForm, setShowAreaForm] = useState(false);
+  const [drawnPolygon, setDrawnPolygon] = useState(null);
+  const [selectedArea, setSelectedArea] = useState(null);
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -227,6 +234,43 @@ export default function DeerStalkingMap() {
     }
   };
 
+  const handleStartAreaCreation = () => {
+    setShowAreaDrawer(true);
+  };
+
+  const handleFinishDrawing = (polygon) => {
+    setDrawnPolygon(polygon);
+    setShowAreaDrawer(false);
+    setShowAreaForm(true);
+  };
+
+  const handleSaveArea = async (areaData) => {
+    try {
+      const area = await base44.entities.Area.create(areaData);
+      setSelectedArea(area);
+      setShowAreaForm(false);
+      setDrawnPolygon(null);
+      
+      // Pan to the newly created area
+      if (mapRef.current && area.center_point) {
+        mapRef.current.setView([area.center_point.lat, area.center_point.lng], 14);
+      }
+      
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleSelectArea = (area) => {
+    setSelectedArea(area);
+    
+    // Pan and zoom to fit the area boundary
+    if (mapRef.current && area.center_point) {
+      mapRef.current.setView([area.center_point.lat, area.center_point.lng], 14);
+    }
+  };
+
   if (loading || outingLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-slate-900">
@@ -358,7 +402,27 @@ export default function DeerStalkingMap() {
             opacity={0.7}
           />
         )}
+
+        {/* Selected Area Boundary */}
+        {selectedArea && selectedArea.polygon_coordinates && (
+          <Polyline
+            positions={selectedArea.polygon_coordinates}
+            color="#10b981"
+            weight={3}
+            opacity={0.6}
+            dashArray="5, 5"
+          />
+        )}
       </MapContainer>
+      </div>
+
+      {/* Area Selector - Top Left */}
+      <div className="fixed top-4 left-4 z-[9999] pointer-events-auto">
+        <AreaSelector
+          selectedAreaId={selectedArea?.id}
+          onSelectArea={handleSelectArea}
+          userLocation={userLocation}
+        />
       </div>
 
       {/* Back to Dashboard */}
@@ -397,12 +461,13 @@ export default function DeerStalkingMap() {
         onRecenter={handleRecenter}
         activeOuting={activeOuting}
         onEndOuting={handleEndOuting}
+        onCreateArea={handleStartAreaCreation}
       />
 
       {/* Modals - rendered via portal for consistent z-index handling */}
       {createPortal(
         <>
-          {(showPOI || showHarvest || showOuting || showCheckout) && (
+          {(showPOI || showHarvest || showOuting || showCheckout || showAreaDrawer || showAreaForm) && (
             <div className="fixed inset-0 z-[50000] pointer-events-auto" />
           )}
           
@@ -450,6 +515,32 @@ export default function DeerStalkingMap() {
                 ammunition={ammunition}
                 onSubmit={handleCheckoutSubmit}
                 onClose={() => setShowCheckout(false)}
+              />
+            </div>
+          )}
+
+          {showAreaDrawer && (
+            <div className="fixed inset-0 z-[50001] w-full h-full">
+              <AreaDrawer
+                userLocation={userLocation}
+                onFinish={handleFinishDrawing}
+                onCancel={() => {
+                  setShowAreaDrawer(false);
+                  setDrawnPolygon(null);
+                }}
+              />
+            </div>
+          )}
+
+          {showAreaForm && drawnPolygon && (
+            <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+              <AreaSaveForm
+                polygon={drawnPolygon}
+                onSave={handleSaveArea}
+                onCancel={() => {
+                  setShowAreaForm(false);
+                  setDrawnPolygon(null);
+                }}
               />
             </div>
           )}

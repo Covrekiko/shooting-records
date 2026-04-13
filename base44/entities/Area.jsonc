@@ -1,0 +1,61 @@
+{
+  "name": "Area",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the area or block"
+    },
+    "polygon_coordinates": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      },
+      "description": "Array of [lat, lng] coordinates forming the polygon boundary"
+    },
+    "center_point": {
+      "type": "object",
+      "properties": {
+        "lat": {
+          "type": "number"
+        },
+        "lng": {
+          "type": "number"
+        }
+      },
+      "description": "Center point of the area for map focus"
+    },
+    "deer_species": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of deer species present in this area"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes or description about the area"
+    },
+    "location_address": {
+      "type": "string",
+      "description": "Address or location name"
+    },
+    "postcode": {
+      "type": "string",
+      "description": "Postcode for the area"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether the area is active"
+    }
+  },
+  "required": [
+    "name",
+    "polygon_coordinates",
+    "center_point"
+  ]
+}

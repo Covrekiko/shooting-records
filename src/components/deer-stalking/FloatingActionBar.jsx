@@ -8,6 +8,7 @@ export default function FloatingActionBar({
   onRecenter,
   activeOuting,
   onEndOuting,
+  onCreateArea,
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -64,6 +65,15 @@ export default function FloatingActionBar({
           >
             <span className="text-lg">🦌</span>
             <span className="text-sm font-medium">Add Harvest</span>
+          </button>
+          <button
+            onClick={() => handleAction(onCreateArea)}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-full shadow-lg hover:bg-slate-600 transition-all cursor-pointer pointer-events-auto active:scale-95"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h10v10H7z" />
+            </svg>
+            <span className="text-sm font-medium">Create Area</span>
           </button>
         </>
       )}
