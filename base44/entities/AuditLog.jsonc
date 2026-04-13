@@ -1,0 +1,55 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "user_role": {
+      "type": "string"
+    },
+    "entity_name": {
+      "type": "string"
+    },
+    "entity_id": {
+      "type": "string"
+    },
+    "attempted_action": {
+      "type": "string",
+      "enum": [
+        "create",
+        "read",
+        "update",
+        "delete",
+        "list"
+      ]
+    },
+    "violation_reason": {
+      "type": "string"
+    },
+    "ip_address": {
+      "type": "string"
+    },
+    "user_agent": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "critical"
+      ]
+    }
+  },
+  "required": [
+    "user_email",
+    "entity_name",
+    "attempted_action",
+    "timestamp"
+  ]
+}
