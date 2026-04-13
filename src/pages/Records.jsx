@@ -537,7 +537,7 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
             </div>
 
             <div className="mb-6 pb-4 border-b border-border">
-              {record.total_count ? (
+              {record.total_count && record.total_count !== '0' ? (
                 <>
                   <h3 className="font-bold text-lg mb-3 text-primary">Species Harvested</h3>
                   {record.species_list && record.species_list.length > 0 ? (
@@ -550,10 +550,16 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
                       ))}
                     </div>
                   ) : null}
-                  <div className="bg-primary/10 p-3 rounded-lg">
+                  <div className="bg-primary/10 p-3 rounded-lg mb-4">
                     <label className="text-xs font-bold text-primary">Total Shots Fired</label>
                     <p className="text-lg font-semibold">{record.total_count}</p>
                   </div>
+                  {record.ammunition_used && (
+                    <div className="bg-blue-50/30 p-3 rounded border border-blue-200/50">
+                      <label className="text-xs font-bold text-muted-foreground block mb-1">Ammunition Used</label>
+                      <p className="text-sm font-medium">{record.ammunition_used}</p>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="bg-blue-50/30 p-4 rounded-lg border border-blue-200/50">
@@ -562,7 +568,7 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
               )}
             </div>
 
-            {record.rifle_id && (
+            {record.total_count && record.total_count !== '0' && record.rifle_id && (
               <div className="mb-6 pb-4 border-b border-border">
                 <h3 className="font-bold text-lg mb-3 text-primary">Rifle & Ammunition Details</h3>
                 <div className="bg-secondary/30 p-4 rounded-lg space-y-4">
