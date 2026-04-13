@@ -5,7 +5,7 @@ export async function generateRecordsPdf(records) {
   return doc;
 }
 
-export async function exportRecordsToPdf(records, userInfo = null, fileName = 'shooting-records.pdf', rifles = {}, clubs = {}) {
+export async function exportRecordsToPdf(records, userInfo = null, fileName = 'shooting-records.pdf', rifles = {}, clubs = {}, shotguns = {}) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -274,39 +274,77 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
   }
 
   // Clay Shooting Section - Detailed Vertical Format
-  if (clayRecords.length > 0) {
-    if (yPosition > pageHeight - 50) {
-      doc.addPage();
-      yPosition = margin;
-    }
-    
-    doc.setFontSize(11);
-    doc.setFont(undefined, 'bold');
-    doc.setTextColor(30, 100, 45);
-    doc.text('CLAY SHOOTING SESSIONS - DETAILED REPORT', margin, yPosition);
-    yPosition += 4;
-    
-    doc.setDrawColor(30, 100, 45);
-    doc.line(margin, yPosition - 2, pageWidth - margin, yPosition - 2);
-    yPosition += 6;
-    
-    clayRecords.forEach((record, idx) => {
-      if (yPosition > pageHeight - 40) {
-        doc.addPage();
-        yPosition = margin;
-      }
-      
-      doc.setFontSize(10);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(20, 60, 40);
-      doc.text(`Session ${idx + 1} - ${record.date}`, margin, yPosition);
-      yPosition += 4;
-      
-      doc.setFontSize(8);
-      doc.setFont(undefined, 'normal');
-      doc.setTextColor(0);
-      doc.text(`Check-in: ${record.checkin_time || 'N/A'} | Check-out: ${record.checkout_time || 'N/A'} | Rounds: ${record.rounds_fired || '-'}`, margin + 2, yPosition);
-      yPosition += 4;
+   if (clayRecords.length > 0) {
+     if (yPosition > pageHeight - 50) {
+       doc.addPage();
+       yPosition = margin;
+     }
+
+     doc.setFontSize(11);
+     doc.setFont(undefined, 'bold');
+     doc.setTextColor(30, 100, 45);
+     doc.text('CLAY SHOOTING SESSIONS - DETAILED REPORT', margin, yPosition);
+     yPosition += 4;
+
+     doc.setDrawColor(30, 100, 45);
+     doc.line(margin, yPosition - 2, pageWidth - margin, yPosition - 2);
+     yPosition += 6;
+
+     clayRecords.forEach((record, idx) => {
+       if (yPosition > pageHeight - 40) {
+         doc.addPage();
+         yPosition = margin;
+       }
+
+       doc.setFontSize(10);
+       doc.setFont(undefined, 'bold');
+       doc.setTextColor(20, 60, 40);
+       doc.text(`Session ${idx + 1} - ${record.date}`, margin, yPosition);
+       yPosition += 4;
+
+       // Venue info
+       if (record.club_id && clubs[record.club_id]) {
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(30, 100, 45);
+         doc.setFontSize(8);
+         doc.text('Venue:', margin + 2, yPosition);
+         yPosition += 2.5;
+
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(0);
+         doc.text(`${clubs[record.club_id].name}`, margin + 4, yPosition);
+         yPosition += 2.5;
+         doc.text(`${clubs[record.club_id].location || ''}`, margin + 4, yPosition);
+         yPosition += 3;
+       }
+
+       doc.setFontSize(8);
+       doc.setFont(undefined, 'normal');
+       doc.setTextColor(0);
+       doc.text(`Check-in: ${record.checkin_time || 'N/A'} | Check-out: ${record.checkout_time || 'N/A'} | Rounds: ${record.rounds_fired || '-'}`, margin + 2, yPosition);
+       yPosition += 4;
+
+       // Shotgun info
+       if (record.shotgun_id && shotguns[record.shotgun_id]) {
+         const shotgunData = shotguns[record.shotgun_id];
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(30, 100, 45);
+         doc.setFontSize(8);
+         doc.text('Shotgun Used:', margin + 2, yPosition);
+         yPosition += 2.5;
+
+         doc.setFont(undefined, 'normal');
+         doc.setFontSize(7.5);
+         doc.setTextColor(0);
+         doc.text(`${shotgunData.name}`, margin + 4, yPosition);
+         yPosition += 2.5;
+
+         doc.text(`  Make: ${shotgunData.make || '-'} | Model: ${shotgunData.model || '-'}`, margin + 6, yPosition);
+         yPosition += 2.5;
+
+         doc.text(`  Gauge: ${shotgunData.gauge || '-'} | Serial: ${shotgunData.serial_number || '-'}`, margin + 6, yPosition);
+         yPosition += 3;
+       }
       
       if (record.notes) {
         doc.setFont(undefined, 'bold');
@@ -417,7 +455,7 @@ export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, c
   return doc.output('blob');
 }
 
-function generateBase44Pdf(records, userInfo = null, rifles = {}, clubs = {}) {
+function generateBase44Pdf(records, userInfo = null, rifles = {}, clubs = {}, shotguns = {}) {
 
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
