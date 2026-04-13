@@ -3,14 +3,13 @@ import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { Plus, Trash2 } from 'lucide-react';
 
-export default function AmmunitionSettings() {
+export default function Ammunition() {
   const [ammunition, setAmmunition] = useState([]);
   const [rifles, setRifles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    rifle_id: '',
     brand: '',
     bullet_type: '',
     grain: '',
@@ -22,13 +21,8 @@ export default function AmmunitionSettings() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
 
-        const [ammoList, riflesList] = await Promise.all([
-          base44.entities.Ammunition.filter({ created_by: currentUser.email }),
-          base44.entities.Rifle.filter({ created_by: currentUser.email }),
-        ]);
-
+        const ammoList = await base44.entities.Ammunition.filter({ created_by: currentUser.email });
         setAmmunition(ammoList);
-        setRifles(riflesList);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -44,7 +38,7 @@ export default function AmmunitionSettings() {
     try {
       const newAmmo = await base44.entities.Ammunition.create(formData);
       setAmmunition([...ammunition, newAmmo]);
-      setFormData({ rifle_id: '', brand: '', bullet_type: '', grain: '' });
+      setFormData({ brand: '', bullet_type: '', grain: '' });
       setShowForm(false);
     } catch (error) {
       console.error('Error adding ammunition:', error);
@@ -62,10 +56,7 @@ export default function AmmunitionSettings() {
     }
   };
 
-  const getRifleName = (rifleId) => {
-    const rifle = rifles.find(r => r.id === rifleId);
-    return rifle ? rifle.name : 'Unknown Rifle';
-  };
+
 
   if (loading) {
     return (
@@ -99,23 +90,6 @@ export default function AmmunitionSettings() {
           <div className="bg-card border border-border rounded-lg p-6 mb-6">
             <h2 className="text-xl font-bold mb-4">Add New Ammunition</h2>
             <form onSubmit={handleAddAmmunition} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Rifle</label>
-                <select
-                  value={formData.rifle_id}
-                  onChange={(e) => setFormData({ ...formData, rifle_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  required
-                >
-                  <option value="">Select a rifle</option>
-                  {rifles.map((rifle) => (
-                    <option key={rifle.id} value={rifle.id}>
-                      {rifle.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <div>
                 <label className="block text-sm font-medium mb-1">Brand</label>
                 <input
@@ -175,7 +149,6 @@ export default function AmmunitionSettings() {
             {ammunition.map((ammo) => (
               <div key={ammo.id} className="bg-card border border-border rounded-lg p-4 flex items-start justify-between">
                 <div>
-                  <h3 className="font-semibold">{getRifleName(ammo.rifle_id)}</h3>
                   <p className="text-sm text-muted-foreground mt-1">Brand: {ammo.brand}</p>
                   {ammo.bullet_type && (
                     <p className="text-sm text-muted-foreground">Bullet Type: {ammo.bullet_type}</p>
