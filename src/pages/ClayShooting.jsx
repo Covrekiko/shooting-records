@@ -3,8 +3,9 @@ import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
-import { Clock, Plus } from 'lucide-react';
+import { Clock, Plus, Map } from 'lucide-react';
 import { useGpsTracking } from '@/hooks/useGpsTracking';
+import GpsPathViewer from '@/components/GpsPathViewer';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 
 export default function ClayShooting() {
@@ -18,6 +19,7 @@ export default function ClayShooting() {
   const { location } = useGeolocation();
   const [nearbyClub, setNearbyClub] = useState(null);
   const gpsTrack = useGpsTracking(!!activeSession);
+  const [viewingTrack, setViewingTrack] = useState(null);
 
   const [checkinData, setCheckinData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -235,7 +237,12 @@ export default function ClayShooting() {
             }
             onClose={() => setShowCheckout(false)}
             gpsTrack={gpsTrack}
+            onViewTrack={setViewingTrack}
           />
+        )}
+        
+        {viewingTrack && (
+          <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />
         )}
       </main>
     </div>
@@ -332,7 +339,7 @@ async function handlePhotoUpload(files, data, onChange) {
   }
 }
 
-function CheckoutModal({ data, shotguns, ammunition, onSubmit, onChange, onClose }) {
+function CheckoutModal({ data, shotguns, ammunition, onSubmit, onChange, onClose, gpsTrack, onViewTrack }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-card rounded-lg max-w-md w-full p-6 my-8">
@@ -454,6 +461,16 @@ function CheckoutModal({ data, shotguns, ammunition, onSubmit, onChange, onClose
             )}
           </div>
           <div className="flex gap-3">
+            {gpsTrack && gpsTrack.length > 0 && (
+              <button
+                type="button"
+                onClick={() => onViewTrack(gpsTrack)}
+                className="flex-1 px-4 py-2 bg-secondary hover:bg-primary hover:text-primary-foreground rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
+                <Map className="w-4 h-4" />
+                View GPS
+              </button>
+            )}
             <button
               type="submit"
               className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
