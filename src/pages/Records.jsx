@@ -698,7 +698,9 @@ function PhotoModal({ photo, onClose }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
   const imgRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     const handleEscape = (e) => {
@@ -726,6 +728,25 @@ function PhotoModal({ photo, onClose }) {
     setIsDragging(false);
   };
 
+  const handleWheel = (e) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setZoom(prev => Math.max(0.5, Math.min(3, prev + delta)));
+  };
+
+  const handleZoomIn = () => {
+    setZoom(prev => Math.min(3, prev + 0.2));
+  };
+
+  const handleZoomOut = () => {
+    setZoom(prev => Math.max(0.5, prev - 0.2));
+  };
+
+  const handleReset = () => {
+    setZoom(1);
+    setOffset({ x: 0, y: 0 });
+  };
+
   useEffect(() => {
     if (isDragging) {
       window.addEventListener('mousemove', handleMouseMove);
@@ -740,20 +761,55 @@ function PhotoModal({ photo, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50" onClick={onClose}>
       <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
-        <button
-          onClick={onClose}
-          className="absolute -top-12 right-0 text-white hover:text-gray-300 z-10 p-1"
-          title="Close (ESC)"
+        <div className="flex items-center justify-between p-3 bg-black/40 border-b border-white/10">
+          <button
+            onClick={handleZoomOut}
+            className="px-2 py-1 text-sm text-white hover:bg-white/20 rounded transition-colors"
+            title="Zoom out"
+          >
+            −
+          </button>
+          <span className="text-white text-sm">{Math.round(zoom * 100)}%</span>
+          <button
+            onClick={handleZoomIn}
+            className="px-2 py-1 text-sm text-white hover:bg-white/20 rounded transition-colors"
+            title="Zoom in"
+          >
+            +
+          </button>
+          <button
+            onClick={handleReset}
+            className="px-2 py-1 text-xs text-white hover:bg-white/20 rounded transition-colors ml-2"
+            title="Reset zoom and position"
+          >
+            Reset
+          </button>
+          <button
+            onClick={onClose}
+            className="ml-auto text-white hover:text-gray-300"
+            title="Close (ESC)"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+        <div
+          ref={containerRef}
+          className="flex-1 overflow-auto flex items-center justify-center"
+          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+          onWheel={handleWheel}
         >
-          <X className="w-8 h-8" />
-        </button>
-        <div className="flex-1 overflow-auto flex items-center justify-center" style={{ cursor: isDragging ? 'grabbing' : 'grab' }}>
           <img
             ref={imgRef}
             src={typeof photo === 'string' ? photo : photo.url}
             alt="Full view"
-            className="rounded-lg max-h-[85vh] max-w-full object-contain select-none"
-            style={{ transform: `translate(${offset.x}px, ${offset.y}px)`, transition: isDragging ? 'none' : 'transform 0.2s' }}
+            className="rounded-lg select-none"
+            style={{
+              transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
+              transition: isDragging ? 'none' : 'transform 0.2s',
+              maxHeight: '85vh',
+              maxWidth: '100%',
+              objectFit: 'contain',
+            }}
             onMouseDown={handleMouseDown}
             onError={(e) => e.target.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2218%22 dominant-baseline=%22middle%22%3EPhoto not found%3C/text%3E%3C/svg%3E'}
           />
