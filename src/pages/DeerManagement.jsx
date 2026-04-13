@@ -492,13 +492,16 @@ function CheckoutModal({ data, rifles, ammunition, onSubmit, onChange, onClose }
                 ))}
                 </div>
                 <div>
-                 <label className="block text-sm font-medium mb-1">Total Count</label>
-                 <input
-                   type="number"
-                   value={data.species_list?.reduce((sum, s) => sum + (parseInt(s.count) || 0), 0) || 0}
-                   className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                   disabled
-                 />
+                  <label className="block text-sm font-medium mb-1">Total Count</label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Total animals shot"
+                    value={data.total_count || ''}
+                    onChange={(e) => onChange('total_count', e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                    required={data.shot_anything}
+                  />
                 </div>
                 <div>
                  <label className="block text-sm font-medium mb-1">Rifle Used</label>
