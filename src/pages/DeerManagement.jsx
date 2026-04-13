@@ -31,6 +31,8 @@ export default function DeerManagement() {
     end_time: new Date().toTimeString().slice(0, 5),
     shot_anything: false,
     deer_species: '',
+    pest_species: '',
+    deer_species_other: '',
     number_shot: '',
     rifle_id: '',
     ammunition_used: '',
@@ -118,6 +120,8 @@ export default function DeerManagement() {
         end_time: new Date().toTimeString().slice(0, 5),
         shot_anything: false,
         deer_species: '',
+        pest_species: '',
+        deer_species_other: '',
         number_shot: '',
         rifle_id: '',
         ammunition_used: '',
@@ -362,21 +366,86 @@ function CheckoutModal({ data, rifles, onSubmit, onChange, onClose }) {
           {data.shot_anything && (
             <>
               <div>
-                <label className="block text-sm font-medium mb-1">Deer Species</label>
-                <select
-                  value={data.deer_species}
-                  onChange={(e) => onChange('deer_species', e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  required
-                >
-                  <option value="">Select species</option>
-                  {DEER_SPECIES.map((species) => (
-                    <option key={species} value={species}>
-                      {species}
-                    </option>
-                  ))}
-                </select>
+                <label className="block text-sm font-medium mb-1">What did you shoot?</label>
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => onChange('deer_species', 'deer')}
+                    className={`flex-1 px-3 py-2 rounded-lg transition-colors ${data.deer_species === 'deer' ? 'bg-primary text-primary-foreground' : 'border border-border hover:bg-secondary'}`}
+                  >
+                    Deer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onChange('deer_species', 'pest')}
+                    className={`flex-1 px-3 py-2 rounded-lg transition-colors ${data.deer_species === 'pest' ? 'bg-primary text-primary-foreground' : 'border border-border hover:bg-secondary'}`}
+                  >
+                    Pest Control
+                  </button>
+                </div>
               </div>
+              {data.deer_species === 'deer' && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">Deer Species</label>
+                  <select
+                    value={data.deer_species_other || ''}
+                    onChange={(e) => onChange('deer_species_other', e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                    required
+                  >
+                    <option value="">Select species</option>
+                    {DEER_SPECIES.map((species) => (
+                      <option key={species} value={species}>
+                        {species}
+                      </option>
+                    ))}
+                  </select>
+                  {data.deer_species_other === 'Other' && (
+                    <input
+                      type="text"
+                      placeholder="Enter custom deer species"
+                      value={data.deer_species}
+                      onChange={(e) => onChange('deer_species', e.target.value)}
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background mt-2"
+                      required
+                    />
+                  )}
+                  {data.deer_species_other && data.deer_species_other !== 'Other' && (
+                    <input type="hidden" value={onChange('deer_species', data.deer_species_other)} />
+                  )}
+                </div>
+              )}
+              {data.deer_species === 'pest' && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">Pest Species</label>
+                  <select
+                    value={data.pest_species}
+                    onChange={(e) => onChange('pest_species', e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                    required
+                  >
+                    <option value="">Select pest species</option>
+                    <option value="Fox">Fox</option>
+                    <option value="Rabbit">Rabbit</option>
+                    <option value="Hare">Hare</option>
+                    <option value="Crow">Crow</option>
+                    <option value="Magpie">Magpie</option>
+                    <option value="Pigeon">Pigeon</option>
+                    <option value="Squirrel">Squirrel</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  {data.pest_species === 'Other' && (
+                    <input
+                      type="text"
+                      placeholder="Enter custom pest species"
+                      value={data.pest_species}
+                      onChange={(e) => onChange('pest_species', e.target.value)}
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background mt-2"
+                      required
+                    />
+                  )}
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium mb-1">Number Shot</label>
                 <input
