@@ -183,11 +183,11 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
         </div>
       </div>
 
-      <div style={{ height: '400px', width: '100%' }} className="border border-border rounded-lg overflow-hidden">
+      <div className="border border-border rounded-lg overflow-hidden" style={{ position: 'relative', height: '400px', width: '100%' }}>
         <MapContainer 
           center={center} 
           zoom={13} 
-          style={{ height: '100%', width: '100%' }}
+          style={{ height: '400px', width: '100%', position: 'absolute', top: 0, left: 0 }}
           ref={mapRef}
         >
           <TileLayer
