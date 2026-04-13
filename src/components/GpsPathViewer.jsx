@@ -77,8 +77,8 @@ export default function GpsPathViewer({ track, onClose }) {
           </button>
         </div>
 
-        <div style={{ flex: 1, width: '100%', position: 'relative', pointerEvents: 'auto' }}>
-          <MapContainer center={[center.lat, center.lng]} zoom={15} style={{ width: '100%', height: '100%', pointerEvents: 'auto', display: 'block' }}>
+        <div style={{ flex: 1, width: '100%', position: 'relative', pointerEvents: 'auto', minHeight: '400px' }}>
+          <MapContainer center={[center.lat, center.lng]} zoom={15} style={{ width: '100%', height: '100%', pointerEvents: 'auto', display: 'block', minHeight: '400px' }}>
             <MapResizer />
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
