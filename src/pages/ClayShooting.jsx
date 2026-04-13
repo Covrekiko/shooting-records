@@ -150,6 +150,7 @@ export default function ClayShooting() {
        notes: '',
        photos: [],
       });
+      setViewingTrack(null);
     } catch (error) {
       console.error('Error checking out:', error);
     }
@@ -324,8 +325,21 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
 async function handlePhotoUpload(files, data, onChange) {
   if (!files || files.length === 0) return;
   
+  const maxFileSize = 5 * 1024 * 1024; // 5MB
+  const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  
   const uploadedPhotos = [];
   for (const file of files) {
+    // Validate file
+    if (file.size > maxFileSize) {
+      console.error(`File ${file.name} exceeds 5MB limit`);
+      continue;
+    }
+    if (!validTypes.includes(file.type)) {
+      console.error(`File ${file.name} is not a valid image type`);
+      continue;
+    }
+    
     try {
       const response = await base44.integrations.Core.UploadFile({ file });
       uploadedPhotos.push(response.file_url);

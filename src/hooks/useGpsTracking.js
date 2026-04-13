@@ -22,7 +22,7 @@ export function useGpsTracking(isTracking) {
     };
 
     const handleError = (error) => {
-      console.error('GPS tracking error:', error);
+      console.error('GPS tracking error:', error?.message || 'Unknown error');
     };
 
     watchIdRef.current = navigator.geolocation.watchPosition(addPosition, handleError, {

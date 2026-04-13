@@ -122,9 +122,11 @@ export default function TargetShooting() {
    e.preventDefault();
    try {
      // Decrement ammo stock for each rifle used
+     const uniqueAmmoIds = new Set();
      for (const rifle of checkoutData.rifles_used) {
-       if (rifle.ammunition_id && rifle.rounds_fired) {
+       if (rifle.ammunition_id && rifle.rounds_fired && !uniqueAmmoIds.has(rifle.ammunition_id)) {
          await decrementAmmoStock(rifle.ammunition_id, parseInt(rifle.rounds_fired));
+         uniqueAmmoIds.add(rifle.ammunition_id);
        }
      }
      // Extract photo URLs from photo objects
@@ -154,6 +156,7 @@ export default function TargetShooting() {
         notes: '',
         photos: [],
       });
+      setViewingTrack(null);
     } catch (error) {
       console.error('Error checking out:', error);
     }
@@ -326,9 +329,22 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
 async function handlePhotoUpload(files, data, onChange) {
   if (!files || files.length === 0) return;
   
+  const maxFileSize = 5 * 1024 * 1024; // 5MB
+  const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+  
   try {
     const newPhotos = [...(data.photos || [])];
     for (const file of files) {
+      // Validate file
+      if (file.size > maxFileSize) {
+        console.error(`File ${file.name} exceeds 5MB limit`);
+        continue;
+      }
+      if (!validTypes.includes(file.type)) {
+        console.error(`File ${file.name} is not a valid image type`);
+        continue;
+      }
+      
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
       // Analyze target photo for accuracy
@@ -339,7 +355,7 @@ async function handlePhotoUpload(files, data, onChange) {
           photoData.analysis = result.data.analysis;
         }
       } catch (analysisError) {
-        console.warn('Photo analysis failed:', analysisError.message);
+        console.warn('Photo analysis skipped:', analysisError.message);
       }
       newPhotos.push(photoData);
     }
