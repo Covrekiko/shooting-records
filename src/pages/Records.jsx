@@ -712,12 +712,15 @@ function PhotoModal({ photo, onClose }) {
 
   const handleMouseDown = (e) => {
     if (e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
     setIsDragging(true);
     setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
   };
 
   const handleMouseMove = (e) => {
-    if (!isDragging) return;
+    if (!isDragging || !containerRef.current) return;
+    e.preventDefault();
     setOffset({
       x: e.clientX - dragStart.x,
       y: e.clientY - dragStart.y,
@@ -795,8 +798,11 @@ function PhotoModal({ photo, onClose }) {
         <div
           ref={containerRef}
           className="flex-1 overflow-auto flex items-center justify-center"
-          style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+          style={{ cursor: isDragging ? 'grabbing' : 'grab', userSelect: 'none' }}
           onWheel={handleWheel}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
         >
           <img
             ref={imgRef}
