@@ -188,7 +188,7 @@ export default function DeerStalkingMap() {
   }
 
   return (
-    <div className="w-full h-screen bg-slate-900 relative overflow-hidden">
+    <div className={`w-full h-screen bg-slate-900 relative overflow-hidden ${waitingForPin ? 'cursor-crosshair' : ''}`}>
       <div className="absolute inset-0 z-0">
         <MapContainer
           center={userLocation}
