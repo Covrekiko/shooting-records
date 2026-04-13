@@ -130,6 +130,22 @@ function MapControls({ mapRef }) {
   );
 }
 
+function MapWithRef({ center, mapType, onDataChange, mapData, mapRef }) {
+  return (
+    <MapContainer center={center} zoom={13} className="w-full h-full" ref={mapRef}>
+      <TileLayer
+        attribution='&copy; OpenStreetMap contributors'
+        url={
+          mapType === 'satellite'
+            ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+            : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+        }
+      />
+      <DrawControl onDataChange={onDataChange} mapData={mapData} />
+    </MapContainer>
+  );
+}
+
 export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData = {} }) {
   const [mapType, setMapType] = useState('map');
   const mapRef = useRef(null);
@@ -187,17 +203,7 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
       </div>
 
       <div className="bg-card border border-border rounded-lg overflow-hidden h-96">
-        <MapContainer center={center} zoom={13} className="w-full h-full" ref={mapRef}>
-          <TileLayer
-            attribution='&copy; OpenStreetMap contributors'
-            url={
-              mapType === 'satellite'
-                ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-                : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-            }
-          />
-          <DrawControl onDataChange={onDataChange} mapData={mapData} />
-        </MapContainer>
+        <MapWithRef center={center} mapType={mapType} onDataChange={onDataChange} mapData={mapData} mapRef={mapRef} />
       </div>
     </div>
   );
