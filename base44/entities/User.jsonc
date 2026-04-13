@@ -2,12 +2,14 @@
   "name": "User",
   "type": "object",
   "properties": {
-    "date_of_birth": {
+    "status": {
       "type": "string",
-      "format": "date"
-    },
-    "address": {
-      "type": "string"
+      "enum": [
+        "active",
+        "suspended",
+        "banned"
+      ],
+      "default": "active"
     }
   }
 }

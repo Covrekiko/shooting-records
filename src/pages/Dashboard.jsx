@@ -117,7 +117,7 @@ export default function Dashboard() {
               link="/target-shooting"
             />
             <StatCard
-             icon={<img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/fc8ae3666_image.jpeg" alt="Shotgun" className="w-[5.225rem] h-[5.225rem] object-contain" />}
+             icon={<span className="text-2xl">🎯</span>}
              label="Clay Shooting"
              value={stats?.clayRecords || 0}
              link="/clay-shooting"
@@ -138,7 +138,7 @@ export default function Dashboard() {
               link="/target-shooting"
             />
             <StatCard
-             icon={<img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/fc8ae3666_image.jpeg" alt="Shotgun" className="w-[5.225rem] h-[5.225rem] object-contain" />}
+             icon={<span className="text-2xl">🎯</span>}
              label="Clay Shooting Sessions"
              value={stats?.claySessions || 0}
              link="/clay-shooting"
@@ -288,7 +288,7 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
   const locationMap = {};
 
   const clubMap = clubs.reduce((acc, c) => ({ ...acc, [c.id]: c.name }), {});
-  const locationMap2 = locations.reduce((acc, l) => ({ ...acc, [l.id]: l.place_name }), {});
+  const deerLocationMap = locations.reduce((acc, l) => ({ ...acc, [l.id]: l.place_name }), {});
 
   targetShoots.forEach((record) => {
     const name = clubMap[record.club_id] || 'Unknown Club';
@@ -301,7 +301,7 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
   });
 
   deerMgmt.forEach((record) => {
-    const name = locationMap2[record.location_id] || record.place_name || 'Unknown Location';
+    const name = deerLocationMap[record.location_id] || record.place_name || 'Unknown Location';
     locationMap[name] = (locationMap[name] || 0) + 1;
   });
 

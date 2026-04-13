@@ -213,8 +213,7 @@ export default function AdminUsers() {
                 <th className="px-6 py-3 text-left text-sm font-semibold">Email</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">Phone</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold">Role</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold">Status</th>
-                <th className="px-6 py-3 text-right text-sm font-semibold">Actions</th>
+                  <th className="px-6 py-3 text-right text-sm font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -226,11 +225,6 @@ export default function AdminUsers() {
                   <td className="px-6 py-4 text-sm">
                     <span className={`px-2 py-1 rounded text-xs font-medium ${user.role === 'admin' ? 'bg-primary/20 text-primary' : 'bg-secondary'}`}>
                       {user.role}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${user.status === 'active' ? 'bg-green-500/20 text-green-700' : user.status === 'suspended' ? 'bg-yellow-500/20 text-yellow-700' : 'bg-red-500/20 text-red-700'}`}>
-                      {user.status || 'active'}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">

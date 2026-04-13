@@ -36,6 +36,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
   const [shotguns, setShotguns] = useState([]);
   const [ammunition, setAmmunition] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   const [formData, setFormData] = useState({
     // Shared
@@ -75,6 +76,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
   const loadData = async () => {
     try {
       const currentUser = await base44.auth.me();
+      setUser(currentUser);
       const [clubsList, locationsList, riflesList, shotgunsList, ammoList] = await Promise.all([
         base44.entities.Club.filter({ created_by: currentUser.email }),
         base44.entities.DeerLocation.filter({ created_by: currentUser.email }),
@@ -96,6 +98,12 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check ownership if editing
+    if (record && user && record.created_by !== user.email) {
+      alert('You can only edit your own records');
+      return;
+    }
     
     // Validate required fields
     let hasValidationErrors = false;

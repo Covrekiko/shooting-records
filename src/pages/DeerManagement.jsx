@@ -9,6 +9,7 @@ import BoundaryMapViewer from '@/components/BoundaryMapViewer';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import { Plus, Clock, Map } from 'lucide-react';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
+import { sessionManager } from '@/lib/sessionManager';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
 
@@ -46,6 +47,7 @@ export default function DeerManagement() {
    });
 
   useEffect(() => {
+    sessionManager.clearExpiredSessions();
     async function loadData() {
       try {
         const currentUser = await base44.auth.me();

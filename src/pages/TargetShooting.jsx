@@ -7,6 +7,7 @@ import { useGpsTracking } from '@/hooks/useGpsTracking';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import { Clock, CheckCircle, Plus } from 'lucide-react';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
+import { sessionManager } from '@/lib/sessionManager';
 
 export default function TargetShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -48,6 +49,7 @@ export default function TargetShooting() {
   });
 
   useEffect(() => {
+    sessionManager.clearExpiredSessions();
     async function loadData() {
       try {
         const currentUser = await base44.auth.me();

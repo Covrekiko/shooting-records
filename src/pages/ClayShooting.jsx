@@ -7,6 +7,7 @@ import { Clock, Plus, Map } from 'lucide-react';
 import { useGpsTracking } from '@/hooks/useGpsTracking';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
+import { sessionManager } from '@/lib/sessionManager';
 
 export default function ClayShooting() {
    const [activeSession, setActiveSession] = useState(null);
@@ -39,6 +40,7 @@ export default function ClayShooting() {
   });
 
   useEffect(() => {
+    sessionManager.clearExpiredSessions();
     async function loadData() {
       try {
         const currentUser = await base44.auth.me();
