@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import { OutingProvider } from '@/context/OutingContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
@@ -81,10 +82,12 @@ function App() {
     <ErrorBoundary>
       <AuthProvider>
         <QueryClientProvider client={queryClientInstance}>
-          <Router>
-            <AuthenticatedApp />
-          </Router>
-          <Toaster />
+          <OutingProvider>
+            <Router>
+              <AuthenticatedApp />
+            </Router>
+            <Toaster />
+          </OutingProvider>
         </QueryClientProvider>
       </AuthProvider>
     </ErrorBoundary>

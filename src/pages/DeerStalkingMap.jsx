@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-
 import { Link } from 'react-router-dom';
 import L from 'leaflet';
 import { base44 } from '@/api/base44Client';
+import { useOuting } from '@/context/OutingContext';
 import FloatingActionBar from '@/components/deer-stalking/FloatingActionBar';
 import POIModal from '@/components/deer-stalking/POIModal';
 import HarvestModal from '@/components/deer-stalking/HarvestModal';
@@ -19,11 +20,10 @@ L.Icon.Default.mergeOptions({
 });
 
 export default function DeerStalkingMap() {
+  const { activeOuting, loading: outingLoading, startOuting, endOuting } = useOuting();
   const [markers, setMarkers] = useState([]);
   const [harvests, setHarvests] = useState([]);
-  const [outings, setOutings] = useState([]);
   const [locations, setLocations] = useState([]);
-  const [activeOuting, setActiveOuting] = useState(null);
   const [userLocation, setUserLocation] = useState([51.5074, -0.1278]); // Default: London
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -44,20 +44,14 @@ export default function DeerStalkingMap() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [markersData, harvestsData, outingsData, locationsData] = await Promise.all([
+      const [markersData, harvestsData, locationsData] = await Promise.all([
         base44.entities.MapMarker.list(),
         base44.entities.Harvest.list(),
-        base44.entities.DeerOuting.list(),
         base44.entities.DeerLocation.list(),
       ]);
       setMarkers(markersData || []);
       setHarvests(harvestsData || []);
-      setOutings(outingsData || []);
       setLocations(locationsData || []);
-      
-      // Check for active outing
-      const active = outingsData?.find(o => o.active);
-      setActiveOuting(active);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -133,13 +127,7 @@ export default function DeerStalkingMap() {
 
   const handleStartOuting = async (data) => {
     try {
-      const outing = await base44.entities.DeerOuting.create({
-        location_name: data.place_name,
-        start_time: new Date(data.date + 'T' + data.start_time).toISOString(),
-        gps_track: [],
-        active: true,
-      });
-      setActiveOuting(outing);
+      await startOuting(data.place_name, data.start_time, data.date);
       setShowOuting(false);
       loadData();
     } catch (err) {
@@ -150,11 +138,7 @@ export default function DeerStalkingMap() {
   const handleEndOuting = async () => {
     if (!activeOuting) return;
     try {
-      await base44.entities.DeerOuting.update(activeOuting.id, {
-        end_time: new Date().toISOString(),
-        active: false,
-      });
-      setActiveOuting(null);
+      await endOuting(activeOuting.id);
       loadData();
     } catch (err) {
       setError(err.message);
@@ -179,7 +163,7 @@ export default function DeerStalkingMap() {
     }
   };
 
-  if (loading) {
+  if (loading || outingLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-slate-900">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
