@@ -117,13 +117,20 @@ export default function DeerManagement() {
    try {
      const uploadedPhotos = [];
      if (checkoutData.photos && checkoutData.photos.length > 0) {
-       for (const photo of checkoutData.photos) {
-         if (photo.startsWith('data:')) {
-           const blob = await fetch(photo).then(r => r.blob());
-           const { file_url } = await base44.integrations.Core.UploadFile({ file: blob });
-           uploadedPhotos.push(file_url);
-         } else {
-           uploadedPhotos.push(photo);
+       for (const photoData of checkoutData.photos) {
+         try {
+           if (photoData.startsWith('data:')) {
+             const res = await fetch(photoData);
+             const blob = await res.blob();
+             const result = await base44.integrations.Core.UploadFile({ file: blob });
+             if (result?.file_url) {
+               uploadedPhotos.push(result.file_url);
+             }
+           } else {
+             uploadedPhotos.push(photoData);
+           }
+         } catch (photoError) {
+           console.error('Error uploading photo:', photoError);
          }
        }
      }
@@ -548,20 +555,22 @@ function CheckoutModal({ data, rifles, onSubmit, onChange, onClose }) {
               <label className="flex-1 px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors">
                 📁 Choose Photo
                 <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handlePhotoUpload(e.files, data, onChange)}
-                  className="hidden"
-                />
+                     type="file"
+                     accept="image/*"
+                     multiple
+                     onChange={(e) => handlePhotoUpload(e.target.files, data, onChange)}
+                     className="hidden"
+                   />
               </label>
               <label className="flex-1 px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors">
                 📷 Take Photo
                 <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={(e) => handlePhotoUpload(e.files, data, onChange)}
-                  className="hidden"
+                 type="file"
+                 accept="image/*"
+                 capture="environment"
+                 multiple
+                 onChange={(e) => handlePhotoUpload(e.target.files, data, onChange)}
+                 className="hidden"
                 />
               </label>
             </div>
