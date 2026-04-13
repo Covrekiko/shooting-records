@@ -10,6 +10,9 @@ import HarvestModal from '@/components/deer-stalking/HarvestModal';
 import OutingModal from '@/components/deer-stalking/OutingModal';
 import MapClickHandler from '@/components/deer-stalking/MapClickHandler';
 import { AlertCircle, Home } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal';
+import { decrementAmmoStock } from '@/lib/ammoUtils';
 
 // Fix Leaflet default icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -20,7 +23,7 @@ L.Icon.Default.mergeOptions({
 });
 
 export default function DeerStalkingMap() {
-  const { activeOuting, loading: outingLoading, startOuting, endOuting } = useOuting();
+  const { activeOuting, loading: outingLoading, startOuting, endOuting, endOutingWithData } = useOuting();
   const [markers, setMarkers] = useState([]);
   const [harvests, setHarvests] = useState([]);
   const [locations, setLocations] = useState([]);
@@ -33,12 +36,16 @@ export default function DeerStalkingMap() {
   const [showPOI, setShowPOI] = useState(false);
   const [showHarvest, setShowHarvest] = useState(false);
   const [showOuting, setShowOuting] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
   const [focusedHarvestId, setFocusedHarvestId] = useState(null);
   const [waitingForPin, setWaitingForPin] = useState(null); // 'poi' or 'harvest'
+  const [rifles, setRifles] = useState([]);
+  const [ammunition, setAmmunition] = useState([]);
 
   useEffect(() => {
     loadData();
     getUserLocation();
+    loadRiflesAndAmmo();
   }, []);
 
   const loadData = async () => {
@@ -67,6 +74,20 @@ export default function DeerStalkingMap() {
         },
         () => {} // Silent fail, use default
       );
+    }
+  };
+
+  const loadRiflesAndAmmo = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      const [riflesList, ammoList] = await Promise.all([
+        base44.entities.Rifle.filter({ created_by: currentUser.email }),
+        base44.entities.Ammunition.filter({ created_by: currentUser.email }),
+      ]);
+      setRifles(riflesList);
+      setAmmunition(ammoList);
+    } catch (error) {
+      console.error('Error loading rifles and ammo:', error);
     }
   };
 
@@ -135,14 +156,33 @@ export default function DeerStalkingMap() {
     }
   };
 
-  const handleEndOuting = async () => {
-    console.log('🔴 DeerStalkingMap.handleEndOuting called - activeOuting:', activeOuting?.id);
+  const handleEndOuting = () => {
+    console.log('🔴 DeerStalkingMap.handleEndOuting called - opening modal instead of direct checkout');
+    setShowCheckout(true);
+  };
+
+  const handleCheckoutSubmit = async (checkoutData) => {
+    console.log('🔴 DeerStalkingMap.handleCheckoutSubmit called with data:', checkoutData);
     if (!activeOuting) return;
     try {
-      console.log('🔴 DeerStalkingMap.handleEndOuting - calling endOuting()');
-      await endOuting(activeOuting.id);
+      if (checkoutData.ammunition_id && checkoutData.total_count) {
+        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count));
+      }
+
+      const submitData = { ...checkoutData, active_checkin: false };
+      if (!checkoutData.shot_anything) {
+        submitData.species_list = [];
+        submitData.total_count = null;
+        submitData.rifle_id = null;
+        submitData.ammunition_used = null;
+      }
+
+      console.log('🔴 DeerStalkingMap: calling endOutingWithData()...');
+      await endOutingWithData(activeOuting.id, submitData, activeOuting.gps_track || []);
+      setShowCheckout(false);
       loadData();
     } catch (err) {
+      console.error('Error during checkout:', err);
       setError(err.message);
     }
   };
@@ -336,45 +376,62 @@ export default function DeerStalkingMap() {
         onEndOuting={handleEndOuting}
       />
 
-      {/* Modals - rendered at top level with highest z-index */}
-      {(showPOI || showHarvest || showOuting) && (
-        <div className="fixed inset-0 z-[50000] pointer-events-auto" />
-      )}
-      
-      {showPOI && mapClick && (
-        <div className="fixed inset-0 z-[50001] flex items-center justify-center">
-          <POIModal
-            location={mapClick}
-            onClose={() => {
-              setShowPOI(false);
-              setWaitingForPin(null);
-            }}
-            onSubmit={handlePOISubmit}
-          />
-        </div>
-      )}
+      {/* Modals - rendered via portal for consistent z-index handling */}
+      {createPortal(
+        <>
+          {(showPOI || showHarvest || showOuting || showCheckout) && (
+            <div className="fixed inset-0 z-[50000] pointer-events-auto" />
+          )}
+          
+          {showPOI && mapClick && (
+            <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+              <POIModal
+                location={mapClick}
+                onClose={() => {
+                  setShowPOI(false);
+                  setWaitingForPin(null);
+                }}
+                onSubmit={handlePOISubmit}
+              />
+            </div>
+          )}
 
-      {showHarvest && mapClick && (
-        <div className="fixed inset-0 z-[50001] flex items-center justify-center">
-          <HarvestModal
-            location={mapClick}
-            onClose={() => {
-              setShowHarvest(false);
-              setWaitingForPin(null);
-            }}
-            onSubmit={handleHarvestSubmit}
-          />
-        </div>
-      )}
+          {showHarvest && mapClick && (
+            <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+              <HarvestModal
+                location={mapClick}
+                onClose={() => {
+                  setShowHarvest(false);
+                  setWaitingForPin(null);
+                }}
+                onSubmit={handleHarvestSubmit}
+              />
+            </div>
+          )}
 
-      {showOuting && (
-        <div className="fixed inset-0 z-[50001] flex items-center justify-center">
-          <OutingModal
-            locations={locations}
-            onClose={() => setShowOuting(false)}
-            onSubmit={handleStartOuting}
-          />
-        </div>
+          {showOuting && (
+            <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+              <OutingModal
+                locations={locations}
+                onClose={() => setShowOuting(false)}
+                onSubmit={handleStartOuting}
+              />
+            </div>
+          )}
+
+          {showCheckout && activeOuting && (
+            <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+              <UnifiedCheckoutModal
+                activeOuting={activeOuting}
+                rifles={rifles}
+                ammunition={ammunition}
+                onSubmit={handleCheckoutSubmit}
+                onClose={() => setShowCheckout(false)}
+              />
+            </div>
+          )}
+        </>,
+        document.body
       )}
     </div>
   );
