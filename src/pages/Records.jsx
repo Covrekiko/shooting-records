@@ -386,45 +386,50 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
                           </div>
 
                           {rifleData && (
-                            <div className="grid grid-cols-3 gap-3 mb-3 pb-3 border-b border-border">
-                              <div>
-                                <label className="text-xs font-bold text-muted-foreground">Make</label>
-                                <p className="text-sm">{rifleData.make || '-'}</p>
+                            <>
+                              <div className="grid grid-cols-3 gap-3 mb-3 pb-3 border-b border-border">
+                                <div>
+                                  <label className="text-xs font-bold text-muted-foreground">Make</label>
+                                  <p className="text-sm">{rifleData.make || '-'}</p>
+                                </div>
+                                <div>
+                                  <label className="text-xs font-bold text-muted-foreground">Model</label>
+                                  <p className="text-sm">{rifleData.model || '-'}</p>
+                                </div>
+                                <div>
+                                  <label className="text-xs font-bold text-muted-foreground">Caliber</label>
+                                  <p className="text-sm">{rifleData.caliber || '-'}</p>
+                                </div>
                               </div>
-                              <div>
-                                <label className="text-xs font-bold text-muted-foreground">Model</label>
-                                <p className="text-sm">{rifleData.model || '-'}</p>
-                              </div>
-                              <div>
-                                <label className="text-xs font-bold text-muted-foreground">Caliber</label>
-                                <p className="text-sm">{rifleData.caliber || '-'}</p>
-                              </div>
-                            </div>
+
+                              {rifleData.serial_number && (
+                                <div className="mb-3 pb-3 border-b border-border bg-yellow-50/30 p-2 rounded">
+                                  <label className="text-xs font-bold text-muted-foreground">Serial Number</label>
+                                  <p className="font-mono text-sm font-bold">{rifleData.serial_number}</p>
+                                </div>
+                              )}
+                            </>
                           )}
 
-                          {rifleData && rifleData.serial_number && (
-                            <div className="mb-3 pb-3 border-b border-border">
-                              <label className="text-xs font-bold text-muted-foreground">Serial Number</label>
-                              <p className="font-mono text-sm">{rifleData.serial_number}</p>
-                            </div>
-                          )}
-
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <label className="text-xs font-bold text-muted-foreground">Ammunition Brand</label>
-                              <p className="text-sm">{rifleStat.ammunition_brand || '-'}</p>
-                            </div>
-                            <div>
-                              <label className="text-xs font-bold text-muted-foreground">Range Distance</label>
-                              <p className="text-sm">{rifleStat.meters_range ? `${rifleStat.meters_range}m` : '-'}</p>
-                            </div>
-                            <div>
-                              <label className="text-xs font-bold text-muted-foreground">Bullet Type</label>
-                              <p className="text-sm">{rifleStat.bullet_type || '-'}</p>
-                            </div>
-                            <div>
-                              <label className="text-xs font-bold text-muted-foreground">Grain Weight</label>
-                              <p className="text-sm">{rifleStat.grain || '-'}</p>
+                          <div className="bg-blue-50/30 p-3 rounded mb-3 border border-blue-200/50">
+                            <h4 className="text-xs font-bold text-muted-foreground mb-2 uppercase">Ammunition & Ballistics</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-xs font-bold text-muted-foreground">Brand</label>
+                                <p className="text-sm font-semibold">{rifleStat.ammunition_brand || '-'}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-bold text-muted-foreground">Bullet Type</label>
+                                <p className="text-sm font-semibold">{rifleStat.bullet_type || '-'}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-bold text-muted-foreground">Grain Weight</label>
+                                <p className="text-sm font-semibold">{rifleStat.grain || '-'}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-bold text-muted-foreground">Range Distance</label>
+                                <p className="text-sm font-semibold">{rifleStat.meters_range ? `${rifleStat.meters_range}m` : '-'}</p>
+                              </div>
                             </div>
                           </div>
                         </div>
