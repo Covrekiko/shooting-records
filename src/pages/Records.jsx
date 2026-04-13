@@ -507,12 +507,18 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
             )}
 
             <div className="mb-6 pb-4 border-b border-border">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="font-bold text-sm text-primary">Total Rounds Fired</label>
                   <p className="text-lg">{record.rounds_fired || '0'} rounds</p>
                 </div>
               </div>
+              {record.ammunition_used && (
+                <div className="bg-blue-50/30 p-3 rounded border border-blue-200/50">
+                  <label className="text-xs font-bold text-muted-foreground mb-1 block">Ammunition Used</label>
+                  <p className="text-sm font-medium">{record.ammunition_used}</p>
+                </div>
+              )}
             </div>
           </>
         )}
