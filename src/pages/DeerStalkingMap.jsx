@@ -9,7 +9,7 @@ import POIModal from '@/components/deer-stalking/POIModal';
 import HarvestModal from '@/components/deer-stalking/HarvestModal';
 import OutingModal from '@/components/deer-stalking/OutingModal';
 import MapClickHandler from '@/components/deer-stalking/MapClickHandler';
-import { AlertCircle, Home } from 'lucide-react';
+import { AlertCircle, Home, Satellite } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
@@ -51,6 +51,7 @@ export default function DeerStalkingMap() {
   const [searchMarker, setSearchMarker] = useState(null);
   const [selectedArea, setSelectedArea] = useState(null);
   const [areaBounds, setAreaBounds] = useState(null);
+  const [useSatellite, setUseSatellite] = useState(false);
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -333,8 +334,8 @@ export default function DeerStalkingMap() {
         >
         <MapClickHandler onMapClick={handleMapClick} isSelectionMode={!!waitingForPin} />
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; OpenStreetMap contributors'
+          url={useSatellite ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'}
+          attribution={useSatellite ? '&copy; Esri' : '&copy; OpenStreetMap contributors'}
           interactive={false}
         />
 
@@ -473,6 +474,15 @@ export default function DeerStalkingMap() {
           userLocation={userLocation}
         />
       </div>
+
+      {/* Satellite Toggle */}
+      <button
+        onClick={() => setUseSatellite(!useSatellite)}
+        className="fixed top-4 right-40 z-[9999] p-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all pointer-events-auto"
+        title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
+      >
+        <Satellite className="w-5 h-5" />
+      </button>
 
       {/* Back to Dashboard */}
       <Link
