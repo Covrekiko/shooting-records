@@ -435,16 +435,17 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
                 <div>
                   <label className="text-xs font-medium text-muted-foreground block mb-1">Ammunition</label>
                   <select
+                    value={rifle.ammunition_id || ''}
                     onChange={(e) => {
                       const selectedAmmo = ammunition.find(a => a.id === e.target.value);
                       if (selectedAmmo) {
+                        updateRifleEntry(index, 'ammunition_id', e.target.value);
                         updateRifleEntry(index, 'ammunition_brand', selectedAmmo.brand);
                         updateRifleEntry(index, 'caliber', selectedAmmo.caliber);
                         updateRifleEntry(index, 'bullet_type', selectedAmmo.bullet_type);
                         updateRifleEntry(index, 'grain', selectedAmmo.grain);
                       }
                     }}
-                    value=""
                     className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background mb-2"
                   >
                     <option value="">Select saved ammunition</option>
