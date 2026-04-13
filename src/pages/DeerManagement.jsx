@@ -3,7 +3,6 @@ import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
-import LegalShootingHours from '@/components/LegalShootingHours';
 import LocationMap from '@/components/LocationMap';
 import { Plus, Clock } from 'lucide-react';
 
@@ -165,8 +164,6 @@ export default function DeerManagement() {
             </button>
           )}
         </div>
-
-        <LegalShootingHours />
 
         {!activeSession && (
           <div className="mb-6">
