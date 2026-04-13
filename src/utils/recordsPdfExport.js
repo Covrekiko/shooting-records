@@ -321,6 +321,7 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
 
         try {
           doc.addImage(photo, 'JPEG', pX, pY, photoSize, photoSize);
+          doc.link(pX, pY, photoSize, photoSize, { url: photo });
         } catch (e) {
           doc.setDrawColor(...STYLES.lightGray);
           doc.rect(pX, pY, photoSize, photoSize);
@@ -489,6 +490,7 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
 
         try {
           doc.addImage(photo, 'JPEG', pX, pY, photoSize, photoSize);
+          doc.link(pX, pY, photoSize, photoSize, { url: photo });
         } catch (e) {
           doc.setDrawColor(...STYLES.lightGray);
           doc.rect(pX, pY, photoSize, photoSize);
@@ -676,6 +678,7 @@ function renderDeerManagementSection(doc, records, startY, pageWidth, pageHeight
 
         try {
           doc.addImage(photo, 'JPEG', pX, pY, photoSize, photoSize);
+          doc.link(pX, pY, photoSize, photoSize, { url: photo });
         } catch (e) {
           doc.setDrawColor(...STYLES.lightGray);
           doc.rect(pX, pY, photoSize, photoSize);
