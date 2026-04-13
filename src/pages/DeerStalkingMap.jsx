@@ -77,12 +77,13 @@ export default function DeerStalkingMap() {
 
   const handleMapClick = (e) => {
     const location = { lat: e.latlng.lat, lng: e.latlng.lng };
-    setMapClick(location);
     
     if (pinMode === 'poi') {
+      setMapClick(location);
       setShowPOI(true);
       setPinMode(null);
     } else if (pinMode === 'harvest') {
+      setMapClick(location);
       setShowHarvest(true);
       setPinMode(null);
     }
