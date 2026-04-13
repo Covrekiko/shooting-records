@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
@@ -280,38 +281,41 @@ export default function DeerManagement() {
          <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />
        )}
 
-       {/* Modal Overlays */}
-       {(showCheckin || showCheckout) && (
-         <div className="fixed inset-0 z-[50000] bg-black/50 pointer-events-auto" />
-       )}
-
-       {showCheckin && (
-         <div className="fixed inset-0 z-[50001] flex items-center justify-center pointer-events-auto">
-           <CheckinModal
-             data={checkinData}
-             locations={locations}
-             onSubmit={handleCheckin}
-             onChange={(field, value) =>
-               setCheckinData({ ...checkinData, [field]: value })
-             }
-             onClose={() => setShowCheckin(false)}
-           />
-         </div>
-       )}
-
-       {showCheckout && activeSession && (
-         <div className="fixed inset-0 z-[50001] flex items-center justify-center pointer-events-auto">
-           <CheckoutModal
-             data={checkoutData}
-             rifles={rifles}
-             ammunition={ammunition}
-             onSubmit={handleCheckout}
-             onChange={(field, value) =>
-               setCheckoutData({ ...checkoutData, [field]: value })
-             }
-             onClose={() => setShowCheckout(false)}
-           />
-         </div>
+       {/* Modals rendered via Portal */}
+       {createPortal(
+         <>
+           {(showCheckin || showCheckout) && (
+             <div className="fixed inset-0 z-[50000] bg-black/50" />
+           )}
+           {showCheckin && (
+             <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+               <CheckinModal
+                 data={checkinData}
+                 locations={locations}
+                 onSubmit={handleCheckin}
+                 onChange={(field, value) =>
+                   setCheckinData({ ...checkinData, [field]: value })
+                 }
+                 onClose={() => setShowCheckin(false)}
+               />
+             </div>
+           )}
+           {showCheckout && activeSession && (
+             <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+               <CheckoutModal
+                 data={checkoutData}
+                 rifles={rifles}
+                 ammunition={ammunition}
+                 onSubmit={handleCheckout}
+                 onChange={(field, value) =>
+                   setCheckoutData({ ...checkoutData, [field]: value })
+                 }
+                 onClose={() => setShowCheckout(false)}
+               />
+             </div>
+           )}
+         </>,
+         document.body
        )}
      </main>
    </div>
