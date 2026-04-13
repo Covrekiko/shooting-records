@@ -78,7 +78,10 @@ export default function DeerStalkingMap() {
 
         // Only update map location if NOT in drawing mode
         if (!isDrawingAreaRef.current) {
+          console.log('📍 GPS update (drawing mode OFF):', { latitude, longitude });
           setUserLocation([latitude, longitude]);
+        } else {
+          console.log('🎨 GPS update BLOCKED (drawing mode ON):', { latitude, longitude });
         }
       },
       (error) => console.error('Geolocation error:', error),
@@ -278,13 +281,22 @@ export default function DeerStalkingMap() {
   };
 
   const handleStartAreaCreation = () => {
+    console.log('🎯 CREATE AREA CLICKED');
+    console.log('📍 Current watch ID:', geoWatchIdRef.current);
+    
     // Hard stop: clear any active geolocation watch
     if (geoWatchIdRef.current !== null) {
+      console.log('🛑 CLEARING geolocation watch:', geoWatchIdRef.current);
       navigator.geolocation.clearWatch(geoWatchIdRef.current);
       geoWatchIdRef.current = null;
+      console.log('✅ Watch cleared. geoWatchIdRef is now:', geoWatchIdRef.current);
+    } else {
+      console.log('⚠️ No active watch to clear');
     }
+    
     setIsDrawingArea(true);
     isDrawingAreaRef.current = true;
+    console.log('🎨 Drawing mode ENABLED - isDrawingArea:', true, 'isDrawingAreaRef:', isDrawingAreaRef.current);
     setShowAreaDrawer(true);
   };
 
