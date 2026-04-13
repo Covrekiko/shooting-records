@@ -24,6 +24,7 @@ export default function DeerManagement() {
     date: new Date().toISOString().split('T')[0],
     location_id: '',
     place_name: '',
+    deer_species: '',
     start_time: new Date().toTimeString().slice(0, 5),
   });
 
@@ -98,6 +99,7 @@ export default function DeerManagement() {
         date: new Date().toISOString().split('T')[0],
         location_id: '',
         place_name: '',
+        deer_species: '',
         start_time: new Date().toTimeString().slice(0, 5),
       });
     } catch (error) {
@@ -282,6 +284,22 @@ function CheckinModal({ data, locations, onSubmit, onChange, onClose }) {
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
               required
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Deer Species</label>
+            <select
+              value={data.deer_species || ''}
+              onChange={(e) => onChange('deer_species', e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              required
+            >
+              <option value="">Select species</option>
+              {DEER_SPECIES.map((species) => (
+                <option key={species} value={species}>
+                  {species}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Check-in Time</label>
