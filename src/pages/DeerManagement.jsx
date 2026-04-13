@@ -38,16 +38,26 @@ export default function DeerManagement() {
   });
 
   const [checkoutData, setCheckoutData] = useState({
-     end_time: new Date().toTimeString().slice(0, 5),
-     shot_anything: false,
-     species_list: [
-       { species: '', count: '' }
-     ],
-     rifle_id: '',
-     ammunition_used: '',
-     notes: '',
-     photos: [],
-   });
+    end_time: new Date().toTimeString().slice(0, 5),
+    shot_anything: false,
+    species_list: [
+      { species: '', count: '' }
+    ],
+    rifle_id: '',
+    ammunition_used: '',
+    notes: '',
+    photos: [],
+  });
+
+  // Update end_time when modal opens
+  useEffect(() => {
+    if (showCheckout) {
+      setCheckoutData(prev => ({
+        ...prev,
+        end_time: new Date().toTimeString().slice(0, 5)
+      }));
+    }
+  }, [showCheckout]);
 
   useEffect(() => {
     sessionManager.clearExpiredSessions();
@@ -122,55 +132,55 @@ export default function DeerManagement() {
   };
 
   const handleCheckout = async (e) => {
-  e.preventDefault();
-  if (checkoutData.shot_anything && checkoutData.species_list?.length) {
-    const totalCount = checkoutData.species_list.reduce((sum, s) => sum + (parseInt(s.count) || 0), 0);
-    if (!checkoutData.total_count || parseInt(checkoutData.total_count) !== totalCount) {
-      alert(`Total shots (${checkoutData.total_count}) must match sum of species (${totalCount})`);
-      return;
-    }
-  }
-  try {
-    const uploadedPhotos = [];
-    if (checkoutData.photos && checkoutData.photos.length > 0) {
-      for (const photoData of checkoutData.photos) {
-        try {
-          if (photoData.startsWith('data:')) {
-            const res = await fetch(photoData);
-            const blob = await res.blob();
-            const result = await base44.integrations.Core.UploadFile({ file: blob });
-            if (result?.file_url) {
-              uploadedPhotos.push(result.file_url);
-            }
-          } else {
-            uploadedPhotos.push(photoData);
-          }
-        } catch (photoError) {
-          console.error('Error uploading photo:', photoError);
-        }
+    e.preventDefault();
+    if (checkoutData.shot_anything && checkoutData.species_list?.length) {
+      const totalCount = checkoutData.species_list.reduce((sum, s) => sum + (parseInt(s.count) || 0), 0);
+      if (!checkoutData.total_count || parseInt(checkoutData.total_count) !== totalCount) {
+        alert(`Total shots (${checkoutData.total_count}) must match sum of species (${totalCount})`);
+        return;
       }
     }
-    // Decrement ammo stock
-    if (checkoutData.ammunition_id && checkoutData.total_count) {
-      await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count));
-    }
-    const submitData = { ...checkoutData, photos: uploadedPhotos, active_checkin: false, gps_track: gpsTrack };
-     if (!checkoutData.shot_anything) {
-       submitData.species_list = [];
-       submitData.total_count = null;
-       submitData.rifle_id = null;
-       submitData.ammunition_used = null;
-     }
-     await base44.entities.DeerManagement.update(activeSession.id, submitData);
-     
-     // End outing on map if there's an active one
-     if (activeOuting) {
-       await endOuting(activeOuting.id);
-     }
-     
-     setActiveSession(null);
-     setShowCheckout(false);
-     setCheckoutData({
+    try {
+      const uploadedPhotos = [];
+      if (checkoutData.photos && checkoutData.photos.length > 0) {
+        for (const photoData of checkoutData.photos) {
+          try {
+            if (photoData.startsWith('data:')) {
+              const res = await fetch(photoData);
+              const blob = await res.blob();
+              const result = await base44.integrations.Core.UploadFile({ file: blob });
+              if (result?.file_url) {
+                uploadedPhotos.push(result.file_url);
+              }
+            } else {
+              uploadedPhotos.push(photoData);
+            }
+          } catch (photoError) {
+            console.error('Error uploading photo:', photoError);
+          }
+        }
+      }
+      // Decrement ammo stock
+      if (checkoutData.ammunition_id && checkoutData.total_count) {
+        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count));
+      }
+      const submitData = { ...checkoutData, photos: uploadedPhotos, active_checkin: false, gps_track: gpsTrack };
+      if (!checkoutData.shot_anything) {
+        submitData.species_list = [];
+        submitData.total_count = null;
+        submitData.rifle_id = null;
+        submitData.ammunition_used = null;
+      }
+      await base44.entities.DeerManagement.update(activeSession.id, submitData);
+      
+      // End outing on map if there's an active one
+      if (activeOuting) {
+        await endOuting(activeOuting.id);
+      }
+      
+      setActiveSession(null);
+      setShowCheckout(false);
+      setCheckoutData({
         end_time: new Date().toTimeString().slice(0, 5),
         shot_anything: false,
         species_list: [
@@ -181,11 +191,11 @@ export default function DeerManagement() {
         notes: '',
         photos: [],
       });
-     setViewingTrack(null);
-   } catch (error) {
-     console.error('Error checking out:', error);
-   }
- };
+      setViewingTrack(null);
+    } catch (error) {
+      console.error('Error checking out:', error);
+    }
+  };
 
  if (loading || outingLoading) {
    return (
