@@ -53,6 +53,7 @@ export default function DeerStalkingMap() {
    const [isDrawingArea, setIsDrawingArea] = useState(false);
    const mapRef = useRef(null);
    const isDrawingAreaRef = useRef(false);
+   const geoWatchIdRef = useRef(null);
 
   useEffect(() => {
     loadData();
@@ -75,16 +76,20 @@ export default function DeerStalkingMap() {
 
         updateGpsTrack(activeOuting.id, updatedTrack);
 
-        // Block map center updates while drawing area
-        if (isDrawingAreaRef.current) return;
-
-        setUserLocation([latitude, longitude]);
+        // Only update map location if NOT in drawing mode
+        if (!isDrawingAreaRef.current) {
+          setUserLocation([latitude, longitude]);
+        }
       },
       (error) => console.error('Geolocation error:', error),
       { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
 
-    return () => navigator.geolocation.clearWatch(watchId);
+    geoWatchIdRef.current = watchId;
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+      geoWatchIdRef.current = null;
+    };
   }, [activeOuting?.id, updateGpsTrack]);
 
   const loadData = async () => {
@@ -273,6 +278,11 @@ export default function DeerStalkingMap() {
   };
 
   const handleStartAreaCreation = () => {
+    // Hard stop: clear any active geolocation watch
+    if (geoWatchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(geoWatchIdRef.current);
+      geoWatchIdRef.current = null;
+    }
     setIsDrawingArea(true);
     isDrawingAreaRef.current = true;
     setShowAreaDrawer(true);
