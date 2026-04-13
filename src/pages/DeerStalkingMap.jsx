@@ -128,9 +128,12 @@ export default function DeerStalkingMap() {
     }
   }, [isDrawingArea, activeOuting, updateGpsTrack]);
 
-  // Log every userLocation change
+  // Log every userLocation change - CRITICAL DEBUG
   useEffect(() => {
     console.log('🔴 USERLOCATION CHANGED TO:', userLocation, 'isDrawingArea:', isDrawingArea);
+    if (isDrawingArea) {
+      console.error('🚨 CRITICAL: userLocation changed DURING DRAWING MODE - stack:', new Error().stack);
+    }
   }, [userLocation]);
 
   const loadData = async () => {
@@ -155,6 +158,7 @@ export default function DeerStalkingMap() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          console.log('📍 getUserLocation - getCurrentPosition fired, isDrawingArea:', isDrawingAreaRef.current);
           setUserLocation([position.coords.latitude, position.coords.longitude]);
         },
         () => {} // Silent fail, use default
