@@ -15,6 +15,8 @@ export default function Clubs() {
     location: '',
     notes: '',
   });
+  const [clubNameInput, setClubNameInput] = useState('');
+  const [clubSuggestions, setClubSuggestions] = useState([]);
 
   useEffect(() => {
     loadClubs();
@@ -44,6 +46,8 @@ export default function Clubs() {
         setClubs([...clubs, newClub]);
       }
       setFormData({ name: '', type: '', location: '', notes: '' });
+      setClubNameInput('');
+      setClubSuggestions([]);
       setShowForm(false);
     } catch (error) {
       console.error('Error saving club:', error);
@@ -62,8 +66,30 @@ export default function Clubs() {
 
   const startEdit = (club) => {
     setFormData(club);
+    setClubNameInput(club.name);
     setEditingId(club.id);
     setShowForm(true);
+  };
+
+  const handleClubNameChange = (value) => {
+    setClubNameInput(value);
+    setFormData({ ...formData, name: value });
+    
+    if (value.length < 1) {
+      setClubSuggestions([]);
+      return;
+    }
+    
+    const filtered = clubs.filter(
+      (club) => club.name.toLowerCase().includes(value.toLowerCase()) && club.name !== value
+    );
+    setClubSuggestions(filtered.slice(0, 5));
+  };
+
+  const selectClubName = (clubName) => {
+    setClubNameInput(clubName);
+    setFormData({ ...formData, name: clubName });
+    setClubSuggestions([]);
   };
 
   if (loading) {
@@ -90,6 +116,8 @@ export default function Clubs() {
           onClick={() => {
             setEditingId(null);
             setFormData({ name: '', type: '', location: '', notes: '' });
+            setClubNameInput('');
+            setClubSuggestions([]);
             setShowForm(!showForm);
           }}
           className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 mb-6"
@@ -101,14 +129,30 @@ export default function Clubs() {
         {showForm && (
           <form onSubmit={handleSubmit} className="bg-card border border-border rounded-lg p-6 mb-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                placeholder="Club Name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="px-3 py-2 border border-border rounded-lg bg-background"
-                required
-              />
+             <div className="relative">
+               <input
+                 type="text"
+                 placeholder="Club Name"
+                 value={clubNameInput}
+                 onChange={(e) => handleClubNameChange(e.target.value)}
+                 className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                 required
+               />
+               {clubSuggestions.length > 0 && (
+                 <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
+                   {clubSuggestions.map((club) => (
+                     <button
+                       key={club.id}
+                       type="button"
+                       onClick={() => selectClubName(club.name)}
+                       className="w-full text-left px-3 py-2 hover:bg-secondary transition-colors text-sm border-b border-border last:border-b-0"
+                     >
+                       {club.name}
+                     </button>
+                   ))}
+                 </div>
+               )}
+             </div>
               <select
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
