@@ -232,8 +232,11 @@ export default function Records() {
 
 function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, rifles, shotguns, clubs, locations }) {
   const getRecordTitle = () => {
-    if (record.recordType === 'target') return `Target Shooting - ${record.rounds_fired} rounds`;
-    if (record.recordType === 'clay') return `Clay Shooting - ${record.rounds_fired} rounds`;
+    if (record.recordType === 'target') {
+      const totalRounds = record.rifles_used?.reduce((sum, r) => sum + (parseInt(r.rounds_fired) || 0), 0) || 0;
+      return `Target Shooting - ${totalRounds} rounds`;
+    }
+    if (record.recordType === 'clay') return `Clay Shooting - ${record.rounds_fired || 0} rounds`;
     if (record.recordType === 'deer') {
       if (!record.number_shot) return 'Deer Management - No shots fired';
       return `Deer: ${record.number_shot} ${record.deer_species || 'Unknown'}`;
