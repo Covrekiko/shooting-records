@@ -16,6 +16,11 @@ export default function FloatingActionBar({
     setExpanded(false);
   };
 
+  const handleMainClick = (e) => {
+    e.stopPropagation();
+    setExpanded(!expanded);
+  };
+
   return (
     <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3 pointer-events-auto">
       {/* End Outing Button */}
@@ -65,8 +70,8 @@ export default function FloatingActionBar({
 
       {/* Main FAB */}
       <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center shadow-lg hover:bg-primary/90 transition-all"
+        onClick={handleMainClick}
+        className="w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center shadow-lg hover:bg-primary/90 transition-all cursor-pointer"
       >
         <Plus className="w-6 h-6" />
       </button>
