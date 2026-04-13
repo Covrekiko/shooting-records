@@ -173,7 +173,8 @@ export default function DeerManagement() {
           {!activeSession && (
             <button
               onClick={() => setShowCheckin(true)}
-              className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2 whitespace-nowrap mt-2"
+              disabled={!!activeSession}
+              className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center gap-2 whitespace-nowrap mt-2"
             >
               <Plus className="w-5 h-5" />
               Start New Outing
