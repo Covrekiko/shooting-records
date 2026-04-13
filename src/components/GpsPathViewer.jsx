@@ -64,17 +64,17 @@ export default function GpsPathViewer({ track, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-50 pt-16 overflow-hidden">
-      <div className="bg-card rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-border">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" style={{ pointerEvents: 'auto' }}>
+      <div className="bg-card rounded-lg w-full max-w-2xl max-h-[85vh] flex flex-col" style={{ pointerEvents: 'auto' }}>
+        <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <h2 className="text-xl font-bold">GPS Track Visualization</h2>
           <button onClick={onClose} className="p-1 hover:bg-secondary rounded">
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-hidden touch-none" style={{ height: '500px', width: '100%', touchAction: 'none' }}>
-          <MapContainer center={[center.lat, center.lng]} zoom={15} style={{ width: '100%', height: '100%' }}>
+        <div className="flex-1 relative w-full" style={{ pointerEvents: 'auto', minHeight: '400px' }}>
+          <MapContainer center={[center.lat, center.lng]} zoom={15} style={{ width: '100%', height: '100%', pointerEvents: 'auto' }}>
             <MapResizer />
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -110,7 +110,7 @@ export default function GpsPathViewer({ track, onClose }) {
           </MapContainer>
         </div>
 
-        <div className="p-4 border-t border-border flex justify-between items-center bg-secondary/50">
+        <div className="p-4 border-t border-border flex justify-between items-center bg-secondary/50 flex-shrink-0">
           <div className="text-sm text-muted-foreground">
             <p>Total Points: {track.length}</p>
             <p>Duration: {track.length > 1 ? Math.round((track[track.length - 1].timestamp - track[0].timestamp) / 1000) : 0}s</p>
