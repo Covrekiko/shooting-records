@@ -153,12 +153,12 @@ export default function Records() {
                   Preview PDF
                   </button>
                   <button
-                  onClick={() => exportRecordsToPdf(filteredRecords, user, 'shooting-records.pdf', rifles)}
-                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
-                >
-                  <Download className="w-4 h-4" />
-                  Export PDF
-                </button>
+                    onClick={() => exportRecordsToPdf(filteredRecords, user, 'shooting-records.pdf', rifles, clubs)}
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export PDF
+                  </button>
               </div>
             )}
           </div>
@@ -219,7 +219,7 @@ export default function Records() {
         )}
         
         {previewingPdf && (
-          <PdfPreviewModal records={previewingPdf} userInfo={user} rifles={rifles} onClose={() => setPreviewingPdf(null)} />
+          <PdfPreviewModal records={previewingPdf} userInfo={user} rifles={rifles} clubs={clubs} onClose={() => setPreviewingPdf(null)} />
         )}
         
         {viewingTrack && (
@@ -605,13 +605,13 @@ function getBadgeLabel(type) {
   if (type === 'deer') return 'Deer Management';
 }
 
-function PdfPreviewModal({ records, userInfo, rifles, onClose }) {
+function PdfPreviewModal({ records, userInfo, rifles, clubs, onClose }) {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
-      const blob = await getRecordsPdfBlob(records, userInfo, rifles);
+      const blob = await getRecordsPdfBlob(records, userInfo, rifles, clubs);
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       setLoading(false);
@@ -649,7 +649,7 @@ function PdfPreviewModal({ records, userInfo, rifles, onClose }) {
         </div>
         <div className="p-4 border-t border-border flex justify-end gap-2">
           <button
-            onClick={() => exportRecordsToPdf(records, userInfo)}
+            onClick={() => exportRecordsToPdf(records, userInfo, 'shooting-records.pdf', rifles, clubs)}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
