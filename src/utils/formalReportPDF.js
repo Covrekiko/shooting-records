@@ -14,11 +14,7 @@ function addHeader(doc, pageNum, totalPages) {
   doc.setFillColor(HEADER_BG[0], HEADER_BG[1], HEADER_BG[2]);
   doc.rect(0, 0, pageWidth, 25, 'F');
   
-  // Title
-  doc.setFontSize(16);
-  doc.setTextColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
-  doc.setFont(undefined, 'bold');
-  doc.text('🎯 SHOOTING RECORDS', pageWidth / 2, 8, { align: 'center' });
+
   
   // Page numbers
   doc.setFontSize(9);
@@ -254,14 +250,7 @@ export async function generateFormalReport(records, user, options = {}) {
   const totalPages = doc.getNumberOfPages();
   addHeader(doc, pageNum, totalPages);
   
-  // Update all previous pages with correct total
-  for (let i = 1; i < totalPages; i++) {
-    doc.setPage(i);
-    const pageWidth = doc.internal.pageSize.getWidth();
-    doc.setFontSize(9);
-    doc.setTextColor(LIGHT_TEXT[0], LIGHT_TEXT[1], LIGHT_TEXT[2]);
-    doc.text(`Page ${i} of ${totalPages}`, pageWidth - 15, 20);
-  }
+
   
   doc.setPage(totalPages);
   yPos = 40;
