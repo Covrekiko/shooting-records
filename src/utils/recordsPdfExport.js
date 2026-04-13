@@ -216,6 +216,7 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
 
   const contentWidth = (pageWidth - 2 * margin) * 0.6;
   const photoX = margin + contentWidth + 5;
+  const photoMaxWidth = pageWidth - photoX - margin;
 
   records.forEach((record, idx) => {
     if (yPosition > pageHeight - 80) {
@@ -227,6 +228,8 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
 
     let textY = yPosition;
     let photoY = yPosition;
+    const photoSize = 18;
+    const photosPerRow = Math.max(2, Math.floor(photoMaxWidth / (photoSize + 3)));
 
     // LEFT COLUMN - Session Details
     doc.setFontSize(10);
@@ -234,28 +237,6 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
     doc.setTextColor(...STYLES.headingColor);
     doc.text(`Session ${idx + 1}: ${record.date}`, margin, textY);
     textY += 6;
-
-    if (record.club_id && clubs[record.club_id]) {
-      doc.setFontSize(9);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(...STYLES.darkGray);
-      doc.text('Venue', margin + 2, textY);
-      textY += 4;
-      
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor(...STYLES.textColor);
-      doc.text(`${clubs[record.club_id].name}`, margin + 5, textY);
-      textY += 3.5;
-      doc.text(`${clubs[record.club_id].location || ''}`, margin + 5, textY);
-      textY += 5;
-    }
-
-    doc.setFontSize(8.5);
-    doc.setFont(undefined, 'normal');
-    doc.setTextColor(...STYLES.textColor);
-    doc.text(`Check-in: ${record.checkin_time || 'N/A'} | Check-out: ${record.checkout_time || 'N/A'}`, margin + 2, textY);
-    textY += 5;
 
     if (record.rifles_used && record.rifles_used.length > 0) {
       doc.setFontSize(9);
@@ -328,16 +309,14 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
 
     // RIGHT COLUMN - Photos
     if (record.photos && record.photos.length > 0) {
-      const photoSize = 20;
-      const photosPerCol = 4;
       let pX = photoX;
       let pY = photoY;
       let photoCount = 0;
 
       record.photos.forEach((photo) => {
-        if (photoCount > 0 && photoCount % photosPerCol === 0) {
-          pX += photoSize + 3;
-          pY = photoY;
+        if (photoCount > 0 && photoCount % photosPerRow === 0) {
+          pY += photoSize + 3;
+          pX = photoX;
         }
 
         try {
@@ -347,11 +326,11 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
           doc.rect(pX, pY, photoSize, photoSize);
         }
 
-        pY += photoSize + 3;
+        pX += photoSize + 3;
         photoCount++;
       });
 
-      photoY = Math.max(photoY + photoSize * 2, textY);
+      photoY = pY + photoSize + 3;
     } else {
       photoY = textY;
     }
@@ -381,6 +360,7 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
 
   const contentWidth = (pageWidth - 2 * margin) * 0.6;
   const photoX = margin + contentWidth + 5;
+  const photoMaxWidth = pageWidth - photoX - margin;
 
   records.forEach((record, idx) => {
     if (yPosition > pageHeight - 80) {
@@ -392,6 +372,8 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
 
     let textY = yPosition;
     let photoY = yPosition;
+    const photoSize = 18;
+    const photosPerRow = Math.max(2, Math.floor(photoMaxWidth / (photoSize + 3)));
 
     // LEFT COLUMN - Session Details
     doc.setFontSize(10);
@@ -406,7 +388,7 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
       doc.setTextColor(...STYLES.darkGray);
       doc.text('Venue', margin + 2, textY);
       textY += 4;
-      
+
       doc.setFont(undefined, 'normal');
       doc.setFontSize(8.5);
       doc.setTextColor(...STYLES.textColor);
@@ -495,16 +477,14 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
 
     // RIGHT COLUMN - Photos
     if (record.photos && record.photos.length > 0) {
-      const photoSize = 20;
-      const photosPerCol = 4;
       let pX = photoX;
       let pY = photoY;
       let photoCount = 0;
 
       record.photos.forEach((photo) => {
-        if (photoCount > 0 && photoCount % photosPerCol === 0) {
-          pX += photoSize + 3;
-          pY = photoY;
+        if (photoCount > 0 && photoCount % photosPerRow === 0) {
+          pY += photoSize + 3;
+          pX = photoX;
         }
 
         try {
@@ -514,11 +494,11 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
           doc.rect(pX, pY, photoSize, photoSize);
         }
 
-        pY += photoSize + 3;
+        pX += photoSize + 3;
         photoCount++;
       });
 
-      photoY = Math.max(photoY + photoSize * 2, textY);
+      photoY = pY + photoSize + 3;
     } else {
       photoY = textY;
     }
@@ -548,6 +528,7 @@ function renderDeerManagementSection(doc, records, startY, pageWidth, pageHeight
 
   const contentWidth = (pageWidth - 2 * margin) * 0.6;
   const photoX = margin + contentWidth + 5;
+  const photoMaxWidth = pageWidth - photoX - margin;
 
   records.forEach((record, idx) => {
     if (yPosition > pageHeight - 80) {
@@ -559,6 +540,8 @@ function renderDeerManagementSection(doc, records, startY, pageWidth, pageHeight
 
     let textY = yPosition;
     let photoY = yPosition;
+    const photoSize = 18;
+    const photosPerRow = Math.max(2, Math.floor(photoMaxWidth / (photoSize + 3)));
 
     // LEFT COLUMN - Activity Details
     doc.setFontSize(10);
@@ -681,16 +664,14 @@ function renderDeerManagementSection(doc, records, startY, pageWidth, pageHeight
 
     // RIGHT COLUMN - Photos
     if (record.photos && record.photos.length > 0) {
-      const photoSize = 20;
-      const photosPerCol = 4;
       let pX = photoX;
       let pY = photoY;
       let photoCount = 0;
 
       record.photos.forEach((photo) => {
-        if (photoCount > 0 && photoCount % photosPerCol === 0) {
-          pX += photoSize + 3;
-          pY = photoY;
+        if (photoCount > 0 && photoCount % photosPerRow === 0) {
+          pY += photoSize + 3;
+          pX = photoX;
         }
 
         try {
@@ -700,11 +681,11 @@ function renderDeerManagementSection(doc, records, startY, pageWidth, pageHeight
           doc.rect(pX, pY, photoSize, photoSize);
         }
 
-        pY += photoSize + 3;
+        pX += photoSize + 3;
         photoCount++;
       });
 
-      photoY = Math.max(photoY + photoSize * 2, textY);
+      photoY = pY + photoSize + 3;
     } else {
       photoY = textY;
     }
