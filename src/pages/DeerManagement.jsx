@@ -167,23 +167,7 @@ export default function DeerManagement() {
           )}
         </div>
 
-        {!activeSession && (
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-3">Your Hunting Locations</h3>
-            <LocationMap
-              locations={locations}
-              onLocationClick={(location) => {
-                setCheckinData({
-                  date: new Date().toISOString().split('T')[0],
-                  location_id: location.id,
-                  place_name: location.place_name,
-                  start_time: new Date().toTimeString().slice(0, 5),
-                });
-                setShowCheckin(true);
-              }}
-            />
-          </div>
-        )}
+
 
         {activeSession && (
           <div className="bg-accent border border-border rounded-lg p-6 mb-6">
