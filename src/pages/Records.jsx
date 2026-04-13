@@ -347,7 +347,7 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
           </div>
           <div>
             <label className="font-bold text-sm text-primary">Check-Out Time</label>
-            <p className="text-lg">{record.recordType === 'deer' ? record.end_time || 'N/A' : record.checkout_time || 'N/A'}</p>
+            <p className="text-lg">{record.end_time || record.checkout_time || 'N/A'}</p>
           </div>
         </div>
 
