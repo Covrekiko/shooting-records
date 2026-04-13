@@ -269,15 +269,16 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
         </div>
         <div className="flex gap-2 flex-shrink-0">
           {record.photos && record.photos.length > 0 && (
-            <div className="relative group">
-              <img src={record.photos[0]} alt="record" className="w-20 h-20 object-cover rounded" />
-              <button
-                onClick={() => onViewPhoto(record.photos[0])}
-                className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center"
-              >
+            <button
+              onClick={() => onViewPhoto(record.photos[0])}
+              className="relative w-20 h-20 rounded overflow-hidden hover:opacity-80 transition-opacity flex-shrink-0"
+              title="View photo"
+            >
+              <img src={record.photos[0]} alt="record" className="w-full h-full object-cover" onError={(e) => e.target.style.display = 'none'} />
+              <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
                 <Image className="w-5 h-5 text-white" />
-              </button>
-            </div>
+              </div>
+            </button>
           )}
           <div className="flex gap-2">
             <button
@@ -685,7 +686,7 @@ function PhotoModal({ photo, onClose }) {
         >
           <X className="w-8 h-8" />
         </button>
-        <img src={photo} alt="Full view" className="w-full h-auto rounded-lg" />
+        <img src={photo} alt="Full view" className="w-full h-auto rounded-lg" onError={(e) => e.target.src = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22300%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22400%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22 font-size=%2218%22 dominant-baseline=%22middle%22%3EPhoto not found%3C/text%3E%3C/svg%3E'} />
       </div>
     </div>
   );
