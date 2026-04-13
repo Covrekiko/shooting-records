@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import BoundaryMapEditor from '@/components/BoundaryMapEditor';
+import { Plus, Edit2, Trash2, Map } from 'lucide-react';
 
 export default function Locations() {
   const [locations, setLocations] = useState([]);
@@ -14,6 +15,7 @@ export default function Locations() {
     location: '',
     notes: '',
     photos: [],
+    boundary_map_data: null,
   });
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export default function Locations() {
         const newLocation = await base44.entities.DeerLocation.create(formData);
         setLocations([...locations, newLocation]);
       }
-      setFormData({ place_name: '', location: '', notes: '', photos: [] });
+      setFormData({ place_name: '', location: '', notes: '', photos: [], boundary_map_data: null });
       setShowForm(false);
     } catch (error) {
       console.error('Error saving location:', error);
@@ -89,7 +91,7 @@ export default function Locations() {
         <button
           onClick={() => {
             setEditingId(null);
-            setFormData({ place_name: '', location: '', notes: '', photos: [] });
+            setFormData({ place_name: '', location: '', notes: '', photos: [], boundary_map_data: null });
             setShowForm(!showForm);
           }}
           className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 mb-6"
@@ -123,6 +125,14 @@ export default function Locations() {
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
               rows="3"
             />
+            <div>
+              <label className="block text-sm font-medium mb-2">Boundary & High Seats Map</label>
+              <BoundaryMapEditor
+                initialCenter={formData.location ? formData.location.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/) ? [parseFloat(formData.location.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/)[1]), parseFloat(formData.location.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/)[2])] : null : null}
+                mapData={formData.boundary_map_data}
+                onDataChange={(mapData) => setFormData({ ...formData, boundary_map_data: mapData })}
+              />
+            </div>
             <div className="flex gap-3">
               <button type="submit" className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
                 {editingId ? 'Update' : 'Save'} Location
@@ -146,6 +156,19 @@ export default function Locations() {
                 <p className="text-sm text-muted-foreground">{location.location}</p>
               </div>
               <div className="flex gap-2">
+                {location.boundary_map_data && (
+                  <button
+                    onClick={() => {
+                      setFormData({ ...location });
+                      setShowForm(true);
+                      setEditingId(location.id);
+                    }}
+                    className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded transition-colors flex items-center gap-1"
+                    title="View/Edit Map"
+                  >
+                    <Map className="w-4 h-4" />
+                  </button>
+                )}
                 <button
                   onClick={() => startEdit(location)}
                   className="px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center gap-1"

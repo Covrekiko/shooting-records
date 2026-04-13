@@ -4,7 +4,8 @@ import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import LocationMap from '@/components/LocationMap';
-import { Plus, Clock } from 'lucide-react';
+import BoundaryMapViewer from '@/components/BoundaryMapViewer';
+import { Plus, Clock, Map } from 'lucide-react';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
 
@@ -17,6 +18,7 @@ export default function DeerManagement() {
   const [loading, setLoading] = useState(true);
   const { location } = useGeolocation();
   const [nearbyLocation, setNearbyLocation] = useState(null);
+  const [showLocationMap, setShowLocationMap] = useState(false);
 
   const [checkinData, setCheckinData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -198,14 +200,33 @@ export default function DeerManagement() {
                   Check-in: {activeSession.start_time}
                 </p>
               </div>
-              <button
-                onClick={() => setShowCheckout(true)}
-                className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
-              >
-                Check Out
-              </button>
+              <div className="flex gap-2">
+                {activeSession.boundary_map_data && (
+                  <button
+                    onClick={() => setShowLocationMap(true)}
+                    className="px-6 py-2 bg-secondary text-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2"
+                  >
+                    <Map className="w-5 h-5" />
+                    View Map
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowCheckout(true)}
+                  className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
+                >
+                  Check Out
+                </button>
+              </div>
             </div>
           </div>
+        )}
+
+        {showLocationMap && activeSession && (
+          <BoundaryMapViewer
+            mapData={activeSession.boundary_map_data}
+            center={activeSession.location ? activeSession.location.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/) ? [parseFloat(activeSession.location.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/)[1]), parseFloat(activeSession.location.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/)[2])] : null : null}
+            onClose={() => setShowLocationMap(false)}
+          />
         )}
 
         {showCheckin && (
