@@ -280,29 +280,38 @@ export default function DeerManagement() {
          <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />
        )}
 
+       {/* Modal Overlays */}
+       {(showCheckin || showCheckout) && (
+         <div className="fixed inset-0 z-[50000] bg-black/50 pointer-events-auto" />
+       )}
+
        {showCheckin && (
-         <CheckinModal
-           data={checkinData}
-           locations={locations}
-           onSubmit={handleCheckin}
-           onChange={(field, value) =>
-             setCheckinData({ ...checkinData, [field]: value })
-           }
-           onClose={() => setShowCheckin(false)}
-         />
+         <div className="fixed inset-0 z-[50001] flex items-center justify-center pointer-events-auto">
+           <CheckinModal
+             data={checkinData}
+             locations={locations}
+             onSubmit={handleCheckin}
+             onChange={(field, value) =>
+               setCheckinData({ ...checkinData, [field]: value })
+             }
+             onClose={() => setShowCheckin(false)}
+           />
+         </div>
        )}
 
        {showCheckout && activeSession && (
-         <CheckoutModal
-           data={checkoutData}
-           rifles={rifles}
-           ammunition={ammunition}
-           onSubmit={handleCheckout}
-           onChange={(field, value) =>
-             setCheckoutData({ ...checkoutData, [field]: value })
-           }
-           onClose={() => setShowCheckout(false)}
-         />
+         <div className="fixed inset-0 z-[50001] flex items-center justify-center pointer-events-auto">
+           <CheckoutModal
+             data={checkoutData}
+             rifles={rifles}
+             ammunition={ammunition}
+             onSubmit={handleCheckout}
+             onChange={(field, value) =>
+               setCheckoutData({ ...checkoutData, [field]: value })
+             }
+             onClose={() => setShowCheckout(false)}
+           />
+         </div>
        )}
      </main>
    </div>
