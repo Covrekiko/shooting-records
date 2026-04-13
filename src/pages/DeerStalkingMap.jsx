@@ -161,6 +161,24 @@ export default function DeerStalkingMap() {
     }
   };
 
+  const handleDeletePOI = async (id) => {
+    try {
+      await base44.entities.MapMarker.delete(id);
+      loadData();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleDeleteHarvest = async (id) => {
+    try {
+      await base44.entities.Harvest.delete(id);
+      loadData();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   if (loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-slate-900">
@@ -207,12 +225,18 @@ export default function DeerStalkingMap() {
                 <p className="font-bold capitalize mb-2">{marker.marker_type.replace(/_/g, ' ')}</p>
                 {marker.notes && <p className="mb-2">{marker.notes}</p>}
                 {marker.photos && marker.photos.length > 0 && (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2 mb-2">
                     {marker.photos.map((photo, idx) => (
                       <img key={idx} src={photo} alt="poi" className="w-full h-20 object-cover rounded" />
                     ))}
                   </div>
                 )}
+                <button
+                  onClick={() => handleDeletePOI(marker.id)}
+                  className="w-full mt-2 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                >
+                  Delete
+                </button>
               </div>
             </Popup>
           </Marker>
@@ -262,6 +286,12 @@ export default function DeerStalkingMap() {
                   className="w-full mt-2 px-2 py-1 bg-primary text-white text-xs rounded hover:bg-primary/90"
                 >
                   {focusedHarvestId === harvest.id ? 'Unpin' : 'Pin on Map'}
+                </button>
+                <button
+                  onClick={() => handleDeleteHarvest(harvest.id)}
+                  className="w-full mt-1 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                >
+                  Delete
                 </button>
               </div>
             </Popup>
