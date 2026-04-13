@@ -357,12 +357,18 @@ function CheckinModal({ data, locations, onSubmit, onChange, onClose }) {
 async function handlePhotoUpload(files, data, onChange) {
   if (!files || files.length === 0) return;
   
+  const uploadedPhotos = [];
   for (const file of files) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      onChange('photos', [...(data.photos || []), e.target.result]);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const response = await base44.integrations.Core.UploadFile({ file });
+      uploadedPhotos.push(response.file_url);
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+    }
+  }
+  
+  if (uploadedPhotos.length > 0) {
+    onChange('photos', [...(data.photos || []), ...uploadedPhotos]);
   }
 }
 
