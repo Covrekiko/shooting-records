@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { Download, Eye, Trash2, X } from 'lucide-react';
+import { exportRecordsToPdf } from '@/utils/recordsPdfExport';
 
 export default function Records() {
   const [allRecords, setAllRecords] = useState([]);
@@ -99,7 +100,18 @@ export default function Records() {
       <Navigation />
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-4">All Records</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-3xl font-bold">All Records</h1>
+            {filteredRecords.length > 0 && (
+              <button
+                onClick={() => exportRecordsToPdf(filteredRecords)}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                Export PDF
+              </button>
+            )}
+          </div>
           <p className="text-muted-foreground mb-6">View and manage all your shooting records</p>
 
           {/* Filters */}
