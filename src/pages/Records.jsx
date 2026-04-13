@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Download, Eye, Trash2, X } from 'lucide-react';
+import { Download, Eye, Trash2, X, FileText } from 'lucide-react';
 import { format } from 'date-fns';
-import { exportRecordsToPdf } from '@/utils/recordsPdfExport';
+import { exportRecordsToPdf, getRecordsPdfBlob } from '@/utils/recordsPdfExport';
 
 export default function Records() {
   const [allRecords, setAllRecords] = useState([]);
@@ -12,6 +12,7 @@ export default function Records() {
   const [user, setUser] = useState(null);
   const [viewingRecord, setViewingRecord] = useState(null);
   const [users, setUsers] = useState({});
+  const [previewingPdf, setPreviewingPdf] = useState(null);
 
   const [filters, setFilters] = useState({
     type: 'all',
@@ -113,13 +114,22 @@ export default function Records() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-3xl font-bold">All Records</h1>
             {filteredRecords.length > 0 && (
-              <button
-                onClick={() => exportRecordsToPdf(filteredRecords)}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                Export PDF
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPreviewingPdf(filteredRecords)}
+                  className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  Preview PDF
+                </button>
+                <button
+                  onClick={() => exportRecordsToPdf(filteredRecords)}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Export PDF
+                </button>
+              </div>
             )}
           </div>
           <p className="text-muted-foreground mb-6">View and manage all your shooting records</p>
@@ -176,6 +186,10 @@ export default function Records() {
         
         {viewingRecord && (
           <RecordModal record={viewingRecord} onClose={() => setViewingRecord(null)} />
+        )}
+        
+        {previewingPdf && (
+          <PdfPreviewModal records={previewingPdf} onClose={() => setPreviewingPdf(null)} />
         )}
       </main>
     </div>
@@ -306,4 +320,66 @@ function getBadgeLabel(type) {
   if (type === 'target') return 'Target Shooting';
   if (type === 'clay') return 'Clay Shooting';
   if (type === 'deer') return 'Deer Management';
+}
+
+function PdfPreviewModal({ records, onClose }) {
+  const [pdfUrl, setPdfUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const blob = await getRecordsPdfBlob(records);
+      const url = URL.createObjectURL(blob);
+      setPdfUrl(url);
+      setLoading(false);
+    })();
+
+    return () => {
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+    };
+  }, [records]);
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-card rounded-lg w-full max-w-4xl h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h2 className="text-xl font-bold">PDF Preview</h2>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-secondary rounded"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-auto">
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : pdfUrl ? (
+            <iframe src={pdfUrl} className="w-full h-full border-0" />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-muted-foreground">Failed to generate PDF</p>
+            </div>
+          )}
+        </div>
+        <div className="p-4 border-t border-border flex justify-end gap-2">
+          <button
+            onClick={() => exportRecordsToPdf(records)}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Download
+          </button>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
