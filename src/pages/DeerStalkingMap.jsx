@@ -228,10 +228,22 @@ export default function DeerStalkingMap() {
       {/* Floating UI */}
       <FloatingActionBar
         userLocation={userLocation}
-        onPOI={() => setShowPOI(true)}
-        onHarvest={() => setShowHarvest(true)}
+        onPOI={() => {
+          if (!mapClick) {
+            alert('Please click on the map to add a POI');
+          } else {
+            setShowPOI(true);
+          }
+        }}
+        onHarvest={() => {
+          if (!mapClick) {
+            alert('Please click on the map to record a harvest');
+          } else {
+            setShowHarvest(true);
+          }
+        }}
         onOuting={() => setShowOuting(true)}
-        onRecenter={() => setUserLocation(userLocation)}
+        onRecenter={() => {}} 
         activeOuting={activeOuting}
         onEndOuting={handleEndOuting}
       />
