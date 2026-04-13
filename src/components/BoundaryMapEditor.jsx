@@ -203,7 +203,7 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
       </div>
 
       <div className="bg-card border border-border rounded-lg overflow-hidden h-96">
-        <MapWithRef center={center} mapType={mapType} onDataChange={onDataChange} mapData={mapData} mapRef={mapRef} />
+        <MapWithRef key={mapType} center={center} mapType={mapType} onDataChange={onDataChange} mapData={mapData} mapRef={mapRef} />
       </div>
     </div>
   );
