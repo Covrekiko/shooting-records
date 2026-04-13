@@ -214,6 +214,9 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
   doc.line(margin, yPosition, pageWidth - margin, yPosition);
   yPosition += 8;
 
+  const contentWidth = (pageWidth - 2 * margin) * 0.6;
+  const photoX = margin + contentWidth + 5;
+
   records.forEach((record, idx) => {
     if (yPosition > pageHeight - 80) {
       doc.addPage();
@@ -222,141 +225,138 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
       yPosition = margin + 5;
     }
 
-    // Session header
+    let textY = yPosition;
+    let photoY = yPosition;
+
+    // LEFT COLUMN - Session Details
     doc.setFontSize(10);
     doc.setFont(undefined, 'bold');
     doc.setTextColor(...STYLES.headingColor);
-    doc.text(`Session ${idx + 1}: ${record.date}`, margin, yPosition);
-    yPosition += 6;
+    doc.text(`Session ${idx + 1}: ${record.date}`, margin, textY);
+    textY += 6;
 
-    // Venue
     if (record.club_id && clubs[record.club_id]) {
       doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(...STYLES.darkGray);
-      doc.text('Venue', margin + 2, yPosition);
-      yPosition += 4;
+      doc.text('Venue', margin + 2, textY);
+      textY += 4;
       
       doc.setFont(undefined, 'normal');
       doc.setFontSize(8.5);
       doc.setTextColor(...STYLES.textColor);
-      doc.text(`${clubs[record.club_id].name}`, margin + 5, yPosition);
-      yPosition += 3.5;
-      doc.text(`${clubs[record.club_id].location || ''}`, margin + 5, yPosition);
-      yPosition += 5;
+      doc.text(`${clubs[record.club_id].name}`, margin + 5, textY);
+      textY += 3.5;
+      doc.text(`${clubs[record.club_id].location || ''}`, margin + 5, textY);
+      textY += 5;
     }
 
-    // Time
     doc.setFontSize(8.5);
     doc.setFont(undefined, 'normal');
     doc.setTextColor(...STYLES.textColor);
-    doc.text(`Check-in: ${record.checkin_time || 'N/A'} | Check-out: ${record.checkout_time || 'N/A'}`, margin + 2, yPosition);
-    yPosition += 5;
+    doc.text(`Check-in: ${record.checkin_time || 'N/A'} | Check-out: ${record.checkout_time || 'N/A'}`, margin + 2, textY);
+    textY += 5;
 
-    // Firearms
     if (record.rifles_used && record.rifles_used.length > 0) {
       doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(...STYLES.darkGray);
-      doc.text('Firearms & Ammunition', margin + 2, yPosition);
-      yPosition += 4;
+      doc.text('Firearms & Ammunition', margin + 2, textY);
+      textY += 4;
 
-      record.rifles_used.forEach((rifle, rIdx) => {
+      record.rifles_used.forEach((rifle) => {
         const rifleData = rifles[rifle.rifle_id];
         doc.setFontSize(8);
         doc.setFont(undefined, 'normal');
         doc.setTextColor(...STYLES.textColor);
 
         if (rifleData) {
-          doc.text(`${rifleData.name}`, margin + 5, yPosition);
-          yPosition += 3.5;
+          doc.text(`${rifleData.name}`, margin + 5, textY);
+          textY += 3.5;
           doc.setTextColor(80, 80, 80);
-          doc.text(`Make: ${rifleData.make || '-'} | Model: ${rifleData.model || '-'} | Caliber: ${rifleData.caliber || '-'}`, margin + 5, yPosition);
-          yPosition += 3.5;
-          doc.text(`Serial: ${rifleData.serial_number || '-'}`, margin + 5, yPosition);
-          yPosition += 3.5;
+          doc.text(`Make: ${rifleData.make || '-'} | Model: ${rifleData.model || '-'} | Caliber: ${rifleData.caliber || '-'}`, margin + 5, textY);
+          textY += 3.5;
+          doc.text(`Serial: ${rifleData.serial_number || '-'}`, margin + 5, textY);
+          textY += 3.5;
         }
 
         doc.setTextColor(...STYLES.textColor);
-        doc.text(`Rounds Fired: ${rifle.rounds_fired || '0'} | Range: ${rifle.meters_range || '-'}m`, margin + 5, yPosition);
-        yPosition += 3.5;
-        doc.text(`Ammunition: ${rifle.ammunition_brand || '-'} | Type: ${rifle.bullet_type || '-'} | Grain: ${rifle.grain || '-'}`, margin + 5, yPosition);
-        yPosition += 5;
+        doc.text(`Rounds Fired: ${rifle.rounds_fired || '0'} | Range: ${rifle.meters_range || '-'}m`, margin + 5, textY);
+        textY += 3.5;
+        doc.text(`Ammunition: ${rifle.ammunition_brand || '-'} | Type: ${rifle.bullet_type || '-'} | Grain: ${rifle.grain || '-'}`, margin + 5, textY);
+        textY += 5;
       });
     }
 
-    // Notes
     if (record.notes) {
       doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(...STYLES.darkGray);
-      doc.text('Notes', margin + 2, yPosition);
-      yPosition += 4;
+      doc.text('Notes', margin + 2, textY);
+      textY += 4;
       doc.setFont(undefined, 'normal');
       doc.setFontSize(8);
       doc.setTextColor(...STYLES.textColor);
-      const wrappedNotes = doc.splitTextToSize(record.notes, pageWidth - 2 * margin - 5);
+      const wrappedNotes = doc.splitTextToSize(record.notes, contentWidth - 5);
       wrappedNotes.forEach(line => {
-        if (yPosition > pageHeight - 15) {
-          doc.addPage();
-          yPosition = margin;
-        }
-        doc.text(line, margin + 5, yPosition);
-        yPosition += 3.5;
+        doc.text(line, margin + 5, textY);
+        textY += 3.5;
       });
-      yPosition += 2;
+      textY += 2;
     }
 
-    // GPS
     if (record.gps_track && record.gps_track.length > 0) {
       doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(...STYLES.darkGray);
-      doc.text('GPS Track', margin + 2, yPosition);
-      yPosition += 4;
+      doc.text('GPS Track', margin + 2, textY);
+      textY += 4;
       doc.setFont(undefined, 'normal');
       doc.setFontSize(8);
       doc.setTextColor(...STYLES.textColor);
-      doc.text(`Points: ${record.gps_track.length}`, margin + 5, yPosition);
-      yPosition += 3;
+      doc.text(`Points: ${record.gps_track.length}`, margin + 5, textY);
+      textY += 3;
       if (record.gps_track[0]) {
-        doc.text(`Start: ${record.gps_track[0].lat.toFixed(6)}, ${record.gps_track[0].lng.toFixed(6)}`, margin + 5, yPosition);
-        yPosition += 3;
+        doc.text(`Start: ${record.gps_track[0].lat.toFixed(6)}, ${record.gps_track[0].lng.toFixed(6)}`, margin + 5, textY);
+        textY += 3;
       }
       if (record.gps_track[record.gps_track.length - 1]) {
-        doc.text(`End: ${record.gps_track[record.gps_track.length - 1].lat.toFixed(6)}, ${record.gps_track[record.gps_track.length - 1].lng.toFixed(6)}`, margin + 5, yPosition);
-        yPosition += 5;
+        doc.text(`End: ${record.gps_track[record.gps_track.length - 1].lat.toFixed(6)}, ${record.gps_track[record.gps_track.length - 1].lng.toFixed(6)}`, margin + 5, textY);
+        textY += 5;
       }
     }
 
-    // Session photos
+    // RIGHT COLUMN - Photos
     if (record.photos && record.photos.length > 0) {
-      const photoSize = 18;
-      const photosPerRow = Math.floor((pageWidth - 2 * margin) / (photoSize + 4));
-      let photoX = margin;
-      let photoY = yPosition;
+      const photoSize = 20;
+      const photosPerCol = 4;
+      let pX = photoX;
+      let pY = photoY;
       let photoCount = 0;
 
       record.photos.forEach((photo) => {
-        if (photoCount > 0 && photoCount % photosPerRow === 0) {
-          photoY += photoSize + 4;
-          photoX = margin;
+        if (photoCount > 0 && photoCount % photosPerCol === 0) {
+          pX += photoSize + 3;
+          pY = photoY;
         }
 
         try {
-          doc.addImage(photo, 'JPEG', photoX, photoY, photoSize, photoSize);
+          doc.addImage(photo, 'JPEG', pX, pY, photoSize, photoSize);
         } catch (e) {
-          // If image fails to load, draw empty box
           doc.setDrawColor(...STYLES.lightGray);
-          doc.rect(photoX, photoY, photoSize, photoSize);
+          doc.rect(pX, pY, photoSize, photoSize);
         }
 
-        photoX += photoSize + 4;
+        pY += photoSize + 3;
         photoCount++;
       });
 
-      yPosition = photoY + photoSize + 4;
+      photoY = Math.max(photoY + photoSize * 2, textY);
+    } else {
+      photoY = textY;
     }
+
+    yPosition = Math.max(photoY, textY) + 8;
 
     doc.setDrawColor(200, 200, 200);
     doc.line(margin, yPosition, pageWidth - margin, yPosition);
@@ -379,6 +379,9 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
   doc.line(margin, yPosition, pageWidth - margin, yPosition);
   yPosition += 8;
 
+  const contentWidth = (pageWidth - 2 * margin) * 0.6;
+  const photoX = margin + contentWidth + 5;
+
   records.forEach((record, idx) => {
     if (yPosition > pageHeight - 80) {
       doc.addPage();
@@ -387,137 +390,140 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
       yPosition = margin + 5;
     }
 
+    let textY = yPosition;
+    let photoY = yPosition;
+
+    // LEFT COLUMN - Session Details
     doc.setFontSize(10);
     doc.setFont(undefined, 'bold');
     doc.setTextColor(...STYLES.headingColor);
-    doc.text(`Session ${idx + 1}: ${record.date}`, margin, yPosition);
-    yPosition += 6;
+    doc.text(`Session ${idx + 1}: ${record.date}`, margin, textY);
+    textY += 6;
 
     if (record.club_id && clubs[record.club_id]) {
       doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(...STYLES.darkGray);
-      doc.text('Venue', margin + 2, yPosition);
-      yPosition += 4;
+      doc.text('Venue', margin + 2, textY);
+      textY += 4;
       
       doc.setFont(undefined, 'normal');
       doc.setFontSize(8.5);
       doc.setTextColor(...STYLES.textColor);
-      doc.text(`${clubs[record.club_id].name}`, margin + 5, yPosition);
-      yPosition += 3.5;
-      doc.text(`${clubs[record.club_id].location || ''}`, margin + 5, yPosition);
-      yPosition += 5;
+      doc.text(`${clubs[record.club_id].name}`, margin + 5, textY);
+      textY += 3.5;
+      doc.text(`${clubs[record.club_id].location || ''}`, margin + 5, textY);
+      textY += 5;
     }
 
     doc.setFontSize(8.5);
     doc.setFont(undefined, 'normal');
     doc.setTextColor(...STYLES.textColor);
-    doc.text(`Check-in: ${record.checkin_time || 'N/A'} | Check-out: ${record.checkout_time || 'N/A'} | Rounds: ${record.rounds_fired || '-'}`, margin + 2, yPosition);
-    yPosition += 5;
+    doc.text(`Check-in: ${record.checkin_time || 'N/A'} | Check-out: ${record.checkout_time || 'N/A'} | Rounds: ${record.rounds_fired || '-'}`, margin + 2, textY);
+    textY += 5;
 
     if (record.shotgun_id && shotguns[record.shotgun_id]) {
       const shotgunData = shotguns[record.shotgun_id];
       doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(...STYLES.darkGray);
-      doc.text('Shotgun Details', margin + 2, yPosition);
-      yPosition += 4;
+      doc.text('Shotgun Details', margin + 2, textY);
+      textY += 4;
 
       doc.setFont(undefined, 'normal');
       doc.setFontSize(8);
       doc.setTextColor(...STYLES.textColor);
-      doc.text(`${shotgunData.name}`, margin + 5, yPosition);
-      yPosition += 3.5;
+      doc.text(`${shotgunData.name}`, margin + 5, textY);
+      textY += 3.5;
       doc.setTextColor(80, 80, 80);
-      doc.text(`Make: ${shotgunData.make || '-'} | Model: ${shotgunData.model || '-'} | Gauge: ${shotgunData.gauge || '-'}`, margin + 5, yPosition);
-      yPosition += 3.5;
-      doc.text(`Serial: ${shotgunData.serial_number || '-'}`, margin + 5, yPosition);
-      yPosition += 5;
+      doc.text(`Make: ${shotgunData.make || '-'} | Model: ${shotgunData.model || '-'} | Gauge: ${shotgunData.gauge || '-'}`, margin + 5, textY);
+      textY += 3.5;
+      doc.text(`Serial: ${shotgunData.serial_number || '-'}`, margin + 5, textY);
+      textY += 5;
     }
 
     if (record.ammunition_used) {
       doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(...STYLES.darkGray);
-      doc.text('Ammunition', margin + 2, yPosition);
-      yPosition += 4;
+      doc.text('Ammunition', margin + 2, textY);
+      textY += 4;
       doc.setFont(undefined, 'normal');
       doc.setFontSize(8);
       doc.setTextColor(...STYLES.textColor);
-      doc.text(record.ammunition_used, margin + 5, yPosition);
-      yPosition += 5;
+      doc.text(record.ammunition_used, margin + 5, textY);
+      textY += 5;
     }
 
     if (record.notes) {
       doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(...STYLES.darkGray);
-      doc.text('Notes', margin + 2, yPosition);
-      yPosition += 4;
+      doc.text('Notes', margin + 2, textY);
+      textY += 4;
       doc.setFont(undefined, 'normal');
       doc.setFontSize(8);
       doc.setTextColor(...STYLES.textColor);
-      const wrappedNotes = doc.splitTextToSize(record.notes, pageWidth - 2 * margin - 5);
+      const wrappedNotes = doc.splitTextToSize(record.notes, contentWidth - 5);
       wrappedNotes.forEach(line => {
-        if (yPosition > pageHeight - 15) {
-          doc.addPage();
-          yPosition = margin;
-        }
-        doc.text(line, margin + 5, yPosition);
-        yPosition += 3.5;
+        doc.text(line, margin + 5, textY);
+        textY += 3.5;
       });
-      yPosition += 2;
+      textY += 2;
     }
 
     if (record.gps_track && record.gps_track.length > 0) {
       doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(...STYLES.darkGray);
-      doc.text('GPS Track', margin + 2, yPosition);
-      yPosition += 4;
+      doc.text('GPS Track', margin + 2, textY);
+      textY += 4;
       doc.setFont(undefined, 'normal');
       doc.setFontSize(8);
       doc.setTextColor(...STYLES.textColor);
-      doc.text(`Points: ${record.gps_track.length}`, margin + 5, yPosition);
-      yPosition += 3;
+      doc.text(`Points: ${record.gps_track.length}`, margin + 5, textY);
+      textY += 3;
       if (record.gps_track[0]) {
-        doc.text(`Start: ${record.gps_track[0].lat.toFixed(6)}, ${record.gps_track[0].lng.toFixed(6)}`, margin + 5, yPosition);
-        yPosition += 3;
+        doc.text(`Start: ${record.gps_track[0].lat.toFixed(6)}, ${record.gps_track[0].lng.toFixed(6)}`, margin + 5, textY);
+        textY += 3;
       }
       if (record.gps_track[record.gps_track.length - 1]) {
-        doc.text(`End: ${record.gps_track[record.gps_track.length - 1].lat.toFixed(6)}, ${record.gps_track[record.gps_track.length - 1].lng.toFixed(6)}`, margin + 5, yPosition);
-        yPosition += 5;
+        doc.text(`End: ${record.gps_track[record.gps_track.length - 1].lat.toFixed(6)}, ${record.gps_track[record.gps_track.length - 1].lng.toFixed(6)}`, margin + 5, textY);
+        textY += 5;
       }
     }
 
-    // Session photos
+    // RIGHT COLUMN - Photos
     if (record.photos && record.photos.length > 0) {
-      const photoSize = 18;
-      const photosPerRow = Math.floor((pageWidth - 2 * margin) / (photoSize + 4));
-      let photoX = margin;
-      let photoY = yPosition;
+      const photoSize = 20;
+      const photosPerCol = 4;
+      let pX = photoX;
+      let pY = photoY;
       let photoCount = 0;
 
       record.photos.forEach((photo) => {
-        if (photoCount > 0 && photoCount % photosPerRow === 0) {
-          photoY += photoSize + 4;
-          photoX = margin;
+        if (photoCount > 0 && photoCount % photosPerCol === 0) {
+          pX += photoSize + 3;
+          pY = photoY;
         }
 
         try {
-          doc.addImage(photo, 'JPEG', photoX, photoY, photoSize, photoSize);
+          doc.addImage(photo, 'JPEG', pX, pY, photoSize, photoSize);
         } catch (e) {
-          // If image fails to load, draw empty box
           doc.setDrawColor(...STYLES.lightGray);
-          doc.rect(photoX, photoY, photoSize, photoSize);
+          doc.rect(pX, pY, photoSize, photoSize);
         }
 
-        photoX += photoSize + 4;
+        pY += photoSize + 3;
         photoCount++;
       });
 
-      yPosition = photoY + photoSize + 4;
+      photoY = Math.max(photoY + photoSize * 2, textY);
+    } else {
+      photoY = textY;
     }
+
+    yPosition = Math.max(photoY, textY) + 8;
 
     doc.setDrawColor(200, 200, 200);
     doc.line(margin, yPosition, pageWidth - margin, yPosition);
@@ -540,6 +546,9 @@ function renderDeerManagementSection(doc, records, startY, pageWidth, pageHeight
   doc.line(margin, yPosition, pageWidth - margin, yPosition);
   yPosition += 8;
 
+  const contentWidth = (pageWidth - 2 * margin) * 0.6;
+  const photoX = margin + contentWidth + 5;
+
   records.forEach((record, idx) => {
     if (yPosition > pageHeight - 80) {
       doc.addPage();
@@ -548,52 +557,56 @@ function renderDeerManagementSection(doc, records, startY, pageWidth, pageHeight
       yPosition = margin + 5;
     }
 
+    let textY = yPosition;
+    let photoY = yPosition;
+
+    // LEFT COLUMN - Activity Details
     doc.setFontSize(10);
     doc.setFont(undefined, 'bold');
     doc.setTextColor(...STYLES.headingColor);
-    doc.text(`Activity ${idx + 1}: ${record.date}`, margin, yPosition);
-    yPosition += 6;
+    doc.text(`Activity ${idx + 1}: ${record.date}`, margin, textY);
+    textY += 6;
 
     doc.setFontSize(9);
     doc.setFont(undefined, 'bold');
     doc.setTextColor(...STYLES.darkGray);
-    doc.text('Location', margin + 2, yPosition);
-    yPosition += 4;
+    doc.text('Location', margin + 2, textY);
+    textY += 4;
     doc.setFont(undefined, 'normal');
     doc.setFontSize(8.5);
     doc.setTextColor(...STYLES.textColor);
-    doc.text(`${record.place_name || 'Unknown'}`, margin + 5, yPosition);
-    yPosition += 5;
+    doc.text(`${record.place_name || 'Unknown'}`, margin + 5, textY);
+    textY += 5;
 
     doc.setFontSize(8.5);
-    doc.text(`Time: ${record.start_time || '-'} to ${record.end_time || '-'}`, margin + 2, yPosition);
-    yPosition += 5;
+    doc.text(`Time: ${record.start_time || '-'} to ${record.end_time || '-'}`, margin + 2, textY);
+    textY += 5;
 
     doc.setFontSize(9);
     doc.setFont(undefined, 'bold');
     doc.setTextColor(...STYLES.darkGray);
-    doc.text('Activity Details', margin + 2, yPosition);
-    yPosition += 4;
+    doc.text('Activity Details', margin + 2, textY);
+    textY += 4;
     doc.setFont(undefined, 'normal');
     doc.setFontSize(8);
     doc.setTextColor(...STYLES.textColor);
-    doc.text(`Species: ${record.deer_species || '-'} | Total Harvested: ${record.total_count || '0'}`, margin + 5, yPosition);
-    yPosition += 5;
+    doc.text(`Species: ${record.deer_species || '-'} | Total Harvested: ${record.total_count || '0'}`, margin + 5, textY);
+    textY += 5;
 
     if (record.species_list && record.species_list.length > 0) {
       doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(...STYLES.darkGray);
-      doc.text('Harvest Breakdown', margin + 2, yPosition);
-      yPosition += 4;
+      doc.text('Harvest Breakdown', margin + 2, textY);
+      textY += 4;
       record.species_list.forEach(s => {
         doc.setFont(undefined, 'normal');
         doc.setFontSize(8);
         doc.setTextColor(...STYLES.textColor);
-        doc.text(`${s.species}: ${s.count}`, margin + 5, yPosition);
-        yPosition += 3;
+        doc.text(`${s.species}: ${s.count}`, margin + 5, textY);
+        textY += 3;
       });
-      yPosition += 2;
+      textY += 2;
     }
 
     if (record.rifle_id && rifles[record.rifle_id]) {
@@ -601,106 +614,104 @@ function renderDeerManagementSection(doc, records, startY, pageWidth, pageHeight
       doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(...STYLES.darkGray);
-      doc.text('Rifle Details', margin + 2, yPosition);
-      yPosition += 4;
+      doc.text('Rifle Details', margin + 2, textY);
+      textY += 4;
       doc.setFont(undefined, 'normal');
       doc.setFontSize(8);
       doc.setTextColor(...STYLES.textColor);
-      doc.text(`${rifleData.name}`, margin + 5, yPosition);
-      yPosition += 3.5;
+      doc.text(`${rifleData.name}`, margin + 5, textY);
+      textY += 3.5;
       doc.setTextColor(80, 80, 80);
-      doc.text(`Make: ${rifleData.make || '-'} | Model: ${rifleData.model || '-'} | Caliber: ${rifleData.caliber || '-'}`, margin + 5, yPosition);
-      yPosition += 3.5;
-      doc.text(`Serial: ${rifleData.serial_number || '-'}`, margin + 5, yPosition);
-      yPosition += 5;
+      doc.text(`Make: ${rifleData.make || '-'} | Model: ${rifleData.model || '-'} | Caliber: ${rifleData.caliber || '-'}`, margin + 5, textY);
+      textY += 3.5;
+      doc.text(`Serial: ${rifleData.serial_number || '-'}`, margin + 5, textY);
+      textY += 5;
     }
 
     if (record.ammunition_used) {
       doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(...STYLES.darkGray);
-      doc.text('Ammunition', margin + 2, yPosition);
-      yPosition += 4;
+      doc.text('Ammunition', margin + 2, textY);
+      textY += 4;
       doc.setFont(undefined, 'normal');
       doc.setFontSize(8);
       doc.setTextColor(...STYLES.textColor);
-      doc.text(record.ammunition_used, margin + 5, yPosition);
-      yPosition += 5;
+      doc.text(record.ammunition_used, margin + 5, textY);
+      textY += 5;
     }
 
     if (record.notes) {
       doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(...STYLES.darkGray);
-      doc.text('Notes', margin + 2, yPosition);
-      yPosition += 4;
+      doc.text('Notes', margin + 2, textY);
+      textY += 4;
       doc.setFont(undefined, 'normal');
       doc.setFontSize(8);
       doc.setTextColor(...STYLES.textColor);
-      const wrappedNotes = doc.splitTextToSize(record.notes, pageWidth - 2 * margin - 5);
+      const wrappedNotes = doc.splitTextToSize(record.notes, contentWidth - 5);
       wrappedNotes.forEach(line => {
-        if (yPosition > pageHeight - 15) {
-          doc.addPage();
-          yPosition = margin;
-        }
-        doc.text(line, margin + 5, yPosition);
-        yPosition += 3.5;
+        doc.text(line, margin + 5, textY);
+        textY += 3.5;
       });
-      yPosition += 2;
+      textY += 2;
     }
 
     if (record.gps_track && record.gps_track.length > 0) {
       doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(...STYLES.darkGray);
-      doc.text('GPS Track', margin + 2, yPosition);
-      yPosition += 4;
+      doc.text('GPS Track', margin + 2, textY);
+      textY += 4;
       doc.setFont(undefined, 'normal');
       doc.setFontSize(8);
       doc.setTextColor(...STYLES.textColor);
-      doc.text(`Points: ${record.gps_track.length}`, margin + 5, yPosition);
-      yPosition += 3;
+      doc.text(`Points: ${record.gps_track.length}`, margin + 5, textY);
+      textY += 3;
       if (record.gps_track[0]) {
-        doc.text(`Start: ${record.gps_track[0].lat.toFixed(6)}, ${record.gps_track[0].lng.toFixed(6)}`, margin + 5, yPosition);
-        yPosition += 3;
+        doc.text(`Start: ${record.gps_track[0].lat.toFixed(6)}, ${record.gps_track[0].lng.toFixed(6)}`, margin + 5, textY);
+        textY += 3;
       }
       if (record.gps_track[record.gps_track.length - 1]) {
-        doc.text(`End: ${record.gps_track[record.gps_track.length - 1].lat.toFixed(6)}, ${record.gps_track[record.gps_track.length - 1].lng.toFixed(6)}`, margin + 5, yPosition);
-        yPosition += 5;
+        doc.text(`End: ${record.gps_track[record.gps_track.length - 1].lat.toFixed(6)}, ${record.gps_track[record.gps_track.length - 1].lng.toFixed(6)}`, margin + 5, textY);
+        textY += 5;
       }
     }
 
-    // Session photos
+    // RIGHT COLUMN - Photos
     if (record.photos && record.photos.length > 0) {
-      const photoSize = 18;
-      const photosPerRow = Math.floor((pageWidth - 2 * margin) / (photoSize + 4));
-      let photoX = margin;
-      let photoY = yPosition;
+      const photoSize = 20;
+      const photosPerCol = 4;
+      let pX = photoX;
+      let pY = photoY;
       let photoCount = 0;
 
       record.photos.forEach((photo) => {
-        if (photoCount > 0 && photoCount % photosPerRow === 0) {
-          photoY += photoSize + 4;
-          photoX = margin;
+        if (photoCount > 0 && photoCount % photosPerCol === 0) {
+          pX += photoSize + 3;
+          pY = photoY;
         }
 
         try {
-          doc.addImage(photo, 'JPEG', photoX, photoY, photoSize, photoSize);
+          doc.addImage(photo, 'JPEG', pX, pY, photoSize, photoSize);
         } catch (e) {
-          // If image fails to load, draw empty box
           doc.setDrawColor(...STYLES.lightGray);
-          doc.rect(photoX, photoY, photoSize, photoSize);
+          doc.rect(pX, pY, photoSize, photoSize);
         }
 
-        photoX += photoSize + 4;
+        pY += photoSize + 3;
         photoCount++;
       });
 
-      yPosition = photoY + photoSize + 4;
+      photoY = Math.max(photoY + photoSize * 2, textY);
+    } else {
+      photoY = textY;
     }
 
-    doc.setDrawColor(200, 200, 200);
+    yPosition = Math.max(photoY, textY) + 8;
 
+    doc.setDrawColor(200, 200, 200);
     doc.line(margin, yPosition, pageWidth - margin, yPosition);
     yPosition += 6;
   });
