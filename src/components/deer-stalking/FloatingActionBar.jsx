@@ -41,7 +41,7 @@ export default function FloatingActionBar({
                 action.onClick();
                 setExpanded(false);
               }}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-full shadow-lg hover:bg-slate-600 transition-all transform hover:scale-105 animate-in slide-in-from-bottom-2"
+              className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-full shadow-lg hover:bg-slate-600 transition-all"
             >
               {action.icon === 'deer' ? (
                 <span className="text-lg">🦌</span>
