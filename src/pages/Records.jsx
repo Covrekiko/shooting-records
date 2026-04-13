@@ -13,6 +13,10 @@ export default function Records() {
   const [user, setUser] = useState(null);
   const [viewingRecord, setViewingRecord] = useState(null);
   const [users, setUsers] = useState({});
+  const [rifles, setRifles] = useState({});
+  const [shotguns, setShotguns] = useState({});
+  const [clubs, setClubs] = useState({});
+  const [deerLocations, setDeerLocations] = useState({});
   const [previewingPdf, setPreviewingPdf] = useState(null);
   const [viewingTrack, setViewingTrack] = useState(null);
 
@@ -42,6 +46,30 @@ export default function Records() {
         userMap[u.email] = u;
       });
       setUsers(userMap);
+
+      // Load rifles, shotguns, clubs, and locations
+      const [allRifles, allShotguns, allClubs, allLocations] = await Promise.all([
+        base44.entities.Rifle.list(),
+        base44.entities.Shotgun.list(),
+        base44.entities.Club.list(),
+        base44.entities.DeerLocation.list(),
+      ]);
+
+      const rifleMap = {};
+      allRifles.forEach(r => rifleMap[r.id] = r);
+      setRifles(rifleMap);
+
+      const shotgunMap = {};
+      allShotguns.forEach(s => shotgunMap[s.id] = s);
+      setShotguns(shotgunMap);
+
+      const clubMap = {};
+      allClubs.forEach(c => clubMap[c.id] = c);
+      setClubs(clubMap);
+
+      const locationMap = {};
+      allLocations.forEach(l => locationMap[l.id] = l);
+      setDeerLocations(locationMap);
 
       let query = {};
       if (currentUser.role !== 'admin') {
@@ -181,13 +209,13 @@ export default function Records() {
         ) : (
           <div className="space-y-3">
             {filteredRecords.map((record) => (
-              <RecordCard key={record.id} record={record} onDelete={handleDelete} user={user} onView={setViewingRecord} recordUser={users[record.created_by]} onViewTrack={setViewingTrack} />
+              <RecordCard key={record.id} record={record} onDelete={handleDelete} user={user} onView={setViewingRecord} recordUser={users[record.created_by]} onViewTrack={setViewingTrack} rifles={rifles} shotguns={shotguns} clubs={clubs} locations={deerLocations} />
             ))}
           </div>
         )}
         
         {viewingRecord && (
-          <RecordModal record={viewingRecord} onClose={() => setViewingRecord(null)} />
+          <RecordModal record={viewingRecord} onClose={() => setViewingRecord(null)} rifles={rifles} shotguns={shotguns} clubs={clubs} locations={deerLocations} user={user} />
         )}
         
         {previewingPdf && (
@@ -202,7 +230,7 @@ export default function Records() {
   );
 }
 
-function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack }) {
+function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, rifles, shotguns, clubs, locations }) {
   const getRecordTitle = () => {
     if (record.recordType === 'target') return `Target Shooting - ${record.rounds_fired} rounds`;
     if (record.recordType === 'clay') return `Clay Shooting - ${record.rounds_fired} rounds`;
@@ -235,6 +263,7 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack })
             <button
               onClick={() => onView(record)}
               className="px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center gap-1"
+              title="View full report"
             >
               <Eye className="w-4 h-4" />
             </button>
@@ -259,12 +288,23 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack })
   );
 }
 
-function RecordModal({ record, onClose }) {
+function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user }) {
+  const getRifleName = (rifleId) => rifles[rifleId]?.name || 'Unknown Rifle';
+  const getRifleDetails = (rifleId) => rifles[rifleId];
+  const getShotgunName = (shotgunId) => shotguns[shotgunId]?.name || 'Unknown Shotgun';
+  const getShotgunDetails = (shotgunId) => shotguns[shotgunId];
+  const getClubName = (clubId) => clubs[clubId]?.name || 'Unknown Club';
+  const getLocationName = (locationId) => locations[locationId]?.place_name || 'Unknown Location';
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-card rounded-lg max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">Record Details</h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div className="bg-card rounded-lg max-w-3xl w-full p-8 my-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6 border-b border-border pb-4">
+          <div>
+            <h2 className="text-3xl font-bold">Session Report</h2>
+            <p className="text-muted-foreground text-sm mt-1">Detailed Activity Record</p>
+          </div>
           <button
             onClick={onClose}
             className="p-1 hover:bg-secondary rounded"
@@ -272,58 +312,271 @@ function RecordModal({ record, onClose }) {
             <X className="w-6 h-6" />
           </button>
         </div>
-        
+
+        {/* Photos Section */}
         {record.photos && record.photos.length > 0 && (
-          <div className="mb-4">
-            <p className="text-xs font-semibold text-muted-foreground mb-2">Photos</p>
-            <div className="flex flex-wrap gap-2">
+          <div className="mb-6 pb-4 border-b border-border">
+            <h3 className="font-bold text-lg mb-3">Evidence Photos</h3>
+            <div className="grid grid-cols-4 gap-2">
               {record.photos.map((photo, idx) => (
-                <img key={idx} src={photo} alt="record" className="h-24 w-24 object-cover rounded" />
+                <img key={idx} src={photo} alt="record" className="h-28 w-28 object-cover rounded-lg border border-border" />
               ))}
             </div>
           </div>
         )}
-        
-        <div className="space-y-3 text-sm">
+
+        {/* Basic Session Info */}
+        <div className="grid grid-cols-2 gap-4 mb-6 pb-4 border-b border-border">
           <div>
-            <label className="font-semibold text-muted-foreground">Date</label>
-            <p>{record.date}</p>
+            <label className="font-bold text-sm text-primary">Session Date</label>
+            <p className="text-lg">{format(new Date(record.date), 'EEEE, MMMM d, yyyy')}</p>
           </div>
-          {record.recordType === 'target' && (
-            <>
-              <div><label className="font-semibold text-muted-foreground">Check-in Time</label><p>{record.checkin_time}</p></div>
-              <div><label className="font-semibold text-muted-foreground">Check-out Time</label><p>{record.checkout_time || '-'}</p></div>
-              <div><label className="font-semibold text-muted-foreground">Rounds Fired</label><p>{record.rounds_fired}</p></div>
-              <div><label className="font-semibold text-muted-foreground">Ammunition Brand</label><p>{record.ammunition_brand || '-'}</p></div>
-              <div><label className="font-semibold text-muted-foreground">Notes</label><p>{record.notes || '-'}</p></div>
-            </>
-          )}
-          {record.recordType === 'clay' && (
-            <>
-              <div><label className="font-semibold text-muted-foreground">Check-in Time</label><p>{record.checkin_time}</p></div>
-              <div><label className="font-semibold text-muted-foreground">Check-out Time</label><p>{record.checkout_time || '-'}</p></div>
-              <div><label className="font-semibold text-muted-foreground">Rounds Fired</label><p>{record.rounds_fired}</p></div>
-              <div><label className="font-semibold text-muted-foreground">Notes</label><p>{record.notes || '-'}</p></div>
-            </>
-          )}
-          {record.recordType === 'deer' && (
-            <>
-              <div><label className="font-semibold text-muted-foreground">Location</label><p>{record.place_name || '-'}</p></div>
-              <div><label className="font-semibold text-muted-foreground">Check-in Time</label><p>{record.start_time}</p></div>
-              <div><label className="font-semibold text-muted-foreground">Check-out Time</label><p>{record.end_time || '-'}</p></div>
-              <div><label className="font-semibold text-muted-foreground">Species</label><p>{record.deer_species || '-'}</p></div>
-              <div><label className="font-semibold text-muted-foreground">Number Shot</label><p>{record.number_shot || '-'}</p></div>
-              <div><label className="font-semibold text-muted-foreground">Ammunition</label><p>{record.ammunition_used || '-'}</p></div>
-              <div><label className="font-semibold text-muted-foreground">Notes</label><p>{record.notes || '-'}</p></div>
-            </>
-          )}
+          <div>
+            <label className="font-bold text-sm text-primary">Session Type</label>
+            <p className="text-lg">{record.recordType === 'target' ? 'Target Shooting' : record.recordType === 'clay' ? 'Clay Shooting' : 'Deer Management'}</p>
+          </div>
+          <div>
+            <label className="font-bold text-sm text-primary">Check-In Time</label>
+            <p className="text-lg">{record.recordType === 'deer' ? record.start_time : record.checkin_time}</p>
+          </div>
+          <div>
+            <label className="font-bold text-sm text-primary">Check-Out Time</label>
+            <p className="text-lg">{record.recordType === 'deer' ? record.end_time || 'N/A' : record.checkout_time || 'N/A'}</p>
+          </div>
         </div>
-        
+
+        {/* Target Shooting Section */}
+        {record.recordType === 'target' && (
+          <>
+            {/* Venue Information */}
+            {getClubName(record.club_id) && (
+              <div className="mb-6 pb-4 border-b border-border">
+                <h3 className="font-bold text-lg mb-3 text-primary">Venue Details</h3>
+                <div className="bg-secondary/30 p-4 rounded-lg">
+                  <p className="font-semibold text-base">{getClubName(record.club_id)}</p>
+                  {clubs[record.club_id]?.location && (
+                    <p className="text-sm text-muted-foreground mt-1">{clubs[record.club_id].location}</p>
+                  )}
+                  {clubs[record.club_id]?.notes && (
+                    <p className="text-sm mt-2">{clubs[record.club_id].notes}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Firearms Used Section */}
+            {record.rifles_used && record.rifles_used.length > 0 && (
+              <div className="mb-6 pb-4 border-b border-border">
+                <h3 className="font-bold text-lg mb-4 text-primary">Firearms & Ammunition</h3>
+                <div className="space-y-4">
+                  {record.rifles_used.map((rifleStat, idx) => {
+                    const rifleData = getRifleDetails(rifleStat.rifle_id);
+                    return (
+                      <div key={idx} className="bg-secondary/30 p-4 rounded-lg">
+                        <div className="grid grid-cols-2 gap-4 mb-3">
+                          <div>
+                            <label className="text-xs font-bold text-muted-foreground uppercase">Firearm #{idx + 1}</label>
+                            <p className="font-semibold text-base">{rifleStat.rifle_id ? getRifleName(rifleStat.rifle_id) : 'N/A'}</p>
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-muted-foreground uppercase">Rounds Fired</label>
+                            <p className="font-semibold text-base">{rifleStat.rounds_fired || '0'} rounds</p>
+                          </div>
+                        </div>
+
+                        {rifleData && (
+                          <div className="grid grid-cols-3 gap-3 mb-3 pb-3 border-b border-border">
+                            <div>
+                              <label className="text-xs font-bold text-muted-foreground">Make</label>
+                              <p className="text-sm">{rifleData.make || '-'}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-muted-foreground">Model</label>
+                              <p className="text-sm">{rifleData.model || '-'}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-muted-foreground">Caliber</label>
+                              <p className="text-sm">{rifleData.caliber || '-'}</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {rifleData && rifleData.serial_number && (
+                          <div className="mb-3 pb-3 border-b border-border">
+                            <label className="text-xs font-bold text-muted-foreground">Serial Number</label>
+                            <p className="font-mono text-sm">{rifleData.serial_number}</p>
+                          </div>
+                        )}
+
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs font-bold text-muted-foreground">Ammunition Brand</label>
+                            <p className="text-sm">{rifleStat.ammunition_brand || '-'}</p>
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-muted-foreground">Range Distance</label>
+                            <p className="text-sm">{rifleStat.meters_range ? `${rifleStat.meters_range}m` : '-'}</p>
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-muted-foreground">Bullet Type</label>
+                            <p className="text-sm">{rifleStat.bullet_type || '-'}</p>
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-muted-foreground">Grain Weight</label>
+                            <p className="text-sm">{rifleStat.grain || '-'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Clay Shooting Section */}
+        {record.recordType === 'clay' && (
+          <>
+            {getClubName(record.club_id) && (
+              <div className="mb-6 pb-4 border-b border-border">
+                <h3 className="font-bold text-lg mb-3 text-primary">Venue Details</h3>
+                <div className="bg-secondary/30 p-4 rounded-lg">
+                  <p className="font-semibold text-base">{getClubName(record.club_id)}</p>
+                  {clubs[record.club_id]?.location && (
+                    <p className="text-sm text-muted-foreground mt-1">{clubs[record.club_id].location}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {record.shotgun_id && (
+              <div className="mb-6 pb-4 border-b border-border">
+                <h3 className="font-bold text-lg mb-3 text-primary">Shotgun Details</h3>
+                <div className="bg-secondary/30 p-4 rounded-lg">
+                  {getShotgunDetails(record.shotgun_id) && (
+                    <>
+                      <p className="font-semibold text-base">{getShotgunName(record.shotgun_id)}</p>
+                      <div className="grid grid-cols-3 gap-3 mt-3">
+                        <div>
+                          <label className="text-xs font-bold text-muted-foreground">Make</label>
+                          <p className="text-sm">{getShotgunDetails(record.shotgun_id).make || '-'}</p>
+                        </div>
+                        <div>
+                          <label className="text-xs font-bold text-muted-foreground">Model</label>
+                          <p className="text-sm">{getShotgunDetails(record.shotgun_id).model || '-'}</p>
+                        </div>
+                        <div>
+                          <label className="text-xs font-bold text-muted-foreground">Gauge</label>
+                          <p className="text-sm">{getShotgunDetails(record.shotgun_id).gauge || '-'}</p>
+                        </div>
+                      </div>
+                      {getShotgunDetails(record.shotgun_id).serial_number && (
+                        <div className="mt-3">
+                          <label className="text-xs font-bold text-muted-foreground">Serial Number</label>
+                          <p className="font-mono text-sm">{getShotgunDetails(record.shotgun_id).serial_number}</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="mb-6 pb-4 border-b border-border">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="font-bold text-sm text-primary">Total Rounds Fired</label>
+                  <p className="text-lg">{record.rounds_fired || '0'} rounds</p>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Deer Management Section */}
+        {record.recordType === 'deer' && (
+          <>
+            <div className="mb-6 pb-4 border-b border-border">
+              <h3 className="font-bold text-lg mb-3 text-primary">Location & Hunting Details</h3>
+              <div className="bg-secondary/30 p-4 rounded-lg">
+                <p className="font-semibold text-base">{getLocationName(record.location_id) || record.place_name || 'N/A'}</p>
+                {locations[record.location_id]?.location && (
+                  <p className="text-sm text-muted-foreground mt-1">{locations[record.location_id].location}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-6 pb-4 border-b border-border">
+              <div>
+                <label className="font-bold text-sm text-primary">Species</label>
+                <p className="text-lg font-semibold">{record.deer_species || '-'}</p>
+              </div>
+              <div>
+                <label className="font-bold text-sm text-primary">Number Harvested</label>
+                <p className="text-lg font-semibold">{record.number_shot || '0'}</p>
+              </div>
+            </div>
+
+            {record.rifle_id && rifles[record.rifle_id] && (
+              <div className="mb-6 pb-4 border-b border-border">
+                <h3 className="font-bold text-lg mb-3 text-primary">Rifle Details</h3>
+                <div className="bg-secondary/30 p-4 rounded-lg">
+                  <p className="font-semibold text-base">{getRifleName(record.rifle_id)}</p>
+                  <div className="grid grid-cols-3 gap-3 mt-3">
+                    <div>
+                      <label className="text-xs font-bold text-muted-foreground">Make</label>
+                      <p className="text-sm">{rifles[record.rifle_id].make || '-'}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-muted-foreground">Model</label>
+                      <p className="text-sm">{rifles[record.rifle_id].model || '-'}</p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-muted-foreground">Caliber</label>
+                      <p className="text-sm">{rifles[record.rifle_id].caliber || '-'}</p>
+                    </div>
+                  </div>
+                  {rifles[record.rifle_id].serial_number && (
+                    <div className="mt-3">
+                      <label className="text-xs font-bold text-muted-foreground">Serial Number</label>
+                      <p className="font-mono text-sm">{rifles[record.rifle_id].serial_number}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {record.ammunition_used && (
+              <div className="mb-6 pb-4 border-b border-border">
+                <label className="font-bold text-sm text-primary">Ammunition Used</label>
+                <p className="text-base">{record.ammunition_used}</p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Notes Section */}
+        {record.notes && (
+          <div className="mb-6 pb-4 border-b border-border">
+            <h3 className="font-bold text-lg mb-2 text-primary">Session Notes</h3>
+            <div className="bg-secondary/20 p-4 rounded-lg">
+              <p className="whitespace-pre-wrap text-sm">{record.notes}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Footer with record info */}
+        <div className="text-xs text-muted-foreground bg-secondary/20 p-3 rounded-lg text-center">
+          <p>Record ID: {record.id}</p>
+          <p>Created: {format(new Date(record.created_date), 'PPpp')}</p>
+        </div>
+
         <button
           onClick={onClose}
-          className="mt-6 w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
+          className="mt-6 w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 font-semibold"
         >
-          Close
+          Close Report
         </button>
       </div>
     </div>
