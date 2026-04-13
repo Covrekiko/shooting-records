@@ -440,11 +440,7 @@ function CheckoutModal({ data, rifles, ammunition, onSubmit, onChange, onClose }
                   <select
                     value={data.deer_species_other}
                     onChange={(e) => {
-                      const val = e.target.value;
-                      onChange('deer_species_other', val);
-                      if (val && val !== 'Other') {
-                        onChange('deer_species', val);
-                      }
+                      onChange('deer_species_other', e.target.value);
                     }}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                     required
@@ -474,9 +470,7 @@ function CheckoutModal({ data, rifles, ammunition, onSubmit, onChange, onClose }
                   <select
                     value={data.pest_species}
                     onChange={(e) => {
-                      const val = e.target.value;
-                      onChange('pest_species', val);
-                      onChange('deer_species', val);
+                      onChange('pest_species', e.target.value);
                     }}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                     required
