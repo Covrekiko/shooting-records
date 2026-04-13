@@ -21,6 +21,7 @@ export default function DeerStalkingMap() {
   const [markers, setMarkers] = useState([]);
   const [harvests, setHarvests] = useState([]);
   const [outings, setOutings] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [activeOuting, setActiveOuting] = useState(null);
   const [userLocation, setUserLocation] = useState([51.5074, -0.1278]); // Default: London
   const [loading, setLoading] = useState(true);
@@ -40,14 +41,16 @@ export default function DeerStalkingMap() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [markersData, harvestsData, outingsData] = await Promise.all([
+      const [markersData, harvestsData, outingsData, locationsData] = await Promise.all([
         base44.entities.MapMarker.list(),
         base44.entities.Harvest.list(),
         base44.entities.DeerOuting.list(),
+        base44.entities.DeerLocation.list(),
       ]);
       setMarkers(markersData || []);
       setHarvests(harvestsData || []);
       setOutings(outingsData || []);
+      setLocations(locationsData || []);
       
       // Check for active outing
       const active = outingsData?.find(o => o.active);
@@ -111,11 +114,11 @@ export default function DeerStalkingMap() {
     }
   };
 
-  const handleStartOuting = async (location) => {
+  const handleStartOuting = async (data) => {
     try {
       const outing = await base44.entities.DeerOuting.create({
-        location_name: location,
-        start_time: new Date().toISOString(),
+        location_name: data.place_name,
+        start_time: new Date(data.date + 'T' + data.start_time).toISOString(),
         gps_track: [],
         active: true,
       });
@@ -267,6 +270,7 @@ export default function DeerStalkingMap() {
 
       {showOuting && (
         <OutingModal
+          locations={locations}
           onClose={() => setShowOuting(false)}
           onSubmit={handleStartOuting}
         />

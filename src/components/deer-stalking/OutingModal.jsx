@@ -1,55 +1,89 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
 
-export default function OutingModal({ onClose, onSubmit }) {
-  const [location, setLocation] = useState('');
+export default function OutingModal({ onClose, onSubmit, locations = [] }) {
+  const [data, setData] = useState({
+    date: new Date().toISOString().split('T')[0],
+    location_id: '',
+    place_name: '',
+    start_time: new Date().toTimeString().slice(0, 5),
+  });
 
-  const handleSubmit = () => {
-    if (location.trim()) {
-      onSubmit(location);
-    }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(data);
+  };
+
+  const handleChange = (field, value) => {
+    setData({ ...data, [field]: value });
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96 max-w-full shadow-xl">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Start New Outing</h2>
-          <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2">Location Name</label>
-          <input
-            type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="e.g., Ashdown Forest, North Copse..."
-            className="w-full border rounded-lg p-2 text-sm"
-            autoFocus
-          />
-          <p className="text-xs text-slate-500 mt-1">
-            GPS will be tracked from start time
-          </p>
-        </div>
-
-        <div className="flex gap-2">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2 border rounded-lg hover:bg-slate-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={!location.trim()}
-            className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50"
-          >
-            Start Tracking
-          </button>
-        </div>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-card rounded-lg max-w-md w-full p-6">
+        <h2 className="text-xl font-bold mb-4">Check In</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Date</label>
+            <input
+              type="date"
+              value={data.date}
+              onChange={(e) => handleChange('date', e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Location</label>
+            <select
+              value={data.location_id}
+              onChange={(e) => handleChange('location_id', e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              required
+            >
+              <option value="">Select a location</option>
+              {locations.map((loc) => (
+                <option key={loc.id} value={loc.id}>
+                  {loc.place_name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Place Name</label>
+            <input
+              type="text"
+              value={data.place_name}
+              onChange={(e) => handleChange('place_name', e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Check-in Time</label>
+            <input
+              type="time"
+              value={data.start_time}
+              onChange={(e) => handleChange('start_time', e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              required
+            />
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
+            >
+              Check In
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
