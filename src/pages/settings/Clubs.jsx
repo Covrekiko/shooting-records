@@ -17,6 +17,7 @@ export default function Clubs() {
   });
   const [clubNameInput, setClubNameInput] = useState('');
   const [clubSuggestions, setClubSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   useEffect(() => {
     loadClubs();
@@ -71,19 +72,38 @@ export default function Clubs() {
     setShowForm(true);
   };
 
-  const handleClubNameChange = (value) => {
+  const handleClubNameChange = async (value) => {
     setClubNameInput(value);
     setFormData({ ...formData, name: value });
     
-    if (value.length < 1) {
+    if (value.length < 2) {
       setClubSuggestions([]);
       return;
     }
     
-    const filtered = clubs.filter(
+    const localClubs = clubs.filter(
       (club) => club.name.toLowerCase().includes(value.toLowerCase()) && club.name !== value
     );
-    setClubSuggestions(filtered.slice(0, 5));
+    
+    if (localClubs.length > 0) {
+      setClubSuggestions(localClubs.slice(0, 5));
+      return;
+    }
+    
+    setLoadingSuggestions(true);
+    try {
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `Find 5 real UK shooting clubs or gun clubs that match "${value}". Return only club names as a JSON array, nothing else. Example: ["Club Name 1", "Club Name 2"]`,
+        add_context_from_internet: true,
+      });
+      const names = JSON.parse(response);
+      setClubSuggestions(names.map((name) => ({ name, isWeb: true })).slice(0, 5));
+    } catch (error) {
+      console.error('Error fetching club suggestions:', error);
+      setClubSuggestions([]);
+    } finally {
+      setLoadingSuggestions(false);
+    }
   };
 
   const selectClubName = (clubName) => {
@@ -138,20 +158,24 @@ export default function Clubs() {
                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                  required
                />
-               {clubSuggestions.length > 0 && (
-                 <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-                   {clubSuggestions.map((club) => (
-                     <button
-                       key={club.id}
-                       type="button"
-                       onClick={() => selectClubName(club.name)}
-                       className="w-full text-left px-3 py-2 hover:bg-secondary transition-colors text-sm border-b border-border last:border-b-0"
-                     >
-                       {club.name}
-                     </button>
-                   ))}
-                 </div>
-               )}
+               {(loadingSuggestions || clubSuggestions.length > 0) && (
+                   <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
+                     {loadingSuggestions ? (
+                       <div className="px-3 py-2 text-sm text-muted-foreground">Searching...</div>
+                     ) : (
+                       clubSuggestions.map((club, idx) => (
+                         <button
+                           key={idx}
+                           type="button"
+                           onClick={() => selectClubName(typeof club === 'string' ? club : club.name)}
+                           className="w-full text-left px-3 py-2 hover:bg-secondary transition-colors text-sm border-b border-border last:border-b-0"
+                         >
+                           {typeof club === 'string' ? club : club.name}
+                         </button>
+                       ))
+                     )}
+                   </div>
+                 )}
              </div>
               <select
                 value={formData.type}

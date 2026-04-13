@@ -17,6 +17,9 @@ export default function Rifles() {
     serial_number: '',
     notes: '',
   });
+  const [makeInput, setMakeInput] = useState('');
+  const [makeSuggestions, setMakeSuggestions] = useState([]);
+  const [loadingMake, setLoadingMake] = useState(false);
 
   useEffect(() => {
     loadRifles();
@@ -46,6 +49,8 @@ export default function Rifles() {
         setRifles([...rifles, newRifle]);
       }
       setFormData({ name: '', make: '', model: '', caliber: '', serial_number: '', notes: '' });
+      setMakeInput('');
+      setMakeSuggestions([]);
       setShowForm(false);
     } catch (error) {
       console.error('Error saving rifle:', error);
@@ -64,8 +69,40 @@ export default function Rifles() {
 
   const startEdit = (rifle) => {
     setFormData(rifle);
+    setMakeInput(rifle.make);
     setEditingId(rifle.id);
     setShowForm(true);
+  };
+
+  const handleMakeChange = async (value) => {
+    setMakeInput(value);
+    setFormData({ ...formData, make: value });
+    
+    if (value.length < 2) {
+      setMakeSuggestions([]);
+      return;
+    }
+    
+    setLoadingMake(true);
+    try {
+      const response = await base44.integrations.Core.InvokeLLM({
+        prompt: `List 5 top rifle manufacturers that match "${value}". Return only brand names as a JSON array, nothing else. Example: ["Brand 1", "Brand 2"]`,
+        add_context_from_internet: true,
+      });
+      const brands = JSON.parse(response);
+      setMakeSuggestions(brands.slice(0, 5));
+    } catch (error) {
+      console.error('Error fetching make suggestions:', error);
+      setMakeSuggestions([]);
+    } finally {
+      setLoadingMake(false);
+    }
+  };
+
+  const selectMake = (make) => {
+    setMakeInput(make);
+    setFormData({ ...formData, make });
+    setMakeSuggestions([]);
   };
 
   if (loading) {
@@ -92,6 +129,8 @@ export default function Rifles() {
           onClick={() => {
             setEditingId(null);
             setFormData({ name: '', make: '', model: '', caliber: '', serial_number: '', notes: '' });
+            setMakeInput('');
+            setMakeSuggestions([]);
             setShowForm(!showForm);
           }}
           className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 mb-6"
@@ -111,14 +150,34 @@ export default function Rifles() {
                 className="px-3 py-2 border border-border rounded-lg bg-background"
                 required
               />
-              <input
-                type="text"
-                placeholder="Make / Brand"
-                value={formData.make}
-                onChange={(e) => setFormData({ ...formData, make: e.target.value })}
-                className="px-3 py-2 border border-border rounded-lg bg-background"
-                required
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Make / Brand"
+                  value={makeInput}
+                  onChange={(e) => handleMakeChange(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  required
+                />
+                {(loadingMake || makeSuggestions.length > 0) && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
+                    {loadingMake ? (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">Searching...</div>
+                    ) : (
+                      makeSuggestions.map((make, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => selectMake(make)}
+                          className="w-full text-left px-3 py-2 hover:bg-secondary transition-colors text-sm border-b border-border last:border-b-0"
+                        >
+                          {make}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
               <input
                 type="text"
                 placeholder="Model"
