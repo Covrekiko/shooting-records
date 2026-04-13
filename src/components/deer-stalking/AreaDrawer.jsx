@@ -72,7 +72,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
       <MapContainer
         center={mapCenter || [51.5, -0.1]}
         zoom={mapZoom || 13}
-        style={{ width: '100%', height: '100%', zIndex: 10 }}
+        style={{ width: '100%', height: '100%', zIndex: 10, cursor: 'crosshair' }}
         ref={mapRef}
       >
         <TileLayer
