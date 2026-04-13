@@ -4,64 +4,108 @@ export async function exportRecordsToPdf(records, fileName = 'shooting-records.p
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  let yPosition = 20;
-  const margin = 20;
-  const lineHeight = 7;
+  let yPosition = 15;
+  const margin = 15;
+  const lineHeight = 5;
 
-  // Title
-  doc.setFontSize(20);
-  doc.text('Shooting Records Report', pageWidth / 2, yPosition, { align: 'center' });
-  yPosition += 15;
-
-  // Date of report
-  doc.setFontSize(10);
-  doc.setTextColor(100);
-  doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, yPosition, { align: 'center' });
-  yPosition += 12;
+  // Professional Header
+  doc.setFontSize(16);
+  doc.setFont(undefined, 'bold');
+  doc.text('OFFICIAL SHOOTING ACTIVITY RECORD', pageWidth / 2, yPosition, { align: 'center' });
+  yPosition += 8;
+  
+  doc.setFontSize(9);
+  doc.setFont(undefined, 'normal');
+  doc.setTextColor(80);
+  doc.text('Comprehensive Activity Log for Regulatory Compliance', pageWidth / 2, yPosition, { align: 'center' });
+  yPosition += 10;
   doc.setTextColor(0);
+
+  // Report metadata
+  doc.setFontSize(8);
+  doc.setFont(undefined, 'bold');
+  doc.text('Report Details:', margin, yPosition);
+  yPosition += 4;
+  
+  doc.setFont(undefined, 'normal');
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  doc.text(`Generated: ${dateStr} at ${timeStr}`, margin + 2, yPosition);
+  yPosition += 3;
+  doc.text(`Document Type: Shooting Records Summary`, margin + 2, yPosition);
+  yPosition += 3;
+  doc.text(`Total Records: ${records.length}`, margin + 2, yPosition);
+  yPosition += 8;
 
   // Group records by type
   const targetRecords = records.filter(r => r.recordType === 'target');
   const clayRecords = records.filter(r => r.recordType === 'clay');
   const deerRecords = records.filter(r => r.recordType === 'deer');
 
-  // Helper function to add a section
-  const addSection = (title, tableData, headers) => {
-    if (yPosition > pageHeight - 40) {
+  // Helper function to add a section with professional formatting
+  const addSection = (title, tableData, headers, recordCount) => {
+    if (yPosition > pageHeight - 50) {
       doc.addPage();
       yPosition = margin;
     }
     
-    doc.setFontSize(14);
+    // Section title with underline
+    doc.setFontSize(11);
     doc.setFont(undefined, 'bold');
+    doc.setTextColor(30, 100, 45);
     doc.text(title, margin, yPosition);
-    yPosition += 10;
+    yPosition += 4;
+    
+    // Draw underline
+    doc.setDrawColor(30, 100, 45);
+    doc.line(margin, yPosition - 2, pageWidth - margin, yPosition - 2);
+    yPosition += 4;
 
-    // Draw table headers
+    // Record count
+    doc.setFontSize(8);
+    doc.setTextColor(100);
+    doc.text(`Total Records: ${recordCount}`, margin, yPosition);
+    yPosition += 5;
+    doc.setTextColor(0);
+
+    // Draw table headers with background
     doc.setFont(undefined, 'bold');
-    doc.setFillColor(30, 100, 45);
-    doc.setTextColor(255);
+    doc.setFillColor(220, 220, 220);
+    doc.setTextColor(0);
+    doc.setFontSize(8);
     
     const colWidth = (pageWidth - 2 * margin) / headers.length;
+    const headerHeight = lineHeight + 2;
+    
     headers.forEach((header, i) => {
-      doc.text(header, margin + i * colWidth + 2, yPosition, { maxWidth: colWidth - 4 });
+      doc.rect(margin + i * colWidth, yPosition - headerHeight + 2, colWidth, headerHeight, 'F');
+      doc.text(header, margin + i * colWidth + 1.5, yPosition - 1, { maxWidth: colWidth - 3, align: 'left' });
     });
-    yPosition += lineHeight + 1;
+    yPosition += 3;
 
-    // Draw table data
-    doc.setTextColor(0);
+    // Draw table data with alternating row colors
     doc.setFont(undefined, 'normal');
-    tableData.forEach(row => {
-      if (yPosition > pageHeight - 15) {
+    doc.setFontSize(7);
+    
+    tableData.forEach((row, rowIdx) => {
+      if (yPosition > pageHeight - 10) {
         doc.addPage();
         yPosition = margin;
       }
+      
+      // Alternating row background
+      if (rowIdx % 2 === 0) {
+        doc.setFillColor(245, 245, 245);
+        doc.rect(margin, yPosition - lineHeight + 1, pageWidth - 2 * margin, lineHeight, 'F');
+      }
+      
       row.forEach((cell, i) => {
-        doc.text(String(cell), margin + i * colWidth + 2, yPosition, { maxWidth: colWidth - 4 });
+        doc.text(String(cell), margin + i * colWidth + 1.5, yPosition, { maxWidth: colWidth - 3, align: 'left' });
       });
       yPosition += lineHeight;
     });
-    yPosition += 5;
+    yPosition += 6;
   };
 
   // Target Shooting Section
@@ -71,9 +115,10 @@ export async function exportRecordsToPdf(records, fileName = 'shooting-records.p
       r.checkin_time || '-',
       r.checkout_time || '-',
       String(r.rounds_fired || '-'),
+      r.caliber || '-',
       r.ammunition_brand || '-',
     ]);
-    addSection('Target Shooting Sessions', targetData, ['Date', 'Check-in', 'Check-out', 'Rounds', 'Ammo']);
+    addSection('TARGET SHOOTING SESSIONS', targetData, ['Date', 'Check-in', 'Check-out', 'Rounds', 'Caliber', 'Ammunition'], targetRecords.length);
   }
 
   // Clay Shooting Section
@@ -84,7 +129,7 @@ export async function exportRecordsToPdf(records, fileName = 'shooting-records.p
       r.checkout_time || '-',
       String(r.rounds_fired || '-'),
     ]);
-    addSection('Clay Shooting Sessions', clayData, ['Date', 'Check-in', 'Check-out', 'Rounds']);
+    addSection('CLAY SHOOTING SESSIONS', clayData, ['Date', 'Check-in', 'Check-out', 'Rounds Fired'], clayRecords.length);
   }
 
   // Deer Management Section
@@ -93,11 +138,27 @@ export async function exportRecordsToPdf(records, fileName = 'shooting-records.p
       r.date,
       r.start_time || '-',
       r.end_time || '-',
+      r.place_name || '-',
       r.deer_species || '-',
-      String(r.number_shot || '-'),
+      String(r.number_shot || '0'),
+      r.caliber || '-',
     ]);
-    addSection('Deer Management Outings', deerData, ['Date', 'Start', 'End', 'Species', 'Qty']);
+    addSection('DEER MANAGEMENT ACTIVITY LOG', deerData, ['Date', 'Start', 'End', 'Location', 'Species', 'Count', 'Caliber'], deerRecords.length);
   }
+
+  // Footer with compliance notice
+  yPosition += 5;
+  if (yPosition > pageHeight - 20) {
+    doc.addPage();
+    yPosition = margin;
+  }
+  
+  doc.setFontSize(7);
+  doc.setTextColor(100);
+  doc.setFont(undefined, 'italic');
+  doc.text('This document is an official record of shooting activities and is suitable for regulatory compliance.', margin, yPosition, { maxWidth: pageWidth - 2 * margin, align: 'center' });
+  yPosition += 4;
+  doc.text(`Report Generated: ${dateStr}`, margin, yPosition, { maxWidth: pageWidth - 2 * margin, align: 'center' });
 
   doc.save(fileName);
 }
