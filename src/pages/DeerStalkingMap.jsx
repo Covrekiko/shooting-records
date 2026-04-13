@@ -150,7 +150,7 @@ export default function DeerStalkingMap() {
   }
 
   return (
-    <div className="fixed inset-0 bg-slate-900">
+    <div className="w-full h-screen bg-slate-900 relative">
       {/* Back to Dashboard */}
       <Link
         to="/"
