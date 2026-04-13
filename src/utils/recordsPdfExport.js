@@ -318,6 +318,7 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
          yPosition += 3;
        }
 
+       // Session basic info
        doc.setFontSize(8);
        doc.setFont(undefined, 'normal');
        doc.setTextColor(0);
@@ -330,8 +331,8 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
          doc.setFont(undefined, 'bold');
          doc.setTextColor(30, 100, 45);
          doc.setFontSize(8);
-         doc.text('Shotgun Used:', margin + 2, yPosition);
-         yPosition += 2.5;
+         doc.text('Shotgun & Ammunition:', margin + 2, yPosition);
+         yPosition += 3;
 
          doc.setFont(undefined, 'normal');
          doc.setFontSize(7.5);
@@ -345,34 +346,48 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
          doc.text(`  Gauge: ${shotgunData.gauge || '-'} | Serial: ${shotgunData.serial_number || '-'}`, margin + 6, yPosition);
          yPosition += 3;
        }
-      
-      if (record.notes) {
-        doc.setFont(undefined, 'bold');
-        doc.setTextColor(30, 100, 45);
-        doc.setFontSize(8);
-        doc.text('Notes:', margin + 2, yPosition);
-        yPosition += 2;
-        
-        doc.setFont(undefined, 'normal');
-        doc.setTextColor(0);
-        doc.setFontSize(7);
-        const wrappedNotes = doc.splitTextToSize(record.notes, pageWidth - 2 * margin - 4);
-        wrappedNotes.forEach(line => {
-          if (yPosition > pageHeight - 10) {
-            doc.addPage();
-            yPosition = margin;
-          }
-          doc.text(line, margin + 4, yPosition);
-          yPosition += 2;
-        });
-      }
-      
-      yPosition += 3;
-      doc.setDrawColor(200, 200, 200);
-      doc.line(margin, yPosition, pageWidth - margin, yPosition);
-      yPosition += 4;
-    });
-  }
+
+       if (record.ammunition_used) {
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(30, 100, 45);
+         doc.setFontSize(8);
+         doc.text('Ammunition:', margin + 2, yPosition);
+         yPosition += 2;
+         
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(0);
+         doc.setFontSize(7.5);
+         doc.text(record.ammunition_used, margin + 4, yPosition);
+         yPosition += 3;
+       }
+       
+       if (record.notes) {
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(30, 100, 45);
+         doc.setFontSize(8);
+         doc.text('Notes:', margin + 2, yPosition);
+         yPosition += 2;
+         
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(0);
+         doc.setFontSize(7);
+         const wrappedNotes = doc.splitTextToSize(record.notes, pageWidth - 2 * margin - 4);
+         wrappedNotes.forEach(line => {
+           if (yPosition > pageHeight - 10) {
+             doc.addPage();
+             yPosition = margin;
+           }
+           doc.text(line, margin + 4, yPosition);
+           yPosition += 2;
+         });
+       }
+       
+       yPosition += 3;
+       doc.setDrawColor(200, 200, 200);
+       doc.line(margin, yPosition, pageWidth - margin, yPosition);
+       yPosition += 4;
+     });
+   }
 
   // Deer Management Section - Detailed Vertical Format
   if (deerRecords.length > 0) {
@@ -392,7 +407,7 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
     yPosition += 6;
     
     deerRecords.forEach((record, idx) => {
-      if (yPosition > pageHeight - 50) {
+      if (yPosition > pageHeight - 60) {
         doc.addPage();
         yPosition = margin;
       }
@@ -403,17 +418,74 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
       doc.text(`Activity ${idx + 1} - ${record.date}`, margin, yPosition);
       yPosition += 4;
       
+      // Location & Hunting Details
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(30, 100, 45);
       doc.setFontSize(8);
+      doc.text('Location & Details:', margin + 2, yPosition);
+      yPosition += 2.5;
+      
       doc.setFont(undefined, 'normal');
       doc.setTextColor(0);
-      doc.text(`Location: ${record.place_name || '-'} | Species: ${record.deer_species || '-'} | Harvested: ${record.number_shot || '0'}`, margin + 2, yPosition);
+      doc.setFontSize(7.5);
+      doc.text(`Location: ${record.place_name || '-'}`, margin + 4, yPosition);
+      yPosition += 2.5;
+      doc.text(`Time: ${record.start_time || '-'} - ${record.end_time || '-'}`, margin + 4, yPosition);
+      yPosition += 2.5;
+      doc.text(`Species: ${record.deer_species || '-'} | Harvested: ${record.number_shot || '0'}`, margin + 4, yPosition);
       yPosition += 3;
       
-      doc.text(`Time: ${record.start_time || '-'} - ${record.end_time || '-'} | Caliber: ${record.caliber || '-'}`, margin + 2, yPosition);
-      yPosition += 3;
+      // Species List
+      if (record.species_list && record.species_list.length > 0) {
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Species Harvested:', margin + 2, yPosition);
+        yPosition += 2.5;
+        
+        record.species_list.forEach(s => {
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(7.5);
+          doc.setTextColor(0);
+          doc.text(`  ${s.species}: ${s.count}`, margin + 4, yPosition);
+          yPosition += 2;
+        });
+        yPosition += 1;
+      }
+      
+      // Rifle & Ammunition Details
+      if (record.rifle_id && rifles[record.rifle_id]) {
+        const rifleData = rifles[record.rifle_id];
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Rifle & Ammunition:', margin + 2, yPosition);
+        yPosition += 2.5;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(0);
+        doc.text(`${rifleData.name}`, margin + 4, yPosition);
+        yPosition += 2.5;
+        
+        doc.text(`  Make: ${rifleData.make || '-'} | Model: ${rifleData.model || '-'}`, margin + 6, yPosition);
+        yPosition += 2.5;
+        
+        doc.text(`  Caliber: ${rifleData.caliber || '-'} | Serial: ${rifleData.serial_number || '-'}`, margin + 6, yPosition);
+        yPosition += 2.5;
+      }
       
       if (record.ammunition_used) {
-        doc.text(`Ammunition: ${record.ammunition_used}`, margin + 2, yPosition);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Ammunition:', margin + 2, yPosition);
+        yPosition += 2;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(0);
+        doc.text(record.ammunition_used, margin + 4, yPosition);
         yPosition += 3;
       }
       
@@ -738,11 +810,63 @@ function generateBase44Pdf(records, userInfo = null, rifles = {}, clubs = {}, sh
       doc.text(`Session ${idx + 1} - ${record.date}`, margin, yPosition);
       yPosition += 4;
       
+      // Venue info
+      if (record.club_id && clubs[record.club_id]) {
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Venue:', margin + 2, yPosition);
+        yPosition += 2.5;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0);
+        doc.text(`${clubs[record.club_id].name}`, margin + 4, yPosition);
+        yPosition += 2.5;
+        doc.text(`${clubs[record.club_id].location || ''}`, margin + 4, yPosition);
+        yPosition += 3;
+      }
+
       doc.setFontSize(8);
       doc.setFont(undefined, 'normal');
       doc.setTextColor(0);
       doc.text(`Check-in: ${record.checkin_time || 'N/A'} | Check-out: ${record.checkout_time || 'N/A'} | Rounds: ${record.rounds_fired || '-'}`, margin + 2, yPosition);
       yPosition += 4;
+      
+      // Shotgun info
+      if (record.shotgun_id && shotguns[record.shotgun_id]) {
+        const shotgunData = shotguns[record.shotgun_id];
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Shotgun & Ammunition:', margin + 2, yPosition);
+        yPosition += 3;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(0);
+        doc.text(`${shotgunData.name}`, margin + 4, yPosition);
+        yPosition += 2.5;
+        
+        doc.text(`  Make: ${shotgunData.make || '-'} | Model: ${shotgunData.model || '-'}`, margin + 6, yPosition);
+        yPosition += 2.5;
+        
+        doc.text(`  Gauge: ${shotgunData.gauge || '-'} | Serial: ${shotgunData.serial_number || '-'}`, margin + 6, yPosition);
+        yPosition += 3;
+      }
+
+      if (record.ammunition_used) {
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Ammunition:', margin + 2, yPosition);
+        yPosition += 2;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(0);
+        doc.setFontSize(7.5);
+        doc.text(record.ammunition_used, margin + 4, yPosition);
+        yPosition += 3;
+      }
       
       if (record.notes) {
         doc.setFont(undefined, 'bold');
@@ -789,7 +913,7 @@ function generateBase44Pdf(records, userInfo = null, rifles = {}, clubs = {}, sh
     yPosition += 6;
     
     deerRecords.forEach((record, idx) => {
-      if (yPosition > pageHeight - 50) {
+      if (yPosition > pageHeight - 60) {
         doc.addPage();
         yPosition = margin;
       }
@@ -800,17 +924,74 @@ function generateBase44Pdf(records, userInfo = null, rifles = {}, clubs = {}, sh
       doc.text(`Activity ${idx + 1} - ${record.date}`, margin, yPosition);
       yPosition += 4;
       
+      // Location & Hunting Details
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(30, 100, 45);
       doc.setFontSize(8);
+      doc.text('Location & Details:', margin + 2, yPosition);
+      yPosition += 2.5;
+      
       doc.setFont(undefined, 'normal');
       doc.setTextColor(0);
-      doc.text(`Location: ${record.place_name || '-'} | Species: ${record.deer_species || '-'} | Harvested: ${record.number_shot || '0'}`, margin + 2, yPosition);
+      doc.setFontSize(7.5);
+      doc.text(`Location: ${record.place_name || '-'}`, margin + 4, yPosition);
+      yPosition += 2.5;
+      doc.text(`Time: ${record.start_time || '-'} - ${record.end_time || '-'}`, margin + 4, yPosition);
+      yPosition += 2.5;
+      doc.text(`Species: ${record.deer_species || '-'} | Harvested: ${record.number_shot || '0'}`, margin + 4, yPosition);
       yPosition += 3;
       
-      doc.text(`Time: ${record.start_time || '-'} - ${record.end_time || '-'} | Caliber: ${record.caliber || '-'}`, margin + 2, yPosition);
-      yPosition += 3;
+      // Species List
+      if (record.species_list && record.species_list.length > 0) {
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Species Harvested:', margin + 2, yPosition);
+        yPosition += 2.5;
+        
+        record.species_list.forEach(s => {
+          doc.setFont(undefined, 'normal');
+          doc.setFontSize(7.5);
+          doc.setTextColor(0);
+          doc.text(`  ${s.species}: ${s.count}`, margin + 4, yPosition);
+          yPosition += 2;
+        });
+        yPosition += 1;
+      }
+      
+      // Rifle & Ammunition Details
+      if (record.rifle_id && rifles[record.rifle_id]) {
+        const rifleData = rifles[record.rifle_id];
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Rifle & Ammunition:', margin + 2, yPosition);
+        yPosition += 2.5;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(0);
+        doc.text(`${rifleData.name}`, margin + 4, yPosition);
+        yPosition += 2.5;
+        
+        doc.text(`  Make: ${rifleData.make || '-'} | Model: ${rifleData.model || '-'}`, margin + 6, yPosition);
+        yPosition += 2.5;
+        
+        doc.text(`  Caliber: ${rifleData.caliber || '-'} | Serial: ${rifleData.serial_number || '-'}`, margin + 6, yPosition);
+        yPosition += 2.5;
+      }
       
       if (record.ammunition_used) {
-        doc.text(`Ammunition: ${record.ammunition_used}`, margin + 2, yPosition);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(30, 100, 45);
+        doc.setFontSize(8);
+        doc.text('Ammunition:', margin + 2, yPosition);
+        yPosition += 2;
+        
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(0);
+        doc.text(record.ammunition_used, margin + 4, yPosition);
         yPosition += 3;
       }
       
