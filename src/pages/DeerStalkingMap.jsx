@@ -322,7 +322,7 @@ export default function DeerStalkingMap() {
   console.log('🔴 DeerStalkingMap RENDER - showOuting:', showOuting, 'activeOuting:', activeOuting?.id);
   
   return (
-    <div className={`w-full h-screen bg-slate-900 relative overflow-hidden ${waitingForPin ? 'cursor-crosshair' : ''}`}>
+    <div className="w-full h-screen bg-slate-900 relative overflow-hidden cursor-crosshair">
       <div className={`absolute inset-0 z-0 ${showPOI || showHarvest || showOuting ? 'pointer-events-none' : ''}`}>
         <MapContainer
           center={userLocation}
