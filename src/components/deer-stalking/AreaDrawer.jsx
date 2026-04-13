@@ -89,8 +89,26 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
           </Marker>
         ))}
 
-        {/* Preview polyline or closed polygon */}
-        {points.length > 1 && !isClosed && <Polyline positions={points} color="#3b82f6" weight={2} opacity={0.7} />}
+        {/* Preview polyline - with closing line when ready to close */}
+        {points.length > 1 && !isClosed && (
+          <Polyline 
+            positions={points} 
+            color="#3b82f6" 
+            weight={4} 
+            opacity={1}
+          />
+        )}
+        
+        {/* Show closing line hint when 3+ points */}
+        {points.length >= 3 && !isClosed && (
+          <Polyline
+            positions={[points[points.length - 1], points[0]]}
+            color="#3b82f6"
+            weight={4}
+            opacity={0.5}
+            dashArray="5, 5"
+          />
+        )}
         
         {/* Closed polygon with fill */}
         {isClosed && points.length > 2 && (
@@ -98,7 +116,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
             positions={points}
             color="#3b82f6"
             fillColor="#3b82f6"
-            weight={3}
+            weight={5}
             opacity={1}
             fillOpacity={0.4}
             interactive={false}
