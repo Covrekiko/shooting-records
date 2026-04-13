@@ -557,37 +557,38 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
 
             {record.rifle_id && (
               <div className="mb-6 pb-4 border-b border-border">
-                <h3 className="font-bold text-lg mb-3 text-primary">Rifle Details</h3>
-                <div className="bg-secondary/30 p-4 rounded-lg">
-                  <p className="font-semibold text-base">{getRifleName(record.rifle_id)}</p>
-                  <div className="grid grid-cols-3 gap-3 mt-3">
-                    <div>
-                      <label className="text-xs font-bold text-muted-foreground">Make</label>
-                      <p className="text-sm">{rifles[record.rifle_id].make || '-'}</p>
+                <h3 className="font-bold text-lg mb-3 text-primary">Rifle & Ammunition Details</h3>
+                <div className="bg-secondary/30 p-4 rounded-lg space-y-4">
+                  <div>
+                    <p className="font-semibold text-base mb-3">{getRifleName(record.rifle_id)}</p>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-xs font-bold text-muted-foreground">Make</label>
+                        <p className="text-sm">{rifles[record.rifle_id].make || '-'}</p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-muted-foreground">Model</label>
+                        <p className="text-sm">{rifles[record.rifle_id].model || '-'}</p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-muted-foreground">Caliber</label>
+                        <p className="text-sm">{rifles[record.rifle_id].caliber || '-'}</p>
+                      </div>
                     </div>
-                    <div>
-                      <label className="text-xs font-bold text-muted-foreground">Model</label>
-                      <p className="text-sm">{rifles[record.rifle_id].model || '-'}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-muted-foreground">Caliber</label>
-                      <p className="text-sm">{rifles[record.rifle_id].caliber || '-'}</p>
-                    </div>
+                    {rifles[record.rifle_id].serial_number && (
+                      <div className="mt-3">
+                        <label className="text-xs font-bold text-muted-foreground">Serial Number</label>
+                        <p className="font-mono text-sm">{rifles[record.rifle_id].serial_number}</p>
+                      </div>
+                    )}
                   </div>
-                  {rifles[record.rifle_id].serial_number && (
-                    <div className="mt-3">
-                      <label className="text-xs font-bold text-muted-foreground">Serial Number</label>
-                      <p className="font-mono text-sm">{rifles[record.rifle_id].serial_number}</p>
+                  {record.ammunition_used && (
+                    <div className="border-t border-border pt-3">
+                      <label className="text-xs font-bold text-muted-foreground block mb-1">Ammunition</label>
+                      <p className="text-sm font-medium">{record.ammunition_used}</p>
                     </div>
                   )}
                 </div>
-              </div>
-            )}
-
-            {record.ammunition_used && (
-              <div className="mb-6 pb-4 border-b border-border">
-                <label className="font-bold text-sm text-primary">Ammunition Used</label>
-                <p className="text-base">{record.ammunition_used}</p>
               </div>
             )}
           </>
