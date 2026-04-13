@@ -1,12 +1,9 @@
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet-draw/dist/leaflet.draw.css';
-import { useState } from 'react';
-import { Map, Satellite, Trash2, Locate, Zap, MapPin } from 'lucide-react';
-
-// Import leaflet-draw
 import 'leaflet-draw';
+import { Map, Satellite, Trash2, Locate, Zap, MapPin } from 'lucide-react';
 
 // Fix marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -25,12 +22,10 @@ function DrawControl({ onDataChange, mapData }) {
     if (!map) return;
 
     try {
-      // Create feature group for storing drawn items
       const featureGroup = L.featureGroup();
       featureGroup.addTo(map);
       featureGroupRef.current = featureGroup;
 
-      // Add draw control
       const drawControl = new L.Control.Draw({
         position: 'topleft',
         draw: {
@@ -51,7 +46,6 @@ function DrawControl({ onDataChange, mapData }) {
       map.addControl(drawControl);
       drawControlRef.current = drawControl;
 
-      // Handle draw events
       const handleCreated = (e) => {
         featureGroup.addLayer(e.layer);
         updateMapData();
@@ -70,7 +64,6 @@ function DrawControl({ onDataChange, mapData }) {
         onDataChange(geoJson);
       };
 
-      // Load existing data if provided
       if (mapData && mapData.features) {
         L.geoJSON(mapData, {
           onEachFeature: (feature, layer) => {
@@ -130,31 +123,19 @@ function MapControls({ mapRef }) {
   );
 }
 
-function MapWithRef({ center, mapType, onDataChange, mapData, mapRef }) {
-  return (
-    <MapContainer center={center} zoom={13} className="w-full h-full" ref={mapRef}>
-      <TileLayer
-        attribution='&copy; OpenStreetMap contributors'
-        url={
-          mapType === 'satellite'
-            ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
-            : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-        }
-      />
-      <DrawControl onDataChange={onDataChange} mapData={mapData} />
-    </MapContainer>
-  );
-}
-
 export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData = {} }) {
   const [mapType, setMapType] = useState('map');
   const mapRef = useRef(null);
-  const center = initialCenter || [54.5973, -3.1578]; // Default to UK center
+  const center = initialCenter || [54.5973, -3.1578];
 
   const clearAll = () => {
     onDataChange(null);
     window.location.reload();
   };
+
+  const tileUrl = mapType === 'satellite'
+    ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+    : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
   return (
     <div className="space-y-3">
@@ -202,8 +183,20 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
         </div>
       </div>
 
-      <div className="bg-card border border-border rounded-lg overflow-hidden h-96">
-        <MapWithRef key={mapType} center={center} mapType={mapType} onDataChange={onDataChange} mapData={mapData} mapRef={mapRef} />
+      <div style={{ height: '400px', width: '100%' }} className="border border-border rounded-lg overflow-hidden">
+        <MapContainer 
+          center={center} 
+          zoom={13} 
+          style={{ height: '100%', width: '100%' }}
+          ref={mapRef}
+        >
+          <TileLayer
+            key={tileUrl}
+            attribution='&copy; OpenStreetMap contributors'
+            url={tileUrl}
+          />
+          <DrawControl onDataChange={onDataChange} mapData={mapData} />
+        </MapContainer>
       </div>
     </div>
   );
