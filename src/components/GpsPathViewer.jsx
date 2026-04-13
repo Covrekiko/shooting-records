@@ -28,6 +28,32 @@ export default function GpsPathViewer({ track, onClose }) {
   const center = track[0];
   const pathCoordinates = track.map(p => [p.lat, p.lng]);
 
+  // Validate GPS coordinates
+  const isValidCoord = (lat, lng) => lat && lng && lat !== 0 && lng !== 0 && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+  const hasValidCoords = pathCoordinates.some(([lat, lng]) => isValidCoord(lat, lng));
+
+  if (!hasValidCoords || !isValidCoord(center.lat, center.lng)) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-50 pt-16">
+        <div className="bg-card rounded-lg p-6 max-w-md w-full">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-bold">GPS Track</h2>
+            <button onClick={onClose} className="p-1 hover:bg-secondary rounded">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          <p className="text-muted-foreground">GPS coordinates are invalid. The tracking may have failed during the session.</p>
+          <button
+            onClick={onClose}
+            className="mt-6 w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-50 pt-16">
       <div className="bg-card rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
