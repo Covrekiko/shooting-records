@@ -541,11 +541,6 @@ export default function DeerStalkingMap() {
                   setShowAreaForm(false);
                   setDrawnPolygon(null);
                 }}
-                onMapNavigate={(lat, lng, zoom) => {
-                  if (mapRef.current) {
-                    mapRef.current.setView([lat, lng], zoom);
-                  }
-                }}
               />
             </div>
           )}
