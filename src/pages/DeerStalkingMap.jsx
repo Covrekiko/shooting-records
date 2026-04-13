@@ -259,17 +259,17 @@ export default function DeerStalkingMap() {
       />
 
       {/* Modals */}
-      {showPOI && mapClick && (
+      {showPOI && (
         <POIModal
-          location={mapClick}
+          location={mapClick || { lat: userLocation[0], lng: userLocation[1] }}
           onClose={() => setShowPOI(false)}
           onSubmit={handlePOISubmit}
         />
       )}
 
-      {showHarvest && mapClick && (
+      {showHarvest && (
         <HarvestModal
-          location={mapClick}
+          location={mapClick || { lat: userLocation[0], lng: userLocation[1] }}
           onClose={() => setShowHarvest(false)}
           onSubmit={handleHarvestSubmit}
         />
