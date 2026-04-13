@@ -29,8 +29,16 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
   const docId = generateDocumentId();
   let pageNum = 1;
 
+  let firstPhoto = null;
+  for (const record of records) {
+    if (record.photos && record.photos.length > 0) {
+      firstPhoto = record.photos[0];
+      break;
+    }
+  }
+
   if (userInfo) {
-    createFrontPage(doc, userInfo, pageWidth, pageHeight, docId);
+    createFrontPage(doc, userInfo, pageWidth, pageHeight, docId, firstPhoto);
     addPageId(doc, docId, pageNum, pageWidth);
     pageNum++;
     doc.addPage();
@@ -75,8 +83,16 @@ export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, c
   const docId = generateDocumentId();
   let pageNum = 1;
 
+  let firstPhoto = null;
+  for (const record of records) {
+    if (record.photos && record.photos.length > 0) {
+      firstPhoto = record.photos[0];
+      break;
+    }
+  }
+
   if (userInfo) {
-    createFrontPage(doc, userInfo, pageWidth, pageHeight, docId);
+    createFrontPage(doc, userInfo, pageWidth, pageHeight, docId, firstPhoto);
     addPageId(doc, docId, pageNum, pageWidth);
     pageNum++;
     doc.addPage();
@@ -114,7 +130,7 @@ export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, c
   return doc.output('blob');
 }
 
-function createFrontPage(doc, userInfo, pageWidth, pageHeight, docId) {
+function createFrontPage(doc, userInfo, pageWidth, pageHeight, docId, sessionPhoto = null) {
   const { margin } = STYLES;
   let yPosition = pageHeight * 0.15;
 
@@ -129,6 +145,14 @@ function createFrontPage(doc, userInfo, pageWidth, pageHeight, docId) {
   doc.setTextColor(100, 100, 100);
   doc.text('Official Regulatory Compliance Report', pageWidth / 2, yPosition, { align: 'center' });
   yPosition += 20;
+
+  // Session Photo (if available)
+  if (sessionPhoto) {
+    const photoWidth = 40;
+    const photoHeight = 40;
+    const photoX = pageWidth - margin - photoWidth - 5;
+    doc.addImage(sessionPhoto, 'JPEG', photoX, yPosition - 5, photoWidth, photoHeight);
+  }
 
   // Personal Information Section
   doc.setFillColor(...STYLES.lightGray);
