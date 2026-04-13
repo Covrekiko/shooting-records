@@ -1,0 +1,58 @@
+{
+  "name": "DeerOuting",
+  "type": "object",
+  "properties": {
+    "location_name": {
+      "type": "string",
+      "description": "Name of the outing location"
+    },
+    "start_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Outing start time"
+    },
+    "end_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Outing end time"
+    },
+    "gps_track": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number"
+          },
+          "lng": {
+            "type": "number"
+          },
+          "timestamp": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "GPS track points"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Outing notes"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Photo URLs"
+    },
+    "active": {
+      "type": "boolean",
+      "default": false,
+      "description": "Is outing currently active"
+    }
+  },
+  "required": [
+    "location_name",
+    "start_time"
+  ]
+}

@@ -19,6 +19,7 @@ export default function Navigation() {
     { path: '/target-shooting', label: 'Target Shooting' },
     { path: '/clay-shooting', label: 'Clay Shooting' },
     { path: '/deer-management', label: 'Deer Management' },
+    { path: '/deer-stalking', label: 'Stalking Map' },
   ];
 
   return (
@@ -60,6 +61,16 @@ export default function Navigation() {
               Admin
             </Link>
           )}
+          <Link
+            to="/deer-stalking-logs"
+            className={`text-sm font-medium transition-colors ${
+              isActive('/deer-stalking-logs')
+                ? 'text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Stalking Logs
+          </Link>
           <Link
             to="/profile"
             className={`text-sm font-medium transition-colors ${
@@ -116,6 +127,17 @@ export default function Navigation() {
                  Admin
                </Link>
               )}
+              <Link
+                to="/deer-stalking-logs"
+                onClick={() => setOpen(false)}
+                className={`text-sm font-medium py-2 px-3 rounded transition-colors ${
+                  isActive('/deer-stalking-logs')
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-foreground hover:bg-secondary'
+                }`}
+              >
+                Stalking Logs
+              </Link>
               <Link
                 to="/profile"
                 onClick={() => setOpen(false)}
