@@ -31,7 +31,7 @@ export default function Profile() {
           <div className="w-full md:w-48">
             <div className="space-y-2">
               <Link
-                to="/profile/settings"
+                to="/settings/rifles"
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive('/profile/settings')
                     ? 'bg-primary text-primary-foreground'
@@ -42,7 +42,7 @@ export default function Profile() {
                 Settings
               </Link>
               <Link
-                to="/profile/records"
+                to="/records"
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive('/profile/records')
                     ? 'bg-primary text-primary-foreground'
@@ -65,9 +65,9 @@ export default function Profile() {
 
           {/* Content */}
           <div className="flex-1">
-            {isActive('/profile/settings') || isActive('/profile') ? (
+            {isActive('/profile/settings') || isActive('/profile') || isActive('/settings') ? (
               <SettingsPanel />
-            ) : isActive('/profile/records') ? (
+            ) : isActive('/records') ? (
               <RecordsPanel />
             ) : null}
           </div>
