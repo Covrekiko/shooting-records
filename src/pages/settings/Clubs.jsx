@@ -151,13 +151,14 @@ export default function Clubs() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
              <div className="relative">
                <input
-                 type="text"
-                 placeholder="Club Name"
-                 value={clubNameInput}
-                 onChange={(e) => handleClubNameChange(e.target.value)}
-                 className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                 required
-               />
+                  type="text"
+                  placeholder="Club Name"
+                  value={clubNameInput}
+                  onChange={(e) => handleClubNameChange(e.target.value)}
+                  autoComplete="off"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  required
+                />
                {(loadingSuggestions || clubSuggestions.length > 0) && (
                    <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
                      {loadingSuggestions ? (
