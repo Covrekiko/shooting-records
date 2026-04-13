@@ -60,6 +60,9 @@ export default function DeerManagement() {
   }, [showCheckout]);
 
   useEffect(() => {
+    // Don't reload data while checkout modal is open
+    if (showCheckout) return;
+    
     sessionManager.clearExpiredSessions();
     async function loadData() {
       try {
@@ -93,7 +96,7 @@ export default function DeerManagement() {
     }
 
     loadData();
-  }, [activeOuting]);
+  }, [activeOuting, showCheckout]);
 
   useEffect(() => {
     if (location && locations.length > 0) {
