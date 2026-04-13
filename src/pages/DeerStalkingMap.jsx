@@ -314,8 +314,8 @@ export default function DeerStalkingMap() {
 
       {/* Floating Action Bar */}
       <FloatingActionBar
-        onPOI={() => setWaitingForPin('poi')}
-        onHarvest={() => setWaitingForPin('harvest')}
+        onPOI={() => { setMapClick(null); setWaitingForPin('poi'); }}
+        onHarvest={() => { setMapClick(null); setWaitingForPin('harvest'); }}
         onOuting={() => setShowOuting(true)}
         onRecenter={() => {}} 
         activeOuting={activeOuting}
