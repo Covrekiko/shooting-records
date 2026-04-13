@@ -180,7 +180,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
       </div>
 
       {/* Instructions Badge */}
-      <div className="fixed top-3 left-3 z-[9998] bg-blue-500/90 backdrop-blur-sm text-white px-2.5 py-1 sm:px-3.5 sm:py-2 rounded-md pointer-events-none text-xs sm:text-sm font-medium shadow-sm">
+      <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[9998] bg-blue-500/90 backdrop-blur-sm text-white px-2.5 py-1 sm:px-3.5 sm:py-2 rounded-md pointer-events-none text-xs sm:text-sm font-medium shadow-sm">
         <p>Draw Boundary</p>
         <p className="hidden sm:block text-xs opacity-80 mt-0.5">
           {isClosed ? 'Boundary closed. Tap Finish to save.' : 'Tap to add points (3+ needed)'}
