@@ -41,17 +41,55 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
     }
   };
 
+  const validatePolygon = (polygonPoints) => {
+    const errors = [];
+
+    if (polygonPoints.length < 3) {
+      errors.push('Need at least 3 points');
+      return errors;
+    }
+
+    // Validate lat/lng ranges
+    for (const point of polygonPoints) {
+      const [lat, lng] = point;
+      if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        errors.push('Invalid coordinates');
+        return errors;
+      }
+    }
+
+    // Check for duplicates
+    const uniquePoints = new Set(polygonPoints.map(p => `${p[0]},${p[1]}`));
+    if (uniquePoints.size !== polygonPoints.length) {
+      errors.push('Remove duplicate points');
+    }
+
+    // Check polygon is reasonably sized
+    const lats = polygonPoints.map(p => p[0]);
+    const lngs = polygonPoints.map(p => p[1]);
+    const latRange = Math.max(...lats) - Math.min(...lats);
+    const lngRange = Math.max(...lngs) - Math.min(...lngs);
+
+    if (latRange > 10 || lngRange > 10) {
+      errors.push('Area too large (max 10° × 10°)');
+    }
+
+    return errors;
+  };
+
   const handleCloseBoundary = () => {
-    if (points.length < 3) {
-      alert('Need at least 3 points to close the boundary');
+    const errors = validatePolygon(points);
+    if (errors.length > 0) {
+      alert('Cannot close boundary:\n' + errors.join('\n'));
       return;
     }
     setIsClosed(true);
   };
 
   const handleFinish = () => {
-    if (points.length < 3) {
-      alert('Need at least 3 points to create a boundary');
+    const errors = validatePolygon(points);
+    if (errors.length > 0) {
+      alert('Cannot save boundary:\n' + errors.join('\n'));
       return;
     }
     onFinish(points);
