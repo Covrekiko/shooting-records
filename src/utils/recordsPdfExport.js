@@ -391,19 +391,7 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
     });
   }
 
-  // Footer with compliance notice
-  yPosition += 5;
-  if (yPosition > pageHeight - 20) {
-    doc.addPage();
-    yPosition = margin;
-  }
-  
-  doc.setFontSize(7);
-  doc.setTextColor(100);
-  doc.setFont(undefined, 'italic');
-  doc.text('This document is an official record of shooting activities and is suitable for regulatory compliance.', margin, yPosition, { maxWidth: pageWidth - 2 * margin, align: 'center' });
-  yPosition += 4;
-  doc.text(`Report Generated: ${dateStr}`, margin, yPosition, { maxWidth: pageWidth - 2 * margin, align: 'center' });
+
 
   doc.save(fileName);
 }
@@ -785,19 +773,7 @@ function generateBase44Pdf(records, userInfo = null, rifles = {}) {
     });
   }
 
-  yPosition += 5;
-  if (yPosition > pageHeight - 20) {
-    doc.addPage();
-    yPosition = margin;
-  }
-  
-  doc.setFontSize(7);
-  doc.setTextColor(100);
-  doc.setFont(undefined, 'italic');
-  const dateStr2 = now.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
-  doc.text('This document is an official record of shooting activities and is suitable for regulatory compliance.', margin, yPosition, { maxWidth: pageWidth - 2 * margin, align: 'center' });
-  yPosition += 4;
-  doc.text(`Report Generated: ${dateStr2}`, margin, yPosition, { maxWidth: pageWidth - 2 * margin, align: 'center' });
+
 
   return doc;
 }
