@@ -50,6 +50,7 @@ export default function DeerStalkingMap() {
   const [drawnPolygon, setDrawnPolygon] = useState(null);
   const [searchMarker, setSearchMarker] = useState(null);
   const [selectedArea, setSelectedArea] = useState(null);
+  const [isDrawingArea, setIsDrawingArea] = useState(false);
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -122,7 +123,7 @@ export default function DeerStalkingMap() {
   };
 
   const handleRecenter = () => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || isDrawingArea) return;
     
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -257,12 +258,14 @@ export default function DeerStalkingMap() {
   };
 
   const handleStartAreaCreation = () => {
+    setIsDrawingArea(true);
     setShowAreaDrawer(true);
   };
 
   const handleFinishDrawing = (polygon) => {
     setDrawnPolygon(polygon);
     setShowAreaDrawer(false);
+    setIsDrawingArea(false);
     setShowAreaForm(true);
   };
 
@@ -272,6 +275,7 @@ export default function DeerStalkingMap() {
       setSelectedArea(area);
       setShowAreaForm(false);
       setDrawnPolygon(null);
+      setIsDrawingArea(false);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -565,16 +569,17 @@ export default function DeerStalkingMap() {
           )}
 
           {showAreaDrawer && (
-            <div className="fixed inset-0 z-[50001] w-full h-full">
-              <AreaDrawer
-                userLocation={userLocation}
-                onFinish={handleFinishDrawing}
-                onCancel={() => {
-                  setShowAreaDrawer(false);
-                  setDrawnPolygon(null);
-                }}
-              />
-            </div>
+           <div className="fixed inset-0 z-[50001] w-full h-full">
+             <AreaDrawer
+               userLocation={userLocation}
+               onFinish={handleFinishDrawing}
+               onCancel={() => {
+                 setShowAreaDrawer(false);
+                 setIsDrawingArea(false);
+                 setDrawnPolygon(null);
+               }}
+             />
+           </div>
           )}
 
           {showAreaForm && drawnPolygon && (
