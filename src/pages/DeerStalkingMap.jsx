@@ -55,6 +55,7 @@ export default function DeerStalkingMap() {
   const isDrawingAreaRef = useRef(false);
   const geoWatchIdRef = useRef(null);
   const frozenCenterRef = useRef(null);
+  const originalMapMethodsRef = useRef({});
 
   useEffect(() => {
     loadData();
@@ -331,6 +332,60 @@ export default function DeerStalkingMap() {
       console.log('❄️ MAP CENTER FROZEN:', frozenCenterRef.current);
     }
     
+    // HARD PROTECTION: Override all map movement methods
+    if (mapRef.current) {
+      const map = mapRef.current;
+      
+      // Store originals if not already stored
+      if (!originalMapMethodsRef.current.setView) {
+        originalMapMethodsRef.current.setView = map.setView.bind(map);
+        originalMapMethodsRef.current.panTo = map.panTo.bind(map);
+        originalMapMethodsRef.current.setCenter = map.setCenter ? map.setCenter.bind(map) : null;
+        originalMapMethodsRef.current.fitBounds = map.fitBounds.bind(map);
+        console.log('💾 Original map methods stored');
+      }
+      
+      // Override setView
+      map.setView = (...args) => {
+        if (isDrawingAreaRef.current) {
+          console.log('🚫 BLOCKED setView during drawing:', args);
+          return map;
+        }
+        return originalMapMethodsRef.current.setView(...args);
+      };
+      
+      // Override panTo
+      map.panTo = (...args) => {
+        if (isDrawingAreaRef.current) {
+          console.log('🚫 BLOCKED panTo during drawing:', args);
+          return map;
+        }
+        return originalMapMethodsRef.current.panTo(...args);
+      };
+      
+      // Override setCenter if it exists
+      if (originalMapMethodsRef.current.setCenter) {
+        map.setCenter = (...args) => {
+          if (isDrawingAreaRef.current) {
+            console.log('🚫 BLOCKED setCenter during drawing:', args);
+            return;
+          }
+          return originalMapMethodsRef.current.setCenter(...args);
+        };
+      }
+      
+      // Override fitBounds
+      map.fitBounds = (...args) => {
+        if (isDrawingAreaRef.current) {
+          console.log('🚫 BLOCKED fitBounds during drawing:', args);
+          return map;
+        }
+        return originalMapMethodsRef.current.fitBounds(...args);
+      };
+      
+      console.log('🔒 MAP METHODS LOCKED');
+    }
+    
     // Hard stop: clear any active geolocation watch
     if (geoWatchIdRef.current !== null) {
       console.log('🛑 CLEARING geolocation watch:', geoWatchIdRef.current);
@@ -354,6 +409,19 @@ export default function DeerStalkingMap() {
     isDrawingAreaRef.current = false;
     frozenCenterRef.current = null;
     console.log('❌ MAP CENTER UNFROZEN');
+    
+    // RESTORE original map methods
+    if (mapRef.current && originalMapMethodsRef.current.setView) {
+      const map = mapRef.current;
+      map.setView = originalMapMethodsRef.current.setView;
+      map.panTo = originalMapMethodsRef.current.panTo;
+      if (originalMapMethodsRef.current.setCenter) {
+        map.setCenter = originalMapMethodsRef.current.setCenter;
+      }
+      map.fitBounds = originalMapMethodsRef.current.fitBounds;
+      console.log('🔓 MAP METHODS UNLOCKED');
+    }
+    
     setShowAreaForm(true);
   };
 
@@ -365,6 +433,19 @@ export default function DeerStalkingMap() {
       setDrawnPolygon(null);
       setIsDrawingArea(false);
       isDrawingAreaRef.current = false;
+      
+      // RESTORE original map methods
+      if (mapRef.current && originalMapMethodsRef.current.setView) {
+        const map = mapRef.current;
+        map.setView = originalMapMethodsRef.current.setView;
+        map.panTo = originalMapMethodsRef.current.panTo;
+        if (originalMapMethodsRef.current.setCenter) {
+          map.setCenter = originalMapMethodsRef.current.setCenter;
+        }
+        map.fitBounds = originalMapMethodsRef.current.fitBounds;
+        console.log('🔓 MAP METHODS UNLOCKED');
+      }
+      
       setError(null);
     } catch (err) {
       setError(err.message);
