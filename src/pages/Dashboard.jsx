@@ -330,12 +330,12 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
 
 function StatCard({ icon, label, value, link }) {
   const content = (
-    <div className="flex items-start justify-between">
-      <div>
-        <p className="text-sm text-muted-foreground mb-2">{label}</p>
-        <p className="text-4xl font-bold text-primary">{value}</p>
+    <div className="flex items-start justify-between gap-2">
+      <div className="flex-1 min-w-0">
+        <p className="text-xs sm:text-sm text-muted-foreground mb-2">{label}</p>
+        <p className="text-3xl sm:text-4xl font-bold text-primary">{value}</p>
       </div>
-      <div className="text-muted-foreground cursor-pointer hover:text-primary transition-colors self-start">{icon}</div>
+      <div className="text-muted-foreground cursor-pointer hover:text-primary transition-colors flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 sm:[&_svg]:w-8 sm:[&_svg]:h-8 text-lg sm:text-2xl">{icon}</div>
     </div>
   );
 
