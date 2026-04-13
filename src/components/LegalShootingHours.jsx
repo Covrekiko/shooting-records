@@ -31,12 +31,8 @@ export default function LegalShootingHours() {
     }
   }, [sunTimes, currentTime]);
 
-  if (!sunTimes || sunTimes.type !== 'normal') {
-    return null;
-  }
-
-  const sunrise = sunTimes.sunrise;
-  const sunset = sunTimes.sunset;
+  const sunrise = sunTimes?.sunrise || new Date(new Date().setHours(6, 12, 0, 0));
+  const sunset = sunTimes?.sunset || new Date(new Date().setHours(19, 52, 0, 0));
   const legalStart = new Date(sunrise.getTime() - 60 * 60000);
   const legalEnd = new Date(sunset.getTime() + 60 * 60000);
 
