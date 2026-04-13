@@ -8,6 +8,8 @@ import {
   ClubActivityHeatmap,
   AdminActivityChart,
 } from '@/components/Charts';
+import { RoundsPerMonthChart } from '@/components/RoundsPerMonthChart';
+import { DeerSuccessRateChart } from '@/components/DeerSuccessRateChart';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
@@ -63,8 +65,10 @@ export default function Dashboard() {
           const monthlyData = getMonthlyData(targetShoots, clayShoots, deerMgmt);
           const firearmData = getFirearmData(targetShoots, clayShoots, rifles, shotguns);
           const locationData = getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations);
+          const roundsPerMonth = getRoundsPerMonth(targetShoots, clayShoots);
+          const deerSuccessRate = getDeerSuccessRate(deerMgmt);
 
-          setChartData({ monthly: monthlyData, firearm: firearmData, location: locationData });
+          setChartData({ monthly: monthlyData, firearm: firearmData, location: locationData, roundsPerMonth, deerSuccessRate });
         }
       } catch (error) {
         console.error('Error loading dashboard:', error);
@@ -172,7 +176,9 @@ export default function Dashboard() {
               </Link>
             </div>
             <MonthlyActivityChart data={chartData.monthly} />
+            <RoundsPerMonthChart data={chartData.roundsPerMonth} />
             <RoundsPerFirearmChart data={chartData.firearm} />
+            <DeerSuccessRateChart data={chartData.deerSuccessRate} />
             <ClubActivityHeatmap data={chartData.location} />
           </div>
         )}
@@ -226,6 +232,49 @@ function getFirearmData(targetShoots, clayShoots, rifles, shotguns) {
     .map(([name, rounds]) => ({ name, rounds }))
     .sort((a, b) => b.rounds - a.rounds)
     .slice(0, 8);
+}
+
+function getRoundsPerMonth(targetShoots, clayShoots) {
+  const monthlyMap = {};
+
+  targetShoots.forEach((record) => {
+    const date = new Date(record.date);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+    if (!monthlyMap[monthKey]) {
+      monthlyMap[monthKey] = { month: monthKey, rifle: 0, shotgun: 0 };
+    }
+    monthlyMap[monthKey].rifle += record.rounds_fired || 0;
+  });
+
+  clayShoots.forEach((record) => {
+    const date = new Date(record.date);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+    if (!monthlyMap[monthKey]) {
+      monthlyMap[monthKey] = { month: monthKey, rifle: 0, shotgun: 0 };
+    }
+    monthlyMap[monthKey].shotgun += record.rounds_fired || 0;
+  });
+
+  return Object.values(monthlyMap).sort((a, b) => a.month.localeCompare(b.month)).slice(-12);
+}
+
+function getDeerSuccessRate(deerMgmt) {
+  const speciesMap = {};
+
+  deerMgmt.forEach((record) => {
+    const species = record.deer_species || 'Other';
+    if (!speciesMap[species]) {
+      speciesMap[species] = { species, count: 0, successful: 0 };
+    }
+    speciesMap[species].count++;
+    if (record.number_shot && record.number_shot > 0) {
+      speciesMap[species].successful++;
+    }
+  });
+
+  return Object.values(speciesMap).sort((a, b) => b.count - a.count);
 }
 
 function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
