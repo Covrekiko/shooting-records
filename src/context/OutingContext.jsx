@@ -69,6 +69,37 @@ export function OutingProvider({ children }) {
     }
   };
 
+  const endOutingWithData = async (outingId, checkoutData, gpsTrack) => {
+    try {
+      // Update DeerOuting
+      await base44.entities.DeerOuting.update(outingId, {
+        end_time: new Date().toISOString(),
+        active: false,
+        gps_track: gpsTrack || [],
+      });
+
+      // Update DeerManagement with checkout data if it exists
+      if (checkoutData) {
+        const deerManagements = await base44.entities.DeerManagement.filter({
+          active_checkin: true,
+        });
+        if (deerManagements.length > 0) {
+          await base44.entities.DeerManagement.update(deerManagements[0].id, {
+            ...checkoutData,
+            active_checkin: false,
+            end_time: checkoutData.end_time || new Date().toTimeString().slice(0, 5),
+            gps_track: gpsTrack || [],
+          });
+        }
+      }
+      
+      setActiveOuting(null);
+    } catch (error) {
+      console.error('Error ending outing with data:', error);
+      throw error;
+    }
+  };
+
   const updateGpsTrack = async (outingId, track) => {
     try {
       await base44.entities.DeerOuting.update(outingId, {
@@ -86,6 +117,7 @@ export function OutingProvider({ children }) {
         loading,
         startOuting,
         endOuting,
+        endOutingWithData,
         updateGpsTrack,
         reload: loadActiveOuting,
       }}
