@@ -272,6 +272,12 @@ export default function DeerStalkingMap() {
       setSelectedArea(area);
       setShowAreaForm(false);
       setDrawnPolygon(null);
+      
+      // Pan to the newly created area
+      if (mapRef.current && area.center_point) {
+        mapRef.current.setView([area.center_point.lat, area.center_point.lng], 14);
+      }
+      
       setError(null);
     } catch (err) {
       setError(err.message);
