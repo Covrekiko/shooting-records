@@ -32,6 +32,7 @@ export default function DeerStalkingMap() {
   const [showPOI, setShowPOI] = useState(false);
   const [showHarvest, setShowHarvest] = useState(false);
   const [showOuting, setShowOuting] = useState(false);
+  const [focusedHarvestId, setFocusedHarvestId] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -190,8 +191,10 @@ export default function DeerStalkingMap() {
             key={harvest.id}
             position={[harvest.latitude, harvest.longitude]}
             icon={L.icon({
-              iconUrl: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23dc2626%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22/%3E%3C/svg%3E',
-              iconSize: [25, 25],
+              iconUrl: focusedHarvestId === harvest.id 
+                ? 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23fbbf24%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22/%3E%3C/svg%3E'
+                : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23dc2626%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22/%3E%3C/svg%3E',
+              iconSize: focusedHarvestId === harvest.id ? [35, 35] : [25, 25],
             })}
           >
             <Popup>
@@ -201,12 +204,18 @@ export default function DeerStalkingMap() {
                 {harvest.harvest_date && <p className="text-xs text-slate-600 mb-2"><strong>Date:</strong> {new Date(harvest.harvest_date).toLocaleDateString()}</p>}
                 {harvest.notes && <p className="text-xs mb-3">{harvest.notes}</p>}
                 {harvest.photos && harvest.photos.length > 0 && (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2 mb-2">
                     {harvest.photos.map((photo, idx) => (
                       <img key={idx} src={photo} alt="harvest" className="w-full h-20 object-cover rounded" />
                     ))}
                   </div>
                 )}
+                <button
+                  onClick={() => setFocusedHarvestId(focusedHarvestId === harvest.id ? null : harvest.id)}
+                  className="w-full mt-2 px-2 py-1 bg-primary text-white text-xs rounded hover:bg-primary/90"
+                >
+                  {focusedHarvestId === harvest.id ? 'Unpin' : 'Pin on Map'}
+                </button>
               </div>
             </Popup>
           </Marker>
