@@ -7,6 +7,7 @@ import FloatingActionBar from '@/components/deer-stalking/FloatingActionBar';
 import POIModal from '@/components/deer-stalking/POIModal';
 import HarvestModal from '@/components/deer-stalking/HarvestModal';
 import OutingModal from '@/components/deer-stalking/OutingModal';
+import MapClickHandler from '@/components/deer-stalking/MapClickHandler';
 import { AlertCircle, Home } from 'lucide-react';
 
 // Fix Leaflet default icons
@@ -171,12 +172,13 @@ export default function DeerStalkingMap() {
           center={userLocation}
           zoom={13}
           style={{ width: '100%', height: '100%' }}
-          onClick={handleMapClick}
           zoomControl={true}
         >
+        <MapClickHandler onMapClick={handleMapClick} isSelectionMode={!!waitingForPin} />
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; OpenStreetMap contributors'
+          interactive={false}
         />
 
         {/* User location */}
