@@ -1,6 +1,15 @@
-import { MapContainer, TileLayer, Polyline, CircleMarker, Popup } from 'react-leaflet';
+import { useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
 import { X } from 'lucide-react';
 import { format } from 'date-fns';
+
+function MapResizer() {
+  const map = useMap();
+  useEffect(() => {
+    setTimeout(() => map.invalidateSize(), 100);
+  }, [map]);
+  return null;
+}
 
 export default function GpsPathViewer({ track, onClose }) {
   if (!track || track.length === 0) {
@@ -65,7 +74,8 @@ export default function GpsPathViewer({ track, onClose }) {
         </div>
 
         <div className="flex-1 overflow-hidden" style={{ height: '500px', width: '100%' }}>
-          <MapContainer center={[center.lat, center.lng]} zoom={15} style={{ width: '100%', height: '100%' }} key={`map-${center.lat}-${center.lng}`}>
+          <MapContainer center={[center.lat, center.lng]} zoom={15} style={{ width: '100%', height: '100%' }}>
+            <MapResizer />
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; OpenStreetMap'
