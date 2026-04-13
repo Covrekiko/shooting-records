@@ -2,40 +2,12 @@
   "name": "User",
   "type": "object",
   "properties": {
-    "role": {
+    "date_of_birth": {
       "type": "string",
-      "enum": [
-        "admin",
-        "user"
-      ],
-      "default": "user"
-    },
-    "phone": {
-      "type": "string"
+      "format": "date"
     },
     "address": {
       "type": "string"
-    },
-    "vehicle_make": {
-      "type": "string"
-    },
-    "vehicle_model": {
-      "type": "string"
-    },
-    "vehicle_color": {
-      "type": "string"
-    },
-    "vehicle_registration": {
-      "type": "string"
-    },
-    "status": {
-      "type": "string",
-      "enum": [
-        "active",
-        "suspended",
-        "banned"
-      ],
-      "default": "active"
     }
   }
 }

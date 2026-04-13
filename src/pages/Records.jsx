@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { Download, Eye, Trash2, X } from 'lucide-react';
+import { format } from 'date-fns';
 import { exportRecordsToPdf } from '@/utils/recordsPdfExport';
 
 export default function Records() {
@@ -10,6 +11,7 @@ export default function Records() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [viewingRecord, setViewingRecord] = useState(null);
+  const [users, setUsers] = useState({});
 
   const [filters, setFilters] = useState({
     type: 'all',
@@ -29,6 +31,14 @@ export default function Records() {
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+      
+      // Load all users for record display
+      const allUsers = await base44.entities.User.list();
+      const userMap = {};
+      allUsers.forEach(u => {
+        userMap[u.email] = u;
+      });
+      setUsers(userMap);
 
       let query = {};
       if (currentUser.role !== 'admin') {
@@ -159,7 +169,7 @@ export default function Records() {
         ) : (
           <div className="space-y-3">
             {filteredRecords.map((record) => (
-              <RecordCard key={record.id} record={record} onDelete={handleDelete} user={user} onView={setViewingRecord} />
+              <RecordCard key={record.id} record={record} onDelete={handleDelete} user={user} onView={setViewingRecord} recordUser={users[record.created_by]} />
             ))}
           </div>
         )}
@@ -172,7 +182,7 @@ export default function Records() {
   );
 }
 
-function RecordCard({ record, onDelete, user, onView }) {
+function RecordCard({ record, onDelete, user, onView, recordUser }) {
   const getRecordTitle = () => {
     if (record.recordType === 'target') return `Target Shooting - ${record.rounds_fired} rounds`;
     if (record.recordType === 'clay') return `Clay Shooting - ${record.rounds_fired} rounds`;
@@ -180,24 +190,42 @@ function RecordCard({ record, onDelete, user, onView }) {
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4 flex items-start justify-between">
-      <div className="flex-1">
-        <h3 className="font-semibold text-lg">{getRecordTitle()}</h3>
-        <p className="text-sm text-muted-foreground">{record.date} • {getBadgeLabel(record.recordType)}</p>
-      </div>
-      <div className="flex gap-2">
-        <button
-          onClick={() => onView(record)}
-          className="px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center gap-1"
-        >
-          <Eye className="w-4 h-4" />
-        </button>
-        <button
-          onClick={() => onDelete(record.id, record.recordType)}
-          className="px-3 py-1 text-sm bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded transition-colors flex items-center gap-1"
-        >
-          <Trash2 className="w-4 h-4" />
-        </button>
+    <div className="bg-card border border-border rounded-lg p-4">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <h3 className="font-semibold text-lg">{getRecordTitle()}</h3>
+          <p className="text-sm text-muted-foreground mb-2">{record.date} • {getBadgeLabel(record.recordType)}</p>
+          {recordUser && (
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p><span className="font-medium">User:</span> {recordUser.full_name}</p>
+              {recordUser.date_of_birth && (
+                <p><span className="font-medium">DOB:</span> {format(new Date(recordUser.date_of_birth), 'dd/MM/yyyy')}</p>
+              )}
+              {recordUser.address && (
+                <p><span className="font-medium">Address:</span> {recordUser.address}</p>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2 flex-shrink-0">
+          {record.photos && record.photos.length > 0 && (
+            <img src={record.photos[0]} alt="record" className="w-20 h-20 object-cover rounded" />
+          )}
+          <div className="flex gap-2">
+            <button
+              onClick={() => onView(record)}
+              className="px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center gap-1"
+            >
+              <Eye className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => onDelete(record.id, record.recordType)}
+              className="px-3 py-1 text-sm bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded transition-colors flex items-center gap-1"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -216,6 +244,17 @@ function RecordModal({ record, onClose }) {
             <X className="w-6 h-6" />
           </button>
         </div>
+        
+        {record.photos && record.photos.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs font-semibold text-muted-foreground mb-2">Photos</p>
+            <div className="flex flex-wrap gap-2">
+              {record.photos.map((photo, idx) => (
+                <img key={idx} src={photo} alt="record" className="h-24 w-24 object-cover rounded" />
+              ))}
+            </div>
+          </div>
+        )}
         
         <div className="space-y-3 text-sm">
           <div>
