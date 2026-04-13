@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Activity, Zap, Target, MapPin, BarChart3, Crosshair, BookOpen, Wind } from 'lucide-react';
+import { Activity, Zap, Target, MapPin, BarChart3, Crosshair, BookOpen } from 'lucide-react';
 
 import {
   MonthlyActivityChart,
@@ -117,7 +117,7 @@ export default function Dashboard() {
               link="/target-shooting"
             />
             <StatCard
-              icon={<Wind className="w-8 h-8" />}
+              icon={<span className="text-2xl">🔫</span>}
               label="Clay Shooting"
               value={stats?.clayRecords || 0}
               link="/clay-shooting"
@@ -138,7 +138,7 @@ export default function Dashboard() {
               link="/target-shooting"
             />
             <StatCard
-              icon={<Wind className="w-8 h-8" />}
+              icon={<span className="text-2xl">🔫</span>}
               label="Clay Shooting Sessions"
               value={stats?.claySessions || 0}
               link="/clay-shooting"
