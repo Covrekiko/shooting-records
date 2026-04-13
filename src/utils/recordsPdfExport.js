@@ -148,7 +148,7 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
   yPosition += 8;
 
   records.forEach((record, idx) => {
-    if (yPosition > pageHeight - 50) {
+    if (yPosition > pageHeight - 80) {
       doc.addPage();
       yPosition = margin;
     }
@@ -282,7 +282,7 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
   yPosition += 8;
 
   records.forEach((record, idx) => {
-    if (yPosition > pageHeight - 50) {
+    if (yPosition > pageHeight - 80) {
       doc.addPage();
       yPosition = margin;
     }
@@ -412,7 +412,7 @@ function renderDeerManagementSection(doc, records, startY, pageWidth, pageHeight
   yPosition += 8;
 
   records.forEach((record, idx) => {
-    if (yPosition > pageHeight - 50) {
+    if (yPosition > pageHeight - 80) {
       doc.addPage();
       yPosition = margin;
     }
