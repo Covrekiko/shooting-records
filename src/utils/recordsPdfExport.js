@@ -229,35 +229,6 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
     doc.text(`Session ${idx + 1}: ${record.date}`, margin, yPosition);
     yPosition += 6;
 
-    // Session photos
-    if (record.photos && record.photos.length > 0) {
-      const photoSize = 18;
-      const photosPerRow = Math.floor((pageWidth - 2 * margin) / (photoSize + 4));
-      let photoX = margin;
-      let photoY = yPosition;
-      let photoCount = 0;
-
-      record.photos.forEach((photo) => {
-        if (photoCount > 0 && photoCount % photosPerRow === 0) {
-          photoY += photoSize + 4;
-          photoX = margin;
-        }
-
-        try {
-          doc.addImage(photo, 'JPEG', photoX, photoY, photoSize, photoSize);
-        } catch (e) {
-          // If image fails to load, draw empty box
-          doc.setDrawColor(...STYLES.lightGray);
-          doc.rect(photoX, photoY, photoSize, photoSize);
-        }
-
-        photoX += photoSize + 4;
-        photoCount++;
-      });
-
-      yPosition = photoY + photoSize + 4;
-    }
-
     // Venue
     if (record.club_id && clubs[record.club_id]) {
       doc.setFontSize(9);
@@ -358,6 +329,35 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
       }
     }
 
+    // Session photos
+    if (record.photos && record.photos.length > 0) {
+      const photoSize = 18;
+      const photosPerRow = Math.floor((pageWidth - 2 * margin) / (photoSize + 4));
+      let photoX = margin;
+      let photoY = yPosition;
+      let photoCount = 0;
+
+      record.photos.forEach((photo) => {
+        if (photoCount > 0 && photoCount % photosPerRow === 0) {
+          photoY += photoSize + 4;
+          photoX = margin;
+        }
+
+        try {
+          doc.addImage(photo, 'JPEG', photoX, photoY, photoSize, photoSize);
+        } catch (e) {
+          // If image fails to load, draw empty box
+          doc.setDrawColor(...STYLES.lightGray);
+          doc.rect(photoX, photoY, photoSize, photoSize);
+        }
+
+        photoX += photoSize + 4;
+        photoCount++;
+      });
+
+      yPosition = photoY + photoSize + 4;
+    }
+
     doc.setDrawColor(200, 200, 200);
     doc.line(margin, yPosition, pageWidth - margin, yPosition);
     yPosition += 6;
@@ -392,35 +392,6 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
     doc.setTextColor(...STYLES.headingColor);
     doc.text(`Session ${idx + 1}: ${record.date}`, margin, yPosition);
     yPosition += 6;
-
-    // Session photos
-    if (record.photos && record.photos.length > 0) {
-      const photoSize = 18;
-      const photosPerRow = Math.floor((pageWidth - 2 * margin) / (photoSize + 4));
-      let photoX = margin;
-      let photoY = yPosition;
-      let photoCount = 0;
-
-      record.photos.forEach((photo) => {
-        if (photoCount > 0 && photoCount % photosPerRow === 0) {
-          photoY += photoSize + 4;
-          photoX = margin;
-        }
-
-        try {
-          doc.addImage(photo, 'JPEG', photoX, photoY, photoSize, photoSize);
-        } catch (e) {
-          // If image fails to load, draw empty box
-          doc.setDrawColor(...STYLES.lightGray);
-          doc.rect(photoX, photoY, photoSize, photoSize);
-        }
-
-        photoX += photoSize + 4;
-        photoCount++;
-      });
-
-      yPosition = photoY + photoSize + 4;
-    }
 
     if (record.club_id && clubs[record.club_id]) {
       doc.setFontSize(9);
@@ -519,6 +490,35 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
       }
     }
 
+    // Session photos
+    if (record.photos && record.photos.length > 0) {
+      const photoSize = 18;
+      const photosPerRow = Math.floor((pageWidth - 2 * margin) / (photoSize + 4));
+      let photoX = margin;
+      let photoY = yPosition;
+      let photoCount = 0;
+
+      record.photos.forEach((photo) => {
+        if (photoCount > 0 && photoCount % photosPerRow === 0) {
+          photoY += photoSize + 4;
+          photoX = margin;
+        }
+
+        try {
+          doc.addImage(photo, 'JPEG', photoX, photoY, photoSize, photoSize);
+        } catch (e) {
+          // If image fails to load, draw empty box
+          doc.setDrawColor(...STYLES.lightGray);
+          doc.rect(photoX, photoY, photoSize, photoSize);
+        }
+
+        photoX += photoSize + 4;
+        photoCount++;
+      });
+
+      yPosition = photoY + photoSize + 4;
+    }
+
     doc.setDrawColor(200, 200, 200);
     doc.line(margin, yPosition, pageWidth - margin, yPosition);
     yPosition += 6;
@@ -553,35 +553,6 @@ function renderDeerManagementSection(doc, records, startY, pageWidth, pageHeight
     doc.setTextColor(...STYLES.headingColor);
     doc.text(`Activity ${idx + 1}: ${record.date}`, margin, yPosition);
     yPosition += 6;
-
-    // Session photos
-    if (record.photos && record.photos.length > 0) {
-      const photoSize = 18;
-      const photosPerRow = Math.floor((pageWidth - 2 * margin) / (photoSize + 4));
-      let photoX = margin;
-      let photoY = yPosition;
-      let photoCount = 0;
-
-      record.photos.forEach((photo) => {
-        if (photoCount > 0 && photoCount % photosPerRow === 0) {
-          photoY += photoSize + 4;
-          photoX = margin;
-        }
-
-        try {
-          doc.addImage(photo, 'JPEG', photoX, photoY, photoSize, photoSize);
-        } catch (e) {
-          // If image fails to load, draw empty box
-          doc.setDrawColor(...STYLES.lightGray);
-          doc.rect(photoX, photoY, photoSize, photoSize);
-        }
-
-        photoX += photoSize + 4;
-        photoCount++;
-      });
-
-      yPosition = photoY + photoSize + 4;
-    }
 
     doc.setFontSize(9);
     doc.setFont(undefined, 'bold');
@@ -699,7 +670,37 @@ function renderDeerManagementSection(doc, records, startY, pageWidth, pageHeight
       }
     }
 
+    // Session photos
+    if (record.photos && record.photos.length > 0) {
+      const photoSize = 18;
+      const photosPerRow = Math.floor((pageWidth - 2 * margin) / (photoSize + 4));
+      let photoX = margin;
+      let photoY = yPosition;
+      let photoCount = 0;
+
+      record.photos.forEach((photo) => {
+        if (photoCount > 0 && photoCount % photosPerRow === 0) {
+          photoY += photoSize + 4;
+          photoX = margin;
+        }
+
+        try {
+          doc.addImage(photo, 'JPEG', photoX, photoY, photoSize, photoSize);
+        } catch (e) {
+          // If image fails to load, draw empty box
+          doc.setDrawColor(...STYLES.lightGray);
+          doc.rect(photoX, photoY, photoSize, photoSize);
+        }
+
+        photoX += photoSize + 4;
+        photoCount++;
+      });
+
+      yPosition = photoY + photoSize + 4;
+    }
+
     doc.setDrawColor(200, 200, 200);
+
     doc.line(margin, yPosition, pageWidth - margin, yPosition);
     yPosition += 6;
   });
