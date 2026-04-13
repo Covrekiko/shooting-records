@@ -89,7 +89,7 @@ export default function MapSearchBar({ onSearch, onError }) {
   };
 
   return (
-    <form onSubmit={handleSearch} className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9998] w-full max-w-2xl px-4 pointer-events-auto">
+    <form onSubmit={handleSearch} className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9998] w-96 max-w-[calc(100%-1rem)] pointer-events-auto">
       <div className="bg-card rounded-lg shadow-lg overflow-hidden border border-border">
         {/* Search Input */}
         <div className="flex items-center gap-2 px-3 py-2">
