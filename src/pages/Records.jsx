@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Download, Eye, Trash2, X, FileText } from 'lucide-react';
+import GpsPathViewer from '@/components/GpsPathViewer';
+import { Download, Eye, Trash2, X, FileText, Map } from 'lucide-react';
 import { format } from 'date-fns';
 import { exportRecordsToPdf, getRecordsPdfBlob } from '@/utils/recordsPdfExport';
 
@@ -13,6 +14,7 @@ export default function Records() {
   const [viewingRecord, setViewingRecord] = useState(null);
   const [users, setUsers] = useState({});
   const [previewingPdf, setPreviewingPdf] = useState(null);
+  const [viewingTrack, setViewingTrack] = useState(null);
 
   const [filters, setFilters] = useState({
     type: 'all',
@@ -179,7 +181,7 @@ export default function Records() {
         ) : (
           <div className="space-y-3">
             {filteredRecords.map((record) => (
-              <RecordCard key={record.id} record={record} onDelete={handleDelete} user={user} onView={setViewingRecord} recordUser={users[record.created_by]} />
+              <RecordCard key={record.id} record={record} onDelete={handleDelete} user={user} onView={setViewingRecord} recordUser={users[record.created_by]} onViewTrack={setViewingTrack} />
             ))}
           </div>
         )}
@@ -191,12 +193,16 @@ export default function Records() {
         {previewingPdf && (
           <PdfPreviewModal records={previewingPdf} userInfo={user} onClose={() => setPreviewingPdf(null)} />
         )}
+        
+        {viewingTrack && (
+          <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />
+        )}
       </main>
     </div>
   );
 }
 
-function RecordCard({ record, onDelete, user, onView, recordUser }) {
+function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack }) {
   const getRecordTitle = () => {
     if (record.recordType === 'target') return `Target Shooting - ${record.rounds_fired} rounds`;
     if (record.recordType === 'clay') return `Clay Shooting - ${record.rounds_fired} rounds`;
@@ -232,6 +238,14 @@ function RecordCard({ record, onDelete, user, onView, recordUser }) {
             >
               <Eye className="w-4 h-4" />
             </button>
+            {record.gps_track && record.gps_track.length > 0 && (
+              <button
+                onClick={() => onViewTrack(record.gps_track)}
+                className="px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center gap-1"
+              >
+                <Map className="w-4 h-4" />
+              </button>
+            )}
             <button
               onClick={() => onDelete(record.id, record.recordType)}
               className="px-3 py-1 text-sm bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded transition-colors flex items-center gap-1"

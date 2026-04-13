@@ -32,6 +32,23 @@
         "type": "string"
       }
     },
+    "gps_track": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number"
+          },
+          "lng": {
+            "type": "number"
+          },
+          "timestamp": {
+            "type": "number"
+          }
+        }
+      }
+    },
     "active_checkin": {
       "type": "boolean",
       "default": false

@@ -3,8 +3,10 @@ import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
+import { useGpsTracking } from '@/hooks/useGpsTracking';
 import LocationMap from '@/components/LocationMap';
 import BoundaryMapViewer from '@/components/BoundaryMapViewer';
+import GpsPathViewer from '@/components/GpsPathViewer';
 import { Plus, Clock, Map } from 'lucide-react';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
@@ -19,6 +21,8 @@ export default function DeerManagement() {
   const { location } = useGeolocation();
   const [nearbyLocation, setNearbyLocation] = useState(null);
   const [showLocationMap, setShowLocationMap] = useState(false);
+  const gpsTrack = useGpsTracking(!!activeSession);
+  const [viewingTrack, setViewingTrack] = useState(null);
 
   const [checkinData, setCheckinData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -111,7 +115,7 @@ export default function DeerManagement() {
   const handleCheckout = async (e) => {
     e.preventDefault();
     try {
-      const submitData = { ...checkoutData, active_checkin: false };
+      const submitData = { ...checkoutData, active_checkin: false, gps_track: gpsTrack };
       if (!checkoutData.shot_anything) {
         submitData.number_shot = null;
         submitData.deer_species = null;
@@ -221,6 +225,10 @@ export default function DeerManagement() {
             center={activeSession.location ? activeSession.location.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/) ? [parseFloat(activeSession.location.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/)[1]), parseFloat(activeSession.location.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/)[2])] : null : null}
             onClose={() => setShowLocationMap(false)}
           />
+        )}
+
+        {viewingTrack && (
+          <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />
         )}
 
         {showCheckin && (

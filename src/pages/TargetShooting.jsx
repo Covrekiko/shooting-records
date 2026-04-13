@@ -3,6 +3,8 @@ import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
+import { useGpsTracking } from '@/hooks/useGpsTracking';
+import GpsPathViewer from '@/components/GpsPathViewer';
 import { Clock, CheckCircle, Plus } from 'lucide-react';
 
 export default function TargetShooting() {
@@ -15,6 +17,8 @@ export default function TargetShooting() {
   const [user, setUser] = useState(null);
   const { location } = useGeolocation();
   const [nearbyClub, setNearbyClub] = useState(null);
+  const gpsTrack = useGpsTracking(!!activeSession);
+  const [viewingTrack, setViewingTrack] = useState(null);
 
   const [checkinData, setCheckinData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -109,6 +113,7 @@ export default function TargetShooting() {
       await base44.entities.TargetShooting.update(activeSession.id, {
         ...checkoutData,
         active_checkin: false,
+        gps_track: gpsTrack,
       });
       setActiveSession(null);
       setShowCheckout(false);
@@ -198,7 +203,11 @@ export default function TargetShooting() {
           />
         )}
 
-        {/* Check-out Modal */}
+        {/* GPS Track Viewer */}
+        {viewingTrack && (
+          <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />
+        )}
+
         {showCheckout && activeSession && (
           <CheckoutModal
             data={checkoutData}
