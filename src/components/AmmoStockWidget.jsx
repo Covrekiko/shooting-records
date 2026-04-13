@@ -73,7 +73,7 @@ export default function AmmoStockWidget() {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Total Value:</span>
-              <span className="font-semibold">${totalValue.toFixed(2)}</span>
+              <span className="font-semibold">£{totalValue.toFixed(2)}</span>
             </div>
             <div className="pt-2 border-t border-border">
               <p className="text-xs text-muted-foreground mb-2">Top 3 in Stock:</p>

@@ -268,7 +268,7 @@ export default function AmmunitionInventory() {
                       </p>
                       {item.cost_per_unit > 0 && (
                         <p>
-                          <span className="font-medium">Cost:</span> ${item.cost_per_unit.toFixed(2)} per {item.units === 'rounds' ? 'round' : 'box'} (Total: ${(item.quantity_in_stock * item.cost_per_unit).toFixed(2)})
+                          <span className="font-medium">Cost:</span> £{item.cost_per_unit.toFixed(2)} per {item.units === 'rounds' ? 'round' : 'box'} (Total: £{(item.quantity_in_stock * item.cost_per_unit).toFixed(2)})
                         </p>
                       )}
                       {item.date_purchased && (
