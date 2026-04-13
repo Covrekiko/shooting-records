@@ -9,7 +9,7 @@ import POIModal from '@/components/deer-stalking/POIModal';
 import HarvestModal from '@/components/deer-stalking/HarvestModal';
 import OutingModal from '@/components/deer-stalking/OutingModal';
 import MapClickHandler from '@/components/deer-stalking/MapClickHandler';
-import { AlertCircle, Home } from 'lucide-react';
+import { AlertCircle, Home, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
@@ -502,9 +502,18 @@ export default function DeerStalkingMap() {
       )}
 
       {error && (
-        <div className="fixed top-4 left-4 right-4 z-[9998] bg-red-500 text-white p-3 rounded-lg flex items-center gap-2 pointer-events-auto">
-          <AlertCircle className="w-4 h-4" />
-          {error}
+        <div className="fixed top-4 left-4 right-4 z-[9998] bg-red-500 text-white p-3 rounded-lg flex items-center gap-2 justify-between pointer-events-auto">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+          <button
+            onClick={() => setError(null)}
+            className="flex-shrink-0 text-white hover:text-red-100 transition-colors"
+            aria-label="Close error"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
       )}
 
