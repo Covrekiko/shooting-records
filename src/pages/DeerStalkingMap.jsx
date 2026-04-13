@@ -123,15 +123,19 @@ export default function DeerStalkingMap() {
   };
 
   const handleRecenter = () => {
+    console.log('🔵 handleRecenter clicked - isDrawingArea:', isDrawingArea);
     if (!mapRef.current || isDrawingArea) return;
     
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
+        console.log('🔵 Current position:', { latitude, longitude });
         mapRef.current.setView([latitude, longitude], 16);
         setUserLocation([latitude, longitude]);
+        console.log('🔵 Map centered to:', { latitude, longitude });
       },
       (error) => {
+        console.error('🔵 Geolocation error:', error);
         let errorMsg = 'Unable to get location';
         if (error.code === error.PERMISSION_DENIED) {
           errorMsg = 'Location permission denied';
@@ -139,7 +143,8 @@ export default function DeerStalkingMap() {
           errorMsg = 'Location unavailable';
         }
         setError(errorMsg);
-      }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   };
 
