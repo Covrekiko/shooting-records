@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Settings, ChevronDown } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 
 export default function Navigation() {
@@ -8,6 +8,20 @@ export default function Navigation() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [user, setUser] = useState(null);
   const location = useLocation();
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setProfileOpen(false);
+      }
+    }
+
+    if (profileOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [profileOpen]);
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -61,7 +75,7 @@ export default function Navigation() {
               Admin
             </Link>
           )}
-          <div className="relative">
+          <div className="relative" ref={profileRef}>
             <button
               onClick={() => setProfileOpen(!profileOpen)}
               className={`text-sm font-medium transition-colors flex items-center gap-1 ${
@@ -71,7 +85,9 @@ export default function Navigation() {
               }`}
             >
               Profile
-              <ChevronDown className="w-4 h-4" />
+              <ChevronDown className={`w-4 h-4 transition-transform ${
+                profileOpen ? 'rotate-180' : ''
+              }`} />
             </button>
             {profileOpen && (
               <div className="absolute right-0 mt-2 w-40 bg-card border border-border rounded-lg shadow-lg z-50">
