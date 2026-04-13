@@ -35,6 +35,23 @@
     "number_shot": {
       "type": "integer"
     },
+    "species_list": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "species": {
+            "type": "string"
+          },
+          "count": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "total_count": {
+      "type": "string"
+    },
     "rifle_id": {
       "type": "string"
     },
