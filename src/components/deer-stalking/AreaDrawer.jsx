@@ -1,7 +1,16 @@
-import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon, useMapEvents } from 'react-leaflet';
+import { useState, useEffect, useRef } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Undo, X, Check, Lock } from 'lucide-react';
+
+function SetInitialView({ center, zoom }) {
+  const map = useMap();
+  useEffect(() => {
+    // Set the map view only on initial mount, preserving parent map state
+    map.setView(center, zoom);
+  }, []);
+  return null;
+}
 
 function DrawingMap({ points, onAddPoint, onUndo, onCancel, onFinish }) {
   useMapEvents({
@@ -13,9 +22,10 @@ function DrawingMap({ points, onAddPoint, onUndo, onCancel, onFinish }) {
   return null;
 }
 
-export default function AreaDrawer({ userLocation, onFinish, onCancel }) {
+export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter, mapZoom }) {
   const [points, setPoints] = useState([]);
   const [isClosed, setIsClosed] = useState(false);
+  const mapRef = useRef(null);
 
   const handleAddPoint = (point) => {
     // If boundary is closed, don't add new points
@@ -49,9 +59,10 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel }) {
     <>
       {/* Drawing Map */}
       <MapContainer
-        center={userLocation}
-        zoom={13}
+        center={mapCenter || [51.5, -0.1]}
+        zoom={mapZoom || 13}
         style={{ width: '100%', height: '100%', zIndex: 10 }}
+        ref={mapRef}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

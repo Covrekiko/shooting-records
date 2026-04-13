@@ -50,6 +50,7 @@ export default function DeerStalkingMap() {
   const [drawnPolygon, setDrawnPolygon] = useState(null);
   const [searchMarker, setSearchMarker] = useState(null);
   const [selectedArea, setSelectedArea] = useState(null);
+  const [areaBounds, setAreaBounds] = useState(null);
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -257,6 +258,10 @@ export default function DeerStalkingMap() {
   };
 
   const handleStartAreaCreation = () => {
+    const currentCenter = mapRef.current?.getCenter();
+    const currentZoom = mapRef.current?.getZoom();
+    console.log('🔴 Create Area clicked - preserving map view. Center:', currentCenter, 'Zoom:', currentZoom);
+    setAreaBounds({ center: [currentCenter.lat, currentCenter.lng], zoom: currentZoom });
     setShowAreaDrawer(true);
   };
 
@@ -568,10 +573,13 @@ export default function DeerStalkingMap() {
             <div className="fixed inset-0 z-[50001] w-full h-full">
               <AreaDrawer
                 userLocation={userLocation}
+                mapCenter={areaBounds?.center}
+                mapZoom={areaBounds?.zoom}
                 onFinish={handleFinishDrawing}
                 onCancel={() => {
                   setShowAreaDrawer(false);
                   setDrawnPolygon(null);
+                  setAreaBounds(null);
                 }}
               />
             </div>
