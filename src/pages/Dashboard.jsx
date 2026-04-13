@@ -318,7 +318,7 @@ function StatCard({ icon, label, value, link }) {
         <p className="text-sm text-muted-foreground mb-2">{label}</p>
         <p className="text-4xl font-bold text-primary">{value}</p>
       </div>
-      <div className="text-muted-foreground cursor-pointer hover:text-primary transition-colors">{icon}</div>
+      <div className="text-muted-foreground cursor-pointer hover:text-primary transition-colors self-start">{icon}</div>
     </div>
   );
 
