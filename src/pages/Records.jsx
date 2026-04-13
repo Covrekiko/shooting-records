@@ -586,6 +586,18 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
           </>
         )}
 
+        {/* Photos Section */}
+        {record.photos && record.photos.length > 0 && (
+          <div className="mb-6 pb-4 border-b border-border">
+            <h3 className="font-bold text-lg mb-3 text-primary">Photos</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {record.photos.map((photo, idx) => (
+                <img key={idx} src={photo} alt="Session photo" className="rounded-lg w-full h-40 object-cover" />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Notes Section */}
         {record.notes && (
           <div className="mb-6 pb-4 border-b border-border">

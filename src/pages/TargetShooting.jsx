@@ -334,12 +334,13 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
 async function handlePhotoUpload(files, data, onChange) {
   if (!files || files.length === 0) return;
   
-  for (const file of files) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      onChange('photos', [...(data.photos || []), e.target.result]);
-    };
-    reader.readAsDataURL(file);
+  try {
+    for (const file of files) {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      onChange('photos', [...(data.photos || []), file_url]);
+    }
+  } catch (error) {
+    console.error('Photo upload error:', error);
   }
 }
 
