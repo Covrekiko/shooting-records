@@ -1,10 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Settings } from 'lucide-react';
+import { Menu, X, Settings, ChevronDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 
 export default function Navigation() {
   const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [user, setUser] = useState(null);
   const location = useLocation();
 
@@ -19,7 +20,6 @@ export default function Navigation() {
     { path: '/target-shooting', label: 'Target Shooting' },
     { path: '/clay-shooting', label: 'Clay Shooting' },
     { path: '/deer-management', label: 'Deer Management' },
-    { path: '/reports', label: 'Reports' },
   ];
 
   return (
@@ -61,16 +61,45 @@ export default function Navigation() {
               Admin
             </Link>
           )}
-          <Link
-            to="/profile"
-            className={`text-sm font-medium transition-colors ${
-              isActive('/profile')
-                ? 'text-primary'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Profile
-          </Link>
+          <div className="relative">
+            <button
+              onClick={() => setProfileOpen(!profileOpen)}
+              className={`text-sm font-medium transition-colors flex items-center gap-1 ${
+                isActive('/profile') || isActive('/reports')
+                  ? 'text-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Profile
+              <ChevronDown className="w-4 h-4" />
+            </button>
+            {profileOpen && (
+              <div className="absolute right-0 mt-2 w-40 bg-card border border-border rounded-lg shadow-lg z-50">
+                <Link
+                  to="/profile"
+                  onClick={() => setProfileOpen(false)}
+                  className={`block px-4 py-2 text-sm font-medium rounded-t-lg ${
+                    isActive('/profile')
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-foreground hover:bg-secondary'
+                  }`}
+                >
+                  Profile
+                </Link>
+                <Link
+                  to="/reports"
+                  onClick={() => setProfileOpen(false)}
+                  className={`block px-4 py-2 text-sm font-medium rounded-b-lg ${
+                    isActive('/reports')
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-foreground hover:bg-secondary'
+                  }`}
+                >
+                  Reports
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Mobile Menu Button */}
@@ -104,29 +133,40 @@ export default function Navigation() {
                 );
               })}
               {user?.role === 'admin' && (
-                <Link
-                  to="/admin/users"
-                  onClick={() => setOpen(false)}
-                  className={`text-sm font-medium py-2 px-3 rounded transition-colors flex items-center gap-1 ${
-                    isActive('/admin/users')
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-foreground hover:bg-secondary'
-                  }`}
-                >
-                  <Settings className="w-4 h-4" />
-                  Admin
-                </Link>
+               <Link
+                 to="/admin/users"
+                 onClick={() => setOpen(false)}
+                 className={`text-sm font-medium py-2 px-3 rounded transition-colors flex items-center gap-1 ${
+                   isActive('/admin/users')
+                     ? 'bg-primary text-primary-foreground'
+                     : 'text-foreground hover:bg-secondary'
+                 }`}
+               >
+                 <Settings className="w-4 h-4" />
+                 Admin
+               </Link>
               )}
               <Link
-                to="/profile"
-                onClick={() => setOpen(false)}
-                className={`text-sm font-medium py-2 px-3 rounded transition-colors ${
-                  isActive('/profile')
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-foreground hover:bg-secondary'
-                }`}
+               to="/profile"
+               onClick={() => setOpen(false)}
+               className={`text-sm font-medium py-2 px-3 rounded transition-colors ${
+                 isActive('/profile')
+                   ? 'bg-primary text-primary-foreground'
+                   : 'text-foreground hover:bg-secondary'
+               }`}
               >
-                Profile
+               Profile
+              </Link>
+              <Link
+               to="/reports"
+               onClick={() => setOpen(false)}
+               className={`text-sm font-medium py-2 px-3 rounded transition-colors ${
+                 isActive('/reports')
+                   ? 'bg-primary text-primary-foreground'
+                   : 'text-foreground hover:bg-secondary'
+               }`}
+              >
+               Reports
               </Link>
             </div>
           </div>
