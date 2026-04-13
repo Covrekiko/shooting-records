@@ -21,6 +21,9 @@ export default function Locations() {
     photos: [],
   });
   const [addressError, setAddressError] = useState('');
+  const [addressInput, setAddressInput] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   useEffect(() => {
     loadLocations();
@@ -36,6 +39,47 @@ export default function Locations() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchAddressSuggestions = async (query) => {
+    if (query.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+    setLoadingSuggestions(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&countrycodes=gb`
+      );
+      const results = await response.json();
+      setSuggestions(results);
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      setSuggestions([]);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
+  const handleAddressInputChange = (value) => {
+    setAddressInput(value);
+    fetchAddressSuggestions(value);
+  };
+
+  const selectAddress = (suggestion) => {
+    const { lat, lon, address } = suggestion;
+    setFormData({
+      ...formData,
+      latitude: parseFloat(lat).toFixed(6),
+      longitude: parseFloat(lon).toFixed(6),
+      address_number: address.house_number || '',
+      address_street: address.road || '',
+      city: address.town || address.city || '',
+      postcode: address.postcode || '',
+    });
+    setAddressInput('');
+    setSuggestions([]);
+    setAddressError('');
   };
 
   const validateAddress = async () => {
@@ -103,6 +147,8 @@ export default function Locations() {
         notes: '',
         photos: [],
       });
+      setAddressInput('');
+      setSuggestions([]);
       setAddressError('');
       setShowForm(false);
     } catch (error) {
@@ -160,6 +206,8 @@ export default function Locations() {
               notes: '',
               photos: [],
             });
+            setAddressInput('');
+            setSuggestions([]);
             setAddressError('');
             setShowForm(!showForm);
           }}
@@ -179,41 +227,37 @@ export default function Locations() {
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
               required
             />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="relative">
               <input
                 type="text"
-                placeholder="House Number"
-                value={formData.address_number}
-                onChange={(e) => setFormData({ ...formData, address_number: e.target.value })}
+                placeholder="Search address (e.g., 123 Main Street, London)"
+                value={addressInput}
+                onChange={(e) => handleAddressInputChange(e.target.value)}
                 className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                required
               />
-              <input
-                type="text"
-                placeholder="Street Address"
-                value={formData.address_street}
-                onChange={(e) => setFormData({ ...formData, address_street: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                required
-              />
+              {loadingSuggestions && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg p-2 text-sm text-muted-foreground">
+                  Loading...
+                </div>
+              )}
+              {suggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                  {suggestions.map((suggestion, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => selectAddress(suggestion)}
+                      className="w-full text-left px-3 py-2 hover:bg-secondary transition-colors text-sm border-b border-border last:border-b-0"
+                    >
+                      {suggestion.display_name.split(',').slice(0, 3).join(',')}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <input
-                type="text"
-                placeholder="City"
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Postcode"
-                value={formData.postcode}
-                onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                required
-              />
+            <div className="grid grid-cols-2 gap-3 text-sm text-muted-foreground">
+              <div>{formData.address_number && `${formData.address_number} `}{formData.address_street}</div>
+              <div>{formData.city}{formData.postcode && `, ${formData.postcode}`}</div>
             </div>
             {addressError && (
               <div className="text-sm text-destructive bg-destructive/10 p-2 rounded">
