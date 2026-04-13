@@ -88,10 +88,16 @@ export default function DeerStalkingMap() {
 
     geoWatchIdRef.current = watchId;
     return () => {
+      console.log('🛑 GPS watch cleanup on outing change');
       navigator.geolocation.clearWatch(watchId);
       geoWatchIdRef.current = null;
     };
   }, [activeOuting?.id, updateGpsTrack]);
+
+  // Log every userLocation change
+  useEffect(() => {
+    console.log('🔴 USERLOCATION CHANGED TO:', userLocation, 'isDrawingArea:', isDrawingArea);
+  }, [userLocation]);
 
   const loadData = async () => {
     try {
