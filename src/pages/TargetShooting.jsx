@@ -118,31 +118,13 @@ export default function TargetShooting() {
   };
 
   const handleCheckout = async (e) => {
-    e.preventDefault();
-    try {
-      const uploadedPhotos = [];
-      if (checkoutData.photos && checkoutData.photos.length > 0) {
-        for (const photoData of checkoutData.photos) {
-          try {
-            if (photoData.startsWith('data:')) {
-              const res = await fetch(photoData);
-              const blob = await res.blob();
-              const result = await base44.integrations.Core.UploadFile({ file: blob });
-              if (result?.file_url) uploadedPhotos.push(result.file_url);
-            } else {
-              uploadedPhotos.push(photoData);
-            }
-          } catch (err) {
-            console.error('Photo upload error:', err);
-          }
-        }
-      }
-      await base44.entities.TargetShooting.update(activeSession.id, {
-        ...checkoutData,
-        photos: uploadedPhotos,
-        active_checkin: false,
-        gps_track: gpsTrack,
-      });
+   e.preventDefault();
+   try {
+     await base44.entities.TargetShooting.update(activeSession.id, {
+       ...checkoutData,
+       active_checkin: false,
+       gps_track: gpsTrack,
+     });
       setActiveSession(null);
       setSavedGpsTrack([]);
       setShowCheckout(false);
@@ -335,10 +317,12 @@ async function handlePhotoUpload(files, data, onChange) {
   if (!files || files.length === 0) return;
   
   try {
+    const newPhotos = [...(data.photos || [])];
     for (const file of files) {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      onChange('photos', [...(data.photos || []), file_url]);
+      newPhotos.push(file_url);
     }
+    onChange('photos', newPhotos);
   } catch (error) {
     console.error('Photo upload error:', error);
   }
