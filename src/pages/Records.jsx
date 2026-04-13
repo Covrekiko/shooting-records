@@ -234,7 +234,10 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, r
   const getRecordTitle = () => {
     if (record.recordType === 'target') return `Target Shooting - ${record.rounds_fired} rounds`;
     if (record.recordType === 'clay') return `Clay Shooting - ${record.rounds_fired} rounds`;
-    if (record.recordType === 'deer') return `Deer: ${record.number_shot || 0} ${record.deer_species || 'Unknown'}`;
+    if (record.recordType === 'deer') {
+      if (!record.number_shot) return 'Deer Management - No shots fired';
+      return `Deer: ${record.number_shot} ${record.deer_species || 'Unknown'}`;
+    }
   };
 
   return (
@@ -524,14 +527,22 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-6 pb-4 border-b border-border">
-              <div>
-                <label className="font-bold text-sm text-primary">Species</label>
-                <p className="text-lg font-semibold">{record.deer_species || '-'}</p>
-              </div>
-              <div>
-                <label className="font-bold text-sm text-primary">Number Harvested</label>
-                <p className="text-lg font-semibold">{record.number_shot || '0'}</p>
-              </div>
+             {record.number_shot ? (
+               <>
+                 <div>
+                   <label className="font-bold text-sm text-primary">Species</label>
+                   <p className="text-lg font-semibold">{record.deer_species || '-'}</p>
+                 </div>
+                 <div>
+                   <label className="font-bold text-sm text-primary">Number Harvested</label>
+                   <p className="text-lg font-semibold">{record.number_shot}</p>
+                 </div>
+               </>
+             ) : (
+               <div className="col-span-2 bg-blue-50/30 p-4 rounded-lg border border-blue-200/50">
+                 <p className="text-base font-semibold text-blue-600">No shots fired during this session</p>
+               </div>
+             )}
             </div>
 
             {record.rifle_id && (
