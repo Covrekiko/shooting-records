@@ -28,6 +28,7 @@ export default function ClayShooting() {
     checkout_time: new Date().toTimeString().slice(0, 5),
     shotgun_id: '',
     rounds_fired: '',
+    ammunition_used: '',
     notes: '',
     photos: [],
   });
@@ -121,19 +122,21 @@ export default function ClayShooting() {
         }
       }
       await base44.entities.ClayShooting.update(activeSession.id, {
-        ...checkoutData,
-        photos: uploadedPhotos,
-        active_checkin: false,
-        gps_track: gpsTrack,
+       ...checkoutData,
+       rounds_fired: checkoutData.rounds_fired ? parseInt(checkoutData.rounds_fired) : 0,
+       photos: uploadedPhotos,
+       active_checkin: false,
+       gps_track: gpsTrack,
       });
       setActiveSession(null);
       setShowCheckout(false);
       setCheckoutData({
-        checkout_time: new Date().toTimeString().slice(0, 5),
-        shotgun_id: '',
-        rounds_fired: '',
-        notes: '',
-        photos: [],
+       checkout_time: new Date().toTimeString().slice(0, 5),
+       shotgun_id: '',
+       rounds_fired: '',
+       ammunition_used: '',
+       notes: '',
+       photos: [],
       });
     } catch (error) {
       console.error('Error checking out:', error);
@@ -344,13 +347,24 @@ function CheckoutModal({ data, shotguns, onSubmit, onChange, onClose }) {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Rounds Fired</label>
-            <input
-              type="number"
-              value={data.rounds_fired}
-              onChange={(e) => onChange('rounds_fired', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            />
+           <label className="block text-sm font-medium mb-1">Rounds Fired</label>
+           <input
+             type="number"
+             min="0"
+             value={data.rounds_fired}
+             onChange={(e) => onChange('rounds_fired', e.target.value)}
+             className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+           />
+          </div>
+          <div>
+           <label className="block text-sm font-medium mb-1">Ammunition Used</label>
+           <input
+             type="text"
+             placeholder="e.g. Federal 12 Gauge"
+             value={data.ammunition_used}
+             onChange={(e) => onChange('ammunition_used', e.target.value)}
+             className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+           />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Notes</label>
