@@ -163,6 +163,28 @@ export default function Dashboard() {
           <AmmoStockWidget />
         </div>
 
+        {/* Stalking Map Section */}
+        {user?.role !== 'admin' && (
+          <div className="mt-12">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">Deer Stalking Map</h2>
+              <Link
+                to="/deer-stalking"
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 text-sm font-medium"
+              >
+                Open Map
+              </Link>
+            </div>
+            <div className="bg-card border border-border rounded-xl overflow-hidden h-96">
+              <iframe
+                src={window.location.origin + '/deer-stalking'}
+                style={{ width: '100%', height: '100%', border: 'none' }}
+                title="Deer Stalking Map"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Charts Section */}
         {user?.role !== 'admin' && chartData && (
           <div className="mt-12 space-y-6">
