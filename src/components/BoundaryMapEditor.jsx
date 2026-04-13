@@ -143,13 +143,7 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
         <div className="flex flex-wrap gap-2">
           <MapControls mapRef={mapRef} />
         </div>
-        <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm text-blue-900">
-          <div className="font-semibold mb-2">Drawing Tools (toolbar on map):</div>
-          <ul className="space-y-1 text-xs">
-            <li className="flex items-center gap-2"><Zap className="w-3 h-3" /> Draw boundary polygon around your hunting ground</li>
-            <li className="flex items-center gap-2"><MapPin className="w-3 h-3" /> Pin locations of high seats or stands</li>
-          </ul>
-        </div>
+
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setMapType('map')}
