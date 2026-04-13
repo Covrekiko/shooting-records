@@ -116,8 +116,26 @@ export default function TargetShooting() {
   const handleCheckout = async (e) => {
     e.preventDefault();
     try {
+      const uploadedPhotos = [];
+      if (checkoutData.photos && checkoutData.photos.length > 0) {
+        for (const photoData of checkoutData.photos) {
+          try {
+            if (photoData.startsWith('data:')) {
+              const res = await fetch(photoData);
+              const blob = await res.blob();
+              const result = await base44.integrations.Core.UploadFile({ file: blob });
+              if (result?.file_url) uploadedPhotos.push(result.file_url);
+            } else {
+              uploadedPhotos.push(photoData);
+            }
+          } catch (err) {
+            console.error('Photo upload error:', err);
+          }
+        }
+      }
       await base44.entities.TargetShooting.update(activeSession.id, {
         ...checkoutData,
+        photos: uploadedPhotos,
         active_checkin: false,
         gps_track: gpsTrack,
       });
@@ -307,6 +325,18 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
   );
 }
 
+async function handlePhotoUpload(files, data, onChange) {
+  if (!files || files.length === 0) return;
+  
+  for (const file of files) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      onChange('photos', [...(data.photos || []), e.target.result]);
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
 function CheckoutModal({ data, setData, rifles, onSubmit, onClose }) {
   const updateRifleEntry = (index, field, value) => {
     const updated = [...data.rifles_used];
@@ -429,6 +459,48 @@ function CheckoutModal({ data, setData, rifles, onSubmit, onClose }) {
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
               rows="2"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Photos</label>
+            <div className="flex gap-2 mb-3">
+              <label className="flex-1 px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors text-sm">
+                📁 Choose Photo
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(e) => handlePhotoUpload(e.target.files, data, (field, value) => setData({ ...data, [field]: value }))}
+                  className="hidden"
+                />
+              </label>
+              <label className="flex-1 px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors text-sm">
+                📷 Take Photo
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  multiple
+                  onChange={(e) => handlePhotoUpload(e.target.files, data, (field, value) => setData({ ...data, [field]: value }))}
+                  className="hidden"
+                />
+              </label>
+            </div>
+            {data.photos && data.photos.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {data.photos.map((photo, idx) => (
+                  <div key={idx} className="relative group">
+                    <img src={photo} alt="preview" className="h-20 w-20 object-cover rounded" />
+                    <button
+                      type="button"
+                      onClick={() => setData({ ...data, photos: data.photos.filter((_, i) => i !== idx) })}
+                      className="absolute top-0 right-0 bg-destructive text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div className="flex gap-3">
             <button
