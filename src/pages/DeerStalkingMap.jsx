@@ -16,7 +16,7 @@ import { decrementAmmoStock } from '@/lib/ammoUtils';
 import AreaDrawer from '@/components/deer-stalking/AreaDrawer';
 import AreaSaveForm from '@/components/deer-stalking/AreaSaveForm';
 import AreaSelector from '@/components/deer-stalking/AreaSelector';
-import MapSearchBar from '@/components/deer-stalking/MapSearchBar';
+import FloatingMapSearch from '@/components/deer-stalking/FloatingMapSearch';
 
 // Fix Leaflet default icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -482,8 +482,8 @@ export default function DeerStalkingMap() {
       </MapContainer>
       </div>
 
-      {/* Map Search Bar */}
-      <MapSearchBar onSearch={handleMapSearch} />
+      {/* Floating Map Search */}
+       <FloatingMapSearch onSearch={handleMapSearch} />
 
       {/* Area Selector - Top Left */}
       <div className="fixed top-20 left-4 z-[9999] pointer-events-auto">
