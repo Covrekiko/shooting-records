@@ -7,7 +7,10 @@ import { format } from 'date-fns';
 function MapResizer() {
   const map = useMap();
   useEffect(() => {
-    setTimeout(() => map.invalidateSize(), 100);
+    // Trigger map resize after render
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 0);
   }, [map]);
   return null;
 }
@@ -66,7 +69,7 @@ export default function GpsPathViewer({ track, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" style={{ pointerEvents: 'auto' }}>
-      <div className="bg-card rounded-lg w-full max-w-2xl max-h-[85vh] flex flex-col" style={{ pointerEvents: 'auto' }}>
+      <div className="bg-card rounded-lg w-full max-w-2xl flex flex-col" style={{ pointerEvents: 'auto', maxHeight: '85vh', height: '85vh' }}>
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <h2 className="text-xl font-bold">GPS Track Visualization</h2>
           <button onClick={onClose} className="p-1 hover:bg-secondary rounded">
@@ -74,8 +77,8 @@ export default function GpsPathViewer({ track, onClose }) {
           </button>
         </div>
 
-        <div className="flex-1 w-full" style={{ pointerEvents: 'auto', display: 'flex', minHeight: '400px' }}>
-          <MapContainer center={[center.lat, center.lng]} zoom={15} style={{ width: '100%', height: '100%', pointerEvents: 'auto' }}>
+        <div style={{ flex: 1, width: '100%', position: 'relative', pointerEvents: 'auto' }}>
+          <MapContainer center={[center.lat, center.lng]} zoom={15} style={{ width: '100%', height: '100%', pointerEvents: 'auto', display: 'block' }}>
             <MapResizer />
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
