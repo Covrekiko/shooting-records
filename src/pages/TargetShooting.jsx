@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
+import { convertHeicToJpg } from '@/lib/photoUtils';
 import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
@@ -328,11 +329,12 @@ async function handlePhotoUpload(files, data, onChange) {
   
   try {
     const newPhotos = [...(data.photos || [])];
-    for (const file of files) {
+    for (let file of files) {
+      file = await convertHeicToJpg(file);
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
       // Analyze target photo for accuracy
-      let photoData = { url: file_url };
+      const photoData = { url: file_url };
       try {
         const result = await base44.functions.invoke('analyzeTargetPhoto', { photo_url: file_url });
         if (result?.data?.analysis) {
