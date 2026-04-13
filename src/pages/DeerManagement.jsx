@@ -113,16 +113,28 @@ export default function DeerManagement() {
   };
 
   const handleCheckout = async (e) => {
-    e.preventDefault();
-    try {
-      const submitData = { ...checkoutData, active_checkin: false, gps_track: gpsTrack };
-      if (!checkoutData.shot_anything) {
-        submitData.number_shot = null;
-        submitData.deer_species = null;
-        submitData.rifle_id = null;
-        submitData.ammunition_used = null;
-      }
-      await base44.entities.DeerManagement.update(activeSession.id, submitData);
+   e.preventDefault();
+   try {
+     const uploadedPhotos = [];
+     if (checkoutData.photos && checkoutData.photos.length > 0) {
+       for (const photo of checkoutData.photos) {
+         if (photo.startsWith('data:')) {
+           const blob = await fetch(photo).then(r => r.blob());
+           const { file_url } = await base44.integrations.Core.UploadFile({ file: blob });
+           uploadedPhotos.push(file_url);
+         } else {
+           uploadedPhotos.push(photo);
+         }
+       }
+     }
+     const submitData = { ...checkoutData, photos: uploadedPhotos, active_checkin: false, gps_track: gpsTrack };
+     if (!checkoutData.shot_anything) {
+       submitData.number_shot = null;
+       submitData.deer_species = null;
+       submitData.rifle_id = null;
+       submitData.ammunition_used = null;
+     }
+     await base44.entities.DeerManagement.update(activeSession.id, submitData);
       setActiveSession(null);
       setShowCheckout(false);
       setCheckoutData({
