@@ -2,10 +2,10 @@
   "name": "Ammunition",
   "type": "object",
   "properties": {
-    "rifle_id": {
+    "brand": {
       "type": "string"
     },
-    "brand": {
+    "caliber": {
       "type": "string"
     },
     "bullet_type": {
@@ -16,7 +16,6 @@
     }
   },
   "required": [
-    "rifle_id",
     "brand"
   ]
 }

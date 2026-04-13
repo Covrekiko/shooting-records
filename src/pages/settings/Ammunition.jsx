@@ -11,6 +11,7 @@ export default function Ammunition() {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     brand: '',
+    caliber: '',
     bullet_type: '',
     grain: '',
   });
@@ -38,7 +39,7 @@ export default function Ammunition() {
     try {
       const newAmmo = await base44.entities.Ammunition.create(formData);
       setAmmunition([...ammunition, newAmmo]);
-      setFormData({ brand: '', bullet_type: '', grain: '' });
+      setFormData({ brand: '', caliber: '', bullet_type: '', grain: '' });
       setShowForm(false);
     } catch (error) {
       console.error('Error adding ammunition:', error);
@@ -102,6 +103,17 @@ export default function Ammunition() {
               </div>
 
               <div>
+                <label className="block text-sm font-medium mb-1">Caliber (optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g., 308 Win, 9mm"
+                  value={formData.caliber}
+                  onChange={(e) => setFormData({ ...formData, caliber: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                />
+              </div>
+
+              <div>
                 <label className="block text-sm font-medium mb-1">Bullet Type (optional)</label>
                 <input
                   type="text"
@@ -150,6 +162,9 @@ export default function Ammunition() {
               <div key={ammo.id} className="bg-card border border-border rounded-lg p-4 flex items-start justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground mt-1">Brand: {ammo.brand}</p>
+                  {ammo.caliber && (
+                    <p className="text-sm text-muted-foreground">Caliber: {ammo.caliber}</p>
+                  )}
                   {ammo.bullet_type && (
                     <p className="text-sm text-muted-foreground">Bullet Type: {ammo.bullet_type}</p>
                   )}
