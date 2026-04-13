@@ -349,6 +349,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                   <option>Red</option>
                   <option>Sika</option>
                   <option>Chinese Water Deer</option>
+                  <option>Pest Control</option>
                   <option>Other</option>
                 </select>
               </div>
