@@ -427,6 +427,10 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
                                 <p className="text-sm font-semibold">{rifleStat.grain || '-'}</p>
                               </div>
                               <div>
+                                <label className="text-xs font-bold text-muted-foreground">Rounds Fired</label>
+                                <p className="text-sm font-semibold">{rifleStat.rounds_fired || '-'}</p>
+                              </div>
+                              <div>
                                 <label className="text-xs font-bold text-muted-foreground">Range Distance</label>
                                 <p className="text-sm font-semibold">{rifleStat.meters_range ? `${rifleStat.meters_range}m` : '-'}</p>
                               </div>
