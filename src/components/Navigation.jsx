@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Settings } from 'lucide-react';
+import { Menu, X, Settings, Wrench } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 
@@ -19,6 +19,7 @@ export default function Navigation() {
     { path: '/target-shooting', label: 'Target Shooting' },
     { path: '/clay-shooting', label: 'Clay Shooting' },
     { path: '/deer-management', label: 'Deer Management' },
+    { path: '/equipment', label: 'Equipment', icon: Wrench },
   ];
 
   return (
@@ -30,19 +31,23 @@ export default function Navigation() {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex gap-8">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`text-sm font-medium transition-colors ${
-                isActive(item.path)
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`text-sm font-medium transition-colors flex items-center gap-1 ${
+                  isActive(item.path)
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {Icon && <Icon className="w-4 h-4" />}
+                {item.label}
+              </Link>
+            );
+          })}
           {user?.role === 'admin' && (
             <Link
               to="/admin/users"
@@ -80,20 +85,24 @@ export default function Navigation() {
         {open && (
           <div className="absolute top-full left-0 right-0 bg-card border-b border-border md:hidden">
             <div className="flex flex-col p-4 gap-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setOpen(false)}
-                  className={`text-sm font-medium py-2 px-3 rounded transition-colors ${
-                    isActive(item.path)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-foreground hover:bg-secondary'
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setOpen(false)}
+                    className={`text-sm font-medium py-2 px-3 rounded transition-colors flex items-center gap-1 ${
+                      isActive(item.path)
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-foreground hover:bg-secondary'
+                    }`}
+                  >
+                    {Icon && <Icon className="w-4 h-4" />}
+                    {item.label}
+                  </Link>
+                );
+              })}
               {user?.role === 'admin' && (
                 <Link
                   to="/admin/users"
