@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, MapPin } from 'lucide-react';
 
 export default function Locations() {
   const [locations, setLocations] = useState([]);
@@ -11,10 +11,16 @@ export default function Locations() {
 
   const [formData, setFormData] = useState({
     place_name: '',
-    location: '',
+    address_number: '',
+    address_street: '',
+    city: '',
+    postcode: '',
+    latitude: '',
+    longitude: '',
     notes: '',
     photos: [],
   });
+  const [addressError, setAddressError] = useState('');
 
   useEffect(() => {
     loadLocations();
@@ -32,18 +38,72 @@ export default function Locations() {
     }
   };
 
+  const validateAddress = async () => {
+    const address = `${formData.address_number} ${formData.address_street}, ${formData.city}, ${formData.postcode}`;
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
+      );
+      const results = await response.json();
+      if (results.length === 0) {
+        setAddressError('Address not found. Please check and try again.');
+        return false;
+      }
+      setAddressError('');
+      return true;
+    } catch (error) {
+      setAddressError('Error validating address');
+      return false;
+    }
+  };
+
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setFormData({
+            ...formData,
+            latitude: position.coords.latitude.toFixed(6),
+            longitude: position.coords.longitude.toFixed(6),
+          });
+        },
+        (error) => alert('Could not get location: ' + error.message),
+        { enableHighAccuracy: true }
+      );
+    } else {
+      alert('Geolocation not supported');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const isAddressValid = await validateAddress();
+    if (!isAddressValid) return;
     try {
+      const submitData = {
+        ...formData,
+        location: `${formData.latitude},${formData.longitude}`,
+      };
       if (editingId) {
-        await base44.entities.DeerLocation.update(editingId, formData);
-        setLocations(locations.map((l) => (l.id === editingId ? { ...l, ...formData } : l)));
+        await base44.entities.DeerLocation.update(editingId, submitData);
+        setLocations(locations.map((l) => (l.id === editingId ? { ...l, ...submitData } : l)));
         setEditingId(null);
       } else {
-        const newLocation = await base44.entities.DeerLocation.create(formData);
+        const newLocation = await base44.entities.DeerLocation.create(submitData);
         setLocations([...locations, newLocation]);
       }
-      setFormData({ place_name: '', location: '', notes: '', photos: [] });
+      setFormData({
+        place_name: '',
+        address_number: '',
+        address_street: '',
+        city: '',
+        postcode: '',
+        latitude: '',
+        longitude: '',
+        notes: '',
+        photos: [],
+      });
+      setAddressError('');
       setShowForm(false);
     } catch (error) {
       console.error('Error saving location:', error);
@@ -89,7 +149,18 @@ export default function Locations() {
         <button
           onClick={() => {
             setEditingId(null);
-            setFormData({ place_name: '', location: '', notes: '', photos: [] });
+            setFormData({
+              place_name: '',
+              address_number: '',
+              address_street: '',
+              city: '',
+              postcode: '',
+              latitude: '',
+              longitude: '',
+              notes: '',
+              photos: [],
+            });
+            setAddressError('');
             setShowForm(!showForm);
           }}
           className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 mb-6"
@@ -108,14 +179,78 @@ export default function Locations() {
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
               required
             />
-            <input
-              type="text"
-              placeholder="Location / Address / Map Info"
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-              required
-            />
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                type="text"
+                placeholder="House Number"
+                value={formData.address_number}
+                onChange={(e) => setFormData({ ...formData, address_number: e.target.value })}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Street Address"
+                value={formData.address_street}
+                onChange={(e) => setFormData({ ...formData, address_street: e.target.value })}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                type="text"
+                placeholder="City"
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Postcode"
+                value={formData.postcode}
+                onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                required
+              />
+            </div>
+            {addressError && (
+              <div className="text-sm text-destructive bg-destructive/10 p-2 rounded">
+                {addressError}
+              </div>
+            )}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Coordinates</label>
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  type="number"
+                  placeholder="Latitude"
+                  step="0.000001"
+                  value={formData.latitude}
+                  onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  required
+                />
+                <input
+                  type="number"
+                  placeholder="Longitude"
+                  step="0.000001"
+                  value={formData.longitude}
+                  onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  required
+                />
+              </div>
+              <button
+                type="button"
+                onClick={getCurrentLocation}
+                className="w-full px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg flex items-center justify-center gap-2 font-medium"
+              >
+                <MapPin className="w-4 h-4" />
+                Use My Current Location
+              </button>
+            </div>
             <textarea
               placeholder="Notes"
               value={formData.notes}
