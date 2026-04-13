@@ -550,6 +550,12 @@ export default function DeerStalkingMap() {
         <div className="fixed top-4 left-4 right-4 z-[9998] bg-red-500 text-white p-3 rounded-lg flex items-center gap-2 pointer-events-auto">
           <AlertCircle className="w-4 h-4" />
           {error}
+          <button
+            onClick={() => setError(null)}
+            className="ml-auto text-white hover:opacity-80"
+          >
+            ✕
+          </button>
         </div>
       )}
 
