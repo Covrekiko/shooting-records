@@ -62,16 +62,6 @@ export default function Navigation() {
             </Link>
           )}
           <Link
-            to="/settings/ammunition"
-            className={`text-sm font-medium transition-colors flex items-center gap-1 ${
-              isActive('/settings/ammunition')
-                ? 'text-primary'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Ammunition
-          </Link>
-          <Link
             to="/profile"
             className={`text-sm font-medium transition-colors ${
               isActive('/profile')
@@ -127,17 +117,6 @@ export default function Navigation() {
                   Admin
                 </Link>
               )}
-              <Link
-                to="/settings/ammunition"
-                onClick={() => setOpen(false)}
-                className={`text-sm font-medium py-2 px-3 rounded transition-colors ${
-                  isActive('/settings/ammunition')
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-foreground hover:bg-secondary'
-                }`}
-              >
-                Ammunition
-              </Link>
               <Link
                 to="/profile"
                 onClick={() => setOpen(false)}
