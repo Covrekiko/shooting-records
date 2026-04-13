@@ -41,6 +41,7 @@ export default function DeerStalkingMap() {
   const [waitingForPin, setWaitingForPin] = useState(null); // 'poi' or 'harvest'
   const [rifles, setRifles] = useState([]);
   const [ammunition, setAmmunition] = useState([]);
+  const mapRef = useRef(null);
 
   useEffect(() => {
     loadData();
@@ -89,6 +90,27 @@ export default function DeerStalkingMap() {
     } catch (error) {
       console.error('Error loading rifles and ammo:', error);
     }
+  };
+
+  const handleRecenter = () => {
+    if (!mapRef.current) return;
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        mapRef.current.setView([latitude, longitude], 16);
+        setUserLocation([latitude, longitude]);
+      },
+      (error) => {
+        let errorMsg = 'Unable to get location';
+        if (error.code === error.PERMISSION_DENIED) {
+          errorMsg = 'Location permission denied';
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          errorMsg = 'Location unavailable';
+        }
+        setError(errorMsg);
+      }
+    );
   };
 
   const handleMapClick = (e) => {
@@ -223,6 +245,7 @@ export default function DeerStalkingMap() {
           zoom={13}
           style={{ width: '100%', height: '100%', cursor: 'crosshair' }}
           zoomControl={true}
+          ref={mapRef}
         >
         <MapClickHandler onMapClick={handleMapClick} isSelectionMode={!!waitingForPin} />
         <TileLayer
@@ -371,7 +394,7 @@ export default function DeerStalkingMap() {
         onPOI={() => { setMapClick(null); setWaitingForPin('poi'); }}
         onHarvest={() => { setMapClick(null); setWaitingForPin('harvest'); }}
         onOuting={() => setShowOuting(true)}
-        onRecenter={() => {}} 
+        onRecenter={handleRecenter}
         activeOuting={activeOuting}
         onEndOuting={handleEndOuting}
       />
