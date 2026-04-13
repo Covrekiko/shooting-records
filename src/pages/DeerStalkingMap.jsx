@@ -160,7 +160,7 @@ export default function DeerStalkingMap() {
         Dashboard
       </Link>
       {error && (
-        <div className="absolute top-4 left-4 right-4 z-50 bg-red-500 text-white p-3 rounded-lg flex items-center gap-2">
+        <div className="absolute top-4 left-4 right-4 z-[9998] bg-red-500 text-white p-3 rounded-lg flex items-center gap-2">
           <AlertCircle className="w-4 h-4" />
           {error}
         </div>
@@ -171,6 +171,7 @@ export default function DeerStalkingMap() {
         zoom={13}
         style={{ width: '100%', height: '100%' }}
         onClick={handleMapClick}
+        zoomControl={true}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -225,28 +226,30 @@ export default function DeerStalkingMap() {
         )}
       </MapContainer>
 
-      {/* Floating UI */}
-      <FloatingActionBar
-        userLocation={userLocation}
-        onPOI={() => {
-          if (!mapClick) {
-            alert('Please click on the map to add a POI');
-          } else {
-            setShowPOI(true);
-          }
-        }}
-        onHarvest={() => {
-          if (!mapClick) {
-            alert('Please click on the map to record a harvest');
-          } else {
-            setShowHarvest(true);
-          }
-        }}
-        onOuting={() => setShowOuting(true)}
-        onRecenter={() => {}} 
-        activeOuting={activeOuting}
-        onEndOuting={handleEndOuting}
-      />
+      {/* Floating Action Bar - Outside Map */}
+      <div className="absolute bottom-6 right-6 z-[9999]">
+        <FloatingActionBar
+          userLocation={userLocation}
+          onPOI={() => {
+            if (!mapClick) {
+              alert('Please click on the map to add a POI');
+            } else {
+              setShowPOI(true);
+            }
+          }}
+          onHarvest={() => {
+            if (!mapClick) {
+              alert('Please click on the map to record a harvest');
+            } else {
+              setShowHarvest(true);
+            }
+          }}
+          onOuting={() => setShowOuting(true)}
+          onRecenter={() => {}} 
+          activeOuting={activeOuting}
+          onEndOuting={handleEndOuting}
+        />
+      </div>
 
       {/* Modals */}
       {showPOI && mapClick && (
