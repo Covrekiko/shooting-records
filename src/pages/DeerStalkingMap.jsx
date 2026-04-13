@@ -175,11 +175,27 @@ export default function DeerStalkingMap() {
 
         {/* POI Markers */}
         {markers.map((marker) => (
-          <Marker key={marker.id} position={[marker.latitude, marker.longitude]}>
+          <Marker 
+            key={marker.id} 
+            position={[marker.latitude, marker.longitude]}
+            icon={L.icon({
+              iconUrl: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%233b82f6%22 stroke=%22white%22 stroke-width=%222%22%3E%3Cpath d=%22M12 2C7.58 2 4 5.58 4 10c0 5.25 8 13 8 13s8-7.75 8-13c0-4.42-3.58-8-8-8z%22/%3E%3C/svg%3E',
+              iconSize: [32, 40],
+              iconAnchor: [16, 40],
+              popupAnchor: [0, -40]
+            })}
+          >
             <Popup>
-              <div className="text-sm">
-                <p className="font-bold capitalize">{marker.marker_type.replace(/_/g, ' ')}</p>
-                {marker.notes && <p>{marker.notes}</p>}
+              <div className="text-sm max-w-xs">
+                <p className="font-bold capitalize mb-2">{marker.marker_type.replace(/_/g, ' ')}</p>
+                {marker.notes && <p className="mb-2">{marker.notes}</p>}
+                {marker.photos && marker.photos.length > 0 && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {marker.photos.map((photo, idx) => (
+                      <img key={idx} src={photo} alt="poi" className="w-full h-20 object-cover rounded" />
+                    ))}
+                  </div>
+                )}
               </div>
             </Popup>
           </Marker>
@@ -192,9 +208,11 @@ export default function DeerStalkingMap() {
             position={[harvest.latitude, harvest.longitude]}
             icon={L.icon({
               iconUrl: focusedHarvestId === harvest.id 
-                ? 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23fbbf24%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22/%3E%3C/svg%3E'
-                : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23dc2626%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22/%3E%3C/svg%3E',
-              iconSize: focusedHarvestId === harvest.id ? [35, 35] : [25, 25],
+                ? 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23fbbf24%22 stroke=%22white%22 stroke-width=%222%22%3E%3Cpath d=%22M12 2C7.58 2 4 5.58 4 10c0 5.25 8 13 8 13s8-7.75 8-13c0-4.42-3.58-8-8-8z%22/%3E%3C/svg%3E'
+                : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%233b82f6%22 stroke=%22white%22 stroke-width=%222%22%3E%3Cpath d=%22M12 2C7.58 2 4 5.58 4 10c0 5.25 8 13 8 13s8-7.75 8-13c0-4.42-3.58-8-8-8z%22/%3E%3C/svg%3E',
+              iconSize: [32, 40],
+              iconAnchor: [16, 40],
+              popupAnchor: [0, -40]
             })}
           >
             <Popup>
