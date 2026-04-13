@@ -8,6 +8,7 @@ export default function MapSearchBar({ onSearch, onError }) {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
 
   const parseCoordinates = (input) => {
     const match = input.trim().match(COORDINATE_REGEX);
@@ -89,56 +90,81 @@ export default function MapSearchBar({ onSearch, onError }) {
   };
 
   return (
-    <form onSubmit={handleSearch} className="fixed top-20 left-1/2 transform -translate-x-1/2 z-[9998] w-96 max-w-[calc(100%-1rem)] pointer-events-auto">
-      <div className="bg-card rounded-lg shadow-lg overflow-hidden border border-border">
-        {/* Search Input */}
-        <div className="flex items-center gap-2 px-3 py-2">
-          <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setError('');
-            }}
-            placeholder="Address, postcode, or coordinates (51.5, -0.1)..."
-            className="flex-1 bg-transparent text-sm outline-none"
-            disabled={loading}
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={handleClear}
-              className="p-1 hover:bg-secondary rounded transition-colors"
-              disabled={loading}
-            >
-              <X className="w-4 h-4 text-muted-foreground" />
-            </button>
-          )}
-          <button
-            type="submit"
-            disabled={loading || !query.trim()}
-            className="px-3 py-1 bg-primary text-primary-foreground rounded text-xs font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
-          >
-            {loading ? 'Searching...' : 'Go'}
-          </button>
-        </div>
+    <div className="fixed bottom-24 left-6 z-[9998] pointer-events-auto">
+      {/* Search Icon Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-12 h-12 rounded-full bg-card border border-border shadow-lg flex items-center justify-center hover:bg-secondary transition-colors"
+        title="Search locations"
+      >
+        <Search className="w-5 h-5 text-primary" />
+      </button>
 
-        {/* Error Message */}
-        {error && (
-          <div className="px-3 py-2 bg-destructive/10 text-destructive text-xs flex items-center gap-2 border-t border-border">
-            <AlertCircle className="w-3 h-3 flex-shrink-0" />
-            {error}
-          </div>
-        )}
+      {/* Expandable Search Form */}
+      {isOpen && (
+        <form onSubmit={handleSearch} className="absolute bottom-16 left-0 w-80 pointer-events-auto">
+          <div className="bg-card rounded-lg shadow-lg overflow-hidden border border-border">
+            {/* Search Input */}
+            <div className="flex items-center gap-2 px-3 py-2">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setError('');
+                }}
+                placeholder="Address, postcode, coordinates..."
+                className="flex-1 bg-transparent text-sm outline-none"
+                disabled={loading}
+                autoFocus
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={handleClear}
+                  className="p-1 hover:bg-secondary rounded transition-colors"
+                  disabled={loading}
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </button>
+              )}
+            </div>
 
-        {/* Help Text */}
-        {!error && !query && (
-          <div className="px-3 py-2 bg-muted/30 text-xs text-muted-foreground border-t border-border">
-            Try: "51.5074, -0.1278" or "SW1A 1AA" or "Big Ben, London"
+            {/* Button Row */}
+            <div className="flex gap-2 px-3 py-2 border-t border-border">
+              <button
+                type="submit"
+                disabled={loading || !query.trim()}
+                className="flex-1 px-3 py-1 bg-primary text-primary-foreground rounded text-xs font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors"
+              >
+                {loading ? 'Searching...' : 'Search'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="flex-1 px-3 py-1 border border-border rounded text-xs font-medium hover:bg-secondary transition-colors"
+              >
+                Close
+              </button>
+            </div>
+
+            {/* Error Message */}
+            {error && (
+              <div className="px-3 py-2 bg-destructive/10 text-destructive text-xs flex items-center gap-2 border-t border-border">
+                <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                {error}
+              </div>
+            )}
+
+            {/* Help Text */}
+            {!error && !query && (
+              <div className="px-3 py-2 bg-muted/30 text-xs text-muted-foreground border-t border-border">
+                Try: "51.5, -0.1" or "SW1A 1AA"
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </form>
+        </form>
+      )}
+    </div>
   );
 }
