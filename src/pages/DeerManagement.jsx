@@ -5,6 +5,7 @@ import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import LegalShootingHours from '@/components/LegalShootingHours';
 import { Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
 
@@ -137,9 +138,11 @@ export default function DeerManagement() {
 
         <LegalShootingHours />
 
-        {showForm && (
-          <div className="bg-card border border-border rounded-lg p-4 mb-6">
-            <h2 className="text-lg font-semibold mb-3">New Outing</h2>
+        <Dialog open={showForm} onOpenChange={setShowForm}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Record New Outing</DialogTitle>
+            </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-3">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
@@ -258,23 +261,23 @@ export default function DeerManagement() {
                  />
                 </div>
                 <div className="flex gap-2">
-                 <button
-                   type="submit"
-                   className="flex-1 px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:opacity-90"
-                 >
-                   Save
-                 </button>
-                 <button
-                   type="button"
-                   onClick={() => setShowForm(false)}
-                   className="flex-1 px-3 py-1 text-sm border border-border rounded hover:bg-secondary"
-                 >
-                   Cancel
-                 </button>
-              </div>
-            </form>
-          </div>
-        )}
+                  <button
+                    type="submit"
+                    className="flex-1 px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:opacity-90"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowForm(false)}
+                    className="flex-1 px-3 py-1 text-sm border border-border rounded hover:bg-secondary"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                </form>
+                </DialogContent>
+                </Dialog>
 
         <div className="space-y-3">
           {records.map((record) => (
