@@ -15,9 +15,6 @@ export default function Clubs() {
     location: '',
     notes: '',
   });
-  const [clubNameInput, setClubNameInput] = useState('');
-  const [clubSuggestions, setClubSuggestions] = useState([]);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   useEffect(() => {
     loadClubs();
@@ -47,8 +44,6 @@ export default function Clubs() {
         setClubs([...clubs, newClub]);
       }
       setFormData({ name: '', type: '', location: '', notes: '' });
-      setClubNameInput('');
-      setClubSuggestions([]);
       setShowForm(false);
     } catch (error) {
       console.error('Error saving club:', error);
@@ -67,49 +62,8 @@ export default function Clubs() {
 
   const startEdit = (club) => {
     setFormData(club);
-    setClubNameInput(club.name);
     setEditingId(club.id);
     setShowForm(true);
-  };
-
-  const handleClubNameChange = async (value) => {
-    setClubNameInput(value);
-    setFormData({ ...formData, name: value });
-    
-    if (value.length < 2) {
-      setClubSuggestions([]);
-      return;
-    }
-    
-    const localClubs = clubs.filter(
-      (club) => club.name.toLowerCase().includes(value.toLowerCase()) && club.name !== value
-    );
-    
-    if (localClubs.length > 0) {
-      setClubSuggestions(localClubs.slice(0, 5));
-      return;
-    }
-    
-    setLoadingSuggestions(true);
-    try {
-      const response = await base44.integrations.Core.InvokeLLM({
-        prompt: `Find 5 real UK shooting clubs or gun clubs that match "${value}". Return only club names as a JSON array, nothing else. Example: ["Club Name 1", "Club Name 2"]`,
-        add_context_from_internet: true,
-      });
-      const names = JSON.parse(response);
-      setClubSuggestions(names.map((name) => ({ name, isWeb: true })).slice(0, 5));
-    } catch (error) {
-      console.error('Error fetching club suggestions:', error);
-      setClubSuggestions([]);
-    } finally {
-      setLoadingSuggestions(false);
-    }
-  };
-
-  const selectClubName = (clubName) => {
-    setClubNameInput(clubName);
-    setFormData({ ...formData, name: clubName });
-    setClubSuggestions([]);
   };
 
   if (loading) {
@@ -127,7 +81,6 @@ export default function Clubs() {
     <div>
       <Navigation />
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <datalist id="club-list" />
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Clubs</h1>
           <p className="text-muted-foreground">Manage your shooting clubs</p>
@@ -137,8 +90,6 @@ export default function Clubs() {
           onClick={() => {
             setEditingId(null);
             setFormData({ name: '', type: '', location: '', notes: '' });
-            setClubNameInput('');
-            setClubSuggestions([]);
             setShowForm(!showForm);
           }}
           className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 mb-6"
@@ -148,39 +99,16 @@ export default function Clubs() {
         </button>
 
         {showForm && (
-          <form onSubmit={handleSubmit} autoComplete="off" className="bg-card border border-border rounded-lg p-6 mb-6 space-y-4">
+          <form onSubmit={handleSubmit} className="bg-card border border-border rounded-lg p-6 mb-6 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             <div className="relative">
-               <input
-                  type="text"
-                  placeholder="Club Name"
-                  value={clubNameInput}
-                  onChange={(e) => handleClubNameChange(e.target.value)}
-                  autoComplete="new-password"
-                  list="club-list"
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  required
-                />
-                <datalist id="club-list" />
-               {(loadingSuggestions || clubSuggestions.length > 0) && (
-                   <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-40 overflow-y-auto">
-                     {loadingSuggestions ? (
-                       <div className="px-3 py-2 text-sm text-muted-foreground">Searching...</div>
-                     ) : (
-                       clubSuggestions.map((club, idx) => (
-                         <button
-                           key={idx}
-                           type="button"
-                           onClick={() => selectClubName(typeof club === 'string' ? club : club.name)}
-                           className="w-full text-left px-3 py-2 hover:bg-secondary transition-colors text-sm border-b border-border last:border-b-0"
-                         >
-                           {typeof club === 'string' ? club : club.name}
-                         </button>
-                       ))
-                     )}
-                   </div>
-                 )}
-             </div>
+              <input
+                type="text"
+                placeholder="Club Name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="px-3 py-2 border border-border rounded-lg bg-background"
+                required
+              />
               <select
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
