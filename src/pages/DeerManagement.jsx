@@ -35,10 +35,9 @@ export default function DeerManagement() {
   const [checkoutData, setCheckoutData] = useState({
      end_time: new Date().toTimeString().slice(0, 5),
      shot_anything: false,
-     deer_species: '',
-     deer_species_other: '',
-     pest_species: '',
-     number_shot: '',
+     species_list: [
+       { species: '', count: '' }
+     ],
      rifle_id: '',
      ammunition_used: '',
      notes: '',
@@ -150,10 +149,9 @@ export default function DeerManagement() {
       setCheckoutData({
          end_time: new Date().toTimeString().slice(0, 5),
          shot_anything: false,
-         deer_species: '',
-         deer_species_other: '',
-         pest_species: '',
-         number_shot: '',
+         species_list: [
+           { species: '', count: '' }
+         ],
          rifle_id: '',
          ammunition_used: '',
          notes: '',
@@ -369,6 +367,23 @@ async function handlePhotoUpload(files, data, onChange) {
 }
 
 function CheckoutModal({ data, rifles, ammunition, onSubmit, onChange, onClose }) {
+  const addSpecies = () => {
+    const speciesList = data.species_list || [{ species: '', count: '' }];
+    onChange('species_list', [...speciesList, { species: '', count: '' }]);
+  };
+
+  const removeSpecies = (index) => {
+    const speciesList = data.species_list || [{ species: '', count: '' }];
+    onChange('species_list', speciesList.filter((_, i) => i !== index));
+  };
+
+  const updateSpecies = (index, field, value) => {
+    const speciesList = data.species_list || [{ species: '', count: '' }];
+    const updated = [...speciesList];
+    updated[index] = { ...updated[index], [field]: value };
+    onChange('species_list', updated);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-card rounded-lg max-w-md w-full p-6 my-8">
@@ -416,96 +431,49 @@ function CheckoutModal({ data, rifles, ammunition, onSubmit, onChange, onClose }
           {data.shot_anything && (
             <>
               <div>
-                <label className="block text-sm font-medium mb-1">What did you shoot?</label>
-                <div className="flex gap-4">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-bold">Species Harvested</label>
                   <button
                     type="button"
-                    onClick={() => onChange('deer_species', 'deer')}
-                    className={`flex-1 px-3 py-2 rounded-lg transition-colors ${data.deer_species === 'deer' ? 'bg-primary text-primary-foreground' : 'border border-border hover:bg-secondary'}`}
+                    onClick={addSpecies}
+                    className="text-xs bg-secondary hover:bg-primary hover:text-primary-foreground px-2 py-1 rounded"
                   >
-                    Deer
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onChange('deer_species', 'pest')}
-                    className={`flex-1 px-3 py-2 rounded-lg transition-colors ${data.deer_species === 'pest' ? 'bg-primary text-primary-foreground' : 'border border-border hover:bg-secondary'}`}
-                  >
-                    Pest Control
+                    + Add Species
                   </button>
                 </div>
-              </div>
-              {data.deer_species === 'deer' && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">Deer Species</label>
-                  <select
-                    value={data.deer_species_other}
-                    onChange={(e) => {
-                      onChange('deer_species_other', e.target.value);
-                    }}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                    required
-                  >
-                    <option value="">Select species</option>
-                    {DEER_SPECIES.map((species) => (
-                      <option key={species} value={species}>
-                        {species}
-                      </option>
-                    ))}
-                  </select>
-                  {data.deer_species_other === 'Other' && (
+                {(data.species_list || [{ species: '', count: '' }]).map((entry, idx) => (
+                  <div key={idx} className="bg-secondary/30 p-3 rounded-lg mb-3 space-y-2">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-medium text-muted-foreground">Species {idx + 1}</span>
+                      {(data.species_list || []).length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeSpecies(idx)}
+                          className="text-xs text-destructive hover:underline"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
                     <input
                       type="text"
-                      placeholder="Enter custom deer species"
-                      value={data.deer_species}
-                      onChange={(e) => onChange('deer_species', e.target.value)}
-                      className="w-full px-3 py-2 border border-border rounded-lg bg-background mt-2"
+                      placeholder="e.g. Roe Deer, Fox, Rabbit"
+                      value={entry.species}
+                      onChange={(e) => updateSpecies(idx, 'species', e.target.value)}
+                      className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
                       required
                     />
-                  )}
-                </div>
-              )}
-              {data.deer_species === 'pest' && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">Pest Species</label>
-                  <select
-                    value={data.pest_species}
-                    onChange={(e) => {
-                      onChange('pest_species', e.target.value);
-                    }}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                    required
-                  >
-                    <option value="">Select pest species</option>
-                    <option value="Fox">Fox</option>
-                    <option value="Rabbit">Rabbit</option>
-                    <option value="Hare">Hare</option>
-                    <option value="Crow">Crow</option>
-                    <option value="Magpie">Magpie</option>
-                    <option value="Pigeon">Pigeon</option>
-                    <option value="Squirrel">Squirrel</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  {data.pest_species === 'Other' && (
                     <input
-                      type="text"
-                      placeholder="Enter custom pest species"
-                      value={data.pest_species}
-                      onChange={(e) => onChange('pest_species', e.target.value)}
-                      className="w-full px-3 py-2 border border-border rounded-lg bg-background mt-2"
+                      type="number"
+                      min="1"
+                      placeholder="Count"
+                      value={entry.count}
+                      onChange={(e) => updateSpecies(idx, 'count', e.target.value)}
+                      className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
                       required
                     />
-                  )}
-                </div>
-              )}
-              <div>
-                <label className="block text-sm font-medium mb-1">Number Shot</label>
-                <input
-                  type="number"
-                  value={data.number_shot}
-                  onChange={(e) => onChange('number_shot', parseInt(e.target.value) || 0)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  required={data.shot_anything}
-                />
+                  </div>
+                ))}
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Rifle Used</label>
