@@ -365,73 +365,82 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
             )}
 
             {/* Firearms Used Section */}
-            {record.rifles_used && record.rifles_used.length > 0 && (
+            {(record.rifles_used && record.rifles_used.length > 0) || record.rifle_id ? (
               <div className="mb-6 pb-4 border-b border-border">
                 <h3 className="font-bold text-lg mb-4 text-primary">Firearms & Ammunition</h3>
                 <div className="space-y-4">
-                  {record.rifles_used.map((rifleStat, idx) => {
-                    const rifleData = getRifleDetails(rifleStat.rifle_id);
-                    return (
-                      <div key={idx} className="bg-secondary/30 p-4 rounded-lg">
-                        <div className="grid grid-cols-2 gap-4 mb-3">
-                          <div>
-                            <label className="text-xs font-bold text-muted-foreground uppercase">Firearm #{idx + 1}</label>
-                            <p className="font-semibold text-base">{rifleStat.rifle_id ? getRifleName(rifleStat.rifle_id) : 'N/A'}</p>
+                  {record.rifles_used && record.rifles_used.length > 0 ? (
+                    record.rifles_used.map((rifleStat, idx) => {
+                      const rifleData = getRifleDetails(rifleStat.rifle_id);
+                      return (
+                        <div key={idx} className="bg-secondary/30 p-4 rounded-lg">
+                          <div className="grid grid-cols-2 gap-4 mb-3">
+                            <div>
+                              <label className="text-xs font-bold text-muted-foreground uppercase">Firearm #{idx + 1}</label>
+                              <p className="font-semibold text-base">{rifleStat.rifle_id ? getRifleName(rifleStat.rifle_id) : 'N/A'}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-muted-foreground uppercase">Rounds Fired</label>
+                              <p className="font-semibold text-base">{rifleStat.rounds_fired || '0'} rounds</p>
+                            </div>
                           </div>
-                          <div>
-                            <label className="text-xs font-bold text-muted-foreground uppercase">Rounds Fired</label>
-                            <p className="font-semibold text-base">{rifleStat.rounds_fired || '0'} rounds</p>
+
+                          {rifleData && (
+                            <div className="grid grid-cols-3 gap-3 mb-3 pb-3 border-b border-border">
+                              <div>
+                                <label className="text-xs font-bold text-muted-foreground">Make</label>
+                                <p className="text-sm">{rifleData.make || '-'}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-bold text-muted-foreground">Model</label>
+                                <p className="text-sm">{rifleData.model || '-'}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-bold text-muted-foreground">Caliber</label>
+                                <p className="text-sm">{rifleData.caliber || '-'}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {rifleData && rifleData.serial_number && (
+                            <div className="mb-3 pb-3 border-b border-border">
+                              <label className="text-xs font-bold text-muted-foreground">Serial Number</label>
+                              <p className="font-mono text-sm">{rifleData.serial_number}</p>
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-xs font-bold text-muted-foreground">Ammunition Brand</label>
+                              <p className="text-sm">{rifleStat.ammunition_brand || '-'}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-muted-foreground">Range Distance</label>
+                              <p className="text-sm">{rifleStat.meters_range ? `${rifleStat.meters_range}m` : '-'}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-muted-foreground">Bullet Type</label>
+                              <p className="text-sm">{rifleStat.bullet_type || '-'}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-muted-foreground">Grain Weight</label>
+                              <p className="text-sm">{rifleStat.grain || '-'}</p>
+                            </div>
                           </div>
                         </div>
-
-                        {rifleData && (
-                          <div className="grid grid-cols-3 gap-3 mb-3 pb-3 border-b border-border">
-                            <div>
-                              <label className="text-xs font-bold text-muted-foreground">Make</label>
-                              <p className="text-sm">{rifleData.make || '-'}</p>
-                            </div>
-                            <div>
-                              <label className="text-xs font-bold text-muted-foreground">Model</label>
-                              <p className="text-sm">{rifleData.model || '-'}</p>
-                            </div>
-                            <div>
-                              <label className="text-xs font-bold text-muted-foreground">Caliber</label>
-                              <p className="text-sm">{rifleData.caliber || '-'}</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {rifleData && rifleData.serial_number && (
-                          <div className="mb-3 pb-3 border-b border-border">
-                            <label className="text-xs font-bold text-muted-foreground">Serial Number</label>
-                            <p className="font-mono text-sm">{rifleData.serial_number}</p>
-                          </div>
-                        )}
-
-                        <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-xs font-bold text-muted-foreground">Ammunition Brand</label>
-                            <p className="text-sm">{rifleStat.ammunition_brand || '-'}</p>
-                          </div>
-                          <div>
-                            <label className="text-xs font-bold text-muted-foreground">Range Distance</label>
-                            <p className="text-sm">{rifleStat.meters_range ? `${rifleStat.meters_range}m` : '-'}</p>
-                          </div>
-                          <div>
-                            <label className="text-xs font-bold text-muted-foreground">Bullet Type</label>
-                            <p className="text-sm">{rifleStat.bullet_type || '-'}</p>
-                          </div>
-                          <div>
-                            <label className="text-xs font-bold text-muted-foreground">Grain Weight</label>
-                            <p className="text-sm">{rifleStat.grain || '-'}</p>
-                          </div>
-                        </div>
+                      );
+                    })
+                  ) : record.rifle_id ? (
+                    <div className="bg-secondary/30 p-4 rounded-lg">
+                      <div>
+                        <label className="text-xs font-bold text-muted-foreground uppercase">Firearm</label>
+                        <p className="font-semibold text-base">{getRifleName(record.rifle_id)}</p>
                       </div>
-                    );
-                  })}
+                    </div>
+                  ) : null}
                 </div>
               </div>
-            )}
+            ) : null}
           </>
         )}
 
