@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import { useState } from 'react';
-import { Map, Satellite, Trash2 } from 'lucide-react';
+import { Map, Satellite, Trash2, Locate, Zap, MapPin } from 'lucide-react';
 
 // Fix marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -16,8 +16,12 @@ L.Icon.Default.mergeOptions({
 // Import leaflet-draw
 import 'leaflet-draw';
 
-function DrawControl({ onDataChange, mapData }) {
+function DrawControl({ onDataChange, mapData, onMapReady }) {
   const map = useMap();
+
+  useEffect(() => {
+    onMapReady(map);
+  }, [map, onMapReady]);
   const featureGroupRef = useRef(null);
 
   useEffect(() => {
@@ -89,8 +93,38 @@ function DrawControl({ onDataChange, mapData }) {
   return null;
 }
 
+function MapControls({ mapRef, onLocationFound }) {
+  const handleFindLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          if (mapRef.current) {
+            mapRef.current.setView([latitude, longitude], 15);
+            onLocationFound?.();
+          }
+        },
+        (error) => console.log('Geolocation error:', error),
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+  };
+
+  return (
+    <button
+      onClick={handleFindLocation}
+      className="px-4 py-2 rounded-lg flex items-center gap-2 font-medium bg-secondary hover:bg-secondary/80"
+      title="Center map on your current location"
+    >
+      <Locate className="w-4 h-4" />
+      Find My Location
+    </button>
+  );
+}
+
 export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData = {} }) {
   const [mapType, setMapType] = useState('map');
+  const mapRef = useRef(null);
   const center = initialCenter || [54.5973, -3.1578]; // Default to UK center
 
   const clearAll = () => {
@@ -98,42 +132,58 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
     window.location.reload();
   };
 
+  const setMapRef = (mapInstance) => {
+    mapRef.current = mapInstance;
+  };
+
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-2">
-        <button
-          onClick={() => setMapType('map')}
-          className={`px-4 py-2 rounded-lg flex items-center gap-2 font-medium ${
-            mapType === 'map'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-secondary hover:bg-secondary/80'
-          }`}
-        >
-          <Map className="w-4 h-4" />
-          Map
-        </button>
-        <button
-          onClick={() => setMapType('satellite')}
-          className={`px-4 py-2 rounded-lg flex items-center gap-2 font-medium ${
-            mapType === 'satellite'
-              ? 'bg-primary text-primary-foreground'
-              : 'bg-secondary hover:bg-secondary/80'
-          }`}
-        >
-          <Satellite className="w-4 h-4" />
-          Satellite
-        </button>
-        <button
-          onClick={clearAll}
-          className="px-4 py-2 rounded-lg flex items-center gap-2 font-medium bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
-        >
-          <Trash2 className="w-4 h-4" />
-          Clear All
-        </button>
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-2">
+          <MapControls mapRef={mapRef} />
+        </div>
+        <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm text-blue-900">
+          <div className="font-semibold mb-2">Drawing Tools:</div>
+          <ul className="space-y-1 text-xs">
+            <li className="flex items-center gap-2"><Zap className="w-3 h-3" /> Draw boundary polygon around your hunting ground</li>
+            <li className="flex items-center gap-2"><MapPin className="w-3 h-3" /> Pin locations of high seats or stands</li>
+          </ul>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setMapType('map')}
+            className={`px-4 py-2 rounded-lg flex items-center gap-2 font-medium ${
+              mapType === 'map'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary hover:bg-secondary/80'
+            }`}
+          >
+            <Map className="w-4 h-4" />
+            Map
+          </button>
+          <button
+            onClick={() => setMapType('satellite')}
+            className={`px-4 py-2 rounded-lg flex items-center gap-2 font-medium ${
+              mapType === 'satellite'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary hover:bg-secondary/80'
+            }`}
+          >
+            <Satellite className="w-4 h-4" />
+            Satellite
+          </button>
+          <button
+            onClick={clearAll}
+            className="px-4 py-2 rounded-lg flex items-center gap-2 font-medium bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+          >
+            <Trash2 className="w-4 h-4" />
+            Clear All
+          </button>
+        </div>
       </div>
 
       <div className="bg-card border border-border rounded-lg overflow-hidden h-96">
-        <MapContainer center={center} zoom={13} className="w-full h-full">
+        <MapContainer center={center} zoom={13} className="w-full h-full" ref={setMapRef}>
           <TileLayer
             attribution='&copy; OpenStreetMap contributors'
             url={
@@ -142,13 +192,11 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
                 : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
             }
           />
-          <DrawControl onDataChange={onDataChange} mapData={mapData} />
+          <DrawControl onDataChange={onDataChange} mapData={mapData} onMapReady={setMapRef} />
         </MapContainer>
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        Draw polygon boundaries or pin high seat locations. Use the toolbar on the map to edit or delete.
-      </p>
+
     </div>
   );
 }
