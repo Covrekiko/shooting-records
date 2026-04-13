@@ -520,19 +520,25 @@ function CheckoutModal({ data, rifles, onSubmit, onChange, onClose }) {
           <div>
             <label className="block text-sm font-medium mb-2">Photos</label>
             <div className="flex gap-2 mb-3">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handlePhotoUpload(e.files, data, onChange)}
-                className="flex-1"
-              />
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={(e) => handlePhotoUpload(e.files, data, onChange)}
-                className="flex-1"
-              />
+              <label className="flex-1 px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors">
+                📁 Choose Photo
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handlePhotoUpload(e.files, data, onChange)}
+                  className="hidden"
+                />
+              </label>
+              <label className="flex-1 px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors">
+                📷 Take Photo
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={(e) => handlePhotoUpload(e.files, data, onChange)}
+                  className="hidden"
+                />
+              </label>
             </div>
             {data.photos && data.photos.length > 0 && (
               <div className="flex flex-wrap gap-2">
