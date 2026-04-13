@@ -116,7 +116,7 @@ export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, c
 
 function createFrontPage(doc, userInfo, pageWidth, pageHeight, docId) {
   const { margin } = STYLES;
-  let yPosition = pageHeight * 0.25;
+  let yPosition = pageHeight * 0.15;
 
   doc.setFontSize(28);
   doc.setFont(undefined, 'bold');
@@ -128,36 +128,63 @@ function createFrontPage(doc, userInfo, pageWidth, pageHeight, docId) {
   doc.setFont(undefined, 'normal');
   doc.setTextColor(100, 100, 100);
   doc.text('Official Regulatory Compliance Report', pageWidth / 2, yPosition, { align: 'center' });
-  yPosition += 25;
+  yPosition += 20;
 
+  // Personal Information Section
   doc.setFillColor(...STYLES.lightGray);
-  doc.rect(margin, yPosition, pageWidth - 2 * margin, 55, 'F');
+  doc.rect(margin, yPosition, pageWidth - 2 * margin, 3, 'F');
+  yPosition += 5;
 
-  doc.setTextColor(...STYLES.darkGray);
+  doc.setFontSize(11);
   doc.setFont(undefined, 'bold');
-  doc.setFontSize(16);
-  doc.text(userInfo.full_name || 'Participant', pageWidth / 2, yPosition + 12, { align: 'center' });
+  doc.setTextColor(...STYLES.headingColor);
+  doc.text('PARTICIPANT INFORMATION', margin + 5, yPosition);
+  yPosition += 10;
 
-  yPosition += 25;
   doc.setFontSize(10);
   doc.setFont(undefined, 'normal');
   doc.setTextColor(...STYLES.textColor);
 
+  // Full Name
+  doc.setFont(undefined, 'bold');
+  doc.text('Name:', margin + 5, yPosition);
+  doc.setFont(undefined, 'normal');
+  doc.text(userInfo.full_name || '-', margin + 40, yPosition);
+  yPosition += 8;
+
+  // Email
+  doc.setFont(undefined, 'bold');
+  doc.text('Email:', margin + 5, yPosition);
+  doc.setFont(undefined, 'normal');
+  doc.text(userInfo.email || '-', margin + 40, yPosition);
+  yPosition += 8;
+
+  // Date of Birth
+  doc.setFont(undefined, 'bold');
+  doc.text('Date of Birth:', margin + 5, yPosition);
+  doc.setFont(undefined, 'normal');
   if (userInfo.date_of_birth) {
     const dob = new Date(userInfo.date_of_birth);
     const dobStr = dob.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
-    doc.text(`Date of Birth: ${dobStr}`, margin + 10, yPosition);
-    yPosition += 8;
+    doc.text(dobStr, margin + 40, yPosition);
+  } else {
+    doc.text('-', margin + 40, yPosition);
   }
+  yPosition += 8;
 
+  // Address
+  doc.setFont(undefined, 'bold');
+  doc.text('Address:', margin + 5, yPosition);
+  doc.setFont(undefined, 'normal');
   if (userInfo.address) {
-    doc.text('Address:', margin + 10, yPosition);
-    const addressText = doc.splitTextToSize(userInfo.address, pageWidth - 2 * margin - 20);
-    yPosition += 6;
-    addressText.forEach((line) => {
-      doc.text(line, margin + 10, yPosition);
+    const addressText = doc.splitTextToSize(userInfo.address, pageWidth - 2 * margin - 50);
+    addressText.forEach((line, idx) => {
+      doc.text(line, margin + 40, yPosition);
       yPosition += 5;
     });
+  } else {
+    doc.text('-', margin + 40, yPosition);
+    yPosition += 5;
   }
 
   yPosition = pageHeight - 25;
