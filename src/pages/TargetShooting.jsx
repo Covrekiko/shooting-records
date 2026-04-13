@@ -37,6 +37,7 @@ export default function TargetShooting() {
         rounds_fired: '',
         meters_range: '',
         ammunition_brand: '',
+        caliber: '',
         bullet_type: '',
         grain: '',
       }
@@ -153,6 +154,7 @@ export default function TargetShooting() {
             rounds_fired: '',
             meters_range: '',
             ammunition_brand: '',
+            caliber: '',
             bullet_type: '',
             grain: '',
           }
@@ -439,6 +441,7 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
                       if (selectedAmmo) {
                         updateRifleEntry(index, 'ammunition_id', e.target.value);
                         updateRifleEntry(index, 'ammunition_brand', selectedAmmo.brand);
+                        updateRifleEntry(index, 'caliber', selectedAmmo.caliber || '');
                         updateRifleEntry(index, 'bullet_type', selectedAmmo.bullet_type || '');
                         updateRifleEntry(index, 'grain', selectedAmmo.grain || '');
                       } else {
@@ -461,6 +464,13 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
                   placeholder="Ammunition brand"
                   value={rifle.ammunition_brand}
                   onChange={(e) => updateRifleEntry(index, 'ammunition_brand', e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
+                />
+                <input
+                  type="text"
+                  placeholder="Caliber"
+                  value={rifle.caliber}
+                  onChange={(e) => updateRifleEntry(index, 'caliber', e.target.value)}
                   className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
                 />
                 <input
