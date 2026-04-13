@@ -117,7 +117,7 @@ export default function Dashboard() {
               link="/target-shooting"
             />
             <StatCard
-              icon={<img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/fc8ae3666_image.jpeg" alt="Shotgun" className="w-[5.125rem] h-[5.125rem] object-contain" />}
+              icon={<img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/fc8ae3666_image.jpeg" alt="Shotgun" className="w-[5.2rem] h-[5.2rem] object-contain" />}
               label="Clay Shooting"
               value={stats?.clayRecords || 0}
               link="/clay-shooting"
@@ -138,7 +138,7 @@ export default function Dashboard() {
               link="/target-shooting"
             />
             <StatCard
-              icon={<img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/fc8ae3666_image.jpeg" alt="Shotgun" className="w-[5.125rem] h-[5.125rem] object-contain" />}
+              icon={<img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/fc8ae3666_image.jpeg" alt="Shotgun" className="w-[5.2rem] h-[5.2rem] object-contain" />}
               label="Clay Shooting Sessions"
               value={stats?.claySessions || 0}
               link="/clay-shooting"
