@@ -16,7 +16,6 @@ import { decrementAmmoStock } from '@/lib/ammoUtils';
 import AreaDrawer from '@/components/deer-stalking/AreaDrawer';
 import AreaSaveForm from '@/components/deer-stalking/AreaSaveForm';
 import AreaSelector from '@/components/deer-stalking/AreaSelector';
-import MapSearchBar from '@/components/deer-stalking/MapSearchBar';
 
 // Fix Leaflet default icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -56,6 +55,37 @@ export default function DeerStalkingMap() {
     loadData();
     getUserLocation();
     loadRiflesAndAmmo();
+
+    // Handle search results from URL params
+    setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      const lat = params.get('lat');
+      const lng = params.get('lng');
+      const zoom = params.get('zoom');
+
+      if (lat && lng && mapRef.current) {
+        const searchLat = parseFloat(lat);
+        const searchLng = parseFloat(lng);
+        const searchZoom = zoom ? parseInt(zoom) : 15;
+
+        if (!isNaN(searchLat) && !isNaN(searchLng)) {
+          setSearchMarker({
+            lat: searchLat,
+            lng: searchLng,
+            label: 'Search Result',
+          });
+          mapRef.current.setView([searchLat, searchLng], searchZoom);
+
+          // Clear URL params
+          window.history.replaceState({}, '', '/deer-stalking');
+
+          // Auto-clear marker after 10 seconds
+          setTimeout(() => {
+            setSearchMarker(null);
+          }, 10000);
+        }
+      }
+    }, 500);
   }, []);
 
   const loadData = async () => {
@@ -444,8 +474,7 @@ export default function DeerStalkingMap() {
       </MapContainer>
       </div>
 
-      {/* Map Search Bar */}
-      <MapSearchBar onSearch={handleMapSearch} />
+
 
       {/* Area Selector - Top Left */}
       <div className="fixed top-4 left-4 z-[9999] pointer-events-auto">
