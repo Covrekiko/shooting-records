@@ -92,6 +92,7 @@ function SettingsPanel() {
         <SettingCard title="Shotguns" description="Manage your shotgun collection" link="/settings/shotguns" />
         <SettingCard title="Clubs" description="Manage shooting clubs" link="/settings/clubs" />
         <SettingCard title="Deer Locations" description="Manage deer hunting locations" link="/settings/locations" />
+        <SettingCard title="Ammunition" description="Manage ammunition" link="/settings/ammunition" />
       </div>
     </div>
   );
