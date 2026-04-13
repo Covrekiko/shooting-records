@@ -25,6 +25,7 @@ import Reports from './pages/Reports';
 import AdminUsers from './pages/admin/Users';
 import DeerStalkingMap from './pages/DeerStalkingMap';
 import DeerStalkingLogs from './pages/DeerStalkingLogs';
+import Users from './pages/Users';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -68,6 +69,7 @@ const AuthenticatedApp = () => {
       <Route path="/settings/ammunition-inventory" element={<AmmunitionInventory />} />
       <Route path="/reports" element={<Reports />} />
       <Route path="/admin/users" element={<AdminUsers />} />
+      <Route path="/users" element={<Users />} />
       <Route path="/deer-stalking" element={<DeerStalkingMap />} />
       <Route path="/deer-stalking-logs" element={<DeerStalkingLogs />} />
       <Route path="*" element={<PageNotFound />} />

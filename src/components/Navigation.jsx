@@ -20,6 +20,7 @@ export default function Navigation() {
     { path: '/clay-shooting', label: 'Clay Shooting' },
     { path: '/deer-management', label: 'Deer Management' },
     { path: '/deer-stalking', label: 'Stalking Map' },
+    { path: '/users', label: 'Users' },
   ];
 
   return (
