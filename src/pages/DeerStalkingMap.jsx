@@ -497,7 +497,7 @@ export default function DeerStalkingMap() {
       </div>
 
       {/* Area Selector - Top Left */}
-      <div className="fixed top-16 left-4 z-[9999] pointer-events-auto">
+      <div className="fixed top-4 left-4 z-[9999] pointer-events-auto">
         <AreaSelector
           savedAreas={savedAreas}
           selectedAreaId={selectedAreaId}
