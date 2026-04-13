@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
 
 export default function OutingModal({ onClose, onSubmit, locations = [], selectedArea = null }) {
+  const [areas, setAreas] = useState([]);
   const [data, setData] = useState({
     date: new Date().toISOString().split('T')[0],
     location_id: '',
@@ -9,6 +11,20 @@ export default function OutingModal({ onClose, onSubmit, locations = [], selecte
     start_time: new Date().toTimeString().slice(0, 5),
   });
 
+  useEffect(() => {
+    loadAreas();
+  }, []);
+
+  const loadAreas = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      const areasList = await base44.entities.Area.filter({ created_by: currentUser.email });
+      setAreas(areasList || []);
+    } catch (error) {
+      console.error('Error loading areas:', error);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(data);
@@ -16,6 +32,17 @@ export default function OutingModal({ onClose, onSubmit, locations = [], selecte
 
   const handleChange = (field, value) => {
     setData({ ...data, [field]: value });
+  };
+
+  const handleAreaSelect = (areaId) => {
+    const selected = areas.find(a => a.id === areaId);
+    if (selected) {
+      setData({
+        ...data,
+        area_id: selected.id,
+        place_name: selected.name,
+      });
+    }
   };
 
   return (
@@ -34,17 +61,17 @@ export default function OutingModal({ onClose, onSubmit, locations = [], selecte
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Location</label>
+            <label className="block text-sm font-medium mb-1">Select Area</label>
             <select
-              value={data.location_id}
-              onChange={(e) => handleChange('location_id', e.target.value)}
+              value={data.area_id}
+              onChange={(e) => handleAreaSelect(e.target.value)}
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
               required
             >
-              <option value="">Select a location</option>
-              {locations.map((loc) => (
-                <option key={loc.id} value={loc.id}>
-                  {loc.place_name}
+              <option value="">Select your area</option>
+              {areas.map((area) => (
+                <option key={area.id} value={area.id}>
+                  {area.name}
                 </option>
               ))}
             </select>
