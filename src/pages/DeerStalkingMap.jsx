@@ -153,22 +153,7 @@ export default function DeerStalkingMap() {
   }
 
   return (
-    <div className="w-full h-screen bg-slate-900 relative">
-      {/* Back to Dashboard */}
-      <Link
-        to="/"
-        className="absolute top-4 right-4 z-[9999] flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all"
-      >
-        <Home className="w-4 h-4" />
-        Dashboard
-      </Link>
-      {error && (
-        <div className="absolute top-4 left-4 right-4 z-[9998] bg-red-500 text-white p-3 rounded-lg flex items-center gap-2">
-          <AlertCircle className="w-4 h-4" />
-          {error}
-        </div>
-      )}
-
+    <div className="w-full h-screen bg-slate-900 relative overflow-hidden">
       <MapContainer
         center={userLocation}
         zoom={13}
@@ -228,6 +213,21 @@ export default function DeerStalkingMap() {
           />
         )}
       </MapContainer>
+
+      {/* Back to Dashboard */}
+      <Link
+        to="/"
+        className="fixed top-4 right-4 z-[9999] flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all pointer-events-auto"
+      >
+        <Home className="w-4 h-4" />
+        Dashboard
+      </Link>
+      {error && (
+        <div className="fixed top-4 left-4 right-4 z-[9998] bg-red-500 text-white p-3 rounded-lg flex items-center gap-2 pointer-events-auto">
+          <AlertCircle className="w-4 h-4" />
+          {error}
+        </div>
+      )}
 
       {/* Floating Action Bar */}
       <FloatingActionBar
