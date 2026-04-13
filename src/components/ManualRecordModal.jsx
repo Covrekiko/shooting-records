@@ -57,6 +57,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
     species_list: record?.species_list || [],
     total_count: record?.total_count || '',
     rifle_id: record?.rifle_id || '',
+    ammunition_id: record?.ammunition_id || '',
     ammunition_used: record?.ammunition_used || '',
   });
 
@@ -127,6 +128,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
           species_list: formData.species_list,
           total_count: formData.total_count || formData.number_shot,
           rifle_id: formData.rifle_id,
+          ammunition_used: formData.ammunition_used,
         };
       }
 
@@ -376,13 +378,32 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Ammunition Used</label>
+                  <label className="block text-sm font-medium mb-2">Ammunition</label>
+                  <select
+                    value={formData.ammunition_id || ''}
+                    onChange={(e) => {
+                      const selectedAmmo = ammunition.find(a => a.id === e.target.value);
+                      setFormData({ ...formData, ammunition_id: e.target.value });
+                      if (selectedAmmo) {
+                        setFormData(prev => ({ ...prev, ammunition_used: `${selectedAmmo.brand} ${selectedAmmo.caliber || ''} ${selectedAmmo.bullet_type || ''}`.trim() }));
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background mb-2"
+                  >
+                    <option value="">Select saved ammunition</option>
+                    {ammunition.length > 0 ? ammunition.map((ammo) => (
+                      <option key={ammo.id} value={ammo.id}>
+                        {ammo.brand} {ammo.caliber ? `(${ammo.caliber})` : ''} {ammo.bullet_type ? `- ${ammo.bullet_type}` : ''}
+                      </option>
+                    )) : <option disabled>No ammunition available</option>}
+                  </select>
+                  <span className="text-xs text-muted-foreground">Or enter manually:</span>
                   <input
                     type="text"
                     placeholder="e.g. Federal .308"
                     value={formData.ammunition_used}
                     onChange={(e) => setFormData({ ...formData, ammunition_used: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background mt-1"
                   />
                 </div>
                 </>
