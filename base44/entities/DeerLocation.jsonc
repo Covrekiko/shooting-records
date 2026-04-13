@@ -16,6 +16,10 @@
       "items": {
         "type": "string"
       }
+    },
+    "boundary_map_data": {
+      "type": "object",
+      "additionalProperties": true
     }
   },
   "required": [
