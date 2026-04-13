@@ -492,7 +492,7 @@ function CheckoutModal({ data, rifles, ammunition, onSubmit, onChange, onClose }
                 ))}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Total Count</label>
+                  <label className="block text-sm font-medium mb-1">Total Shots Fired</label>
                   <input
                     type="number"
                     min="1"
