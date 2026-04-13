@@ -50,8 +50,9 @@ export default function DeerStalkingMap() {
   const [drawnPolygon, setDrawnPolygon] = useState(null);
   const [searchMarker, setSearchMarker] = useState(null);
   const [selectedArea, setSelectedArea] = useState(null);
-  const [isDrawingArea, setIsDrawingArea] = useState(false);
-  const mapRef = useRef(null);
+   const [isDrawingArea, setIsDrawingArea] = useState(false);
+   const mapRef = useRef(null);
+   const isDrawingAreaRef = useRef(false);
 
   useEffect(() => {
     loadData();
@@ -74,17 +75,17 @@ export default function DeerStalkingMap() {
 
         updateGpsTrack(activeOuting.id, updatedTrack);
 
-        // Only update location marker (not map center) while drawing
-        if (!isDrawingArea) {
-          setUserLocation([latitude, longitude]);
-        }
+        // Block map center updates while drawing area
+        if (isDrawingAreaRef.current) return;
+
+        setUserLocation([latitude, longitude]);
       },
       (error) => console.error('Geolocation error:', error),
       { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [activeOuting?.id, updateGpsTrack, isDrawingArea]);
+  }, [activeOuting?.id, updateGpsTrack]);
 
   const loadData = async () => {
     try {
@@ -273,6 +274,7 @@ export default function DeerStalkingMap() {
 
   const handleStartAreaCreation = () => {
     setIsDrawingArea(true);
+    isDrawingAreaRef.current = true;
     setShowAreaDrawer(true);
   };
 
@@ -280,6 +282,7 @@ export default function DeerStalkingMap() {
     setDrawnPolygon(polygon);
     setShowAreaDrawer(false);
     setIsDrawingArea(false);
+    isDrawingAreaRef.current = false;
     setShowAreaForm(true);
   };
 
@@ -290,6 +293,7 @@ export default function DeerStalkingMap() {
       setShowAreaForm(false);
       setDrawnPolygon(null);
       setIsDrawingArea(false);
+      isDrawingAreaRef.current = false;
       setError(null);
     } catch (err) {
       setError(err.message);
