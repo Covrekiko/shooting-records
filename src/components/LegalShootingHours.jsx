@@ -31,8 +31,24 @@ export default function LegalShootingHours() {
     }
   }, [sunTimes, currentTime]);
 
-  const sunrise = sunTimes?.sunrise || new Date(new Date().setHours(6, 12, 0, 0));
-  const sunset = sunTimes?.sunset || new Date(new Date().setHours(19, 52, 0, 0));
+  if (!sunTimes || sunTimes.type !== 'normal') {
+    return (
+      <div className="mb-6">
+        <div className="mb-4">
+          <h2 className="text-3xl font-bold mb-1">Legal Shooting Hours</h2>
+          <p className="text-muted-foreground">Check the legal shooting hours for your current location</p>
+        </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-900">
+            <span className="font-semibold">Note:</span> Enable location access to see accurate shooting hours for your area. Your browser's location permission is required.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const sunrise = sunTimes.sunrise;
+  const sunset = sunTimes.sunset;
   const legalStart = new Date(sunrise.getTime() - 60 * 60000);
   const legalEnd = new Date(sunset.getTime() + 60 * 60000);
 
