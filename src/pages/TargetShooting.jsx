@@ -435,27 +435,24 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
                 <div>
                   <label className="text-xs font-medium text-muted-foreground block mb-1">Ammunition</label>
                   <select
-                    value={rifle.ammunition_id || ''}
                     onChange={(e) => {
                       const selectedAmmo = ammunition.find(a => a.id === e.target.value);
                       if (selectedAmmo) {
-                        updateRifleEntry(index, 'ammunition_id', e.target.value);
-                        updateRifleEntry(index, 'ammunition_brand', selectedAmmo.brand);
+                        updateRifleEntry(index, 'ammunition_brand', selectedAmmo.brand || '');
                         updateRifleEntry(index, 'caliber', selectedAmmo.caliber || '');
                         updateRifleEntry(index, 'bullet_type', selectedAmmo.bullet_type || '');
                         updateRifleEntry(index, 'grain', selectedAmmo.grain || '');
-                      } else {
-                        updateRifleEntry(index, 'ammunition_id', '');
                       }
                     }}
+                    defaultValue=""
                     className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background mb-2"
                   >
                     <option value="">Select saved ammunition</option>
-                    {ammunition.map((ammo) => (
+                    {ammunition.length > 0 ? ammunition.map((ammo) => (
                       <option key={ammo.id} value={ammo.id}>
-                        {ammo.brand} {ammo.bullet_type ? `- ${ammo.bullet_type}` : ''}
+                        {ammo.brand} {ammo.caliber ? `(${ammo.caliber})` : ''} {ammo.bullet_type ? `- ${ammo.bullet_type}` : ''}
                       </option>
-                    ))}
+                    )) : <option disabled>No ammunition available</option>}
                   </select>
                   <span className="text-xs text-muted-foreground">Or enter manually:</span>
                 </div>
