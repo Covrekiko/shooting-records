@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 
 function generateDocumentId() {
   const timestamp = Date.now().toString(36).toUpperCase();
