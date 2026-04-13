@@ -438,13 +438,13 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
                     onChange={(e) => {
                       const selectedAmmo = ammunition.find(a => a.id === e.target.value);
                       if (selectedAmmo) {
-                        updateRifleEntry(index, 'ammunition_brand', selectedAmmo.brand || '');
-                        updateRifleEntry(index, 'caliber', selectedAmmo.caliber || '');
-                        updateRifleEntry(index, 'bullet_type', selectedAmmo.bullet_type || '');
-                        updateRifleEntry(index, 'grain', selectedAmmo.grain || '');
+                        updateRifleEntry(index, 'ammunition_brand', selectedAmmo.brand);
+                        updateRifleEntry(index, 'caliber', selectedAmmo.caliber);
+                        updateRifleEntry(index, 'bullet_type', selectedAmmo.bullet_type);
+                        updateRifleEntry(index, 'grain', selectedAmmo.grain);
                       }
                     }}
-                    defaultValue=""
+                    value=""
                     className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background mb-2"
                   >
                     <option value="">Select saved ammunition</option>
@@ -459,28 +459,28 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
                 <input
                   type="text"
                   placeholder="Ammunition brand"
-                  value={rifle.ammunition_brand}
+                  value={rifle.ammunition_brand || ''}
                   onChange={(e) => updateRifleEntry(index, 'ammunition_brand', e.target.value)}
                   className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
                 />
                 <input
                   type="text"
                   placeholder="Caliber"
-                  value={rifle.caliber}
+                  value={rifle.caliber || ''}
                   onChange={(e) => updateRifleEntry(index, 'caliber', e.target.value)}
                   className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
                 />
                 <input
                   type="text"
                   placeholder="Bullet type"
-                  value={rifle.bullet_type}
+                  value={rifle.bullet_type || ''}
                   onChange={(e) => updateRifleEntry(index, 'bullet_type', e.target.value)}
                   className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
                 />
                 <input
                   type="text"
                   placeholder="Grain"
-                  value={rifle.grain}
+                  value={rifle.grain || ''}
                   onChange={(e) => updateRifleEntry(index, 'grain', e.target.value)}
                   className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
                 />
