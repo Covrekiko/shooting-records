@@ -19,7 +19,7 @@ export default function FloatingActionBar({
   ];
 
   return (
-    <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
+    <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3">
       {/* End Outing Button */}
       {activeOuting && (
         <button
@@ -57,13 +57,9 @@ export default function FloatingActionBar({
       {/* Main FAB */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all transform hover:scale-110 ${
-          expanded
-            ? 'bg-slate-600 text-white'
-            : 'bg-primary text-white hover:bg-primary/90'
-        }`}
+        className="w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center shadow-lg hover:bg-primary/90 transition-all"
       >
-        <Plus className={`w-6 h-6 transition-transform ${expanded ? 'rotate-45' : ''}`} />
+        <Plus className="w-6 h-6" />
       </button>
     </div>
   );
