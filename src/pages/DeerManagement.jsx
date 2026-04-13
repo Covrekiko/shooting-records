@@ -389,7 +389,13 @@ function CheckoutModal({ data, rifles, onSubmit, onChange, onClose }) {
                   <label className="block text-sm font-medium mb-1">Deer Species</label>
                   <select
                     value={data.deer_species_other || ''}
-                    onChange={(e) => onChange('deer_species_other', e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      onChange('deer_species_other', val);
+                      if (val && val !== 'Other') {
+                        onChange('deer_species', val);
+                      }
+                    }}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                     required
                   >
@@ -410,9 +416,6 @@ function CheckoutModal({ data, rifles, onSubmit, onChange, onClose }) {
                       required
                     />
                   )}
-                  {data.deer_species_other && data.deer_species_other !== 'Other' && (
-                    <input type="hidden" value={onChange('deer_species', data.deer_species_other)} />
-                  )}
                 </div>
               )}
               {data.deer_species === 'pest' && (
@@ -420,7 +423,11 @@ function CheckoutModal({ data, rifles, onSubmit, onChange, onClose }) {
                   <label className="block text-sm font-medium mb-1">Pest Species</label>
                   <select
                     value={data.pest_species}
-                    onChange={(e) => onChange('pest_species', e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      onChange('pest_species', val);
+                      onChange('deer_species', val);
+                    }}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                     required
                   >
@@ -439,7 +446,11 @@ function CheckoutModal({ data, rifles, onSubmit, onChange, onClose }) {
                       type="text"
                       placeholder="Enter custom pest species"
                       value={data.pest_species}
-                      onChange={(e) => onChange('pest_species', e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        onChange('pest_species', val);
+                        onChange('deer_species', val);
+                      }}
                       className="w-full px-3 py-2 border border-border rounded-lg bg-background mt-2"
                       required
                     />
@@ -451,7 +462,7 @@ function CheckoutModal({ data, rifles, onSubmit, onChange, onClose }) {
                 <input
                   type="number"
                   value={data.number_shot}
-                  onChange={(e) => onChange('number_shot', e.target.value)}
+                  onChange={(e) => onChange('number_shot', parseInt(e.target.value) || 0)}
                   className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                   required
                 />
