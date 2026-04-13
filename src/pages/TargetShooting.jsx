@@ -7,6 +7,7 @@ import GpsPathViewer from '@/components/GpsPathViewer';
 import { Clock, CheckCircle, Plus } from 'lucide-react';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
+import { trackingService } from '@/lib/trackingService';
 
 export default function TargetShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -83,27 +84,11 @@ export default function TargetShooting() {
     loadData();
   }, []);
 
-  // GPS tracking for active session
-  useEffect(() => {
-    if (!activeSession?.id) return;
-
-    let currentTrack = gpsTrack;
-
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        const timestamp = Date.now();
-        const newPoint = { lat: latitude, lng: longitude, timestamp };
-        currentTrack = [...currentTrack, newPoint];
-        setGpsTrack(currentTrack);
-        console.log('📍 TargetShooting: GPS point recorded -', currentTrack.length, 'total points');
-      },
-      (error) => console.error('❌ GPS error:', error),
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-    );
-
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, [activeSession?.id]);
+  // Subscribe to live GPS updates
+   useEffect(() => {
+     const unsubscribe = trackingService.subscribe(setGpsTrack);
+     return unsubscribe;
+   }, []);
 
   useEffect(() => {
     if (location && clubs.length > 0) {
@@ -125,27 +110,33 @@ export default function TargetShooting() {
   }, [location, clubs]);
 
   const handleCheckin = async (e) => {
-    e.preventDefault();
-    try {
-      const session = await base44.entities.TargetShooting.create({
-        ...checkinData,
-        active_checkin: true,
-      });
-      setActiveSession(session);
-      setShowCheckin(false);
-      setCheckinData({
-        date: new Date().toISOString().split('T')[0],
-        club_id: '',
-        checkin_time: new Date().toTimeString().slice(0, 5),
-        notes: '',
-      });
-    } catch (error) {
-      console.error('Error checking in:', error);
-    }
-  };
+     e.preventDefault();
+     console.log('🟢 CHECK IN TRIGGERED - TargetShooting');
+     try {
+       const session = await base44.entities.TargetShooting.create({
+         ...checkinData,
+         active_checkin: true,
+       });
+       setActiveSession(session);
+       console.log('🟢 TRACKING STARTED for TargetShooting session:', session.id);
+       trackingService.startTracking(session.id, 'target');
+       setGpsTrack([]);
+
+       setShowCheckin(false);
+       setCheckinData({
+         date: new Date().toISOString().split('T')[0],
+         club_id: '',
+         checkin_time: new Date().toTimeString().slice(0, 5),
+         notes: '',
+       });
+     } catch (error) {
+       console.error('Error checking in:', error);
+     }
+   };
 
   const handleCheckout = async (e) => {
    e.preventDefault();
+   console.log('🔴 CHECK OUT TRIGGERED - TargetShooting');
    // Validate at least one rifle with required fields
    const hasValidRifle = checkoutData.rifles_used.some(r => r.rifle_id && r.rounds_fired && r.meters_range);
    if (!hasValidRifle) {
@@ -163,11 +154,14 @@ export default function TargetShooting() {
      }
      // Extract photo URLs from photo objects
      const photoUrls = checkoutData.photos.map(photo => typeof photo === 'string' ? photo : photo.url);
+     const finalTrack = trackingService.stopTracking();
+     console.log('🔴 TRACKING STOPPED - saved', finalTrack.length, 'GPS points');
+
      await base44.entities.TargetShooting.update(activeSession.id, {
        ...checkoutData,
        photos: photoUrls,
        active_checkin: false,
-       gps_track: gpsTrack,
+       gps_track: finalTrack,
      });
       setActiveSession(null);
       setGpsTrack([]);

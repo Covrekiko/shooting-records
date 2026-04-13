@@ -8,6 +8,7 @@ import { useOuting } from '@/context/OutingContext';
 import { Plus, Clock } from 'lucide-react';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal';
+import { trackingService } from '@/lib/trackingService';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
 
@@ -73,49 +74,53 @@ export default function DeerManagement() {
   }, [location, locations]);
 
   const handleCheckin = async (e) => {
-    e.preventDefault();
-    console.log('🔵 CHECK-IN BUTTON CLICKED - handleCheckin called');
-    try {
-      console.log('🔵 CHECK-IN: startOuting completed, closing modal via setShowCheckin(false)');
-      await startOuting(checkinData);
-      setShowCheckin(false);
-      setCheckinData({
-        date: new Date().toISOString().split('T')[0],
-        location_id: '',
-        place_name: '',
-        start_time: new Date().toTimeString().slice(0, 5),
-      });
-    } catch (error) {
-      console.error('Error checking in:', error);
-    }
-  };
+     e.preventDefault();
+     console.log('🟢 CHECK IN TRIGGERED - DeerManagement');
+     try {
+       const outing = await startOuting(checkinData);
+       console.log('🟢 TRACKING STARTED for DeerManagement outing:', outing.id);
+       trackingService.startTracking(outing.id, 'deer');
+
+       setShowCheckin(false);
+       setCheckinData({
+         date: new Date().toISOString().split('T')[0],
+         location_id: '',
+         place_name: '',
+         start_time: new Date().toTimeString().slice(0, 5),
+       });
+     } catch (error) {
+       console.error('Error checking in:', error);
+     }
+   };
 
   const handleCheckout = async (checkoutData) => {
-    console.log('🔴 CHECK-OUT BUTTON CLICKED - handleCheckout called with data:', checkoutData);
-    if (!activeOuting) {
-      alert('No active outing to check out from');
-      return;
-    }
-    try {
-      if (checkoutData.ammunition_id && checkoutData.total_count) {
-        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count));
-      }
+     console.log('🔴 CHECK OUT TRIGGERED - DeerManagement');
+     if (!activeOuting) {
+       alert('No active outing to check out from');
+       return;
+     }
+     try {
+       if (checkoutData.ammunition_id && checkoutData.total_count) {
+         await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count));
+       }
 
-      const submitData = { ...checkoutData, active_checkin: false };
-      if (!checkoutData.shot_anything) {
-        submitData.species_list = [];
-        submitData.total_count = null;
-        submitData.rifle_id = null;
-        submitData.ammunition_used = null;
-      }
+       const submitData = { ...checkoutData, active_checkin: false };
+       if (!checkoutData.shot_anything) {
+         submitData.species_list = [];
+         submitData.total_count = null;
+         submitData.rifle_id = null;
+         submitData.ammunition_used = null;
+       }
 
-      console.log('🔴 CHECK-OUT: endOutingWithData completed, closing modal via setShowCheckout(false)');
-      await endOutingWithData(activeOuting.id, submitData, []);
-      setShowCheckout(false);
-    } catch (error) {
-      console.error('Error checking out:', error);
-    }
-  };
+       const finalTrack = trackingService.stopTracking();
+       console.log('🔴 TRACKING STOPPED - saved', finalTrack.length, 'GPS points');
+
+       await endOutingWithData(activeOuting.id, submitData, finalTrack);
+       setShowCheckout(false);
+     } catch (error) {
+       console.error('Error checking out:', error);
+     }
+   };
 
   if (loading || outingLoading) {
     return (

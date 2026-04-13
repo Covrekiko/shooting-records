@@ -4,10 +4,10 @@ import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import { Clock, Plus, Map } from 'lucide-react';
-import { useGpsTracking } from '@/hooks/useGpsTracking';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
+import { trackingService } from '@/lib/trackingService';
 
 export default function ClayShooting() {
    const [activeSession, setActiveSession] = useState(null);
@@ -19,7 +19,7 @@ export default function ClayShooting() {
   const [loading, setLoading] = useState(true);
   const { location } = useGeolocation();
   const [nearbyClub, setNearbyClub] = useState(null);
-  const gpsTrack = useGpsTracking(!!activeSession);
+  const [gpsTrack, setGpsTrack] = useState([]);
   const [viewingTrack, setViewingTrack] = useState(null);
 
   const [checkinData, setCheckinData] = useState({
@@ -91,76 +91,91 @@ export default function ClayShooting() {
   }, [location, clubs]);
 
   const handleCheckin = async (e) => {
-    e.preventDefault();
-    try {
-      const session = await base44.entities.ClayShooting.create({
-        ...checkinData,
-        active_checkin: true,
-      });
-      setActiveSession(session);
-      setShowCheckin(false);
-      setCheckinData({
-        date: new Date().toISOString().split('T')[0],
-        club_id: '',
-        checkin_time: new Date().toTimeString().slice(0, 5),
-        notes: '',
-      });
-    } catch (error) {
-      console.error('Error checking in:', error);
-    }
-  };
+     e.preventDefault();
+     console.log('🟢 CHECK IN TRIGGERED - ClayShooting');
+     try {
+       const session = await base44.entities.ClayShooting.create({
+         ...checkinData,
+         active_checkin: true,
+       });
+       setActiveSession(session);
+       console.log('🟢 TRACKING STARTED for ClayShooting session:', session.id);
+       trackingService.startTracking(session.id, 'clay');
+
+       setShowCheckin(false);
+       setCheckinData({
+         date: new Date().toISOString().split('T')[0],
+         club_id: '',
+         checkin_time: new Date().toTimeString().slice(0, 5),
+         notes: '',
+       });
+     } catch (error) {
+       console.error('Error checking in:', error);
+     }
+   };
 
   const handleCheckout = async (e) => {
-    e.preventDefault();
-    if (!checkoutData.shotgun_id || !checkoutData.rounds_fired) {
-      alert('Please select a shotgun and enter rounds fired');
-      return;
-    }
-    try {
-      const uploadedPhotos = [];
-      if (checkoutData.photos && checkoutData.photos.length > 0) {
-        for (const photoData of checkoutData.photos) {
-          try {
-            if (photoData.startsWith('data:')) {
-              const res = await fetch(photoData);
-              const blob = await res.blob();
-              const result = await base44.integrations.Core.UploadFile({ file: blob });
-              if (result?.file_url) uploadedPhotos.push(result.file_url);
-            } else {
-              uploadedPhotos.push(photoData);
-            }
-          } catch (err) {
-            console.error('Photo upload error:', err);
-          }
-        }
-      }
-      // Decrement ammo stock
-      if (checkoutData.ammunition_id && checkoutData.rounds_fired) {
-        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.rounds_fired));
-      }
-      await base44.entities.ClayShooting.update(activeSession.id, {
-       ...checkoutData,
-       rounds_fired: checkoutData.rounds_fired ? parseInt(checkoutData.rounds_fired) : 0,
-       photos: uploadedPhotos,
-       active_checkin: false,
-       gps_track: gpsTrack,
-      });
-      setActiveSession(null);
-      setShowCheckout(false);
-      setCheckoutData({
-       checkout_time: new Date().toTimeString().slice(0, 5),
-       shotgun_id: '',
-       rounds_fired: '',
-       ammunition_id: '',
-       ammunition_used: '',
-       notes: '',
-       photos: [],
-      });
-      setViewingTrack(null);
-    } catch (error) {
-      console.error('Error checking out:', error);
-    }
-  };
+     e.preventDefault();
+     console.log('🔴 CHECK OUT TRIGGERED - ClayShooting');
+     if (!checkoutData.shotgun_id || !checkoutData.rounds_fired) {
+       alert('Please select a shotgun and enter rounds fired');
+       return;
+     }
+     try {
+       const uploadedPhotos = [];
+       if (checkoutData.photos && checkoutData.photos.length > 0) {
+         for (const photoData of checkoutData.photos) {
+           try {
+             if (photoData.startsWith('data:')) {
+               const res = await fetch(photoData);
+               const blob = await res.blob();
+               const result = await base44.integrations.Core.UploadFile({ file: blob });
+               if (result?.file_url) uploadedPhotos.push(result.file_url);
+             } else {
+               uploadedPhotos.push(photoData);
+             }
+           } catch (err) {
+             console.error('Photo upload error:', err);
+           }
+         }
+       }
+       // Decrement ammo stock
+       if (checkoutData.ammunition_id && checkoutData.rounds_fired) {
+         await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.rounds_fired));
+       }
+       const finalTrack = trackingService.stopTracking();
+       console.log('🔴 TRACKING STOPPED - saved', finalTrack.length, 'GPS points');
+
+       await base44.entities.ClayShooting.update(activeSession.id, {
+        ...checkoutData,
+        rounds_fired: checkoutData.rounds_fired ? parseInt(checkoutData.rounds_fired) : 0,
+        photos: uploadedPhotos,
+        active_checkin: false,
+        gps_track: finalTrack,
+       });
+       setActiveSession(null);
+       setGpsTrack([]);
+       setShowCheckout(false);
+       setCheckoutData({
+        checkout_time: new Date().toTimeString().slice(0, 5),
+        shotgun_id: '',
+        rounds_fired: '',
+        ammunition_id: '',
+        ammunition_used: '',
+        notes: '',
+        photos: [],
+       });
+       setViewingTrack(null);
+     } catch (error) {
+       console.error('Error checking out:', error);
+     }
+   };
+
+   // Subscribe to live GPS updates
+   useEffect(() => {
+     const unsubscribe = trackingService.subscribe(setGpsTrack);
+     return unsubscribe;
+   }, []);
 
   if (loading) {
     return (
