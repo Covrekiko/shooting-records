@@ -19,6 +19,7 @@ export default function Navigation() {
     { path: '/target-shooting', label: 'Target Shooting' },
     { path: '/clay-shooting', label: 'Clay Shooting' },
     { path: '/deer-management', label: 'Deer Management' },
+    { path: '/reports', label: 'Reports' },
     { path: '/goals', label: 'Goals' },
   ];
 
