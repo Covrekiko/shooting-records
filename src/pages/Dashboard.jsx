@@ -102,25 +102,25 @@ export default function Dashboard() {
               icon={<MapPin className="w-8 h-8" />}
               label="Deer Management"
               value={stats?.deerRecords || 0}
-              link="/admin/users"
+              link="/records"
             />
             <StatCard
               icon={<Zap className="w-8 h-8" />}
               label="Target Shooting"
               value={stats?.targetRecords || 0}
-              link="/admin/users"
+              link="/records"
             />
             <StatCard
               icon={<Zap className="w-8 h-8" />}
               label="Clay Shooting"
               value={stats?.clayRecords || 0}
-              link="/admin/users"
+              link="/records"
             />
             <StatCard
               icon={<Target className="w-8 h-8" />}
               label="Total Records"
               value={stats?.totalRecords || 0}
-              link="/admin/users"
+              link="/records"
             />
           </div>
         ) : (
@@ -129,26 +129,31 @@ export default function Dashboard() {
               icon={<Target className="w-8 h-8" />}
               label="Target Shooting Sessions"
               value={stats?.targetSessions || 0}
+              link="/target-shooting"
             />
             <StatCard
               icon={<Zap className="w-8 h-8" />}
               label="Clay Shooting Sessions"
               value={stats?.claySessions || 0}
+              link="/clay-shooting"
             />
             <StatCard
               icon={<MapPin className="w-8 h-8" />}
               label="Deer Management Outings"
               value={stats?.deerOutings || 0}
+              link="/deer-management"
             />
             <StatCard
               icon={<Activity className="w-8 h-8" />}
               label="Total Rifle Rounds"
               value={stats?.totalRifleRounds || 0}
+              link="/records"
             />
             <StatCard
               icon={<Activity className="w-8 h-8" />}
               label="Total Shotgun Rounds"
               value={stats?.totalShotgunRounds || 0}
+              link="/records"
             />
           </div>
         )}
