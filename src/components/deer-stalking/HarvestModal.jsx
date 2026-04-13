@@ -12,8 +12,8 @@ export default function HarvestModal({ location, onClose, onSubmit }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-96 max-w-full shadow-xl">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9997]">
+      <div className="bg-white rounded-lg p-6 w-96 max-w-full shadow-xl relative z-[9998]">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">Record Harvest</h2>
           <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded">

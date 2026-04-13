@@ -18,8 +18,8 @@ export default function OutingModal({ onClose, onSubmit, locations = [] }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-card rounded-lg max-w-md w-full p-6">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[9997]">
+      <div className="bg-card rounded-lg max-w-md w-full p-6 relative z-[9998]">
         <h2 className="text-xl font-bold mb-4">Check In</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
