@@ -68,13 +68,36 @@ export default function TargetShootingAnalytics({ records }) {
     .sort((a, b) => b.rounds - a.rounds)
     .slice(0, 6);
 
+  // Extract accuracy from photos
+  const photoAccuracies = [];
+  records.forEach((record) => {
+    if (record.photos && Array.isArray(record.photos)) {
+      record.photos.forEach((photo) => {
+        if (typeof photo === 'object' && photo.analysis?.accuracy_percentage) {
+          photoAccuracies.push({
+            accuracy: photo.analysis.accuracy_percentage,
+            hits: photo.analysis.hits_count,
+            assessment: photo.analysis.assessment
+          });
+        }
+      });
+    }
+  });
+  
+  const avgAccuracy = photoAccuracies.length > 0 
+    ? (photoAccuracies.reduce((sum, p) => sum + p.accuracy, 0) / photoAccuracies.length).toFixed(1)
+    : 'N/A';
+  const bestAccuracy = photoAccuracies.length > 0
+    ? Math.max(...photoAccuracies.map(p => p.accuracy))
+    : 'N/A';
+
   const totalSessions = records.length;
   const totalRounds = records.reduce((sum, r) => sum + (r.rifles_used?.reduce((s, rf) => s + (rf.rounds_fired || 0), 0) || 0), 0);
   const avgRoundsPerSession = (totalRounds / totalSessions).toFixed(1);
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="p-4">
           <p className="text-sm text-muted-foreground">Total Sessions</p>
           <p className="text-2xl font-bold text-primary">{totalSessions}</p>
@@ -86,6 +109,10 @@ export default function TargetShootingAnalytics({ records }) {
         <Card className="p-4">
           <p className="text-sm text-muted-foreground">Avg Rounds/Session</p>
           <p className="text-2xl font-bold text-primary">{avgRoundsPerSession}</p>
+        </Card>
+        <Card className="p-4">
+          <p className="text-sm text-muted-foreground">Avg Photo Accuracy</p>
+          <p className="text-2xl font-bold text-primary">{avgAccuracy}%</p>
         </Card>
       </div>
 
@@ -162,6 +189,32 @@ export default function TargetShootingAnalytics({ records }) {
           <p className="text-muted-foreground text-sm">No data available</p>
         )}
       </Card>
+
+      {photoAccuracies.length > 0 && (
+        <Card className="p-6">
+          <h3 className="font-bold text-lg mb-4">Photo-Based Accuracy Analysis</h3>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-secondary/30 p-3 rounded">
+                <p className="text-xs text-muted-foreground mb-1">Photos Analyzed</p>
+                <p className="text-xl font-bold text-primary">{photoAccuracies.length}</p>
+              </div>
+              <div className="bg-secondary/30 p-3 rounded">
+                <p className="text-xs text-muted-foreground mb-1">Best Accuracy</p>
+                <p className="text-xl font-bold text-primary">{bestAccuracy}%</p>
+              </div>
+            </div>
+            <div className="text-sm space-y-2 max-h-40 overflow-y-auto">
+              <p className="font-medium">Recent Analyses:</p>
+              {photoAccuracies.slice(-5).map((pa, idx) => (
+                <div key={idx} className="text-xs bg-secondary/20 p-2 rounded">
+                  <span className="font-medium">{pa.accuracy}%</span> - {pa.hits} hits - {pa.assessment}
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }

@@ -328,6 +328,24 @@ async function handlePhotoUpload(files, data, onChange) {
     for (const file of files) {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       newPhotos.push(file_url);
+      
+      // Analyze target photo for accuracy
+      try {
+        const result = await base44.functions.invoke('analyzeTargetPhoto', { photo_url: file_url });
+        if (result?.data?.analysis) {
+          const analysis = result.data.analysis;
+          newPhotos.push({
+            url: file_url,
+            analysis: {
+              hits_count: analysis.hits_count,
+              accuracy_percentage: analysis.accuracy_percentage,
+              assessment: analysis.assessment
+            }
+          });
+        }
+      } catch (analysisError) {
+        console.log('Photo analysis skipped:', analysisError.message);
+      }
     }
     onChange('photos', newPhotos);
   } catch (error) {
