@@ -1,5 +1,18 @@
 import jsPDF from 'jspdf';
 
+function generateDocumentId() {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+  return `${timestamp}-${random}`;
+}
+
+function addPageId(doc, docId, pageNum, pageWidth) {
+  doc.setFontSize(7);
+  doc.setTextColor(150, 150, 150);
+  doc.setFont(undefined, 'normal');
+  doc.text(`Doc ID: ${docId} | Page ${pageNum}`, pageWidth - 15, 8, { align: 'right' });
+}
+
 const STYLES = {
   margin: 15,
   headingColor: [40, 80, 120],
@@ -13,9 +26,13 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
+  const docId = generateDocumentId();
+  let pageNum = 1;
 
   if (userInfo) {
-    createFrontPage(doc, userInfo, pageWidth, pageHeight);
+    createFrontPage(doc, userInfo, pageWidth, pageHeight, docId);
+    addPageId(doc, docId, pageNum, pageWidth);
+    pageNum++;
     doc.addPage();
   }
 
@@ -26,19 +43,25 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
   const deerRecords = records.filter(r => r.recordType === 'deer');
 
   if (targetRecords.length > 0) {
-    yPosition = renderTargetShootingSection(doc, targetRecords, yPosition, pageWidth, pageHeight, rifles, clubs);
+    yPosition = renderTargetShootingSection(doc, targetRecords, yPosition, pageWidth, pageHeight, rifles, clubs, docId, pageNum);
+    pageNum = doc.getNumberOfPages();
   }
 
   if (clayRecords.length > 0) {
     doc.addPage();
+    pageNum++;
+    addPageId(doc, docId, pageNum, pageWidth);
     yPosition = STYLES.margin;
-    yPosition = renderClayShootingSection(doc, clayRecords, yPosition, pageWidth, pageHeight, shotguns, clubs);
+    yPosition = renderClayShootingSection(doc, clayRecords, yPosition, pageWidth, pageHeight, shotguns, clubs, docId, pageNum);
+    pageNum = doc.getNumberOfPages();
   }
 
   if (deerRecords.length > 0) {
     doc.addPage();
+    pageNum++;
+    addPageId(doc, docId, pageNum, pageWidth);
     yPosition = STYLES.margin;
-    yPosition = renderDeerManagementSection(doc, deerRecords, yPosition, pageWidth, pageHeight, rifles);
+    yPosition = renderDeerManagementSection(doc, deerRecords, yPosition, pageWidth, pageHeight, rifles, docId, pageNum);
   }
 
   doc.save(fileName);
@@ -48,9 +71,13 @@ export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, c
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
+  const docId = generateDocumentId();
+  let pageNum = 1;
 
   if (userInfo) {
-    createFrontPage(doc, userInfo, pageWidth, pageHeight);
+    createFrontPage(doc, userInfo, pageWidth, pageHeight, docId);
+    addPageId(doc, docId, pageNum, pageWidth);
+    pageNum++;
     doc.addPage();
   }
 
@@ -61,25 +88,31 @@ export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, c
   const deerRecords = records.filter(r => r.recordType === 'deer');
 
   if (targetRecords.length > 0) {
-    yPosition = renderTargetShootingSection(doc, targetRecords, yPosition, pageWidth, pageHeight, rifles, clubs);
+    yPosition = renderTargetShootingSection(doc, targetRecords, yPosition, pageWidth, pageHeight, rifles, clubs, docId, pageNum);
+    pageNum = doc.getNumberOfPages();
   }
 
   if (clayRecords.length > 0) {
     doc.addPage();
+    pageNum++;
+    addPageId(doc, docId, pageNum, pageWidth);
     yPosition = STYLES.margin;
-    yPosition = renderClayShootingSection(doc, clayRecords, yPosition, pageWidth, pageHeight, shotguns, clubs);
+    yPosition = renderClayShootingSection(doc, clayRecords, yPosition, pageWidth, pageHeight, shotguns, clubs, docId, pageNum);
+    pageNum = doc.getNumberOfPages();
   }
 
   if (deerRecords.length > 0) {
     doc.addPage();
+    pageNum++;
+    addPageId(doc, docId, pageNum, pageWidth);
     yPosition = STYLES.margin;
-    yPosition = renderDeerManagementSection(doc, deerRecords, yPosition, pageWidth, pageHeight, rifles);
+    yPosition = renderDeerManagementSection(doc, deerRecords, yPosition, pageWidth, pageHeight, rifles, docId, pageNum);
   }
 
   return doc.output('blob');
 }
 
-function createFrontPage(doc, userInfo, pageWidth, pageHeight) {
+function createFrontPage(doc, userInfo, pageWidth, pageHeight, docId) {
   const { margin } = STYLES;
   let yPosition = pageHeight * 0.25;
 
@@ -132,9 +165,14 @@ function createFrontPage(doc, userInfo, pageWidth, pageHeight) {
   const dateStr = now.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
   const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
   doc.text(`Report Generated: ${dateStr} at ${timeStr}`, pageWidth / 2, yPosition, { align: 'center' });
+  
+  yPosition = pageHeight - 40;
+  doc.setFontSize(7);
+  doc.setTextColor(150, 150, 150);
+  doc.text(`Doc ID: ${docId}`, margin + 5, yPosition);
 }
 
-function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight, rifles, clubs) {
+function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight, rifles, clubs, docId, pageNum) {
   const { margin } = STYLES;
   let yPosition = startY;
 
@@ -150,7 +188,9 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
   records.forEach((record, idx) => {
     if (yPosition > pageHeight - 80) {
       doc.addPage();
-      yPosition = margin;
+      pageNum++;
+      addPageId(doc, docId, pageNum, pageWidth);
+      yPosition = margin + 5;
     }
 
     // Session header
@@ -268,7 +308,7 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
   return yPosition;
 }
 
-function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, shotguns, clubs) {
+function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, shotguns, clubs, docId, pageNum) {
   const { margin } = STYLES;
   let yPosition = startY;
 
@@ -284,7 +324,9 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
   records.forEach((record, idx) => {
     if (yPosition > pageHeight - 80) {
       doc.addPage();
-      yPosition = margin;
+      pageNum++;
+      addPageId(doc, docId, pageNum, pageWidth);
+      yPosition = margin + 5;
     }
 
     doc.setFontSize(10);
@@ -398,7 +440,7 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
   return yPosition;
 }
 
-function renderDeerManagementSection(doc, records, startY, pageWidth, pageHeight, rifles) {
+function renderDeerManagementSection(doc, records, startY, pageWidth, pageHeight, rifles, docId, pageNum) {
   const { margin } = STYLES;
   let yPosition = startY;
 
@@ -414,7 +456,9 @@ function renderDeerManagementSection(doc, records, startY, pageWidth, pageHeight
   records.forEach((record, idx) => {
     if (yPosition > pageHeight - 80) {
       doc.addPage();
-      yPosition = margin;
+      pageNum++;
+      addPageId(doc, docId, pageNum, pageWidth);
+      yPosition = margin + 5;
     }
 
     doc.setFontSize(10);
