@@ -31,6 +31,7 @@ export default function TargetShooting() {
     checkout_time: new Date().toTimeString().slice(0, 5),
     rifle_id: '',
     rounds_fired: '',
+    meters_range: '',
     ammunition_brand: '',
     bullet_type: '',
     grain: '',
@@ -121,6 +122,7 @@ export default function TargetShooting() {
         checkout_time: new Date().toTimeString().slice(0, 5),
         rifle_id: '',
         rounds_fired: '',
+        meters_range: '',
         ammunition_brand: '',
         bullet_type: '',
         grain: '',
@@ -336,6 +338,15 @@ function CheckoutModal({ data, rifles, onSubmit, onChange, onPhotosChange, onClo
               type="number"
               value={data.rounds_fired}
               onChange={(e) => onChange('rounds_fired', e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Meters Range</label>
+            <input
+              type="number"
+              value={data.meters_range}
+              onChange={(e) => onChange('meters_range', e.target.value)}
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
             />
           </div>

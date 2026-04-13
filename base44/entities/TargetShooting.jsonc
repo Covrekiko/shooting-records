@@ -26,6 +26,9 @@
     "rounds_fired": {
       "type": "integer"
     },
+    "meters_range": {
+      "type": "integer"
+    },
     "ammunition_brand": {
       "type": "string"
     },
