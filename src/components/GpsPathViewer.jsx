@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Polyline, CircleMarker, Popup, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 import { X } from 'lucide-react';
 import { format } from 'date-fns';
 
