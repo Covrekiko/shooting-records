@@ -26,6 +26,9 @@ export default function ClayShooting() {
     checkout_time: new Date().toTimeString().slice(0, 5),
     shotgun_id: '',
     rounds_fired: '',
+    ammunition_brand: '',
+    ammunition_type: '',
+    gauge_shot: '',
     notes: '',
     photos: [],
   });
@@ -111,6 +114,9 @@ export default function ClayShooting() {
         checkout_time: new Date().toTimeString().slice(0, 5),
         shotgun_id: '',
         rounds_fired: '',
+        ammunition_brand: '',
+        ammunition_type: '',
+        gauge_shot: '',
         notes: '',
         photos: [],
       });
@@ -315,6 +321,36 @@ function CheckoutModal({ data, shotguns, onSubmit, onChange, onClose }) {
               value={data.rounds_fired}
               onChange={(e) => onChange('rounds_fired', e.target.value)}
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Ammunition Brand</label>
+            <input
+              type="text"
+              value={data.ammunition_brand}
+              onChange={(e) => onChange('ammunition_brand', e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              placeholder="e.g., Fiocchi, Eley"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Ammunition Type</label>
+            <input
+              type="text"
+              value={data.ammunition_type}
+              onChange={(e) => onChange('ammunition_type', e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              placeholder="e.g., Game Shot, Target"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Gauge Shot</label>
+            <input
+              type="text"
+              value={data.gauge_shot}
+              onChange={(e) => onChange('gauge_shot', e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              placeholder="e.g., 12/70, 20/76"
             />
           </div>
           <div>
