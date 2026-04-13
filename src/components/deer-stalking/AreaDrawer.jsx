@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-import { Undo, X, Check } from 'lucide-react';
+import { Undo, X, Check, Lock } from 'lucide-react';
 
 function DrawingMap({ points, onAddPoint, onUndo, onCancel, onFinish }) {
   useMapEvents({
@@ -15,8 +15,11 @@ function DrawingMap({ points, onAddPoint, onUndo, onCancel, onFinish }) {
 
 export default function AreaDrawer({ userLocation, onFinish, onCancel }) {
   const [points, setPoints] = useState([]);
+  const [isClosed, setIsClosed] = useState(false);
 
   const handleAddPoint = (point) => {
+    // If boundary is closed, don't add new points
+    if (isClosed) return;
     setPoints([...points, point]);
   };
 
@@ -26,13 +29,19 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel }) {
     }
   };
 
+  const handleCloseBoundary = () => {
+    if (points.length < 3) {
+      alert('Need at least 3 points to close the boundary');
+      return;
+    }
+    setIsClosed(true);
+  };
+
   const handleFinish = () => {
     if (points.length < 3) {
       alert('Need at least 3 points to create a boundary');
       return;
     }
-    // Close the polygon by adding the first point at the end
-    const closedPolygon = [...points, points[0]];
     onFinish(points);
   };
 
@@ -57,8 +66,20 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel }) {
           </Marker>
         ))}
 
-        {/* Preview polyline */}
-        {points.length > 1 && <Polyline positions={points} color="#3b82f6" weight={2} opacity={0.7} />}
+        {/* Preview polyline or closed polygon */}
+        {points.length > 1 && !isClosed && <Polyline positions={points} color="#3b82f6" weight={2} opacity={0.7} />}
+        
+        {/* Closed polygon with fill */}
+        {isClosed && points.length > 2 && (
+          <Polygon
+            positions={points}
+            color="#3b82f6"
+            fillColor="#3b82f6"
+            weight={3}
+            opacity={1}
+            fillOpacity={0.2}
+          />
+        )}
       </MapContainer>
 
       {/* Floating Controls */}
@@ -67,12 +88,27 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel }) {
 
         <button
           onClick={handleUndo}
-          disabled={points.length === 0}
+          disabled={points.length === 0 || isClosed}
           className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-secondary/80 disabled:opacity-50 rounded-lg transition-colors"
         >
           <Undo className="w-4 h-4" />
           Undo
         </button>
+
+        {!isClosed ? (
+          <button
+            onClick={handleCloseBoundary}
+            disabled={points.length < 3}
+            className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 disabled:opacity-50 rounded-lg transition-colors text-accent-foreground font-medium"
+          >
+            <Lock className="w-4 h-4" />
+            Close Boundary
+          </button>
+        ) : (
+          <div className="px-4 py-2 bg-green-500/20 text-green-700 rounded-lg text-sm font-medium text-center">
+            ✓ Boundary Closed
+          </div>
+        )}
 
         <button
           onClick={handleFinish}
@@ -95,7 +131,9 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel }) {
       {/* Instructions */}
       <div className="fixed top-4 left-4 z-[9998] bg-blue-500 text-white px-4 py-3 rounded-lg max-w-sm pointer-events-none">
         <p className="text-sm font-semibold mb-1">Draw Boundary</p>
-        <p className="text-xs opacity-90">Tap on the map to add points. Need at least 3 points.</p>
+        <p className="text-xs opacity-90">
+          {isClosed ? 'Boundary closed. Tap Finish to save.' : 'Tap on the map to add points. Need at least 3 points.'}
+        </p>
       </div>
     </>
   );
