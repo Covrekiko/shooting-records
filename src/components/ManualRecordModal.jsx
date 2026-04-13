@@ -57,6 +57,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
     species_list: record?.species_list || [],
     total_count: record?.total_count || '',
     rifle_id: record?.rifle_id || '',
+    ammunition_used: record?.ammunition_used || '',
   });
 
   useEffect(() => {
@@ -361,21 +362,31 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Rifle</label>
-                  <select
-                    value={formData.rifle_id}
-                    onChange={(e) => setFormData({ ...formData, rifle_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  >
-                    <option value="">Select a rifle</option>
-                    {rifles.map((rifle) => (
-                      <option key={rifle.id} value={rifle.id}>{rifle.name}</option>
-                    ))}
-                  </select>
+                    <label className="block text-sm font-medium mb-2">Rifle</label>
+                    <select
+                      value={formData.rifle_id}
+                      onChange={(e) => setFormData({ ...formData, rifle_id: e.target.value })}
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                    >
+                      <option value="">Select a rifle</option>
+                      {rifles.map((rifle) => (
+                        <option key={rifle.id} value={rifle.id}>{rifle.name}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Ammunition Used</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Federal .308"
+                    value={formData.ammunition_used}
+                    onChange={(e) => setFormData({ ...formData, ammunition_used: e.target.value })}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  />
+                </div>
+                </>
+                )}
 
           {/* Notes */}
           <div>
