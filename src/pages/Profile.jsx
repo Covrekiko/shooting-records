@@ -93,6 +93,7 @@ function SettingsPanel() {
         <SettingCard title="Clubs" description="Manage shooting clubs" link="/settings/clubs" />
         <SettingCard title="Deer Locations" description="Manage deer hunting locations" link="/settings/locations" />
         <SettingCard title="Ammunition" description="Manage ammunition" link="/settings/ammunition" />
+        <SettingCard title="Ammunition Inventory" description="Track stock levels & costs" link="/settings/ammunition-inventory" />
       </div>
     </div>
   );
