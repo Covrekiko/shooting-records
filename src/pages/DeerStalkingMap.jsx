@@ -173,7 +173,7 @@ export default function DeerStalkingMap() {
 
   return (
     <div className={`w-full h-screen bg-slate-900 relative overflow-hidden ${waitingForPin ? 'cursor-crosshair' : ''}`}>
-      <div className="absolute inset-0 z-0">
+      <div className={`absolute inset-0 z-0 ${showPOI || showHarvest || showOuting ? 'pointer-events-none' : ''}`}>
         <MapContainer
           center={userLocation}
           zoom={13}
@@ -332,35 +332,45 @@ export default function DeerStalkingMap() {
         onEndOuting={handleEndOuting}
       />
 
-      {/* Modals */}
+      {/* Modals - rendered at top level with highest z-index */}
+      {(showPOI || showHarvest || showOuting) && (
+        <div className="fixed inset-0 z-[50000] pointer-events-auto" />
+      )}
+      
       {showPOI && mapClick && (
-        <POIModal
-          location={mapClick}
-          onClose={() => {
-            setShowPOI(false);
-            setWaitingForPin(null);
-          }}
-          onSubmit={handlePOISubmit}
-        />
+        <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+          <POIModal
+            location={mapClick}
+            onClose={() => {
+              setShowPOI(false);
+              setWaitingForPin(null);
+            }}
+            onSubmit={handlePOISubmit}
+          />
+        </div>
       )}
 
       {showHarvest && mapClick && (
-        <HarvestModal
-          location={mapClick}
-          onClose={() => {
-            setShowHarvest(false);
-            setWaitingForPin(null);
-          }}
-          onSubmit={handleHarvestSubmit}
-        />
+        <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+          <HarvestModal
+            location={mapClick}
+            onClose={() => {
+              setShowHarvest(false);
+              setWaitingForPin(null);
+            }}
+            onSubmit={handleHarvestSubmit}
+          />
+        </div>
       )}
 
       {showOuting && (
-        <OutingModal
-          locations={locations}
-          onClose={() => setShowOuting(false)}
-          onSubmit={handleStartOuting}
-        />
+        <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+          <OutingModal
+            locations={locations}
+            onClose={() => setShowOuting(false)}
+            onSubmit={handleStartOuting}
+          />
+        </div>
       )}
     </div>
   );
