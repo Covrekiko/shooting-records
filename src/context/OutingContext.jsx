@@ -27,14 +27,27 @@ export function OutingProvider({ children }) {
     }
   };
 
-  const startOuting = async (locationName, startTime, date) => {
+  const startOuting = async (data) => {
     try {
+      // Create DeerOuting (map system)
       const outing = await base44.entities.DeerOuting.create({
-        location_name: locationName,
-        start_time: new Date(date + 'T' + startTime).toISOString(),
+        location_name: data.place_name || data.location_name,
+        start_time: new Date((data.date || data.start_time) + 'T' + (data.start_time || '').slice(0, 5)).toISOString(),
         gps_track: [],
         active: true,
       });
+      
+      // Create DeerManagement session (deer management system)
+      if (data.place_name && data.date && data.start_time) {
+        await base44.entities.DeerManagement.create({
+          date: data.date,
+          location_id: data.location_id || '',
+          place_name: data.place_name,
+          start_time: data.start_time,
+          active_checkin: true,
+        });
+      }
+      
       setActiveOuting(outing);
       return outing;
     } catch (error) {

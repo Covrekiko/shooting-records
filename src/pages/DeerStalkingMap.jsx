@@ -127,7 +127,7 @@ export default function DeerStalkingMap() {
 
   const handleStartOuting = async (data) => {
     try {
-      await startOuting(data.place_name, data.start_time, data.date);
+      await startOuting(data);
       setShowOuting(false);
       loadData();
     } catch (err) {
