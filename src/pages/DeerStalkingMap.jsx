@@ -342,7 +342,7 @@ export default function DeerStalkingMap() {
           center={userLocation}
           zoom={13}
           style={{ width: '100%', height: '100%', cursor: 'crosshair' }}
-          zoomControl={true}
+          zoomControl={false}
           ref={mapRef}
         >
         <MapClickHandler onMapClick={handleMapClick} isSelectionMode={!!waitingForPin} />
@@ -486,7 +486,7 @@ export default function DeerStalkingMap() {
        <FloatingMapSearch onSearch={handleMapSearch} />
 
       {/* Area Selector - Top Left */}
-      <div className="fixed top-20 left-4 z-[9999] pointer-events-auto">
+      <div className="fixed top-16 left-4 z-[9999] pointer-events-auto">
         <AreaSelector
           savedAreas={savedAreas}
           selectedAreaId={selectedAreaId}
@@ -494,15 +494,6 @@ export default function DeerStalkingMap() {
           userLocation={userLocation}
         />
       </div>
-
-      {/* Satellite Toggle */}
-      <button
-        onClick={() => setUseSatellite(!useSatellite)}
-        className="fixed top-4 right-40 z-[9999] p-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all pointer-events-auto"
-        title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
-      >
-        <Satellite className="w-5 h-5" />
-      </button>
 
       {/* Back to Dashboard */}
       <Link
@@ -532,16 +523,28 @@ export default function DeerStalkingMap() {
         </div>
       )}
 
-      {/* Floating Action Bar */}
-      <FloatingActionBar
-        onPOI={() => { setMapClick(null); setWaitingForPin('poi'); }}
-        onHarvest={() => { setMapClick(null); setWaitingForPin('harvest'); }}
-        onOuting={() => setShowOuting(true)}
-        onRecenter={handleRecenter}
-        activeOuting={activeOuting}
-        onEndOuting={handleEndOuting}
-        onCreateArea={handleStartAreaCreation}
-      />
+      {/* Floating Controls - Bottom Right Stack */}
+      <div className="fixed bottom-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-auto">
+        {/* Satellite Toggle */}
+        <button
+          onClick={() => setUseSatellite(!useSatellite)}
+          className="p-3 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all shadow-lg"
+          title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
+        >
+          <Satellite className="w-5 h-5" />
+        </button>
+
+        {/* Floating Action Bar */}
+        <FloatingActionBar
+          onPOI={() => { setMapClick(null); setWaitingForPin('poi'); }}
+          onHarvest={() => { setMapClick(null); setWaitingForPin('harvest'); }}
+          onOuting={() => setShowOuting(true)}
+          onRecenter={handleRecenter}
+          activeOuting={activeOuting}
+          onEndOuting={handleEndOuting}
+          onCreateArea={handleStartAreaCreation}
+        />
+      </div>
 
       {/* Modals - rendered via portal for consistent z-index handling */}
       {createPortal(
