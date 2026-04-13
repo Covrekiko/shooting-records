@@ -132,35 +132,35 @@ export default function Dashboard() {
               link="/target-shooting"
             />
             <StatCard
-             icon={<span className="text-2xl">🎯</span>}
-             label="Clay Shooting Sessions"
-             value={stats?.claySessions || 0}
-             link="/clay-shooting"
+              icon={<span className="text-2xl">🎯</span>}
+              label="Clay Shooting Sessions"
+              value={stats?.claySessions || 0}
+              link="/clay-shooting"
             />
             <StatCard
-               icon={<span className="text-2xl">🦌</span>}
-               label="Deer Management Outings"
-               value={stats?.deerOutings || 0}
-               link="/deer-management"
-             />
-             <StatCard
-               icon={<Activity className="w-8 h-8" />}
-               label="Total Rifle Rounds"
-               value={stats?.totalRifleRounds || 0}
-               link="/records"
-             />
-             <StatCard
-               icon={<Activity className="w-8 h-8" />}
-               label="Total Shotgun Rounds"
-               value={stats?.totalShotgunRounds || 0}
-               link="/records"
-             />
-             <StatCard
-               icon={<Map className="w-8 h-8" />}
-               label="Stalking Map"
-               value="Open"
-               link="/deer-stalking"
-             />
+              icon={<span className="text-2xl">🦌</span>}
+              label="Deer Management Outings"
+              value={stats?.deerOutings || 0}
+              link="/deer-management"
+            />
+            <StatCard
+              icon={<Activity className="w-8 h-8" />}
+              label="Total Rifle Rounds"
+              value={stats?.totalRifleRounds || 0}
+              link="/records"
+            />
+            <StatCard
+              icon={<Activity className="w-8 h-8" />}
+              label="Total Shotgun Rounds"
+              value={stats?.totalShotgunRounds || 0}
+              link="/records"
+            />
+            <StatCard
+              icon={<Map className="w-8 h-8" />}
+              label="Stalking Map"
+              value="Open"
+              link="/deer-stalking"
+            />
           </div>
         )}
 
