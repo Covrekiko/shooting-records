@@ -13,8 +13,9 @@ const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water 
 
 export default function DeerManagement() {
   const [activeSession, setActiveSession] = useState(null);
-  const [locations, setLocations] = useState([]);
-  const [rifles, setRifles] = useState([]);
+   const [locations, setLocations] = useState([]);
+   const [rifles, setRifles] = useState([]);
+   const [ammunition, setAmmunition] = useState([]);
   const [showCheckin, setShowCheckin] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -49,9 +50,10 @@ export default function DeerManagement() {
       try {
         const currentUser = await base44.auth.me();
 
-        const [locationsList, riflesList, activeSession] = await Promise.all([
+        const [locationsList, riflesList, ammoList, activeSession] = await Promise.all([
           base44.entities.DeerLocation.filter({ created_by: currentUser.email }),
           base44.entities.Rifle.filter({ created_by: currentUser.email }),
+          base44.entities.Ammunition.filter({ created_by: currentUser.email }),
           base44.entities.DeerManagement.filter({
             created_by: currentUser.email,
             active_checkin: true,
@@ -60,6 +62,7 @@ export default function DeerManagement() {
 
         setLocations(locationsList);
         setRifles(riflesList);
+        setAmmunition(ammoList);
         if (activeSession.length > 0) {
           setActiveSession(activeSession[0]);
         }
@@ -267,6 +270,7 @@ export default function DeerManagement() {
           <CheckoutModal
             data={checkoutData}
             rifles={rifles}
+            ammunition={ammunition}
             onSubmit={handleCheckout}
             onChange={(field, value) =>
               setCheckoutData({ ...checkoutData, [field]: value })
@@ -364,7 +368,7 @@ async function handlePhotoUpload(files, data, onChange) {
   }
 }
 
-function CheckoutModal({ data, rifles, onSubmit, onChange, onClose }) {
+function CheckoutModal({ data, rifles, ammunition, onSubmit, onChange, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-card rounded-lg max-w-md w-full p-6 my-8">
@@ -529,12 +533,32 @@ function CheckoutModal({ data, rifles, onSubmit, onChange, onClose }) {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Ammunition Used</label>
+                <label className="block text-sm font-medium mb-1">Ammunition</label>
+                <select
+                  value={data.ammunition_id || ''}
+                  onChange={(e) => {
+                    const selectedAmmo = ammunition.find(a => a.id === e.target.value);
+                    if (selectedAmmo) {
+                      onChange('ammunition_used', `${selectedAmmo.brand} ${selectedAmmo.caliber || ''} ${selectedAmmo.bullet_type || ''} ${selectedAmmo.grain || ''}`.trim());
+                    }
+                    onChange('ammunition_id', e.target.value);
+                  }}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background mb-2"
+                >
+                  <option value="">Select saved ammunition</option>
+                  {ammunition.length > 0 ? ammunition.map((ammo) => (
+                    <option key={ammo.id} value={ammo.id}>
+                      {ammo.brand} {ammo.caliber ? `(${ammo.caliber})` : ''} {ammo.bullet_type ? `- ${ammo.bullet_type}` : ''}
+                    </option>
+                  )) : <option disabled>No ammunition available</option>}
+                </select>
+                <span className="text-xs text-muted-foreground">Or enter manually:</span>
                 <input
                   type="text"
+                  placeholder="e.g. Federal 308 Win"
                   value={data.ammunition_used}
                   onChange={(e) => onChange('ammunition_used', e.target.value)}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background mt-1"
                 />
               </div>
             </>
