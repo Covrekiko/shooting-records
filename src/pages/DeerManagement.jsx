@@ -455,14 +455,30 @@ function CheckoutModal({ data, rifles, ammunition, onSubmit, onChange, onClose }
                         </button>
                       )}
                     </div>
-                    <input
-                      type="text"
-                      placeholder="e.g. Roe Deer, Fox, Rabbit"
+                    <select
                       value={entry.species}
                       onChange={(e) => updateSpecies(idx, 'species', e.target.value)}
                       className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
                       required
-                    />
+                    >
+                      <option value="">Select species</option>
+                      <optgroup label="Deer">
+                        {DEER_SPECIES.map((species) => (
+                          <option key={species} value={species}>
+                            {species}
+                          </option>
+                        ))}
+                      </optgroup>
+                      <optgroup label="Pest Control">
+                        <option value="Fox">Fox</option>
+                        <option value="Rabbit">Rabbit</option>
+                        <option value="Hare">Hare</option>
+                        <option value="Crow">Crow</option>
+                        <option value="Magpie">Magpie</option>
+                        <option value="Pigeon">Pigeon</option>
+                        <option value="Squirrel">Squirrel</option>
+                      </optgroup>
+                    </select>
                     <input
                       type="number"
                       min="1"
