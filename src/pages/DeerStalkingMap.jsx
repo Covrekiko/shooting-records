@@ -57,11 +57,9 @@ export default function DeerStalkingMap() {
 
   useEffect(() => {
     loadData();
-    if (!isDrawingArea) {
-      getUserLocation();
-    }
+    getUserLocation();
     loadRiflesAndAmmo();
-  }, [isDrawingArea]);
+  }, []);
 
   // GPS tracking for active outing (does NOT recenter map while drawing)
   useEffect(() => {
