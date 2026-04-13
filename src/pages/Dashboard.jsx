@@ -182,7 +182,7 @@ export default function Dashboard() {
 
         {/* Charts Section */}
         {user?.role !== 'admin' && chartData && (
-          <div className="mt-12 space-y-6">
+          <div className="mt-12 space-y-6 hidden md:block">
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-2xl font-bold">Performance Analytics</h2>
               <Link
