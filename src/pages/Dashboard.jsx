@@ -126,13 +126,19 @@ export default function Dashboard() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <StatCard
+              icon={<Map className="w-8 h-8" />}
+              label="Stalking Map"
+              value="Open"
+              link="/deer-stalking"
+            />
+            <StatCard
               icon={<Crosshair className="w-8 h-8" />}
               label="Target Shooting Sessions"
               value={stats?.targetSessions || 0}
               link="/target-shooting"
             />
             <StatCard
-              icon={<span className="text-2xl">🎯</span>}
+              icon={<img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/d927f40c6_generated_image.png" alt="shotgun" className="w-6 h-6 sm:w-8 sm:h-8 object-contain" />}
               label="Clay Shooting Sessions"
               value={stats?.claySessions || 0}
               link="/clay-shooting"
@@ -142,24 +148,21 @@ export default function Dashboard() {
               label="Deer Management Outings"
               value={stats?.deerOutings || 0}
               link="/deer-management"
+              hideOnMobile={true}
             />
             <StatCard
               icon={<Activity className="w-8 h-8" />}
               label="Total Rifle Rounds"
               value={stats?.totalRifleRounds || 0}
               link="/records"
+              hideOnMobile={true}
             />
             <StatCard
               icon={<Activity className="w-8 h-8" />}
               label="Total Shotgun Rounds"
               value={stats?.totalShotgunRounds || 0}
               link="/records"
-            />
-            <StatCard
-              icon={<Map className="w-8 h-8" />}
-              label="Stalking Map"
-              value="Open"
-              link="/deer-stalking"
+              hideOnMobile={true}
             />
           </div>
         )}
@@ -170,8 +173,8 @@ export default function Dashboard() {
         </div>
 
         {/* Stalking Map Section */}
-        {user?.role !== 'admin' && (
-          <div className="mt-12">
+         {user?.role !== 'admin' && (
+           <div className="mt-12 hidden md:block">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold">Deer Stalking Map</h2>
             </div>
@@ -328,27 +331,29 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
     .slice(0, 8);
 }
 
-function StatCard({ icon, label, value, link }) {
+function StatCard({ icon, label, value, link, hideOnMobile }) {
   const content = (
     <div className="flex items-start justify-between gap-2">
       <div className="flex-1 min-w-0">
         <p className="text-xs sm:text-sm text-muted-foreground mb-2">{label}</p>
         <p className="text-3xl sm:text-4xl font-bold text-primary">{value}</p>
       </div>
-      <div className="text-muted-foreground cursor-pointer hover:text-primary transition-colors flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 sm:[&_svg]:w-8 sm:[&_svg]:h-8 text-lg sm:text-2xl">{icon}</div>
+      <div className="text-muted-foreground cursor-pointer hover:text-primary transition-colors flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 sm:[&_svg]:w-8 sm:[&_svg]:h-8 [&_img]:w-6 [&_img]:h-6 sm:[&_img]:w-8 sm:[&_img]:h-8 text-lg sm:text-2xl">{icon}</div>
     </div>
   );
 
+  const cardClass = hideOnMobile ? "hidden md:block" : "";
+
   if (link) {
     return (
-      <Link to={link} className="bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-shadow block">
+      <Link to={link} className={`bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-shadow block ${cardClass}`}>
         {content}
       </Link>
     );
   }
 
   return (
-    <div className="bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-shadow">
+    <div className={`bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-shadow ${cardClass}`}>
       {content}
     </div>
   );
