@@ -307,7 +307,7 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-card rounded-lg max-w-3xl w-full p-8 my-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 border-b border-border pb-4">
+        <div className="flex items-center justify-between mb-8 border-b border-border pb-6">
           <div>
             <h2 className="text-3xl font-bold">Session Report</h2>
             <p className="text-muted-foreground text-sm mt-1">Detailed Activity Record</p>
