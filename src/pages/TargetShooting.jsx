@@ -560,18 +560,28 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
             </div>
             {data.photos && data.photos.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {data.photos.map((photo, idx) => (
-                  <div key={idx} className="relative group">
-                    <img src={photo} alt="preview" className="h-20 w-20 object-cover rounded" />
-                    <button
-                      type="button"
-                      onClick={() => setData({ ...data, photos: data.photos.filter((_, i) => i !== idx) })}
-                      className="absolute top-0 right-0 bg-destructive text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+                {data.photos.map((photo, idx) => {
+                  const photoUrl = typeof photo === 'string' ? photo : photo.url;
+                  const analysis = typeof photo === 'object' ? photo.analysis : null;
+                  return (
+                    <div key={idx} className="relative group">
+                      <div className="relative">
+                        <img src={photoUrl} alt="preview" className="h-20 w-20 object-cover rounded" />
+                        {analysis && (
+                          <div className="absolute bottom-0 right-0 bg-primary text-primary-foreground text-xs px-1 rounded-tl">\n                            {analysis.accuracy_percentage}%
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setData({ ...data, photos: data.photos.filter((_, i) => i !== idx) })}
+                        className="absolute top-0 right-0 bg-destructive text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
