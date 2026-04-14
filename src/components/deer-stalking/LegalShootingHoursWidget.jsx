@@ -25,6 +25,10 @@ export default function LegalShootingHoursWidget() {
     calculateSunTimes();
   }, []);
 
+  if (!sunTimes) {
+    return null;
+  }
+
   const formatTime = (date) => {
     if (!date) return '--:--';
     return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
