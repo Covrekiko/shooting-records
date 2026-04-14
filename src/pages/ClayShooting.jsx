@@ -267,7 +267,7 @@ export default function ClayShooting() {
             </div>
           )}
           {showCheckout && activeSession && (
-            <div className="fixed inset-0 z-[50001] flex flex-col justify-end">
+            <div className="fixed inset-0 z-[50001] flex flex-col justify-end sm:justify-center sm:items-center p-4 sm:p-0">
               <CheckoutModal
                 shotguns={shotguns}
                 ammunition={ammunition}
@@ -375,7 +375,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
    };
 
    return (
-         <div className="bg-card w-full sm:max-w-sm sm:rounded-lg rounded-t-2xl flex flex-col max-h-[90dvh]" style={{ maxHeight: 'min(90dvh, 100vh - env(safe-area-inset-top))' }}>
+       <div className="bg-card w-full sm:max-w-sm sm:rounded-lg rounded-t-2xl flex flex-col" style={{ maxHeight: 'min(90vh, 100vh - 100px)' }}>
            {/* Header */}
            <div className="flex-shrink-0 p-4 sm:p-5 border-b border-border">
              <h2 className="text-lg sm:text-xl font-bold">Check Out</h2>
