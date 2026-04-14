@@ -15,10 +15,13 @@ export default function AreaSaveForm({ polygon, onSave, onCancel }) {
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Calculate center point
+  // Calculate center point (exclude last point if it's a duplicate of the first)
   const calculateCenter = () => {
-    const lats = polygon.map((p) => p[0]);
-    const lngs = polygon.map((p) => p[1]);
+    const points = polygon.length > 0 && polygon[polygon.length - 1] === polygon[0]
+      ? polygon.slice(0, -1)
+      : polygon;
+    const lats = points.map((p) => p[0]);
+    const lngs = points.map((p) => p[1]);
     return {
       lat: (Math.max(...lats) + Math.min(...lats)) / 2,
       lng: (Math.max(...lngs) + Math.min(...lngs)) / 2,
