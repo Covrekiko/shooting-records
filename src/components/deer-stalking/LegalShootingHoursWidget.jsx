@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Sun } from 'lucide-react';
 
 export default function LegalShootingHoursWidget() {
   const [sunTimes, setSunTimes] = useState(null);
@@ -51,16 +52,18 @@ export default function LegalShootingHoursWidget() {
 
   return (
     <div className="bg-card/95 backdrop-blur-sm rounded-2xl px-3 py-2 border border-border shadow-lg">
-      <div className="text-xs font-medium text-muted-foreground mb-1">Legal Hours</div>
-      <div className="flex items-center gap-2">
+      <div className="text-xs font-medium text-muted-foreground mb-2">Legal Shooting Hours</div>
+      <div className="flex items-center gap-3">
         <div className="text-center">
-          <div className="text-sm font-semibold text-foreground">{startTime}</div>
-          <div className="text-xs text-muted-foreground">Start</div>
+          <Sun className="w-4 h-4 text-amber-500 mx-auto mb-1" />
+          <div className="text-xs text-muted-foreground">Sunrise</div>
+          <div className="text-xs font-semibold text-foreground">{startTime}</div>
         </div>
         <div className="text-muted-foreground">—</div>
         <div className="text-center">
-          <div className="text-sm font-semibold text-foreground">{endTime}</div>
-          <div className="text-xs text-muted-foreground">End</div>
+          <Sun className="w-4 h-4 text-amber-600 mx-auto mb-1 opacity-70" />
+          <div className="text-xs text-muted-foreground">Sunset</div>
+          <div className="text-xs font-semibold text-foreground">{endTime}</div>
         </div>
       </div>
     </div>
