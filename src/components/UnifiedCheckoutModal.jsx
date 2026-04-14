@@ -81,8 +81,8 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
     }} style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold">Check Out</h2>
-        <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded">
-          <X className="w-5 h-5" />
+        <button onClick={onClose} className="p-0.5 hover:bg-slate-100 rounded">
+          <X className="w-4 h-4" />
         </button>
       </div>
 
