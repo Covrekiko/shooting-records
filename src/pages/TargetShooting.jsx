@@ -522,38 +522,41 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose }) {
                     }}
                     placeholder="Select saved ammunition"
                     options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
-                    className="mb-2"
                   />
-                  <span className="text-xs text-muted-foreground">Or enter manually:</span>
+                  {!rifle.ammunition_id && (
+                    <div className="mt-2 space-y-2">
+                      <span className="text-xs text-muted-foreground">Or enter manually:</span>
+                      <input
+                        type="text"
+                        placeholder="Ammunition brand"
+                        value={rifle.ammunition_brand || ''}
+                        onChange={(e) => updateRifleEntry(index, 'ammunition_brand', e.target.value)}
+                        className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Caliber"
+                        value={rifle.caliber || ''}
+                        onChange={(e) => updateRifleEntry(index, 'caliber', e.target.value)}
+                        className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Bullet type"
+                        value={rifle.bullet_type || ''}
+                        onChange={(e) => updateRifleEntry(index, 'bullet_type', e.target.value)}
+                        className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Grain"
+                        value={rifle.grain || ''}
+                        onChange={(e) => updateRifleEntry(index, 'grain', e.target.value)}
+                        className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
+                      />
+                    </div>
+                  )}
                 </div>
-                <input
-                  type="text"
-                  placeholder="Ammunition brand"
-                  value={rifle.ammunition_brand || ''}
-                  onChange={(e) => updateRifleEntry(index, 'ammunition_brand', e.target.value)}
-                  className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
-                />
-                <input
-                  type="text"
-                  placeholder="Caliber"
-                  value={rifle.caliber || ''}
-                  onChange={(e) => updateRifleEntry(index, 'caliber', e.target.value)}
-                  className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
-                />
-                <input
-                  type="text"
-                  placeholder="Bullet type"
-                  value={rifle.bullet_type || ''}
-                  onChange={(e) => updateRifleEntry(index, 'bullet_type', e.target.value)}
-                  className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
-                />
-                <input
-                  type="text"
-                  placeholder="Grain"
-                  value={rifle.grain || ''}
-                  onChange={(e) => updateRifleEntry(index, 'grain', e.target.value)}
-                  className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
-                />
               </div>
             ))}
           </div>
