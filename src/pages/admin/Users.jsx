@@ -91,7 +91,7 @@ export default function AdminUsers() {
 
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 mb-6"
+          className="px-6 py-3 bg-white/15 text-slate-900 rounded-lg hover:bg-white/25 backdrop-blur-lg shadow-lg border border-white/30 flex items-center gap-2 mb-6 transition-all"
         >
           <UserPlus className="w-5 h-5" />
           Invite New User
@@ -201,14 +201,14 @@ export default function AdminUsers() {
               <div className="flex gap-3">
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
+                  className="flex-1 px-4 py-2 bg-white/15 text-slate-900 rounded-lg hover:bg-white/25 backdrop-blur-lg shadow-lg border border-white/30 transition-all"
                 >
                   Invite User
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary"
+                  className="flex-1 px-4 py-2 bg-white/15 text-slate-900 rounded-lg hover:bg-white/25 backdrop-blur-lg shadow-lg border border-white/30 transition-all"
                 >
                   Cancel
                 </button>
