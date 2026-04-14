@@ -7,7 +7,7 @@ import FloatingActionBar from '@/components/deer-stalking/FloatingActionBar';
 import POIModal from '@/components/deer-stalking/POIModal';
 import HarvestModal from '@/components/deer-stalking/HarvestModal';
 import OutingModal from '@/components/deer-stalking/OutingModal';
-import { AlertCircle, Home } from 'lucide-react';
+import { AlertCircle, Home, Satellite } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
@@ -493,6 +493,14 @@ export default function DeerStalkingMap() {
 
       {/* Floating Map Controls - Top Right */}
       <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-auto items-end">
+        <button
+          onClick={() => setUseSatellite(!useSatellite)}
+          className="w-10 h-10 sm:w-12 sm:h-12 bg-white/15 text-slate-900 rounded-full hover:bg-white/25 transition-all backdrop-blur-lg shadow-lg hover:shadow-xl flex items-center justify-center border border-white/30"
+          title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
+        >
+          <Satellite className="w-4 h-4 sm:w-5 sm:h-5" />
+        </button>
+
         <FloatingMapSearch onSearch={handleMapSearch} isGrouped={true} />
       </div>
 
