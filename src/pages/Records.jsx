@@ -162,31 +162,34 @@ export default function Records() {
       <Navigation />
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
+          <div className="flex items-center justify-between mb-4 gap-3">
             <h1 className="text-3xl font-bold">All Records</h1>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2">
               <button
                 onClick={() => setManualRecordModal({ isNew: true })}
-                className="px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
+                className="p-2 sm:px-3 sm:py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
+                title="Add Record"
               >
                 <Plus className="w-4 h-4" />
-                Add Record
+                <span className="hidden sm:inline">Add Record</span>
               </button>
               {filteredRecords.length > 0 && (
                 <>
                   <button
                     onClick={() => setPreviewingPdf(filteredRecords)}
-                    className="px-3 py-2 bg-secondary text-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
+                    className="p-2 sm:px-3 sm:py-2 bg-secondary text-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
+                    title="Preview PDF"
                   >
                     <FileText className="w-4 h-4" />
-                    <span className="hidden sm:inline">Preview </span>PDF
+                    <span className="hidden sm:inline">Preview PDF</span>
                   </button>
                   <button
                     onClick={() => exportRecordsToPdf(filteredRecords, user, 'shooting-records.pdf', rifles, clubs, shotguns)}
-                    className="px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
+                    className="p-2 sm:px-3 sm:py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
+                    title="Export PDF"
                   >
                     <Download className="w-4 h-4" />
-                    <span className="hidden sm:inline">Export </span>PDF
+                    <span className="hidden sm:inline">Export PDF</span>
                   </button>
                 </>
               )}
