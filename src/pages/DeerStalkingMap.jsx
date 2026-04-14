@@ -488,18 +488,18 @@ export default function DeerStalkingMap() {
       </div>
 
       {/* Floating Map Controls - Top Right */}
-       <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-auto items-end">
-         {/* Satellite Toggle */}
-         <button
-           onClick={() => setUseSatellite(!useSatellite)}
-           className="w-10 h-10 sm:w-12 sm:h-12 bg-white/15 backdrop-blur-xl text-white rounded-full hover:bg-white/20 transition-all shadow-lg border border-white/20 flex items-center justify-center"
-           title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
-         >
-           <Satellite className="w-4 h-4 sm:w-5 sm:h-5" />
-         </button>
-
-         <FloatingMapSearch onSearch={handleMapSearch} isGrouped={true} />
-       </div>
+      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-auto items-end">
+        {/* Satellite Toggle */}
+        <button
+          onClick={() => setUseSatellite(!useSatellite)}
+          className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-800 text-white rounded-full hover:bg-slate-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center"
+          title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
+        >
+          <Satellite className="w-4 h-4 sm:w-5 sm:h-5" />
+        </button>
+        
+        <FloatingMapSearch onSearch={handleMapSearch} isGrouped={true} />
+      </div>
 
       {/* Legal Shooting Hours Widget + Area Selector - Top Left */}
       <div className="fixed top-4 left-4 z-[9999] pointer-events-auto space-y-2">
@@ -513,13 +513,13 @@ export default function DeerStalkingMap() {
       </div>
 
       {/* Back to Dashboard */}
-       <Link
-         to="/"
-         className="fixed top-4 right-20 z-[9999] w-10 h-10 sm:w-12 sm:h-12 bg-white/15 backdrop-blur-xl text-white rounded-full shadow-lg hover:bg-white/20 transition-all pointer-events-auto flex items-center justify-center border border-white/20"
-         title="Dashboard"
-       >
-         <Home className="w-4 h-4 sm:w-5 sm:h-5" />
-       </Link>
+      <Link
+        to="/"
+        className="fixed top-4 right-20 z-[9999] w-10 h-10 sm:w-12 sm:h-12 bg-slate-800 text-white rounded-full shadow-lg hover:bg-slate-700 transition-all pointer-events-auto flex items-center justify-center"
+        title="Dashboard"
+      >
+        <Home className="w-4 h-4 sm:w-5 sm:h-5" />
+      </Link>
       {/* Selection Mode Instruction */}
       {waitingForPin && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[9998] bg-blue-500 text-white px-2 py-0.5 rounded flex items-center justify-between pointer-events-auto gap-1 h-6 w-48">
