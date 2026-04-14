@@ -170,26 +170,40 @@ function SunriseSunsetForecast() {
     return date.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' });
   };
 
+  const calculateLegalTimes = (sunrise, sunset) => {
+    const legalStart = new Date(sunrise);
+    legalStart.setHours(legalStart.getHours() - 1);
+    const legalEnd = new Date(sunset);
+    legalEnd.setHours(legalEnd.getHours() + 1);
+    return { legalStart, legalEnd };
+  };
+
   return (
     <div className="space-y-3">
       <h3 className="text-lg font-bold px-4">15-Day Forecast</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 px-4">
-        {forecast.map((day, idx) => (
-          <div key={idx} className="bg-card rounded-lg p-3 border border-border/50">
-            <div className="text-xs font-medium text-muted-foreground mb-2">{formatDate(day.date)}</div>
-            <div className="flex justify-between items-center gap-2">
-              <div className="flex items-center gap-1">
-                <Sun className="w-3 h-3 text-amber-500" />
-                <span className="text-xs">{formatTime(day.sunrise)}</span>
+        {forecast.map((day, idx) => {
+          const { legalStart, legalEnd } = calculateLegalTimes(day.sunrise, day.sunset);
+          return (
+            <div key={idx} className="bg-card rounded-lg p-3 border border-border/50">
+              <div className="text-xs font-medium text-muted-foreground mb-2">{formatDate(day.date)}</div>
+              <div className="flex justify-between items-center gap-2 mb-2">
+                <div className="flex items-center gap-1">
+                  <Sun className="w-3 h-3 text-amber-500" />
+                  <span className="text-xs">{formatTime(day.sunrise)}</span>
+                </div>
+                <span className="text-xs text-muted-foreground">→</span>
+                <div className="flex items-center gap-1">
+                  <Sun className="w-3 h-3 text-amber-600 opacity-70" />
+                  <span className="text-xs">{formatTime(day.sunset)}</span>
+                </div>
               </div>
-              <span className="text-xs text-muted-foreground">→</span>
-              <div className="flex items-center gap-1">
-                <Sun className="w-3 h-3 text-amber-600 opacity-70" />
-                <span className="text-xs">{formatTime(day.sunset)}</span>
+              <div className="bg-primary/5 rounded px-2 py-1">
+                <div className="text-[11px] font-medium text-primary">{formatTime(legalStart)} — {formatTime(legalEnd)}</div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
