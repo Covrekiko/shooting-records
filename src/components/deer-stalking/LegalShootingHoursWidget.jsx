@@ -71,10 +71,10 @@ export default function LegalShootingHoursWidget() {
   const endTime = formatTime(sunTimes.sunset);
 
   // Calculate legal shooting hours (30 mins before sunrise to 30 mins after sunset in UK)
-  const legalStart = new Date(sunTimes.sunrise);
-  legalStart.setMinutes(legalStart.getMinutes() - 30);
-  const legalEnd = new Date(sunTimes.sunset);
-  legalEnd.setMinutes(legalEnd.getMinutes() + 30);
+  const legalStart = new Date(sunTimes.sunset);
+  legalStart.setHours(legalStart.getHours() + 1);
+  const legalEnd = new Date(sunTimes.sunrise);
+  legalEnd.setHours(legalEnd.getHours() - 1);
 
   const legalStartTime = formatTime(legalStart);
   const legalEndTime = formatTime(legalEnd);
