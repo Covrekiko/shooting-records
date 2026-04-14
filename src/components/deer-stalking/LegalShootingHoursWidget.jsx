@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Sun } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function LegalShootingHoursWidget() {
+  const navigate = useNavigate();
   const [sunTimes, setSunTimes] = useState(null);
 
   useEffect(() => {
@@ -78,6 +80,7 @@ export default function LegalShootingHoursWidget() {
   const legalEndTime = formatTime(legalEnd);
 
   return (
+    <button onClick={() => navigate('/sunrise-sunset')} className="w-full text-left hover:opacity-80 transition-opacity">
     <div className="bg-card/95 backdrop-blur-sm rounded-2xl px-3 py-2 border border-border shadow-lg">
       <div className="text-xs font-medium text-muted-foreground mb-1">Legal Shooting</div>
       <div className="space-y-1">
@@ -99,5 +102,6 @@ export default function LegalShootingHoursWidget() {
         </div>
       </div>
     </div>
+    </button>
   );
 }
