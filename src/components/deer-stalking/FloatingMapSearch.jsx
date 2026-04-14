@@ -98,7 +98,7 @@ export default function FloatingMapSearch({ onSearch, onError, isGrouped = false
   };
 
   return (
-    <div className={isGrouped ? "relative" : "fixed bottom-24 right-6 z-[9999] pointer-events-auto sm:bottom-32"}>
+    <div className={isGrouped ? "relative" : "fixed top-20 right-4 z-[9999] pointer-events-auto"}>
       {/* Floating Search Icon Button */}
       {!isOpen ? (
         <button
