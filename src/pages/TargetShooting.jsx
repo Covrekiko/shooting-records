@@ -261,7 +261,7 @@ export default function TargetShooting() {
         <>
           {(showCheckin || showCheckout) && <div className="fixed inset-0 z-[50000] bg-black/50" />}
           {showCheckin && (
-            <div className="fixed inset-0 z-[50001] flex items-end justify-center pt-12">
+            <div className="fixed inset-0 z-[50001] flex flex-col justify-end">
               <CheckinModal
                 data={checkinData}
                 clubs={clubs}
@@ -272,7 +272,7 @@ export default function TargetShooting() {
             </div>
           )}
           {showCheckout && activeSession && (
-            <div className="fixed inset-0 z-[50001] flex items-end justify-center pt-12">
+            <div className="fixed inset-0 z-[50001] flex flex-col justify-end">
               <CheckoutModal
                 rifles={rifles}
                 ammunition={ammunition}
