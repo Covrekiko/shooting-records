@@ -109,14 +109,14 @@ export default function Dashboard() {
            />
          </div>
        )}
-       <main className="max-w-7xl mx-auto px-4 pt-4 md:pt-16 py-2 md:py-12 pb-24">
-         <div className="mb-4 hidden md:block">
+       <main className="max-w-7xl mx-auto px-4 pt-2 md:pt-16 py-2 md:py-12 pb-24">
+         <div className="mb-2 md:mb-4 hidden md:block">
            <h1 className="text-2xl md:text-5xl font-semibold text-foreground mb-1">Dashboard</h1>
            <p className="text-sm text-muted-foreground">Welcome back, <span className="font-medium text-foreground">{user?.full_name}</span></p>
          </div>
 
          {user?.role === 'admin' ? (
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             <StatCard
               icon={<Map className="w-8 h-8" />}
               label="Stalking Map"
@@ -142,7 +142,7 @@ export default function Dashboard() {
              />
           </div>
         ) : (
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
            <StatCard
              icon={<Map className="w-8 h-8" />}
              label="Stalking Map"
@@ -185,7 +185,7 @@ export default function Dashboard() {
         )}
 
         {/* Widgets */}
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="mt-6 md:mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
           <AmmoStockWidget />
         </div>
 
