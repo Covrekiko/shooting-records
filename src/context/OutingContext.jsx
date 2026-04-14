@@ -14,6 +14,13 @@ export function OutingProvider({ children }) {
 
   const loadActiveOuting = async () => {
     try {
+      const isAuthenticated = await base44.auth.isAuthenticated();
+      if (!isAuthenticated) {
+        setActiveOuting(null);
+        setLoading(false);
+        return;
+      }
+      
       const currentUser = await base44.auth.me();
       const outings = await base44.entities.DeerOuting.filter({
         created_by: currentUser.email,
