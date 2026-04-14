@@ -66,7 +66,6 @@ export default function OutingModal({ onClose, onSubmit, locations = [], selecte
               value={data.area_id}
               onChange={(e) => handleAreaSelect(e.target.value)}
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-              required
             >
               <option value="">Select your area</option>
               {areas.map((area) => (
