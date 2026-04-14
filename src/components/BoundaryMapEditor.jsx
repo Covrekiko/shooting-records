@@ -49,11 +49,12 @@ function MapControls({ map }) {
   return (
     <button
       onClick={handleFindLocation}
-      className="px-4 py-2 rounded-lg flex items-center gap-2 font-medium bg-secondary hover:bg-secondary/80"
+      className="px-4 py-2 sm:px-4 sm:py-2 rounded-full sm:rounded-lg flex items-center gap-2 font-medium bg-secondary hover:bg-secondary/80 text-sm sm:text-base transition-all active:scale-95"
       title="Center map on your current location"
     >
-      <Locate className="w-4 h-4" />
-      Find My Location
+      <Locate className="w-5 h-5 sm:w-4 sm:h-4" />
+      <span className="hidden sm:inline">Find My Location</span>
+      <span className="sm:hidden">My Location</span>
     </button>
   );
 }
@@ -78,37 +79,37 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
           <MapControls map={map} />
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setMapType('map')}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 font-medium ${
-              mapType === 'map'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary hover:bg-secondary/80'
-            }`}
-          >
-            <Map className="w-4 h-4" />
-            Map
-          </button>
-          <button
-            onClick={() => setMapType('satellite')}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 font-medium ${
-              mapType === 'satellite'
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-secondary hover:bg-secondary/80'
-            }`}
-          >
-            <Satellite className="w-4 h-4" />
-            Satellite
-          </button>
-          <button
-            onClick={clearAll}
-            className="px-4 py-2 rounded-lg flex items-center gap-2 font-medium bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
-          >
-            <Trash2 className="w-4 h-4" />
-            Clear All
-          </button>
-        </div>
+        <div className="flex flex-wrap gap-3 sm:gap-2">
+           <button
+             onClick={() => setMapType('map')}
+             className={`flex-1 sm:flex-none px-5 sm:px-4 py-3 sm:py-2 rounded-full sm:rounded-lg flex items-center justify-center sm:justify-start gap-2 font-semibold sm:font-medium text-sm sm:text-base transition-all active:scale-95 ${
+               mapType === 'map'
+                 ? 'bg-primary text-primary-foreground'
+                 : 'bg-secondary hover:bg-secondary/80'
+             }`}
+           >
+             <Map className="w-5 h-5 sm:w-4 sm:h-4" />
+             <span className="sm:inline">Map</span>
+           </button>
+           <button
+             onClick={() => setMapType('satellite')}
+             className={`flex-1 sm:flex-none px-5 sm:px-4 py-3 sm:py-2 rounded-full sm:rounded-lg flex items-center justify-center sm:justify-start gap-2 font-semibold sm:font-medium text-sm sm:text-base transition-all active:scale-95 ${
+               mapType === 'satellite'
+                 ? 'bg-primary text-primary-foreground'
+                 : 'bg-secondary hover:bg-secondary/80'
+             }`}
+           >
+             <Satellite className="w-5 h-5 sm:w-4 sm:h-4" />
+             <span className="sm:inline">Satellite</span>
+           </button>
+           <button
+             onClick={clearAll}
+             className="flex-1 sm:flex-none px-5 sm:px-4 py-3 sm:py-2 rounded-full sm:rounded-lg flex items-center justify-center sm:justify-start gap-2 font-semibold sm:font-medium text-sm sm:text-base bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-all active:scale-95"
+           >
+             <Trash2 className="w-5 h-5 sm:w-4 sm:h-4" />
+             <span className="sm:inline">Clear</span>
+           </button>
+         </div>
       </div>
 
       <div className="border border-border rounded-lg overflow-hidden" style={{ position: 'relative', height: '400px', width: '100%' }}>
