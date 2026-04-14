@@ -82,12 +82,12 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         />
         <DrawingMap points={points} onAddPoint={handleAddPoint} onUndo={handleUndo} onCancel={onCancel} onFinish={handleFinish} />
 
-        {/* Points markers */}
-        {points.map((point, idx) => (
-          <Marker key={idx} position={point}>
-            <Popup>{`Point ${idx + 1}`}</Popup>
-          </Marker>
-        ))}
+          {/* Points markers */}
+          {points.map((point, idx) => (
+            <Marker key={`point-${idx}`} position={point}>
+              <Popup>{`Point ${idx + 1}`}</Popup>
+            </Marker>
+          ))}
 
         {/* Preview polyline - with closing line when ready to close */}
         {points.length > 1 && !isClosed && (

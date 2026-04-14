@@ -117,43 +117,43 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
 }
 
 function SessionReportModal({ record, onClose, rifles, shotguns, clubs, locations, category }) {
-  const [currentRecord, setCurrentRecord] = useState(record);
+   const [currentRecord, setCurrentRecord] = useState(record);
 
-  useEffect(() => {
-    const refreshRecord = async () => {
-      try {
-        const updatedRecord = await base44.entities.SessionRecord.get(record.id);
-        setCurrentRecord(updatedRecord);
-      } catch (error) {
-        console.error('Error refreshing record:', error);
-      }
-    };
-    refreshRecord();
-  }, [record.id]);
+   useEffect(() => {
+     const refreshRecord = async () => {
+       try {
+         const updatedRecord = await base44.entities.SessionRecord.get(record.id);
+         setCurrentRecord(updatedRecord);
+       } catch (error) {
+         console.error('Error refreshing record:', error);
+       }
+     };
+     refreshRecord();
+   }, [record.id]);
 
-  const getRifleName = (rifleId) => rifles[rifleId]?.name || 'Unknown Rifle';
-  const getRifleDetails = (rifleId) => rifles[rifleId];
-  const getShotgunName = (shotgunId) => shotguns[shotgunId]?.name || 'Unknown Shotgun';
-  const getShotgunDetails = (shotgunId) => shotguns[shotgunId];
-  const getClubName = (clubId) => clubs[clubId]?.name || 'Unknown Club';
-  const getLocationName = (locationId) => locations[locationId]?.place_name || 'Unknown Location';
+   const getRifleName = (rifleId) => rifles[rifleId]?.name || 'Unknown Rifle';
+   const getRifleDetails = (rifleId) => rifles[rifleId];
+   const getShotgunName = (shotgunId) => shotguns[shotgunId]?.name || 'Unknown Shotgun';
+   const getShotgunDetails = (shotgunId) => shotguns[shotgunId];
+   const getClubName = (clubId) => clubs[clubId]?.name || 'Unknown Club';
+   const getLocationName = (locationId) => locations[locationId]?.place_name || 'Unknown Location';
 
-  return (
-    <div className="fixed inset-0 bg-black/50 z-[50001] flex items-start sm:items-center justify-center p-4 overflow-y-auto" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
-      <div className="bg-card rounded-2xl max-w-4xl w-full my-4 sm:my-0 flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[90vh]" style={{ maxHeight: 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 2rem)' }}>
+   return (
+     <div className="fixed inset-0 bg-black/50 z-[50001] flex items-end sm:items-center justify-center p-4 sm:p-0" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+       <div className="bg-card rounded-t-3xl sm:rounded-2xl max-w-4xl w-full flex flex-col max-h-[90vh] sm:max-h-[90vh]" style={{ maxHeight: 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 1rem)' }}>
         {/* Header */}
-        <div className="flex items-center justify-between mb-8 pb-6 border-b border-border flex-shrink-0 p-6 sm:p-8">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border flex-shrink-0 sticky top-0 bg-card z-10">
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold">Session Report</h2>
-            <p className="text-muted-foreground text-xs sm:text-sm mt-1">Detailed Activity Record</p>
+            <h2 className="text-xl sm:text-2xl font-bold">Session Report</h2>
+            <p className="text-muted-foreground text-xs mt-1">Detailed Activity Record</p>
           </div>
-          <button onClick={onClose} className="p-1 hover:bg-secondary rounded flex-shrink-0 ml-4">
+          <button onClick={onClose} className="p-1 hover:bg-secondary rounded flex-shrink-0 ml-3">
             <X className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 sm:px-8 pb-6 sm:pb-8" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 py-4 sm:py-6" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
 
         {/* Photos Section */}
         {currentRecord.photos && currentRecord.photos.length > 0 && (
@@ -449,21 +449,21 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
         )}
 
           {/* Footer with record info */}
-          <div className="text-xs text-muted-foreground bg-secondary/20 p-3 rounded-lg text-center">
+          <div className="text-xs text-muted-foreground bg-secondary/20 p-3 rounded-lg text-center mt-6">
             <p>Record ID: {currentRecord.id}</p>
             <p>Created: {format(new Date(currentRecord.created_date), 'PPpp')}</p>
           </div>
-        </div>
+          </div>
 
-        {/* Action Button - Sticky */}
-        <div className="flex-shrink-0 p-6 sm:p-8 border-t border-border bg-card">
+          {/* Action Button - Sticky */}
+          <div className="flex-shrink-0 p-4 sm:p-6 border-t border-border bg-card sticky bottom-0" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
           <button
             onClick={onClose}
-            className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 font-semibold transition-all active:scale-95"
+            className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 font-semibold transition-all active:scale-95 text-sm sm:text-base"
           >
             Close Report
           </button>
-        </div>
+          </div>
       </div>
     </div>
   );

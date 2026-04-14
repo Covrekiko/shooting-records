@@ -120,7 +120,6 @@ export default function Dashboard() {
             <StatCard
               icon={<Map className="w-8 h-8" />}
               label="Stalking Map"
-              value="Open"
               link="/deer-stalking"
             />
             <StatCard
@@ -143,13 +142,12 @@ export default function Dashboard() {
              />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            <StatCard
-              icon={<Map className="w-8 h-8" />}
-              label="Stalking Map"
-              value="Open"
-              link="/deer-stalking"
-            />
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+           <StatCard
+             icon={<Map className="w-8 h-8" />}
+             label="Stalking Map"
+             link="/deer-stalking"
+           />
             <StatCard
               icon={<Crosshair className="w-8 h-8" />}
               label="Target Shooting Sessions"
@@ -374,7 +372,9 @@ function StatCard({ icon, label, value, link, hideOnMobile }) {
        </div>
        <div className="flex-1 min-w-0 w-full">
          <p className="text-xs text-muted-foreground font-medium mb-2 uppercase tracking-wide">{label}</p>
-         <p className="text-3xl md:text-4xl font-bold text-foreground">{value}</p>
+         {value !== undefined && (
+           <p className="text-3xl md:text-4xl font-bold text-foreground">{value}</p>
+         )}
        </div>
      </div>
    );
