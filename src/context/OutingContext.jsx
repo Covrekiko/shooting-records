@@ -54,7 +54,7 @@ export function OutingProvider({ children }) {
 
        console.log('🟢 CHECK IN SAVE SUCCESS - DeerOuting created with ID:', outing.id, 'areaId:', outing.area_id, 'start_time:', isoDateTime);
 
-       // Create SessionRecord for deer management - mirror with location_id
+       // Create SessionRecord for deer management - mirror with location_id AND explicit outing_id link
        if (data.place_name && data.date && data.start_time && data.location_id) {
          const sr = await base44.entities.SessionRecord.create({
            category: 'deer_management',
@@ -67,8 +67,9 @@ export function OutingProvider({ children }) {
            photos: [],
            gps_track: [],
            checkin_time: data.start_time,
+           outing_id: outing.id,
          });
-         console.log('🟢 SessionRecord created with ID:', sr.id, 'location_id:', sr.location_id);
+         console.log('🟢 SessionRecord created with ID:', sr.id, 'location_id:', sr.location_id, 'outing_id:', outing.id);
        }
 
        setActiveOuting(outing);
@@ -107,13 +108,13 @@ export function OutingProvider({ children }) {
        await base44.entities.DeerOuting.update(outingId, updateOutingPayload);
        console.log('🟢 DeerOuting updated and closed - ID:', outingId, 'GPS points saved:', gpsTrack?.length || 0);
 
-       // Update SessionRecord with checkout data - find by location_name and active status
+       // Update SessionRecord with checkout data - find by explicit outing_id link
        const sessionRecords = await base44.entities.SessionRecord.filter({
          created_by: currentUser.email,
          category: 'deer_management',
-         status: 'active',
+         outing_id: outingId,
        });
-       console.log('🟢 Found', sessionRecords.length, 'active SessionRecord(s) for deer management');
+       console.log('🟢 Found', sessionRecords.length, 'SessionRecord(s) linked to outing:', outingId);
 
        if (sessionRecords.length > 0) {
          const srId = sessionRecords[0].id;
@@ -138,7 +139,7 @@ export function OutingProvider({ children }) {
          await base44.entities.SessionRecord.update(srId, updateSrPayload);
          console.log('🟢 SessionRecord updated and closed - ID:', srId, 'new status: completed');
        } else {
-         console.warn('⚠️ No active SessionRecord found to update');
+         console.warn('⚠️ No SessionRecord found for outing:', outingId);
        }
 
        setActiveOuting(null);

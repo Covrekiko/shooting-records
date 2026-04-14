@@ -316,11 +316,11 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
           {recordUser && (
             <div className="text-sm text-muted-foreground space-y-1">
               <p><span className="font-medium">User:</span> {recordUser.full_name}</p>
-              {recordUser.date_of_birth && (
-                <p><span className="font-medium">DOB:</span> {format(new Date(recordUser.date_of_birth), 'dd/MM/yyyy')}</p>
+              {recordUser.dateOfBirth && (
+                <p><span className="font-medium">DOB:</span> {format(new Date(recordUser.dateOfBirth), 'dd/MM/yyyy')}</p>
               )}
-              {recordUser.address && (
-                <p><span className="font-medium">Address:</span> {recordUser.address}</p>
+              {recordUser.addressLine1 && (
+                <p><span className="font-medium">Address:</span> {recordUser.addressLine1}{recordUser.addressLine2 ? ', ' + recordUser.addressLine2 : ''}</p>
               )}
             </div>
           )}

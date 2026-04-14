@@ -170,6 +170,10 @@
     "number_shot": {
       "type": "integer",
       "description": "Number shot/harvested"
+    },
+    "outing_id": {
+      "type": "string",
+      "description": "Linked DeerOuting ID for deer management sessions"
     }
   },
   "required": [
