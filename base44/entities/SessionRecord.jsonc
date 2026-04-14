@@ -1,0 +1,179 @@
+{
+  "name": "SessionRecord",
+  "type": "object",
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "target_shooting",
+        "clay_shooting",
+        "deer_management"
+      ],
+      "description": "Type of session"
+    },
+    "title": {
+      "type": "string",
+      "description": "Session title/name"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed"
+      ],
+      "default": "completed",
+      "description": "Session status"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Session notes"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Photo URLs"
+    },
+    "gps_track": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number"
+          },
+          "lng": {
+            "type": "number"
+          },
+          "timestamp": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "GPS track points"
+    },
+    "location_id": {
+      "type": "string",
+      "description": "Associated location/club/area ID"
+    },
+    "location_name": {
+      "type": "string",
+      "description": "Location/club/area name"
+    },
+    "checkin_time": {
+      "type": "string",
+      "format": "time"
+    },
+    "checkout_time": {
+      "type": "string",
+      "format": "time"
+    },
+    "start_time": {
+      "type": "string",
+      "format": "time"
+    },
+    "end_time": {
+      "type": "string",
+      "format": "time"
+    },
+    "rifles_used": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "rifle_id": {
+            "type": "string"
+          },
+          "rounds_fired": {
+            "type": "integer"
+          },
+          "meters_range": {
+            "type": "integer"
+          },
+          "ammunition_brand": {
+            "type": "string"
+          },
+          "caliber": {
+            "type": "string"
+          },
+          "bullet_type": {
+            "type": "string"
+          },
+          "grain": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Rifles used (target shooting)"
+    },
+    "rifle_id": {
+      "type": "string",
+      "description": "Primary rifle ID"
+    },
+    "shotgun_id": {
+      "type": "string",
+      "description": "Shotgun ID (clay shooting)"
+    },
+    "rounds_fired": {
+      "type": "integer",
+      "description": "Total rounds fired"
+    },
+    "ammunition_used": {
+      "type": "string",
+      "description": "Ammunition description"
+    },
+    "ammunition_id": {
+      "type": "string",
+      "description": "Ammunition reference ID"
+    },
+    "caliber": {
+      "type": "string",
+      "description": "Caliber used"
+    },
+    "deer_species": {
+      "type": "string",
+      "enum": [
+        "Roe",
+        "Muntjac",
+        "Fallow",
+        "Red",
+        "Sika",
+        "Chinese Water Deer",
+        "Other"
+      ],
+      "description": "Deer species (deer management)"
+    },
+    "species_list": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "species": {
+            "type": "string"
+          },
+          "count": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Harvested species list"
+    },
+    "total_count": {
+      "type": "string",
+      "description": "Total animals harvested"
+    },
+    "number_shot": {
+      "type": "integer",
+      "description": "Number shot/harvested"
+    }
+  },
+  "required": [
+    "category",
+    "date"
+  ]
+}

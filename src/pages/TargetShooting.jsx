@@ -62,11 +62,15 @@ export default function TargetShooting() {
           base44.entities.Club.filter({ created_by: currentUser.email }),
           base44.entities.Rifle.filter({ created_by: currentUser.email }),
           base44.entities.Ammunition.filter({ created_by: currentUser.email }),
-          base44.entities.TargetShooting.filter({
+          base44.entities.SessionRecord.filter({
             created_by: currentUser.email,
-            active_checkin: true,
+            category: 'target_shooting',
+            status: 'active',
           }),
-          base44.entities.TargetShooting.filter({ created_by: currentUser.email }),
+          base44.entities.SessionRecord.filter({
+            created_by: currentUser.email,
+            category: 'target_shooting',
+          }),
         ]);
 
         setClubs(clubsList);
@@ -127,10 +131,10 @@ export default function TargetShooting() {
      console.log('🟢 CHECK IN CLICKED - TargetShooting');
      console.log('🟢 CHECK IN SAVE STARTED - club:', checkinData.club_id, 'date:', checkinData.date);
      try {
-       const session = await base44.entities.TargetShooting.create({
+       const session = await base44.entities.SessionRecord.create({
          ...checkinData,
          category: 'target_shooting',
-         active_checkin: true,
+         status: 'active',
        });
        console.log('🟢 CHECK IN SAVE SUCCESS - session id:', session.id);
        setActiveSession(session);
@@ -177,7 +181,7 @@ export default function TargetShooting() {
        gps_track: finalTrack,
      };
 
-     await base44.entities.TargetShooting.update(activeSession.id, updatePayload);
+     await base44.entities.SessionRecord.update(activeSession.id, updatePayload);
      console.log('🔴 CHECK OUT SAVE SUCCESS - Record updated:', activeSession.id);
 
       setActiveSession(null);

@@ -45,21 +45,22 @@ export function OutingProvider({ children }) {
         gps_track: [],
         active: true,
       });
-      
+
       console.log('🟢 CHECK IN SAVE SUCCESS - DeerOuting created with ID:', outing.id);
-      
-      // Create DeerManagement session (deer management system)
+
+      // Create SessionRecord for deer management
       if (data.place_name && data.date && data.start_time) {
-        await base44.entities.DeerManagement.create({
+        await base44.entities.SessionRecord.create({
+          category: 'deer_management',
           date: data.date,
           location_id: data.location_id || '',
-          place_name: data.place_name,
+          location_name: data.place_name,
           start_time: data.start_time,
-          active_checkin: true,
+          status: 'active',
         });
-        console.log('🟢 DeerManagement session created');
+        console.log('🟢 SessionRecord created');
       }
-      
+
       setActiveOuting(outing);
       return outing;
     } catch (error) {
@@ -97,18 +98,19 @@ export function OutingProvider({ children }) {
       await base44.entities.DeerOuting.update(outingId, updateOutingPayload);
       console.log('🟢 DeerOuting updated and closed - ID:', outingId, 'GPS points saved:', gpsTrack?.length || 0);
 
-      // Update DeerManagement with checkout data if it exists
+      // Update SessionRecord with checkout data if it exists
       if (checkoutData) {
-        const deerManagements = await base44.entities.DeerManagement.filter({
+        const sessionRecords = await base44.entities.SessionRecord.filter({
           created_by: currentUser.email,
-          active_checkin: true,
+          category: 'deer_management',
+          status: 'active',
         });
-        console.log('🟢 Found', deerManagements.length, 'active DeerManagement sessions for user');
+        console.log('🟢 Found', sessionRecords.length, 'active SessionRecord(s) for deer management');
 
-        if (deerManagements.length > 0) {
-          const dmId = deerManagements[0].id;
-          const updateDmPayload = {
-            active_checkin: false,
+        if (sessionRecords.length > 0) {
+          const srId = sessionRecords[0].id;
+          const updateSrPayload = {
+            status: 'completed',
             end_time: checkoutData.end_time || new Date().toTimeString().slice(0, 5),
             gps_track: gpsTrack || [],
             notes: checkoutData.notes || '',
@@ -118,12 +120,12 @@ export function OutingProvider({ children }) {
             rifle_id: checkoutData.shot_anything ? (checkoutData.rifle_id || null) : null,
             ammunition_used: checkoutData.shot_anything ? (checkoutData.ammunition_used || null) : null,
           };
-          console.log('🟢 Updating DeerManagement ID:', dmId, 'with checkout data - gps:', gpsTrack?.length || 0, 'points');
+          console.log('🟢 Updating SessionRecord ID:', srId, 'with checkout data - gps:', gpsTrack?.length || 0, 'points');
 
-          await base44.entities.DeerManagement.update(dmId, updateDmPayload);
-          console.log('🟢 DeerManagement session updated and closed - ID:', dmId);
+          await base44.entities.SessionRecord.update(srId, updateSrPayload);
+          console.log('🟢 SessionRecord updated and closed - ID:', srId);
         } else {
-          console.warn('⚠️ No active DeerManagement session found to update');
+          console.warn('⚠️ No active SessionRecord found to update');
         }
       }
 

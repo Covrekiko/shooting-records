@@ -27,7 +27,7 @@ export default function Records() {
   const [manualRecordModal, setManualRecordModal] = useState(null);
 
   const [filters, setFilters] = useState({
-    type: 'all',
+    category: 'all',
     dateFrom: '',
     dateTo: '',
   });
@@ -82,17 +82,17 @@ export default function Records() {
         query.created_by = currentUser.email;
       }
 
-      const [targetShoots, clayShoots, deerMgmt] = await Promise.all([
-        base44.entities.TargetShooting.filter(query),
-        base44.entities.ClayShooting.filter(query),
-        base44.entities.DeerManagement.filter(query),
-      ]);
+      const sessionRecords = await base44.entities.SessionRecord.filter(query);
 
-      const records = [
-        ...targetShoots.map((r) => ({ ...r, recordType: 'target' })),
-        ...clayShoots.map((r) => ({ ...r, recordType: 'clay' })),
-        ...deerMgmt.map((r) => ({ ...r, recordType: 'deer' })),
-      ].sort((a, b) => new Date(b.date) - new Date(a.date));
+      // Map category to recordType for compatibility
+      const records = sessionRecords.map((r) => {
+        const recordTypeMap = {
+          'target_shooting': 'target',
+          'clay_shooting': 'clay',
+          'deer_management': 'deer'
+        };
+        return { ...r, recordType: recordTypeMap[r.category] || r.category };
+      }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
       setAllRecords(records);
     } catch (error) {
@@ -105,8 +105,9 @@ export default function Records() {
   const applyFilters = () => {
     let filtered = allRecords;
 
-    if (filters.type !== 'all') {
-      filtered = filtered.filter((r) => r.recordType === filters.type);
+    if (filters.category !== 'all') {
+      const typeMap = { 'target_shooting': 'target', 'clay_shooting': 'clay', 'deer_management': 'deer' };
+      filtered = filtered.filter((r) => r.recordType === typeMap[filters.category]);
     }
 
     if (filters.dateFrom) {
@@ -120,11 +121,10 @@ export default function Records() {
     setFilteredRecords(filtered);
   };
 
-  const handleDelete = async (id, type) => {
+  const handleDelete = async (id) => {
     if (!confirm('Delete this record?')) return;
     try {
-      const entityName = type === 'target' ? 'TargetShooting' : type === 'clay' ? 'ClayShooting' : 'DeerManagement';
-      await base44.entities[entityName].delete(id);
+      await base44.entities.SessionRecord.delete(id);
       setAllRecords(allRecords.filter((r) => r.id !== id));
     } catch (error) {
       console.error('Error deleting record:', error);
@@ -133,15 +133,16 @@ export default function Records() {
 
   const handleSaveManualRecord = async (data, recordType, recordId) => {
     try {
-      const entityName = recordType === 'target' ? 'TargetShooting' : recordType === 'clay' ? 'ClayShooting' : 'DeerManagement';
+      const categoryMap = { 'target': 'target_shooting', 'clay': 'clay_shooting', 'deer': 'deer_management' };
+      const recordData = { ...data, category: categoryMap[recordType] };
       
       if (recordId) {
         // Update existing
-        await base44.entities[entityName].update(recordId, data);
-        setAllRecords(allRecords.map(r => r.id === recordId ? { ...r, ...data, recordType } : r));
+        await base44.entities.SessionRecord.update(recordId, recordData);
+        setAllRecords(allRecords.map(r => r.id === recordId ? { ...r, ...recordData, recordType } : r));
       } else {
         // Create new
-        const newRecord = await base44.entities[entityName].create(data);
+        const newRecord = await base44.entities.SessionRecord.create(recordData);
         setAllRecords([{ ...newRecord, recordType }, ...allRecords]);
       }
     } catch (error) {
@@ -214,15 +215,15 @@ export default function Records() {
               <div>
                 <label className="block text-sm font-medium mb-2">Record Type</label>
                 <select
-                  value={filters.type}
-                  onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                >
-                  <option value="all">All Records</option>
-                  <option value="target">Target Shooting</option>
-                  <option value="clay">Clay Shooting</option>
-                  <option value="deer">Deer Management</option>
-                </select>
+                   value={filters.category}
+                   onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                   className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                 >
+                   <option value="all">All Records</option>
+                   <option value="target_shooting">Target Shooting</option>
+                   <option value="clay_shooting">Clay Shooting</option>
+                   <option value="deer_management">Deer Management</option>
+                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">From Date</label>
@@ -253,7 +254,7 @@ export default function Records() {
         ) : (
           <div className="space-y-3">
             {filteredRecords.map((record) => (
-              <RecordCard key={record.id} record={record} onDelete={handleDelete} user={user} onView={setViewingRecord} recordUser={users[record.created_by]} onViewTrack={setViewingTrack} onViewPhoto={setViewingPhoto} rifles={rifles} shotguns={shotguns} clubs={clubs} locations={deerLocations} onEdit={() => setManualRecordModal({ isNew: false, record })} />
+              <RecordCard key={record.id} record={record} onDelete={() => handleDelete(record.id)} user={user} onView={setViewingRecord} recordUser={users[record.created_by]} onViewTrack={setViewingTrack} onViewPhoto={setViewingPhoto} rifles={rifles} shotguns={shotguns} clubs={clubs} locations={deerLocations} onEdit={() => setManualRecordModal({ isNew: false, record })} />
             ))}
           </div>
         )}
@@ -395,8 +396,7 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
   useEffect(() => {
     const refreshRecord = async () => {
       try {
-        const entityName = record.recordType === 'target' ? 'TargetShooting' : record.recordType === 'clay' ? 'ClayShooting' : 'DeerManagement';
-        const updatedRecord = await base44.entities[entityName].get(record.id);
+        const updatedRecord = await base44.entities.SessionRecord.get(record.id);
         setCurrentRecord({ ...updatedRecord, recordType: record.recordType });
       } catch (error) {
         console.error('Error refreshing record:', error);

@@ -45,11 +45,15 @@ export default function ClayShooting() {
           base44.entities.Club.filter({ created_by: currentUser.email }),
           base44.entities.Shotgun.filter({ created_by: currentUser.email }),
           base44.entities.Ammunition.filter({ created_by: currentUser.email }),
-          base44.entities.ClayShooting.filter({
+          base44.entities.SessionRecord.filter({
             created_by: currentUser.email,
-            active_checkin: true,
+            category: 'clay_shooting',
+            status: 'active',
           }),
-          base44.entities.ClayShooting.filter({ created_by: currentUser.email }),
+          base44.entities.SessionRecord.filter({
+            created_by: currentUser.email,
+            category: 'clay_shooting',
+          }),
         ]);
 
         setClubs(clubsList);
@@ -93,10 +97,10 @@ export default function ClayShooting() {
      console.log('🟢 CHECK IN CLICKED - ClayShooting');
      console.log('🟢 CHECK IN SAVE STARTED - club:', checkinData.club_id, 'date:', checkinData.date);
      try {
-       const session = await base44.entities.ClayShooting.create({
+       const session = await base44.entities.SessionRecord.create({
          ...checkinData,
          category: 'clay_shooting',
-         active_checkin: true,
+         status: 'active',
        });
        console.log('🟢 CHECK IN SAVE SUCCESS - session id:', session.id);
        setActiveSession(session);
@@ -139,7 +143,7 @@ export default function ClayShooting() {
         gps_track: finalTrack,
        };
 
-       await base44.entities.ClayShooting.update(activeSession.id, updatePayload);
+       await base44.entities.SessionRecord.update(activeSession.id, updatePayload);
        console.log('🔴 CHECK OUT SAVE SUCCESS - Record updated:', activeSession.id);
 
        setActiveSession(null);

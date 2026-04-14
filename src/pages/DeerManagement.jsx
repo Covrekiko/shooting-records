@@ -44,7 +44,10 @@ export default function DeerManagement() {
           base44.entities.Area.filter({ created_by: currentUser.email }),
           base44.entities.Rifle.filter({ created_by: currentUser.email }),
           base44.entities.Ammunition.filter({ created_by: currentUser.email }),
-          base44.entities.DeerManagement.filter({ created_by: currentUser.email }),
+          base44.entities.SessionRecord.filter({
+            created_by: currentUser.email,
+            category: 'deer_management',
+          }),
         ]);
 
         setAreas(areasList);
