@@ -129,14 +129,14 @@ export function OutingProvider({ children }) {
 
   const updateGpsTrack = async (outingId, track) => {
     try {
-      await base44.entities.DeerOuting.update(outingId, {
-        gps_track: track,
-      });
-      // Update local state so the map renders the updated track
+      await base44.entities.DeerOuting.update(outingId, { gps_track: track });
+      // Only update local state minimally — avoid triggering full re-renders
       setActiveOuting(prev => prev ? { ...prev, gps_track: track } : null);
-      console.log('✅ GPS track updated and synced to state - points:', track.length);
     } catch (error) {
-      console.error('❌ Error updating GPS track:', error);
+      // Silently ignore rate limit errors on GPS sync
+      if (error?.status !== 429) {
+        console.error('❌ Error updating GPS track:', error);
+      }
     }
   };
 

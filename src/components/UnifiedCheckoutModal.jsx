@@ -60,15 +60,18 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   };
 
   const handleSubmit = () => {
-    console.log('🔴 UnifiedCheckoutModal.handleSubmit called - checkoutData:', checkoutData);
-    if (checkoutData.shot_anything && checkoutData.species_list?.length) {
-      const totalCount = checkoutData.species_list.reduce((sum, s) => sum + (parseInt(s.count) || 0), 0);
-      if (!checkoutData.total_count || parseInt(checkoutData.total_count) !== totalCount) {
-        alert(`Total shots (${checkoutData.total_count}) must match sum of species (${totalCount})`);
+    if (checkoutData.shot_anything) {
+      const hasEmptySpecies = checkoutData.species_list.some(s => !s.species || !s.count);
+      if (hasEmptySpecies) {
+        alert('Please fill in all species and counts');
         return;
       }
     }
-    onSubmit(checkoutData);
+    // Auto-calculate total_count from species list
+    const totalCount = checkoutData.shot_anything
+      ? checkoutData.species_list.reduce((sum, s) => sum + (parseInt(s.count) || 0), 0)
+      : 0;
+    onSubmit({ ...checkoutData, total_count: String(totalCount) });
   };
 
   return (
@@ -186,18 +189,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                 </div>
               ))}
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Total Shots Fired</label>
-              <input
-                type="number"
-                min="1"
-                placeholder="Total animals shot"
-                value={checkoutData.total_count || ''}
-                onChange={(e) => setCheckoutData({ ...checkoutData, total_count: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                required={checkoutData.shot_anything}
-              />
-            </div>
+
             <div>
               <label className="block text-sm font-medium mb-1">Rifle Used</label>
               <select
