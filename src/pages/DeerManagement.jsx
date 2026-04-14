@@ -277,10 +277,10 @@ export default function DeerManagement() {
 
 function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
   const handleAreaSelect = (areaId) => {
-    const selected = areas.find(a => a.id === areaId);
     onChange('location_id', areaId);
-    if (selected) onChange('place_name', selected.name);
   };
+
+  const selectedArea = areas.find(a => a.id === data.location_id);
 
   return (
     <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
@@ -302,8 +302,8 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
             <option value="">Select your area</option>
             {areas.map((area) => (<option key={area.id} value={area.id}>{area.name}</option>))}
           </select>
-          {data.location_id && (
-            <p className="text-xs text-primary mt-2 font-medium">✓ {areas.find(a => a.id === data.location_id)?.name} selected</p>
+          {selectedArea && (
+            <p className="text-xs text-primary mt-2 font-medium">✓ {selectedArea.name} selected</p>
           )}
         </div>
         <div>
