@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
@@ -248,43 +249,49 @@ export default function TargetShooting() {
           </button>
         )}
 
-        {/* Check-in Modal */}
-        {showCheckin && (
-          <CheckinModal
-            data={checkinData}
-            clubs={clubs}
-            onSubmit={handleCheckin}
-            onChange={(field, value) =>
-              setCheckinData({ ...checkinData, [field]: value })
-            }
-            onClose={() => setShowCheckin(false)}
-          />
-        )}
-
         {/* GPS Track Viewer */}
         {viewingTrack && (
           <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />
         )}
-
-        {showCheckout && activeSession && (
-          <CheckoutModal
-            data={checkoutData}
-            setData={setCheckoutData}
-            rifles={rifles}
-            ammunition={ammunition}
-            onSubmit={handleCheckout}
-            onClose={() => setShowCheckout(false)}
-          />
-        )}
       </main>
+
+      {/* Modals via portal so fixed positioning works correctly */}
+      {createPortal(
+        <>
+          {(showCheckin || showCheckout) && <div className="fixed inset-0 z-[50000] bg-black/50" />}
+          {showCheckin && (
+            <div className="fixed inset-0 z-[50001] flex items-end sm:items-center justify-center">
+              <CheckinModal
+                data={checkinData}
+                clubs={clubs}
+                onSubmit={handleCheckin}
+                onChange={(field, value) => setCheckinData({ ...checkinData, [field]: value })}
+                onClose={() => setShowCheckin(false)}
+              />
+            </div>
+          )}
+          {showCheckout && activeSession && (
+            <div className="fixed inset-0 z-[50001] flex items-end sm:items-center justify-center">
+              <CheckoutModal
+                data={checkoutData}
+                setData={setCheckoutData}
+                rifles={rifles}
+                ammunition={ammunition}
+                onSubmit={handleCheckout}
+                onClose={() => setShowCheckout(false)}
+              />
+            </div>
+          )}
+        </>,
+        document.body
+      )}
     </div>
   );
 }
 
 function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl p-6 pb-safe" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+    <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         {/* Drag handle for mobile */}
         <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4 sm:hidden" />
         <h2 className="text-xl font-bold mb-4">Check In</h2>
@@ -342,7 +349,6 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
           </div>
         </form>
       </div>
-    </div>
   );
 }
 
@@ -433,8 +439,7 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl overflow-y-auto max-h-[90dvh] p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+    <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl overflow-y-auto max-h-[90dvh] p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         <h2 className="text-xl font-bold mb-4">Check Out</h2>
         <form onSubmit={validateAndSubmit} className="space-y-4">
           <div>
@@ -624,23 +629,11 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
               </div>
             )}
           </div>
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
-            >
-              Check Out
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary"
-            >
-              Cancel
-            </button>
+          <div className="flex gap-3 pt-2">
+            <button type="submit" className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-base hover:opacity-90">Check Out</button>
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-3 border border-border rounded-xl text-base hover:bg-secondary">Cancel</button>
           </div>
         </form>
-      </div>
     </div>
   );
 }
