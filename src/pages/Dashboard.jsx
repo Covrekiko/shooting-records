@@ -367,7 +367,7 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
 function StatCard({ icon, label, value, link, hideOnMobile }) {
    const content = (
      <div className="flex flex-col items-start justify-between h-full">
-       <div className="w-8 h-8 md:w-10 md:h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4 flex-shrink-0 [&_svg]:w-4 [&_svg]:h-4 md:[&_svg]:w-5 md:[&_svg]:h-5 [&_img]:w-4 [&_img]:h-4 md:[&_img]:w-5 md:[&_img]:h-5 text-lg">
+       <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4 flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 [&_img]:w-5 [&_img]:h-5 text-lg">
          {icon}
        </div>
        <div className="flex-1 min-w-0 w-full">
