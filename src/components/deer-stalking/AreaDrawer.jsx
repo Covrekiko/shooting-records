@@ -54,7 +54,9 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
       alert('Need at least 3 points to create a boundary');
       return;
     }
-    onFinish(points);
+    // Close the polygon by appending the first point at the end
+    const closedPolygon = [...points, points[0]];
+    onFinish(closedPolygon);
   };
 
   const handleMapSearch = (result) => {
