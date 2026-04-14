@@ -498,8 +498,8 @@ export default function DeerStalkingMap() {
         </GoogleMap>
       </div>
 
-      {/* Satellite Toggle - Top Right */}
-      <div className="fixed top-4 right-4 z-[9999] pointer-events-auto">
+      {/* Floating Map Controls - Top Right */}
+      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-auto items-end">
         <button
           onClick={() => setUseSatellite(!useSatellite)}
           className="w-10 h-10 sm:w-12 sm:h-12 bg-white/15 text-slate-900 rounded-full hover:bg-white/25 transition-all backdrop-blur-lg shadow-lg hover:shadow-xl flex items-center justify-center border border-white/30"
@@ -507,10 +507,7 @@ export default function DeerStalkingMap() {
         >
           <Satellite className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
-      </div>
 
-      {/* Search Bar - Center Top */}
-      <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9999] pointer-events-auto">
         <FloatingMapSearch onSearch={handleMapSearch} isGrouped={true} />
       </div>
 
