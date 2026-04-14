@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Search, X, AlertCircle, ChevronUp, Satellite } from 'lucide-react';
+import { Search, X, AlertCircle, ChevronUp } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const COORDINATE_REGEX = /^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/;
 
-export default function FloatingMapSearch({ onSearch, onError, isGrouped = false, onToggleSatellite, useSatellite = false }) {
+export default function FloatingMapSearch({ onSearch, onError, isGrouped = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -98,18 +98,7 @@ export default function FloatingMapSearch({ onSearch, onError, isGrouped = false
   };
 
   return (
-    <div className={isGrouped ? "flex gap-2 items-end" : "fixed bottom-24 right-6 z-[9999] pointer-events-auto sm:bottom-32 flex gap-2 items-end"}>
-      {/* Satellite Toggle Button */}
-      {onToggleSatellite && (
-        <button
-          onClick={() => onToggleSatellite(!useSatellite)}
-          className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-800 text-white rounded-full hover:bg-slate-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center"
-          title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
-        >
-          <Satellite className="w-4 h-4 sm:w-5 sm:h-5" />
-        </button>
-      )}
-
+    <div className={isGrouped ? "relative" : "fixed bottom-24 right-6 z-[9999] pointer-events-auto sm:bottom-32"}>
       {/* Floating Search Icon Button */}
       {!isOpen ? (
         <button
