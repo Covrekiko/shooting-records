@@ -59,15 +59,26 @@ function addSection(doc, title, yPos) {
 }
 
 export async function generateFormalReport(records, user, options = {}) {
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  
-  let pageNum = 1;
-  let yPos = 35;
-  
-  // Title page
-  addHeader(doc, pageNum, 'TBD');
+   const doc = new jsPDF();
+   const pageWidth = doc.internal.pageSize.getWidth();
+   const pageHeight = doc.internal.pageSize.getHeight();
+
+   // Always fetch fresh user data from the current session
+   let userData = user;
+   if (!userData) {
+     try {
+       const { base44 } = await import('@/api/base44Client');
+       userData = await base44.auth.me();
+     } catch (e) {
+       console.warn('Could not fetch fresh user data:', e);
+     }
+   }
+
+   let pageNum = 1;
+   let yPos = 35;
+
+   // Title page
+   addHeader(doc, pageNum, 'TBD');
   
   // Report title
   doc.setFontSize(24);
@@ -99,10 +110,10 @@ export async function generateFormalReport(records, user, options = {}) {
   doc.setFont(undefined, 'normal');
   doc.setFontSize(10);
   const reportInfo = [
-    `Name: ${user.full_name || 'Unknown'}`,
-    `Email: ${user.email}`,
-    `Address: ${user.address || 'Not provided'}`,
-    `Date of Birth: ${user.date_of_birth ? format(new Date(user.date_of_birth), 'dd/MM/yyyy') : 'Not provided'}`,
+    `Name: ${userData.full_name || 'Unknown'}`,
+    `Email: ${userData.email || 'Not provided'}`,
+    `Address: ${userData.address || 'Not provided'}`,
+    `Date of Birth: ${userData.date_of_birth ? format(new Date(userData.date_of_birth), 'dd/MM/yyyy') : 'Not provided'}`,
     `Generated: ${format(new Date(), 'EEEE, MMMM dd, yyyy HH:mm:ss')}`,
     `Report Type: Comprehensive Activity Summary`,
     `Records Included: ${records.length}`,
@@ -265,9 +276,9 @@ export async function generateFormalReport(records, user, options = {}) {
   doc.setFont(undefined, 'normal');
   
   const certText = `This report contains a comprehensive record of shooting activities and deer management
-operations conducted by ${user.full_name || 'the account holder'} as documented in the Shooting Records
-Management System. All information contained herein is accurate to the best of the account
-holder's knowledge and has been compiled in accordance with relevant regulations and best practices.
+  operations conducted by ${userData.full_name || 'the account holder'} as documented in the Shooting Records
+  Management System. All information contained herein is accurate to the best of the account
+  holder's knowledge and has been compiled in accordance with relevant regulations and best practices.
 
 This document is suitable for submission to relevant authorities including local police, game
 management agencies, or licensing bodies as required by applicable law. The system timestamps

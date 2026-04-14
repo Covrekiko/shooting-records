@@ -23,19 +23,30 @@ const STYLES = {
 };
 
 export async function exportRecordsToPdf(records, userInfo = null, fileName = 'shooting-records.pdf', rifles = {}, clubs = {}, shotguns = {}) {
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const docId = generateDocumentId();
-  let pageNum = 1;
+   const doc = new jsPDF();
+   const pageWidth = doc.internal.pageSize.getWidth();
+   const pageHeight = doc.internal.pageSize.getHeight();
+   const docId = generateDocumentId();
+   let pageNum = 1;
 
-  if (userInfo) {
-    createFrontPage(doc, userInfo, pageWidth, pageHeight, docId);
-    addPageId(doc, docId, pageNum, pageWidth);
-    pageNum++;
-    doc.addPage();
-    addPageId(doc, docId, pageNum, pageWidth);
-  }
+   // Always fetch fresh user data from the current session
+   let userData = userInfo;
+   if (!userData) {
+     try {
+       const { base44 } = await import('@/api/base44Client');
+       userData = await base44.auth.me();
+     } catch (e) {
+       console.warn('Could not fetch fresh user data:', e);
+     }
+   }
+
+   if (userData) {
+     createFrontPage(doc, userData, pageWidth, pageHeight, docId);
+     addPageId(doc, docId, pageNum, pageWidth);
+     pageNum++;
+     doc.addPage();
+     addPageId(doc, docId, pageNum, pageWidth);
+   }
 
   let yPosition = STYLES.margin;
 
@@ -69,19 +80,30 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
 }
 
 export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, clubs = {}, shotguns = {}) {
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const docId = generateDocumentId();
-  let pageNum = 1;
+   const doc = new jsPDF();
+   const pageWidth = doc.internal.pageSize.getWidth();
+   const pageHeight = doc.internal.pageSize.getHeight();
+   const docId = generateDocumentId();
+   let pageNum = 1;
 
-  if (userInfo) {
-    createFrontPage(doc, userInfo, pageWidth, pageHeight, docId);
-    addPageId(doc, docId, pageNum, pageWidth);
-    pageNum++;
-    doc.addPage();
-    addPageId(doc, docId, pageNum, pageWidth);
-  }
+   // Always fetch fresh user data from the current session
+   let userData = userInfo;
+   if (!userData) {
+     try {
+       const { base44 } = await import('@/api/base44Client');
+       userData = await base44.auth.me();
+     } catch (e) {
+       console.warn('Could not fetch fresh user data:', e);
+     }
+   }
+
+   if (userData) {
+     createFrontPage(doc, userData, pageWidth, pageHeight, docId);
+     addPageId(doc, docId, pageNum, pageWidth);
+     pageNum++;
+     doc.addPage();
+     addPageId(doc, docId, pageNum, pageWidth);
+   }
 
   let yPosition = STYLES.margin;
 
