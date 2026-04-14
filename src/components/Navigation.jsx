@@ -16,12 +16,13 @@ export default function Navigation() {
   const isActive = (path) => location.pathname === path;
 
   const mainNavItems = [
-    { path: '/', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/target-shooting', label: 'Target', icon: Crosshair },
     { path: '/clay-shooting', label: 'Clay', icon: Target },
     { path: '/deer-management', label: 'Deer', icon: null, emoji: '🦌' },
     { path: '/deer-stalking', label: 'Map', icon: Map },
   ];
+
+  const dashboardItem = { path: '/', label: 'Dashboard', icon: LayoutDashboard };
 
   const moreNavItems = [
     { path: '/records', label: 'Records', icon: BookOpen },
@@ -38,8 +39,8 @@ export default function Navigation() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex gap-6 items-center">
-            {[...mainNavItems, ...moreNavItems].map((item) => {
+          <div className="hidden md:flex gap-6 items-center flex-1">
+            {mainNavItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
@@ -57,6 +58,21 @@ export default function Navigation() {
                 </Link>
               );
             })}
+          </div>
+
+          {/* Right side: Dashboard, Admin, Profile */}
+          <div className="hidden md:flex gap-6 items-center">
+            <Link
+              to={dashboardItem.path}
+              className={`text-sm font-medium transition-colors flex items-center gap-1 ${
+                isActive(dashboardItem.path)
+                  ? 'text-primary'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <dashboardItem.icon className="w-4 h-4" />
+              {dashboardItem.label}
+            </Link>
             {user?.role === 'admin' && (
               <Link
                 to="/admin/users"
