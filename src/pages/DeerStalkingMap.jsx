@@ -539,7 +539,7 @@ export default function DeerStalkingMap() {
       )}
 
       {error && (
-        <div className="fixed top-4 left-4 z-[9998] bg-red-500 text-white px-2 py-1 rounded text-xs flex items-center gap-1 pointer-events-auto max-w-xs">
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9998] bg-red-500 text-white px-2 py-1 rounded text-xs flex items-center gap-1 pointer-events-auto max-w-xs">
           <AlertCircle className="w-3 h-3 flex-shrink-0" />
           <span className="truncate">{error}</span>
         </div>
