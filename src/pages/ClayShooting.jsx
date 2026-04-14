@@ -347,7 +347,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
   };
 
   return (
-      <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl overflow-y-auto max-h-[90dvh] p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+      <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl overflow-y-auto max-h-[90dvh] p-6 md:pb-6 pb-[100px]">
         <h2 className="text-xl font-bold mb-4">Check Out</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -392,16 +392,19 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
              }}
              placeholder="Select saved ammunition"
              options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
-             className="mb-2"
            />
-           <span className="text-xs text-muted-foreground">Or enter manually:</span>
-           <input
-             type="text"
-             placeholder="e.g. Federal 12 Gauge"
-             value={data.ammunition_used}
-             onChange={(e) => onChange('ammunition_used', e.target.value)}
-             className="w-full px-3 py-2 border border-border rounded-lg bg-background mt-1"
-           />
+           {!data.ammunition_id && (
+             <div className="mt-2">
+               <span className="text-xs text-muted-foreground">Or enter manually:</span>
+               <input
+                 type="text"
+                 placeholder="e.g. Federal 12 Gauge"
+                 value={data.ammunition_used}
+                 onChange={(e) => onChange('ammunition_used', e.target.value)}
+                 className="w-full px-3 py-2 border border-border rounded-lg bg-background mt-1"
+               />
+             </div>
+           )}
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Notes</label>

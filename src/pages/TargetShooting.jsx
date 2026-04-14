@@ -438,7 +438,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose }) {
   };
 
   return (
-    <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl overflow-y-auto max-h-[90dvh] p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+    <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl overflow-y-auto max-h-[90dvh] p-6 md:pb-6 pb-[100px]">
         <h2 className="text-xl font-bold mb-4">Check Out</h2>
         <form onSubmit={validateAndSubmit} className="space-y-4">
           <div>
