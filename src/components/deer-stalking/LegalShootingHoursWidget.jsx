@@ -6,18 +6,30 @@ export default function LegalShootingHoursWidget() {
   useEffect(() => {
     const calculateSunTimes = () => {
       const today = new Date();
-      const latitude = 51.5074; // London default
-      const longitude = -0.1278;
+      const lat = 51.5074; // London latitude
+      const lng = -0.1278; // London longitude
 
-      // Simple sunrise/sunset approximation
+      // Day of year
       const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+      
+      // Simplified accurate sunrise/sunset using equation of time
+      const J = dayOfYear - 1;
+      const M = (6.2401 + 0.01720197 * (365.25 * (today.getFullYear() - 2000) + J)) % (2 * Math.PI);
+      const eot = 9.87 * Math.sin(2 * M) - 7.53 * Math.cos(M) - 1.5 * Math.sin(M);
+      
+      const decl = 0.4093 * Math.sin((2 * Math.PI * (dayOfYear - 81)) / 365);
+      const ha = Math.acos(-Math.tan(lat * Math.PI / 180) * Math.tan(decl));
+      
       const sunrise = new Date(today);
       const sunset = new Date(today);
-
-      // Rough calculation: sunrise ~6:30am, sunset ~6:30pm (varies by season)
-      const minuteVariation = Math.sin((dayOfYear / 365) * Math.PI * 2) * 120;
-      sunrise.setHours(6, Math.floor(30 + minuteVariation), 0);
-      sunset.setHours(18, Math.floor(30 - minuteVariation), 0);
+      
+      // UTC times
+      const solarNoon = (12 - lng / 15 - eot / 60) * 60;
+      const sunriseMin = (solarNoon - (ha * 180 / Math.PI) / 15 * 60);
+      const sunsetMin = (solarNoon + (ha * 180 / Math.PI) / 15 * 60);
+      
+      sunrise.setMinutes(sunriseMin);
+      sunset.setMinutes(sunsetMin);
 
       setSunTimes({ sunrise, sunset });
     };
