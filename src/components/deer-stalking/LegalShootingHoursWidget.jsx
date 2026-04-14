@@ -79,25 +79,25 @@ export default function LegalShootingHoursWidget() {
   const legalEndTime = formatTime(legalEnd);
 
   return (
-    <button onClick={() => navigate('/sunrise-sunset')} className="w-full text-left hover:opacity-80 transition-opacity">
-    <div className="bg-card/95 backdrop-blur-sm rounded-2xl px-3 py-2 border border-border shadow-lg">
-      <div className="text-xs font-medium text-muted-foreground mb-1">Legal Shooting</div>
+    <button onClick={() => navigate('/sunrise-sunset')} className="w-full text-left hover:opacity-90 transition-opacity">
+    <div className="bg-white/15 backdrop-blur-lg rounded-2xl px-3 py-2 border border-white/20 shadow-md hover:shadow-lg transition-shadow" style={{ WebkitBackdropFilter: 'blur(20px)' }}>
+      <div className="text-xs font-medium text-white/80 mb-1">Legal Shooting</div>
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1">
-            <Sun className="w-3 h-3 text-amber-500" />
-            <span className="text-xs text-muted-foreground">Rise:</span>
-            <span className="text-xs font-semibold text-foreground">{startTime}</span>
+            <Sun className="w-3 h-3 text-amber-300" />
+            <span className="text-xs text-white/70">Rise:</span>
+            <span className="text-xs font-semibold text-white">{startTime}</span>
           </div>
-          <span className="text-xs text-muted-foreground text-right">Legal: {legalStartTime}</span>
+          <span className="text-xs text-white/60 text-right">Legal: {legalStartTime}</span>
         </div>
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1">
-            <Sun className="w-3 h-3 text-amber-600 opacity-70" />
-            <span className="text-xs text-muted-foreground">Set:</span>
-            <span className="text-xs font-semibold text-foreground">{endTime}</span>
+            <Sun className="w-3 h-3 text-amber-200 opacity-70" />
+            <span className="text-xs text-white/70">Set:</span>
+            <span className="text-xs font-semibold text-white">{endTime}</span>
           </div>
-          <span className="text-xs text-muted-foreground text-right">Legal: {legalEndTime}</span>
+          <span className="text-xs text-white/60 text-right">Legal: {legalEndTime}</span>
         </div>
       </div>
     </div>
