@@ -375,15 +375,15 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
    };
 
    return (
-       <div className="bg-card w-full max-w-md sm:max-w-sm sm:rounded-lg rounded-t-2xl flex flex-col max-h-[85dvh] sm:max-h-[90dvh]" style={{ height: 'calc(100% + env(safe-area-inset-bottom))', maxHeight: 'calc(85dvh + env(safe-area-inset-bottom))' }}>
-         {/* Header */}
-         <div className="flex-shrink-0 p-4 sm:p-5 border-b border-border">
-           <h2 className="text-lg sm:text-xl font-bold">Check Out</h2>
-         </div>
+         <div className="bg-card w-full sm:max-w-sm sm:rounded-lg rounded-t-2xl flex flex-col max-h-[90dvh]" style={{ maxHeight: 'min(90dvh, 100vh - env(safe-area-inset-top))' }}>
+           {/* Header */}
+           <div className="flex-shrink-0 p-4 sm:p-5 border-b border-border">
+             <h2 className="text-lg sm:text-xl font-bold">Check Out</h2>
+           </div>
 
-         {/* Scrollable Content */}
-         <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
-           <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3.5">
+           {/* Scrollable Content */}
+           <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
+             <form onSubmit={handleSubmit} id="checkoutForm" className="p-4 sm:p-5 space-y-3.5">
             <div>
               <label className="block text-xs sm:text-sm font-medium mb-1.5">Check-out Time</label>
               <input
@@ -506,13 +506,10 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
           </div>
 
           {/* Action Buttons */}
-          <div className="flex-shrink-0 flex gap-2 p-4 sm:p-5 border-t border-border bg-card">
+          <div className="flex-shrink-0 flex gap-2 p-4 sm:p-5 border-t border-border bg-card" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
             <button
-              type="submit"
-              onClick={(e) => {
-                const form = e.currentTarget.closest('.bg-card').querySelector('form');
-                if (form) form.dispatchEvent(new Event('submit', { bubbles: true }));
-              }}
+              type="button"
+              onClick={handleSubmit}
               className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 font-medium text-sm transition-all active:scale-95"
             >
               Check Out
