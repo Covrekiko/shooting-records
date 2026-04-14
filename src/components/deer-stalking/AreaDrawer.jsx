@@ -1,38 +1,25 @@
-import { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, Polygon, useMapEvents, useMap } from 'react-leaflet';
-import L from 'leaflet';
+import { useState, useRef } from 'react';
+import { GoogleMap, Marker, Polyline, Polygon } from '@react-google-maps/api';
 import { Undo, X, Check, Lock, Satellite } from 'lucide-react';
 import FloatingMapSearch from './FloatingMapSearch';
 
-function SetInitialView({ center, zoom }) {
-  const map = useMap();
-  useEffect(() => {
-    // Set the map view only on initial mount, preserving parent map state
-    map.setView(center, zoom);
-  }, []);
-  return null;
-}
-
-function DrawingMap({ points, onAddPoint, onUndo, onCancel, onFinish }) {
-  useMapEvents({
-    click(e) {
-      if (e.originalEvent.target.closest('button')) return;
-      onAddPoint([e.latlng.lat, e.latlng.lng]);
-    },
-  });
-  return null;
-}
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%',
+  cursor: 'crosshair',
+};
 
 export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter, mapZoom, savedAreas = [] }) {
-   const [points, setPoints] = useState([]);
-   const [isClosed, setIsClosed] = useState(false);
-   const [useSatellite, setUseSatellite] = useState(false);
-   const mapRef = useRef(null);
+  const [points, setPoints] = useState([]);
+  const [isClosed, setIsClosed] = useState(false);
+  const [useSatellite, setUseSatellite] = useState(false);
+  const mapRef = useRef(null);
 
-  const handleAddPoint = (point) => {
-    // If boundary is closed, don't add new points
+  const handleMapClick = (e) => {
     if (isClosed) return;
-    setPoints([...points, point]);
+    const lat = e.latLng.lat();
+    const lng = e.latLng.lng();
+    setPoints([...points, [lat, lng]]);
   };
 
   const handleUndo = () => {
@@ -54,91 +41,108 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
       alert('Need at least 3 points to create a boundary');
       return;
     }
-    // Close the polygon by appending the first point at the end
     const closedPolygon = [...points, points[0]];
     onFinish(closedPolygon);
   };
 
   const handleMapSearch = (result) => {
-    // Pan to search location
     if (mapRef.current) {
-      mapRef.current.setView([result.lat, result.lng], 15);
+      mapRef.current.panTo({ lat: result.lat, lng: result.lng });
+      mapRef.current.setZoom(15);
     }
   };
 
+
+
+  const center = mapCenter || { lat: userLocation?.lat || 51.5, lng: userLocation?.lng || -0.1 };
+  const zoom = mapZoom || 13;
+
   return (
     <>
-      {/* Floating Map Search - Right Middle */}
+      {/* Floating Map Search */}
       <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-[9999]">
         <FloatingMapSearch onSearch={handleMapSearch} />
       </div>
 
-      {/* Drawing Map */}
-      <MapContainer
-        center={mapCenter || [51.5, -0.1]}
-        zoom={mapZoom || 13}
-        style={{ width: '100%', height: '100%', zIndex: 10, cursor: 'crosshair' }}
-        ref={mapRef}
+      {/* Google Map */}
+      <GoogleMap
+        mapContainerStyle={mapContainerStyle}
+        center={center}
+        zoom={zoom}
+        onLoad={(map) => (mapRef.current = map)}
+        onClick={handleMapClick}
+        options={{
+          mapTypeId: useSatellite ? 'satellite' : 'roadmap',
+          disableDefaultUI: true,
+        }}
       >
-        <TileLayer
-          url={useSatellite ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'}
-          attribution={useSatellite ? '&copy; Esri' : '&copy; OpenStreetMap contributors'}
-        />
-        <DrawingMap points={points} onAddPoint={handleAddPoint} onUndo={handleUndo} onCancel={onCancel} onFinish={handleFinish} />
+        {/* Saved area boundaries */}
+        {savedAreas.map((area) => (
+          <Polyline
+            key={`saved-area-${area.id}`}
+            path={area.polygon_coordinates.map((coord) => ({ lat: coord[0], lng: coord[1] }))}
+            options={{
+              strokeColor: '#9333ea',
+              strokeOpacity: 0.6,
+              strokeWeight: 4,
+              geodesic: true,
+            }}
+          />
+        ))}
 
-          {/* Render all saved area boundaries - stay visible while drawing */}
-           {savedAreas.map((area) => (
-             <Polyline
-               key={`saved-area-${area.id}`}
-               positions={area.polygon_coordinates}
-               color="#9333ea"
-               weight={4}
-               opacity={0.6}
-               dashArray="4, 4"
-             />
-           ))}
+        {/* Points markers */}
+        {points.map((point, idx) => (
+          <Marker
+            key={`point-${idx}`}
+            position={{ lat: point[0], lng: point[1] }}
+            label={String(idx + 1)}
+          />
+        ))}
 
-           {/* Points markers */}
-           {points.map((point, idx) => (
-             <Marker key={`point-${idx}`} position={point}>
-               <Popup>{`Point ${idx + 1}`}</Popup>
-             </Marker>
-           ))}
+        {/* Preview polyline */}
+        {points.length > 1 && !isClosed && (
+          <Polyline
+            path={points.map((p) => ({ lat: p[0], lng: p[1] }))}
+            options={{
+              strokeColor: '#3b82f6',
+              strokeOpacity: 1,
+              strokeWeight: 4,
+              geodesic: true,
+            }}
+          />
+        )}
 
-           {/* Preview polyline - with closing line when ready to close */}
-           {points.length > 1 && !isClosed && (
-             <Polyline 
-               positions={points} 
-               color="#3b82f6" 
-               weight={4} 
-               opacity={1}
-             />
-           )}
+        {/* Closing line hint when 3+ points */}
+        {points.length >= 3 && !isClosed && (
+          <Polyline
+            path={[
+              { lat: points[points.length - 1][0], lng: points[points.length - 1][1] },
+              { lat: points[0][0], lng: points[0][1] },
+            ]}
+            options={{
+              strokeColor: '#3b82f6',
+              strokeOpacity: 0.5,
+              strokeWeight: 4,
+              geodesic: true,
+            }}
+          />
+        )}
 
-           {/* Show closing line hint when 3+ points */}
-           {points.length >= 3 && !isClosed && (
-             <Polyline
-               positions={[points[points.length - 1], points[0]]}
-               color="#3b82f6"
-               weight={4}
-               opacity={0.5}
-               dashArray="5, 5"
-             />
-           )}
-
-           {/* Closed polygon with fill */}
-           {isClosed && points.length > 2 && (
-             <Polygon
-               positions={points}
-               color="#3b82f6"
-               fillColor="#3b82f6"
-               weight={5}
-               opacity={1}
-               fillOpacity={0.4}
-               interactive={false}
-             />
-           )}
-      </MapContainer>
+        {/* Closed polygon with fill */}
+        {isClosed && points.length > 2 && (
+          <Polygon
+            paths={points.map((p) => ({ lat: p[0], lng: p[1] }))}
+            options={{
+              fillColor: '#3b82f6',
+              fillOpacity: 0.4,
+              strokeColor: '#3b82f6',
+              strokeOpacity: 1,
+              strokeWeight: 5,
+              geodesic: true,
+            }}
+          />
+        )}
+      </GoogleMap>
 
       {/* Satellite Toggle */}
       <button
@@ -153,7 +157,6 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
       <div className="fixed bottom-6 left-6 z-[9999] bg-card rounded-md p-2 shadow-md sm:rounded-lg sm:p-4 sm:gap-2">
         <p className="hidden sm:block text-xs font-semibold text-muted-foreground mb-2">Points: {points.length}</p>
 
-        {/* Mobile Grid Layout */}
         <div className="grid grid-cols-2 gap-1 sm:flex sm:flex-col sm:gap-2">
           <button
             onClick={handleUndo}
