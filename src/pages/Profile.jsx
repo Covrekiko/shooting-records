@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import { Settings, FileText, LogOut, BarChart3, Map, User } from 'lucide-react';
+import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function Profile() {
@@ -106,6 +106,23 @@ export default function Profile() {
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+function CollapsibleSection({ title, children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-secondary/50 transition-colors"
+      >
+        <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{title}</span>
+        {open ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+      </button>
+      {open && <div className="px-5 pb-5">{children}</div>}
     </div>
   );
 }
@@ -246,8 +263,7 @@ function PersonalDetailsPanel() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Personal */}
-        <div className="bg-card border border-border rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">Personal Details</h3>
+        <CollapsibleSection title="Personal Details">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="First Name" error={errors.firstName} required>
               <input type="text" value={form.firstName} onChange={e => set('firstName', e.target.value)} placeholder="First name" className={inputClass('firstName')} autoComplete="given-name" />
@@ -265,11 +281,10 @@ function PersonalDetailsPanel() {
               <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="e.g. 07700 900000" className={inputClass('phone')} autoComplete="tel" />
             </Field>
           </div>
-        </div>
+        </CollapsibleSection>
 
         {/* Address */}
-        <div className="bg-card border border-border rounded-xl p-5">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-4">Address</h3>
+        <CollapsibleSection title="Address">
           <div className="space-y-4">
             <Field label="Address Line 1" error={errors.addressLine1} required>
               <input type="text" value={form.addressLine1} onChange={e => set('addressLine1', e.target.value)} placeholder="e.g. 12 High Street" className={inputClass('addressLine1')} autoComplete="address-line1" />
@@ -291,7 +306,7 @@ function PersonalDetailsPanel() {
               </Field>
             </div>
           </div>
-        </div>
+        </CollapsibleSection>
 
         <div className="flex items-center gap-4">
           <button
