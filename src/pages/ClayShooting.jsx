@@ -31,15 +31,7 @@ export default function ClayShooting() {
     notes: '',
   });
 
-  const [checkoutData, setCheckoutData] = useState({
-    checkout_time: new Date().toTimeString().slice(0, 5),
-    shotgun_id: '',
-    rounds_fired: '',
-    ammunition_id: '',
-    ammunition_used: '',
-    notes: '',
-    photos: [],
-  });
+
 
   useEffect(() => {
     sessionManager.clearExpiredSessions();
@@ -118,14 +110,8 @@ export default function ClayShooting() {
      }
    };
 
-  // handleCheckout receives final form data directly from CheckoutModal
   const handleCheckout = async (formData) => {
      console.log('🔴 CHECK OUT CLICKED - ClayShooting, sessionId:', activeSession?.id);
-     console.log('🔴 CHECK OUT SAVE STARTED - shotgun:', formData.shotgun_id, 'rounds:', formData.rounds_fired);
-     if (!formData.shotgun_id || !formData.rounds_fired) {
-       alert('Please select a shotgun and enter rounds fired');
-       return;
-     }
      try {
        // Photos are already uploaded as URLs by the modal's handlePhotoUpload
        const photoUrls = (formData.photos || []).filter(p => typeof p === 'string' && !p.startsWith('data:'));
@@ -154,15 +140,6 @@ export default function ClayShooting() {
        setActiveSession(null);
        setGpsTrack([]);
        setShowCheckout(false);
-       setCheckoutData({
-        checkout_time: new Date().toTimeString().slice(0, 5),
-        shotgun_id: '',
-        rounds_fired: '',
-        ammunition_id: '',
-        ammunition_used: '',
-        notes: '',
-        photos: [],
-       });
        setViewingTrack(null);
      } catch (error) {
        console.error('🔴 CHECK OUT SAVE FAILED:', error.message, error.status, error.response?.data);
@@ -264,11 +241,9 @@ export default function ClayShooting() {
           {showCheckout && activeSession && (
             <div className="fixed inset-0 z-[50001] flex items-end sm:items-center justify-center">
               <CheckoutModal
-                data={checkoutData}
                 shotguns={shotguns}
                 ammunition={ammunition}
                 onSubmit={handleCheckout}
-                onChange={(field, value) => setCheckoutData({ ...checkoutData, [field]: value })}
                 onClose={() => setShowCheckout(false)}
                 gpsTrack={gpsTrack}
                 onViewTrack={setViewingTrack}
@@ -349,10 +324,25 @@ async function handlePhotoUpload(files, data, onChange) {
   }
 }
 
-function CheckoutModal({ data, shotguns, ammunition, onSubmit, onChange, onClose, gpsTrack, onViewTrack }) {
+function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onViewTrack }) {
+  const [data, setData] = useState({
+    checkout_time: new Date().toTimeString().slice(0, 5),
+    shotgun_id: '',
+    rounds_fired: '',
+    ammunition_id: '',
+    ammunition_used: '',
+    notes: '',
+    photos: [],
+  });
+
+  const onChange = (field, value) => setData(prev => ({ ...prev, [field]: value }));
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Pass the current form data directly — avoids stale parent state
+    if (!data.shotgun_id || !data.rounds_fired) {
+      alert('Please select a shotgun and enter rounds fired');
+      return;
+    }
     onSubmit(data);
   };
 

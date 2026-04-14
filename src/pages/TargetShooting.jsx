@@ -274,8 +274,6 @@ export default function TargetShooting() {
           {showCheckout && activeSession && (
             <div className="fixed inset-0 z-[50001] flex items-end sm:items-center justify-center">
               <CheckoutModal
-                data={checkoutData}
-                setData={setCheckoutData}
                 rifles={rifles}
                 ammunition={ammunition}
                 onSubmit={handleCheckout}
@@ -387,8 +385,14 @@ async function handlePhotoUpload(files, data, onChange) {
   }
 }
 
-function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose }) {
+function CheckoutModal({ rifles, ammunition, onSubmit, onClose }) {
   const [errors, setErrors] = useState({});
+  const [data, setData] = useState({
+    checkout_time: new Date().toTimeString().slice(0, 5),
+    rifles_used: [{ rifle_id: '', rounds_fired: '', meters_range: '', ammunition_brand: '', caliber: '', bullet_type: '', grain: '' }],
+    notes: '',
+    photos: [],
+  });
 
   const validateAndSubmit = (e) => {
     e.preventDefault();
@@ -410,28 +414,27 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
     }
 
     setErrors({});
-    // Pass the modal's own data state directly — parent's checkoutData is stale
     onSubmit(data);
   };
 
   const updateRifleEntry = (index, field, value) => {
     const updated = [...data.rifles_used];
     updated[index] = { ...updated[index], [field]: value };
-    setData({ ...data, rifles_used: updated });
+    setData(prev => ({ ...prev, rifles_used: updated }));
   };
 
   const addRifleEntry = () => {
-    setData({
-      ...data,
-      rifles_used: [...data.rifles_used, { rifle_id: '', rounds_fired: '', meters_range: '', ammunition_brand: '', bullet_type: '', grain: '' }]
-    });
+    setData(prev => ({
+      ...prev,
+      rifles_used: [...prev.rifles_used, { rifle_id: '', rounds_fired: '', meters_range: '', ammunition_brand: '', bullet_type: '', grain: '' }]
+    }));
   };
 
   const removeRifleEntry = (index) => {
-    setData({
-      ...data,
-      rifles_used: data.rifles_used.filter((_, i) => i !== index)
-    });
+    setData(prev => ({
+      ...prev,
+      rifles_used: prev.rifles_used.filter((_, i) => i !== index)
+    }));
   };
 
   return (
@@ -443,7 +446,7 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
             <input
               type="time"
               value={data.checkout_time}
-              onChange={(e) => setData({ ...data, checkout_time: e.target.value })}
+              onChange={(e) => setData(prev => ({ ...prev, checkout_time: e.target.value }))}
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
               required
             />
@@ -504,16 +507,18 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
                     value={rifle.ammunition_id || ''}
                     onChange={(val) => {
                       const selectedAmmo = ammunition.find(a => a.id === val);
-                      const updated = [...data.rifles_used];
-                      updated[index] = {
-                        ...updated[index],
-                        ammunition_id: val,
-                        ammunition_brand: selectedAmmo?.brand || '',
-                        caliber: selectedAmmo?.caliber || '',
-                        bullet_type: selectedAmmo?.bullet_type || '',
-                        grain: selectedAmmo?.grain || ''
-                      };
-                      setData({ ...data, rifles_used: updated });
+                      setData(prev => {
+                        const updated = [...prev.rifles_used];
+                        updated[index] = {
+                          ...updated[index],
+                          ammunition_id: val,
+                          ammunition_brand: selectedAmmo?.brand || '',
+                          caliber: selectedAmmo?.caliber || '',
+                          bullet_type: selectedAmmo?.bullet_type || '',
+                          grain: selectedAmmo?.grain || ''
+                        };
+                        return { ...prev, rifles_used: updated };
+                      });
                     }}
                     placeholder="Select saved ammunition"
                     options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
@@ -557,7 +562,7 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
             <label className="block text-sm font-medium mb-1">Notes</label>
             <textarea
               value={data.notes}
-              onChange={(e) => setData({ ...data, notes: e.target.value })}
+              onChange={(e) => setData(prev => ({ ...prev, notes: e.target.value }))}
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
               rows="2"
             />
@@ -571,7 +576,7 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
                   type="file"
                   accept="image/*"
                   multiple
-                  onChange={(e) => handlePhotoUpload(e.target.files, data, (field, value) => setData({ ...data, [field]: value }))}
+                  onChange={(e) => handlePhotoUpload(e.target.files, data, (field, value) => setData(prev => ({ ...prev, [field]: value })))}
                   className="hidden"
                 />
               </label>
@@ -582,7 +587,7 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
                   accept="image/*"
                   capture="environment"
                   multiple
-                  onChange={(e) => handlePhotoUpload(e.target.files, data, (field, value) => setData({ ...data, [field]: value }))}
+                  onChange={(e) => handlePhotoUpload(e.target.files, data, (field, value) => setData(prev => ({ ...prev, [field]: value })))}
                   className="hidden"
                 />
               </label>
@@ -603,7 +608,7 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
                       </div>
                       <button
                         type="button"
-                        onClick={() => setData({ ...data, photos: data.photos.filter((_, i) => i !== idx) })}
+                        onClick={() => setData(prev => ({ ...prev, photos: prev.photos.filter((_, i) => i !== idx) }))}
                         className="absolute top-0 right-0 bg-destructive text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100"
                       >
                         ×
