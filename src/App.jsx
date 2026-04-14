@@ -74,6 +74,8 @@ function AnimatedRoutes({ children }) {
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user, refreshUser } = useAuth();
 
+  <ThemeSync />
+
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -101,48 +103,49 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
-    <AnimatedRoutes>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/target-shooting" element={<TargetShooting />} />
-        <Route path="/clay-shooting" element={<ClayShooting />} />
-        <Route path="/deer-management" element={<DeerManagement />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/profile/settings" element={<Profile />} />
-        <Route path="/records" element={<Records />} />
-        <Route path="/goals" element={<Goals />} />
+    <>
+      <ThemeSync />
+      <AnimatedRoutes>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/target-shooting" element={<TargetShooting />} />
+          <Route path="/clay-shooting" element={<ClayShooting />} />
+          <Route path="/deer-management" element={<DeerManagement />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/settings" element={<Profile />} />
+          <Route path="/records" element={<Records />} />
+          <Route path="/goals" element={<Goals />} />
 
-        <Route path="/settings/rifles" element={<Rifles />} />
-        <Route path="/settings/shotguns" element={<Shotguns />} />
-        <Route path="/settings/clubs" element={<Clubs />} />
-        <Route path="/settings/locations" element={<Locations />} />
-        <Route path="/settings/ammunition" element={<Ammunition />} />
-        <Route path="/settings/ammunition-inventory" element={<AmmunitionInventory />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/admin/users" element={<AdminUsers />} />
-        <Route path="/users" element={<Users />} />
-        <Route path="/deer-stalking" element={<DeerStalkingMap />} />
-        <Route path="/deer-stalking-logs" element={<DeerStalkingLogs />} />
-        <Route path="/sunrise-sunset" element={<SunriseSunsetTracker />} />
-        <Route path="*" element={<PageNotFound />} />
-      </Routes>
-    </AnimatedRoutes>
+          <Route path="/settings/rifles" element={<Rifles />} />
+          <Route path="/settings/shotguns" element={<Shotguns />} />
+          <Route path="/settings/clubs" element={<Clubs />} />
+          <Route path="/settings/locations" element={<Locations />} />
+          <Route path="/settings/ammunition" element={<Ammunition />} />
+          <Route path="/settings/ammunition-inventory" element={<AmmunitionInventory />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/users" element={<Users />} />
+          <Route path="/deer-stalking" element={<DeerStalkingMap />} />
+          <Route path="/deer-stalking-logs" element={<DeerStalkingLogs />} />
+          <Route path="/sunrise-sunset" element={<SunriseSunsetTracker />} />
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
+      </AnimatedRoutes>
+    </>
   );
 };
 
 
 function App() {
-
   return (
     <ErrorBoundary>
-      <ThemeSync />
       <AuthProvider>
         <QueryClientProvider client={queryClientInstance}>
           <OutingProvider>
             <Router>
               <AuthenticatedApp />
+              <Toaster />
             </Router>
-            <Toaster />
           </OutingProvider>
         </QueryClientProvider>
       </AuthProvider>
