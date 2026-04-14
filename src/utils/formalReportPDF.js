@@ -112,11 +112,12 @@ export async function generateFormalReport(records, user, options = {}) {
   
   doc.setFont(undefined, 'normal');
   doc.setFontSize(10);
+  const fullAddress = [userData.addressLine1, userData.addressLine2, userData.city, userData.postcode, userData.country].filter(Boolean).join(', ');
   const reportInfo = [
     `Name: ${userData.full_name || 'Unknown'}`,
     `Email: ${userData.email || 'Not provided'}`,
-    `Address: ${userData.address || 'Not provided'}`,
-    `Date of Birth: ${userData.date_of_birth ? format(new Date(userData.date_of_birth), 'dd/MM/yyyy') : 'Not provided'}`,
+    `Address: ${fullAddress || 'Not provided'}`,
+    `Date of Birth: ${userData.dateOfBirth ? format(new Date(userData.dateOfBirth), 'dd/MM/yyyy') : 'Not provided'}`,
     `Generated: ${format(new Date(), 'EEEE, MMMM dd, yyyy HH:mm:ss')}`,
     `Report Type: Comprehensive Activity Summary`,
     `Records Included: ${records.length}`,
@@ -279,7 +280,7 @@ export async function generateFormalReport(records, user, options = {}) {
   doc.setFont(undefined, 'normal');
   
   const certText = `This report contains a comprehensive record of shooting activities and deer management
-  operations conducted by ${userData.full_name || 'the account holder'} as documented in the Shooting Records
+  operations conducted by ${userData.firstName ? userData.firstName + ' ' + userData.lastName : userData.full_name || 'the account holder'} as documented in the Shooting Records
   Management System. All information contained herein is accurate to the best of the account
   holder's knowledge and has been compiled in accordance with relevant regulations and best practices.
 

@@ -9,14 +9,14 @@ export default function AdminUsers() {
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
-    full_name: '',
+    firstName: '',
+    lastName: '',
     phone: '',
-    date_of_birth: '',
-    address: '',
-    vehicle_make: '',
-    vehicle_model: '',
-    vehicle_color: '',
-    vehicle_registration: '',
+    dateOfBirth: '',
+    addressLine1: '',
+    city: '',
+    postcode: '',
+    country: '',
     role: 'user',
   });
   const [selectedUserMenu, setSelectedUserMenu] = useState(null);
@@ -43,14 +43,14 @@ export default function AdminUsers() {
       setShowForm(false);
       setFormData({
         email: '',
-        full_name: '',
+        firstName: '',
+        lastName: '',
         phone: '',
-        date_of_birth: '',
-        address: '',
-        vehicle_make: '',
-        vehicle_model: '',
-        vehicle_color: '',
-        vehicle_registration: '',
+        dateOfBirth: '',
+        addressLine1: '',
+        city: '',
+        postcode: '',
+        country: '',
         role: 'user',
       });
       loadUsers();
@@ -113,11 +113,21 @@ export default function AdminUsers() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Full Name*</label>
+                  <label className="block text-sm font-medium mb-1">First Name*</label>
                   <input
                     type="text"
-                    value={formData.full_name}
-                    onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Last Name*</label>
+                  <input
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                     required
                   />
@@ -135,53 +145,44 @@ export default function AdminUsers() {
                   <label className="block text-sm font-medium mb-1">Date of Birth</label>
                   <input
                     type="date"
-                    value={formData.date_of_birth}
-                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                    value={formData.dateOfBirth}
+                    onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium mb-1">Address Line 1</label>
+                  <input
+                    type="text"
+                    value={formData.addressLine1}
+                    onChange={(e) => setFormData({ ...formData, addressLine1: e.target.value })}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Address</label>
+                  <label className="block text-sm font-medium mb-1">City</label>
                   <input
                     type="text"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    value={formData.city}
+                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Vehicle Make</label>
+                  <label className="block text-sm font-medium mb-1">Postcode</label>
                   <input
                     type="text"
-                    value={formData.vehicle_make}
-                    onChange={(e) => setFormData({ ...formData, vehicle_make: e.target.value })}
+                    value={formData.postcode}
+                    onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Vehicle Model</label>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium mb-1">Country</label>
                   <input
                     type="text"
-                    value={formData.vehicle_model}
-                    onChange={(e) => setFormData({ ...formData, vehicle_model: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Vehicle Color</label>
-                  <input
-                    type="text"
-                    value={formData.vehicle_color}
-                    onChange={(e) => setFormData({ ...formData, vehicle_color: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Registration Number</label>
-                  <input
-                    type="text"
-                    value={formData.vehicle_registration}
-                    onChange={(e) => setFormData({ ...formData, vehicle_registration: e.target.value })}
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                   />
                 </div>

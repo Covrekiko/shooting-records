@@ -191,8 +191,8 @@ function createFrontPage(doc, userInfo, pageWidth, pageHeight, docId) {
   doc.setFont(undefined, 'bold');
   doc.text('Date of Birth:', margin + 5, yPosition);
   doc.setFont(undefined, 'normal');
-  if (userInfo.date_of_birth) {
-    const dob = new Date(userInfo.date_of_birth);
+  if (userInfo.dateOfBirth) {
+    const dob = new Date(userInfo.dateOfBirth);
     const dobStr = dob.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
     doc.text(dobStr, margin + 40, yPosition);
   } else {
@@ -204,8 +204,9 @@ function createFrontPage(doc, userInfo, pageWidth, pageHeight, docId) {
   doc.setFont(undefined, 'bold');
   doc.text('Address:', margin + 5, yPosition);
   doc.setFont(undefined, 'normal');
-  if (userInfo.address) {
-    const addressText = doc.splitTextToSize(userInfo.address, pageWidth - 2 * margin - 50);
+  const fullAddress = [userInfo.addressLine1, userInfo.addressLine2, userInfo.city, userInfo.postcode, userInfo.country].filter(Boolean).join(', ');
+  if (fullAddress) {
+    const addressText = doc.splitTextToSize(fullAddress, pageWidth - 2 * margin - 50);
     addressText.forEach((line, idx) => {
       doc.text(line, margin + 40, yPosition);
       yPosition += 5;
