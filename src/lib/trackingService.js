@@ -13,7 +13,8 @@ const trackingListeners = new Set();
 export const trackingService = {
   // Start GPS tracking for a session
   startTracking(sessionId, sessionType) {
-    console.log('🟢 TRACKING STARTED - sessionId:', sessionId, 'type:', sessionType);
+    console.log('🟢 TRACKING INIT - sessionId:', sessionId, 'type:', sessionType);
+    console.log('🟢 navigator.geolocation available:', !!navigator.geolocation);
     
     if (trackingState.isTracking) {
       console.warn('⚠️ Tracking already active, stopping previous...');
@@ -61,14 +62,20 @@ export const trackingService = {
       }
     };
 
-    const watchId = navigator.geolocation.watchPosition(
-      handlePositionUpdate,
-      handlePositionError,
-      { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }  // 30s timeout for mobile
-    );
-    
-    trackingState.watchId = watchId;
-    console.log('🟢 WATCH STARTED with ID:', trackingState.watchId);
+    try {
+      console.log('🟢 Calling watchPosition...');
+      const watchId = navigator.geolocation.watchPosition(
+        handlePositionUpdate,
+        handlePositionError,
+        { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }  // 30s timeout for mobile
+      );
+      
+      trackingState.watchId = watchId;
+      console.log('🟢 WATCH STARTED with ID:', trackingState.watchId, 'isTracking:', trackingState.isTracking);
+    } catch (err) {
+      console.error('❌ EXCEPTION in watchPosition:', err);
+      trackingState.isTracking = false;
+    }
   },
 
   // Stop GPS tracking and return the track
