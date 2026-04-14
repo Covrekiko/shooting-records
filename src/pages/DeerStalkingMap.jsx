@@ -467,7 +467,7 @@ export default function DeerStalkingMap() {
         )}
 
         {/* All Saved Area Boundaries */}
-        {!showAreaDrawer && savedAreas.map((area) => (
+        {savedAreas.map((area) => (
           <Polyline
             key={area.id}
             positions={area.polygon_coordinates}
