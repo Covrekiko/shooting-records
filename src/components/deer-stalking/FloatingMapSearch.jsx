@@ -98,7 +98,7 @@ export default function FloatingMapSearch({ onSearch, onError, isGrouped = false
   };
 
   return (
-    <div className={isGrouped ? "relative inline-block" : "fixed bottom-24 right-6 z-[9999] pointer-events-auto sm:bottom-32"}>
+    <div className={isGrouped ? "relative" : "fixed bottom-24 right-6 z-[9999] pointer-events-auto sm:bottom-32"}>
       {/* Floating Search Icon Button */}
       {!isOpen ? (
         <button
@@ -110,7 +110,7 @@ export default function FloatingMapSearch({ onSearch, onError, isGrouped = false
         </button>
       ) : (
         /* Expanded Search Bar */
-        <form onSubmit={handleSearch} className={isGrouped ? "absolute top-full left-1/2 -translate-x-1/2 mt-4 w-72 sm:w-80 pointer-events-auto z-50" : "absolute bottom-0 right-0 w-72 sm:w-80 max-w-[calc(100vw-2rem)] pointer-events-auto"}>
+        <form onSubmit={handleSearch} className="absolute bottom-0 right-0 w-72 sm:w-80 max-w-[calc(100vw-2rem)] pointer-events-auto">
           <div className="bg-card rounded-lg shadow-lg overflow-hidden border border-border animate-in fade-in slide-in-from-bottom-2 duration-200">
             {/* Search Input */}
             <div className="flex items-center gap-1.5 px-2 py-2">
