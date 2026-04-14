@@ -1,35 +1,50 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Trash2, Eye, FileText } from 'lucide-react';
+import { Trash2, Eye, FileText, X } from 'lucide-react';
 import { format } from 'date-fns';
+import { createPortal } from 'react-dom';
 
 export default function RecordsSection({ category, title, emptyMessage = 'No records yet' }) {
-  const [records, setRecords] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState(null);
-  const [viewingRecord, setViewingRecord] = useState(null);
+   const [records, setRecords] = useState([]);
+   const [loading, setLoading] = useState(true);
+   const [user, setUser] = useState(null);
+   const [viewingRecord, setViewingRecord] = useState(null);
+   const [rifles, setRifles] = useState({});
+   const [shotguns, setShotguns] = useState({});
+   const [clubs, setClubs] = useState({});
+   const [locations, setLocations] = useState({});
 
-  useEffect(() => {
-    async function loadRecords() {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
+   useEffect(() => {
+     async function loadRecords() {
+       try {
+         const currentUser = await base44.auth.me();
+         setUser(currentUser);
 
-        const recordsList = await base44.entities.SessionRecord.filter({
-          created_by: currentUser.email,
-          category,
-        });
+         const [recordsList, riflesList, shotgunsList, clubsList, locationsList] = await Promise.all([
+           base44.entities.SessionRecord.filter({
+             created_by: currentUser.email,
+             category,
+           }),
+           base44.entities.Rifle.filter({ created_by: currentUser.email }),
+           base44.entities.Shotgun.filter({ created_by: currentUser.email }),
+           base44.entities.Club.filter({ created_by: currentUser.email }),
+           base44.entities.DeerLocation.filter({ created_by: currentUser.email }),
+         ]);
 
-        setRecords(recordsList);
-      } catch (error) {
-        console.error('Error loading records:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
+         setRecords(recordsList);
+         setRifles(riflesList.reduce((acc, r) => ({ ...acc, [r.id]: r }), {}));
+         setShotguns(shotgunsList.reduce((acc, s) => ({ ...acc, [s.id]: s }), {}));
+         setClubs(clubsList.reduce((acc, c) => ({ ...acc, [c.id]: c }), {}));
+         setLocations(locationsList.reduce((acc, l) => ({ ...acc, [l.id]: l }), {}));
+       } catch (error) {
+         console.error('Error loading records:', error);
+       } finally {
+         setLoading(false);
+       }
+     }
 
-    loadRecords();
-  }, [category]);
+     loadRecords();
+   }, [category]);
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this record?')) return;
@@ -84,28 +99,367 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
         </div>
       ))}
 
-      {/* Record detail modal */}
-      {viewingRecord && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-card rounded-lg max-w-md w-full max-h-[80vh] overflow-y-auto p-6">
-            <h2 className="text-xl font-bold mb-4">Record Details</h2>
-            <div className="space-y-3 text-sm">
-              <div><span className="font-medium">Date:</span> {format(new Date(viewingRecord.date), 'PPP')}</div>
-              <div><span className="font-medium">Location:</span> {viewingRecord.location_name || viewingRecord.place_name}</div>
-              {viewingRecord.checkin_time && <div><span className="font-medium">Check-in:</span> {viewingRecord.checkin_time}</div>}
-              {viewingRecord.checkout_time && <div><span className="font-medium">Check-out:</span> {viewingRecord.checkout_time}</div>}
-              {viewingRecord.rounds_fired && <div><span className="font-medium">Rounds:</span> {viewingRecord.rounds_fired}</div>}
-              {viewingRecord.notes && <div><span className="font-medium">Notes:</span> {viewingRecord.notes}</div>}
+      {/* Full Session Report Modal */}
+       {viewingRecord && createPortal(
+         <SessionReportModal 
+           record={viewingRecord} 
+           onClose={() => setViewingRecord(null)} 
+           rifles={rifles}
+           shotguns={shotguns}
+           clubs={clubs}
+           locations={locations}
+           category={category}
+         />,
+         document.body
+       )}
+    </div>
+  );
+}
+
+function SessionReportModal({ record, onClose, rifles, shotguns, clubs, locations, category }) {
+  const [currentRecord, setCurrentRecord] = useState(record);
+
+  useEffect(() => {
+    const refreshRecord = async () => {
+      try {
+        const updatedRecord = await base44.entities.SessionRecord.get(record.id);
+        setCurrentRecord(updatedRecord);
+      } catch (error) {
+        console.error('Error refreshing record:', error);
+      }
+    };
+    refreshRecord();
+  }, [record.id]);
+
+  const getRifleName = (rifleId) => rifles[rifleId]?.name || 'Unknown Rifle';
+  const getRifleDetails = (rifleId) => rifles[rifleId];
+  const getShotgunName = (shotgunId) => shotguns[shotgunId]?.name || 'Unknown Shotgun';
+  const getShotgunDetails = (shotgunId) => shotguns[shotgunId];
+  const getClubName = (clubId) => clubs[clubId]?.name || 'Unknown Club';
+  const getLocationName = (locationId) => locations[locationId]?.place_name || 'Unknown Location';
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[50001] overflow-y-auto">
+      <div className="bg-card rounded-lg max-w-3xl w-full p-8 my-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-12 border-b border-border pb-8">
+          <div>
+            <h2 className="text-3xl font-bold">Session Report</h2>
+            <p className="text-muted-foreground text-sm mt-1">Detailed Activity Record</p>
+          </div>
+          <button onClick={onClose} className="p-1 hover:bg-secondary rounded">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Photos Section */}
+        {currentRecord.photos && currentRecord.photos.length > 0 && (
+          <div className="mb-6 pb-4 border-b border-border">
+            <h3 className="font-bold text-lg mb-3">Evidence Photos</h3>
+            <div className="grid grid-cols-4 gap-2">
+              {currentRecord.photos.map((photo, idx) => (
+                <img key={idx} src={photo} alt="record" className="h-28 w-28 object-cover rounded-lg border border-border" />
+              ))}
             </div>
-            <button
-              onClick={() => setViewingRecord(null)}
-              className="mt-6 w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
-            >
-              Close
-            </button>
+          </div>
+        )}
+
+        {/* Basic Session Info */}
+        <div className="grid grid-cols-2 gap-4 mb-6 pb-4 border-b border-border">
+          <div>
+            <label className="font-bold text-sm text-primary">Session Date</label>
+            <p className="text-lg">{format(new Date(currentRecord.date), 'EEEE, MMMM d, yyyy')}</p>
+          </div>
+          <div>
+            <label className="font-bold text-sm text-primary">Session Type</label>
+            <p className="text-lg">{category === 'target_shooting' ? 'Target Shooting' : category === 'clay_shooting' ? 'Clay Shooting' : 'Deer Management'}</p>
+          </div>
+          <div>
+            <label className="font-bold text-sm text-primary">Check-In Time</label>
+            <p className="text-lg">{category === 'deer_management' ? currentRecord.start_time : currentRecord.checkin_time}</p>
+          </div>
+          <div>
+            <label className="font-bold text-sm text-primary">Check-Out Time</label>
+            <p className="text-lg">{currentRecord.end_time || currentRecord.checkout_time || 'N/A'}</p>
           </div>
         </div>
-      )}
+
+        {/* Target Shooting Section */}
+        {category === 'target_shooting' && (
+          <>
+            {currentRecord.location_id && clubs[currentRecord.location_id] && (
+              <div className="mb-6 pb-4 border-b border-border">
+                <h3 className="font-bold text-lg mb-3 text-primary">Venue Details</h3>
+                <div className="bg-secondary/30 p-4 rounded-lg">
+                  <p className="font-semibold text-base">{clubs[currentRecord.location_id].name}</p>
+                  <p className="text-sm text-muted-foreground mt-2">{clubs[currentRecord.location_id].location}</p>
+                  {clubs[currentRecord.location_id].notes && (
+                    <p className="text-sm mt-2">{clubs[currentRecord.location_id].notes}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {(currentRecord.rifles_used && currentRecord.rifles_used.length > 0) || currentRecord.rifle_id ? (
+              <div className="mb-6 pb-4 border-b border-border">
+                <h3 className="font-bold text-lg mb-4 text-primary">Firearms & Ammunition</h3>
+                <div className="space-y-4">
+                  {currentRecord.rifles_used && currentRecord.rifles_used.length > 0 ? (
+                    currentRecord.rifles_used.map((rifleStat, idx) => {
+                      const rifleData = getRifleDetails(rifleStat.rifle_id);
+                      return (
+                        <div key={idx} className="bg-secondary/30 p-4 rounded-lg">
+                          <div className="grid grid-cols-2 gap-4 mb-3">
+                            <div>
+                              <label className="text-xs font-bold text-muted-foreground uppercase">Firearm #{idx + 1}</label>
+                              <p className="font-semibold text-base">{rifleStat.rifle_id ? getRifleName(rifleStat.rifle_id) : 'N/A'}</p>
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-muted-foreground uppercase">Rounds Fired</label>
+                              <p className="font-semibold text-base">{rifleStat.rounds_fired || '0'} rounds</p>
+                            </div>
+                          </div>
+
+                          {rifleData && (
+                            <>
+                              <div className="grid grid-cols-3 gap-3 mb-3 pb-3 border-b border-border">
+                                <div>
+                                  <label className="text-xs font-bold text-muted-foreground">Make</label>
+                                  <p className="text-sm">{rifleData.make || '-'}</p>
+                                </div>
+                                <div>
+                                  <label className="text-xs font-bold text-muted-foreground">Model</label>
+                                  <p className="text-sm">{rifleData.model || '-'}</p>
+                                </div>
+                                <div>
+                                  <label className="text-xs font-bold text-muted-foreground">Caliber</label>
+                                  <p className="text-sm">{rifleData.caliber || '-'}</p>
+                                </div>
+                              </div>
+
+                              {rifleData.serial_number && (
+                                <div className="mb-3 pb-3 border-b border-border bg-yellow-50/30 p-2 rounded">
+                                  <label className="text-xs font-bold text-muted-foreground">Serial Number</label>
+                                  <p className="font-mono text-sm font-bold">{rifleData.serial_number}</p>
+                                </div>
+                              )}
+                            </>
+                          )}
+
+                          <div className="bg-blue-50/30 p-3 rounded mb-3 border border-blue-200/50">
+                            <h4 className="text-xs font-bold text-muted-foreground mb-2 uppercase">Ammunition & Ballistics</h4>
+                            <div className="grid grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-xs font-bold text-muted-foreground">Brand</label>
+                                <p className="text-sm font-semibold">{rifleStat.ammunition_brand || '-'}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-bold text-muted-foreground">Bullet Type</label>
+                                <p className="text-sm font-semibold">{rifleStat.bullet_type || '-'}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-bold text-muted-foreground">Grain Weight</label>
+                                <p className="text-sm font-semibold">{rifleStat.grain || '-'}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-bold text-muted-foreground">Rounds Fired</label>
+                                <p className="text-sm font-semibold">{rifleStat.rounds_fired || '-'}</p>
+                              </div>
+                              <div>
+                                <label className="text-xs font-bold text-muted-foreground">Range Distance</label>
+                                <p className="text-sm font-semibold">{rifleStat.meters_range ? `${rifleStat.meters_range}m` : '-'}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : currentRecord.rifle_id ? (
+                    <div className="bg-secondary/30 p-4 rounded-lg">
+                      <div>
+                        <label className="text-xs font-bold text-muted-foreground uppercase">Firearm</label>
+                        <p className="font-semibold text-base">{getRifleName(currentRecord.rifle_id)}</p>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            ) : null}
+          </>
+        )}
+
+        {/* Clay Shooting Section */}
+        {category === 'clay_shooting' && (
+          <>
+            {getClubName(currentRecord.location_id) && (
+              <div className="mb-6 pb-4 border-b border-border">
+                <h3 className="font-bold text-lg mb-3 text-primary">Venue Details</h3>
+                <div className="bg-secondary/30 p-4 rounded-lg">
+                  <p className="font-semibold text-base">{getClubName(currentRecord.location_id)}</p>
+                  {clubs[currentRecord.location_id]?.location && (
+                    <p className="text-sm text-muted-foreground mt-1">{clubs[currentRecord.location_id].location}</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {currentRecord.shotgun_id && (
+              <div className="mb-6 pb-4 border-b border-border">
+                <h3 className="font-bold text-lg mb-3 text-primary">Shotgun Details</h3>
+                <div className="bg-secondary/30 p-4 rounded-lg">
+                  {getShotgunDetails(currentRecord.shotgun_id) && (
+                    <>
+                      <p className="font-semibold text-base">{getShotgunName(currentRecord.shotgun_id)}</p>
+                      <div className="grid grid-cols-3 gap-3 mt-3">
+                        <div>
+                          <label className="text-xs font-bold text-muted-foreground">Make</label>
+                          <p className="text-sm">{getShotgunDetails(currentRecord.shotgun_id).make || '-'}</p>
+                        </div>
+                        <div>
+                          <label className="text-xs font-bold text-muted-foreground">Model</label>
+                          <p className="text-sm">{getShotgunDetails(currentRecord.shotgun_id).model || '-'}</p>
+                        </div>
+                        <div>
+                          <label className="text-xs font-bold text-muted-foreground">Gauge</label>
+                          <p className="text-sm">{getShotgunDetails(currentRecord.shotgun_id).gauge || '-'}</p>
+                        </div>
+                      </div>
+                      {getShotgunDetails(currentRecord.shotgun_id).serial_number && (
+                        <div className="mt-3">
+                          <label className="text-xs font-bold text-muted-foreground">Serial Number</label>
+                          <p className="font-mono text-sm">{getShotgunDetails(currentRecord.shotgun_id).serial_number}</p>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="mb-6 pb-4 border-b border-border">
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="font-bold text-sm text-primary">Total Rounds Fired</label>
+                  <p className="text-lg">{currentRecord.rounds_fired || '0'} rounds</p>
+                </div>
+              </div>
+              {currentRecord.ammunition_used && (
+                <div className="bg-blue-50/30 p-3 rounded border border-blue-200/50">
+                  <label className="text-xs font-bold text-muted-foreground mb-1 block">Ammunition Used</label>
+                  <p className="text-sm font-medium">{currentRecord.ammunition_used}</p>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* Deer Management Section */}
+        {category === 'deer_management' && (
+          <>
+            <div className="mb-6 pb-4 border-b border-border">
+              <h3 className="font-bold text-lg mb-3 text-primary">Location & Hunting Details</h3>
+              <div className="bg-secondary/30 p-4 rounded-lg">
+                <p className="font-semibold text-base">{locations[currentRecord.location_id]?.place_name || currentRecord.location_name || 'N/A'}</p>
+                {locations[currentRecord.location_id]?.location && (
+                  <p className="text-sm text-muted-foreground mt-2">{locations[currentRecord.location_id].location}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="mb-6 pb-4 border-b border-border">
+              {currentRecord.total_count && currentRecord.total_count !== '0' ? (
+                <>
+                  <h3 className="font-bold text-lg mb-3 text-primary">Species Harvested</h3>
+                  {currentRecord.species_list && currentRecord.species_list.length > 0 ? (
+                    <div className="space-y-2 mb-4">
+                      {currentRecord.species_list.map((s, idx) => (
+                        <div key={idx} className="bg-secondary/30 p-3 rounded-lg flex justify-between">
+                          <span className="font-medium">{s.species}</span>
+                          <span className="font-semibold">{s.count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className="bg-primary/10 p-3 rounded-lg mb-4">
+                    <label className="text-xs font-bold text-primary">Total Shots Fired</label>
+                    <p className="text-lg font-semibold">{currentRecord.total_count}</p>
+                  </div>
+                  {currentRecord.ammunition_used && (
+                    <div className="bg-blue-50/30 p-3 rounded border border-blue-200/50">
+                      <label className="text-xs font-bold text-muted-foreground block mb-1">Ammunition Used</label>
+                      <p className="text-sm font-medium">{currentRecord.ammunition_used}</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="bg-blue-50/30 p-4 rounded-lg border border-blue-200/50">
+                  <p className="text-base font-semibold text-blue-600">No shots fired during this session</p>
+                </div>
+              )}
+            </div>
+
+            {currentRecord.total_count && currentRecord.total_count !== '0' && currentRecord.rifle_id && (
+              <div className="mb-6 pb-4 border-b border-border">
+                <h3 className="font-bold text-lg mb-3 text-primary">Rifle & Ammunition Details</h3>
+                <div className="bg-secondary/30 p-4 rounded-lg space-y-4">
+                  <div>
+                    <p className="font-semibold text-base mb-3">{getRifleName(currentRecord.rifle_id)}</p>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-xs font-bold text-muted-foreground">Make</label>
+                        <p className="text-sm">{rifles[currentRecord.rifle_id].make || '-'}</p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-muted-foreground">Model</label>
+                        <p className="text-sm">{rifles[currentRecord.rifle_id].model || '-'}</p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-muted-foreground">Caliber</label>
+                        <p className="text-sm">{rifles[currentRecord.rifle_id].caliber || '-'}</p>
+                      </div>
+                    </div>
+                    {rifles[currentRecord.rifle_id].serial_number && (
+                      <div className="mt-3">
+                        <label className="text-xs font-bold text-muted-foreground">Serial Number</label>
+                        <p className="font-mono text-sm">{rifles[currentRecord.rifle_id].serial_number}</p>
+                      </div>
+                    )}
+                  </div>
+                  {currentRecord.ammunition_used && (
+                    <div className="border-t border-border pt-3">
+                      <label className="text-xs font-bold text-muted-foreground block mb-1">Ammunition</label>
+                      <p className="text-sm font-medium">{currentRecord.ammunition_used}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Notes Section */}
+        {currentRecord.notes && (
+          <div className="mb-6 pb-4 border-b border-border">
+            <h3 className="font-bold text-lg mb-2 text-primary">Session Notes</h3>
+            <div className="bg-secondary/20 p-4 rounded-lg">
+              <p className="whitespace-pre-wrap text-sm">{currentRecord.notes}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Footer with record info */}
+        <div className="text-xs text-muted-foreground bg-secondary/20 p-3 rounded-lg text-center">
+          <p>Record ID: {currentRecord.id}</p>
+          <p>Created: {format(new Date(currentRecord.created_date), 'PPpp')}</p>
+        </div>
+
+        <button
+          onClick={onClose}
+          className="mt-6 w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 font-semibold"
+        >
+          Close Report
+        </button>
+      </div>
     </div>
   );
 }
