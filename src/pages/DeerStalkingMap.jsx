@@ -513,7 +513,7 @@ export default function DeerStalkingMap() {
       {/* Back to Dashboard */}
       <Link
         to="/"
-        className="fixed top-4 left-4 z-[9999] flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all pointer-events-auto md:top-20"
+        className="fixed top-4 right-20 z-[9999] flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all pointer-events-auto md:top-4"
       >
         <Home className="w-4 h-4" />
         Dashboard
