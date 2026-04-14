@@ -365,34 +365,34 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
 }
 
 function StatCard({ icon, label, value, link, hideOnMobile }) {
-   const content = (
-     <div className="flex flex-col items-start justify-between h-full">
-       <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4 flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 [&_img]:w-5 [&_img]:h-5 text-lg">
-         {icon}
-       </div>
-       <div className="flex-1 min-w-0 w-full">
-         <p className="text-xs text-muted-foreground font-medium mb-2 uppercase tracking-wide">{label}</p>
-         {value !== undefined && (
-           <p className="text-3xl md:text-4xl font-bold text-foreground">{value}</p>
-         )}
-       </div>
-     </div>
-   );
+    const content = (
+      <div className="flex flex-col items-start justify-between h-full">
+        <div className="w-12 h-12 rounded-2xl bg-white/15 text-slate-900 flex items-center justify-center mb-4 flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 [&_img]:w-5 [&_img]:h-5 text-lg border border-white/30 shadow-lg backdrop-blur-lg transition-all active:scale-90" style={{ WebkitBackdropFilter: 'blur(20px)' }}>
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0 w-full">
+          <p className="text-xs text-muted-foreground font-medium mb-2 uppercase tracking-wide">{label}</p>
+          {value !== undefined && (
+            <p className="text-3xl md:text-4xl font-bold text-foreground">{value}</p>
+          )}
+        </div>
+      </div>
+    );
 
-   const cardClass = hideOnMobile ? "hidden md:block" : "";
-   const baseClass = "bg-card rounded-2xl p-5 md:p-6 border border-border/50 hover:border-border transition-all duration-200 hover:shadow-md hover:-translate-y-1 active:scale-95";
+    const cardClass = hideOnMobile ? "hidden md:block" : "";
+    const baseClass = "bg-white/10 rounded-3xl p-5 md:p-6 border border-white/20 backdrop-blur-xl shadow-lg hover:shadow-xl hover:bg-white/15 transition-all duration-300 active:scale-95" + " " + cardClass;
 
-   if (link) {
-     return (
-       <Link to={link} className={`${baseClass} block ${cardClass}`}>
-         {content}
-       </Link>
-     );
-   }
+    if (link) {
+      return (
+        <Link to={link} className={`${baseClass} block`} style={{ WebkitBackdropFilter: 'blur(20px)' }}>
+          {content}
+        </Link>
+      );
+    }
 
-   return (
-     <div className={`${baseClass} ${cardClass}`}>
-       {content}
-     </div>
-   );
+    return (
+      <div className={baseClass} style={{ WebkitBackdropFilter: 'blur(20px)' }}>
+        {content}
+      </div>
+    );
 }
