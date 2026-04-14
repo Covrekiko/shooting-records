@@ -10,6 +10,53 @@
         "banned"
       ],
       "default": "active"
+    },
+    "firstName": {
+      "type": "string",
+      "description": "User's first name"
+    },
+    "middleName": {
+      "type": "string",
+      "description": "User's middle name (optional)"
+    },
+    "lastName": {
+      "type": "string",
+      "description": "User's surname / last name"
+    },
+    "dateOfBirth": {
+      "type": "string",
+      "format": "date",
+      "description": "User's date of birth"
+    },
+    "addressLine1": {
+      "type": "string",
+      "description": "Address line 1"
+    },
+    "addressLine2": {
+      "type": "string",
+      "description": "Address line 2 (optional)"
+    },
+    "city": {
+      "type": "string",
+      "description": "City or town"
+    },
+    "postcode": {
+      "type": "string",
+      "description": "Postcode / ZIP code"
+    },
+    "country": {
+      "type": "string",
+      "description": "Country"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number (optional)"
+    },
+    "profileComplete": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the user has completed their profile setup"
     }
-  }
+  },
+  "required": []
 }

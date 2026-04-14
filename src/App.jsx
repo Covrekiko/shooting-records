@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { OutingProvider } from '@/context/OutingContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import ProfileSetup from './pages/ProfileSetup';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import TargetShooting from './pages/TargetShooting';
@@ -28,7 +29,7 @@ import DeerStalkingLogs from './pages/DeerStalkingLogs';
 import Users from './pages/Users';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user, refreshUser } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -48,6 +49,11 @@ const AuthenticatedApp = () => {
       navigateToLogin();
       return null;
     }
+  }
+
+  // Show profile setup for users who haven't completed their profile
+  if (user && !user.profileComplete) {
+    return <ProfileSetup onComplete={refreshUser} />;
   }
 
   // Render the main app
