@@ -135,7 +135,7 @@ export default function Dashboard() {
               link="/target-shooting"
             />
             <StatCard
-              icon={<img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/bd0eff24d_5lzsqebsqrrivhjujwf5cftf07qt.jpeg" alt="shotgun" className="w-6 h-6 sm:w-8 sm:h-8 object-contain" />}
+              icon={<span className="text-2xl">🎯</span>}
               label="Clay Shooting"
               value={stats?.clayRecords || 0}
               link="/clay-shooting"
@@ -367,7 +367,7 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
 function StatCard({ icon, label, value, link, hideOnMobile }) {
    const content = (
      <div className="flex flex-col items-start justify-between h-full">
-       <div className="w-10 h-10 rounded-2xl text-primary flex items-center justify-center mb-4 flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 [&_img]:w-5 [&_img]:h-5 text-lg">
+       <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4 flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 [&_img]:w-5 [&_img]:h-5 text-lg">
          {icon}
        </div>
        <div className="flex-1 min-w-0 w-full">
