@@ -365,8 +365,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
 
    const onChange = (field, value) => setData(prev => ({ ...prev, [field]: value }));
 
-   const handleSubmit = (e) => {
-     e.preventDefault();
+   const handleCheckoutClick = () => {
      if (!data.shotgun_id || !data.rounds_fired) {
        alert('Please select a shotgun and enter rounds fired');
        return;
@@ -383,7 +382,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
 
            {/* Scrollable Content */}
            <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
-             <form onSubmit={handleSubmit} id="checkoutForm" className="p-4 sm:p-5 space-y-3.5">
+             <div className="p-4 sm:p-5 space-y-3.5">
             <div>
               <label className="block text-xs sm:text-sm font-medium mb-1.5">Check-out Time</label>
               <input
@@ -502,14 +501,14 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
                 View GPS Track
               </button>
             )}
-          </form>
-          </div>
+            </div>
+            </div>
 
           {/* Action Buttons */}
           <div className="flex-shrink-0 flex gap-2 p-4 sm:p-5 border-t border-border bg-card" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
             <button
               type="button"
-              onClick={handleSubmit}
+              onClick={handleCheckoutClick}
               className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 font-medium text-sm transition-all active:scale-95"
             >
               Check Out
