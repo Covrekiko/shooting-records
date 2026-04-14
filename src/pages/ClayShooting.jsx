@@ -353,164 +353,178 @@ async function handlePhotoUpload(files, data, onChange) {
 }
 
 function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onViewTrack }) {
-  const [data, setData] = useState({
-    checkout_time: new Date().toTimeString().slice(0, 5),
-    shotgun_id: '',
-    rounds_fired: '',
-    ammunition_id: '',
-    ammunition_used: '',
-    notes: '',
-    photos: [],
-  });
+   const [data, setData] = useState({
+     checkout_time: new Date().toTimeString().slice(0, 5),
+     shotgun_id: '',
+     rounds_fired: '',
+     ammunition_id: '',
+     ammunition_used: '',
+     notes: '',
+     photos: [],
+   });
 
-  const onChange = (field, value) => setData(prev => ({ ...prev, [field]: value }));
+   const onChange = (field, value) => setData(prev => ({ ...prev, [field]: value }));
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!data.shotgun_id || !data.rounds_fired) {
-      alert('Please select a shotgun and enter rounds fired');
-      return;
-    }
-    onSubmit(data);
-  };
+   const handleSubmit = (e) => {
+     e.preventDefault();
+     if (!data.shotgun_id || !data.rounds_fired) {
+       alert('Please select a shotgun and enter rounds fired');
+       return;
+     }
+     onSubmit(data);
+   };
 
-  return (
-      <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl overflow-y-auto max-h-[90dvh] p-6 md:pb-6 pb-[100px]">
-        <h2 className="text-xl font-bold mb-4">Check Out</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Check-out Time</label>
-            <input
-              type="time"
-              value={data.checkout_time}
-              onChange={(e) => onChange('checkout_time', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Shotgun Used</label>
-            <BottomSheetSelect
-              value={data.shotgun_id}
-              onChange={(val) => onChange('shotgun_id', val)}
-              placeholder="Select a shotgun"
-              options={shotguns.map(s => ({ value: s.id, label: s.name }))}
-            />
-          </div>
-          <div>
-           <label className="block text-sm font-medium mb-1">Rounds Fired</label>
-           <input
-             type="number"
-             min="0"
-             value={data.rounds_fired}
-             onChange={(e) => onChange('rounds_fired', e.target.value)}
-             className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-           />
-          </div>
-          <div>
-           <label className="block text-sm font-medium mb-1">Ammunition</label>
-           <BottomSheetSelect
-             value={data.ammunition_id || ''}
-             onChange={(val) => {
-               const selectedAmmo = ammunition.find(a => a.id === val);
-               onChange('ammunition_id', val);
-               if (selectedAmmo) {
-                 onChange('ammunition_used', `${selectedAmmo.brand} ${selectedAmmo.caliber || ''} ${selectedAmmo.bullet_type || ''}`.trim());
-               }
-             }}
-             placeholder="Select saved ammunition"
-             options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
-           />
-           {!data.ammunition_id && (
-             <div className="mt-2">
-               <span className="text-xs text-muted-foreground">Or enter manually:</span>
-               <input
-                 type="text"
-                 placeholder="e.g. Federal 12 Gauge"
-                 value={data.ammunition_used}
-                 onChange={(e) => onChange('ammunition_used', e.target.value)}
-                 className="w-full px-3 py-2 border border-border rounded-lg bg-background mt-1"
-               />
-             </div>
-           )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Notes</label>
-            <textarea
-              value={data.notes}
-              onChange={(e) => onChange('notes', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-              rows="2"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Photos</label>
-            <div className="flex gap-2 mb-3">
-              <label className="flex-1 px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors text-sm">
-                📁 Choose Photo
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(e) => handlePhotoUpload(e.target.files, data, onChange)}
-                  className="hidden"
-                />
-              </label>
-              <label className="flex-1 px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors text-sm">
-                📷 Take Photo
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  multiple
-                  onChange={(e) => handlePhotoUpload(e.target.files, data, onChange)}
-                  className="hidden"
-                />
-              </label>
+   return (
+       <div className="bg-card w-full max-w-md sm:max-w-sm sm:rounded-lg rounded-t-2xl flex flex-col max-h-[85dvh] sm:max-h-[90dvh]" style={{ height: 'calc(100% + env(safe-area-inset-bottom))', maxHeight: 'calc(85dvh + env(safe-area-inset-bottom))' }}>
+         {/* Header */}
+         <div className="flex-shrink-0 p-4 sm:p-5 border-b border-border">
+           <h2 className="text-lg sm:text-xl font-bold">Check Out</h2>
+         </div>
+
+         {/* Scrollable Content */}
+         <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
+           <form onSubmit={handleSubmit} className="p-4 sm:p-5 space-y-3.5">
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-1.5">Check-out Time</label>
+              <input
+                type="time"
+                value={data.checkout_time}
+                onChange={(e) => onChange('checkout_time', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background"
+                required
+              />
             </div>
-            {data.photos && data.photos.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {data.photos.map((photo, idx) => (
-                  <div key={idx} className="relative group">
-                    <img src={photo} alt="preview" className="h-20 w-20 object-cover rounded" />
-                    <button
-                      type="button"
-                      onClick={() => onChange('photos', data.photos.filter((_, i) => i !== idx))}
-                      className="absolute top-0 right-0 bg-destructive text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-1.5">Shotgun</label>
+              <BottomSheetSelect
+                value={data.shotgun_id}
+                onChange={(val) => onChange('shotgun_id', val)}
+                placeholder="Select a shotgun"
+                options={shotguns.map(s => ({ value: s.id, label: s.name }))}
+              />
+            </div>
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-1.5">Rounds Fired</label>
+              <input
+                type="number"
+                min="0"
+                value={data.rounds_fired}
+                onChange={(e) => onChange('rounds_fired', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-1.5">Ammunition</label>
+              <BottomSheetSelect
+                value={data.ammunition_id || ''}
+                onChange={(val) => {
+                  const selectedAmmo = ammunition.find(a => a.id === val);
+                  onChange('ammunition_id', val);
+                  if (selectedAmmo) {
+                    onChange('ammunition_used', `${selectedAmmo.brand} ${selectedAmmo.caliber || ''} ${selectedAmmo.bullet_type || ''}`.trim());
+                  }
+                }}
+                placeholder="Select saved ammunition"
+                options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
+              />
+              {!data.ammunition_id && (
+                <div className="mt-1.5">
+                  <span className="text-xs text-muted-foreground">Or enter manually:</span>
+                  <input
+                    type="text"
+                    placeholder="e.g. Federal 12 Gauge"
+                    value={data.ammunition_used}
+                    onChange={(e) => onChange('ammunition_used', e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background mt-1"
+                  />
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-1.5">Notes</label>
+              <textarea
+                value={data.notes}
+                onChange={(e) => onChange('notes', e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background"
+                rows="2"
+              />
+            </div>
+            <div>
+              <label className="block text-xs sm:text-sm font-medium mb-1.5">Photos</label>
+              <div className="flex gap-2 mb-2">
+                <label className="flex-1 px-3 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors text-xs">
+                  📁 Choose
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => handlePhotoUpload(e.target.files, data, onChange)}
+                    className="hidden"
+                  />
+                </label>
+                <label className="flex-1 px-3 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors text-xs">
+                  📷 Capture
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    multiple
+                    onChange={(e) => handlePhotoUpload(e.target.files, data, onChange)}
+                    className="hidden"
+                  />
+                </label>
               </div>
-            )}
-          </div>
-          <div className="flex gap-3">
+              {data.photos && data.photos.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {data.photos.map((photo, idx) => (
+                    <div key={idx} className="relative group">
+                      <img src={photo} alt="preview" className="h-16 w-16 object-cover rounded" />
+                      <button
+                        type="button"
+                        onClick={() => onChange('photos', data.photos.filter((_, i) => i !== idx))}
+                        className="absolute top-0 right-0 bg-destructive text-white rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 text-xs"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             {gpsTrack && gpsTrack.length > 0 && (
               <button
                 type="button"
                 onClick={() => onViewTrack(gpsTrack)}
-                className="flex-1 px-4 py-2 bg-secondary hover:bg-primary hover:text-primary-foreground rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="w-full px-3 py-2 bg-secondary hover:bg-primary hover:text-primary-foreground rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
               >
                 <Map className="w-4 h-4" />
-                View GPS
+                View GPS Track
               </button>
             )}
+          </form>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex-shrink-0 flex gap-2 p-4 sm:p-5 border-t border-border bg-card">
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
+              onClick={(e) => {
+                const form = e.currentTarget.closest('.bg-card').querySelector('form');
+                if (form) form.dispatchEvent(new Event('submit', { bubbles: true }));
+              }}
+              className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 font-medium text-sm transition-all active:scale-95"
             >
               Check Out
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary"
+              className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary text-sm font-medium transition-all active:scale-95"
             >
               Cancel
             </button>
           </div>
-        </form>
-      </div>
+          </div>
   );
 }

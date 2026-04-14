@@ -153,7 +153,7 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto px-6 sm:px-8 pb-6 sm:pb-8">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-6 sm:px-8 pb-6 sm:pb-8" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
 
         {/* Photos Section */}
         {currentRecord.photos && currentRecord.photos.length > 0 && (
