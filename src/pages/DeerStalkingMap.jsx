@@ -17,6 +17,7 @@ import AreaDrawer from '@/components/deer-stalking/AreaDrawer';
 import AreaSaveForm from '@/components/deer-stalking/AreaSaveForm';
 import AreaSelector from '@/components/deer-stalking/AreaSelector';
 import FloatingMapSearch from '@/components/deer-stalking/FloatingMapSearch';
+import LegalShootingHoursWidget from '@/components/deer-stalking/LegalShootingHoursWidget';
 
 // Fix Leaflet default icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -500,8 +501,9 @@ export default function DeerStalkingMap() {
         <FloatingMapSearch onSearch={handleMapSearch} isGrouped={true} />
       </div>
 
-      {/* Area Selector - Top Left */}
-      <div className="fixed top-4 left-4 z-[9999] pointer-events-auto">
+      {/* Legal Shooting Hours Widget + Area Selector - Top Left */}
+      <div className="fixed top-4 left-4 z-[9999] pointer-events-auto space-y-2">
+        <LegalShootingHoursWidget />
         <AreaSelector
           savedAreas={savedAreas}
           selectedAreaId={selectedAreaId}
