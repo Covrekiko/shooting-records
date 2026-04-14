@@ -358,7 +358,7 @@ export default function DeerStalkingMap() {
 
         {/* User location */}
         <Marker position={userLocation}>
-          <Popup>Your Location</Popup>
+          <Popup>My Location</Popup>
         </Marker>
 
         {/* POI Markers */}
