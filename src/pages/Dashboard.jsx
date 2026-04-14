@@ -135,7 +135,7 @@ export default function Dashboard() {
               link="/target-shooting"
             />
             <StatCard
-              icon={<span className="text-2xl">🎯</span>}
+              icon={<img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/bd0eff24d_5lzsqebsqrrivhjujwf5cftf07qt.jpeg" alt="shotgun" className="w-6 h-6 sm:w-8 sm:h-8 object-contain" />}
               label="Clay Shooting"
               value={stats?.clayRecords || 0}
               link="/clay-shooting"
