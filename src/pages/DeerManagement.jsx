@@ -167,28 +167,28 @@ export default function DeerManagement() {
         />
       )}
       <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-start justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">Deer Management</h1>
-            <p className="text-muted-foreground">Record your deer stalking outings</p>
-          </div>
-          {!activeOuting && (
-            <button
-              onClick={() => {
-                console.log('🔵 CHECK-IN BUTTON CLICKED - setShowCheckin(true) called');
-                setShowCheckin(true);
-              }}
-              className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2 whitespace-nowrap mt-2"
-            >
-              <Plus className="w-5 h-5" />
-              Start New Outing
-            </button>
-          )}
-          {activeOuting && (
-            <div className="px-6 py-3 bg-primary/20 text-primary rounded-lg font-medium mt-2">
-              Active outing (ID: {activeOuting.id.slice(0, 8)}...)
+        <div className="mb-8">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold mb-2">Deer Management</h1>
+              <p className="text-muted-foreground">Record your deer stalking outings</p>
             </div>
-          )}
+            {!activeOuting && (
+              <button
+                onClick={() => setShowCheckin(true)}
+                className="shrink-0 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2 text-sm font-medium mt-1"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Start New Outing</span>
+                <span className="sm:hidden">New Outing</span>
+              </button>
+            )}
+            {activeOuting && (
+              <div className="shrink-0 px-3 py-2 bg-primary/20 text-primary rounded-lg font-medium text-sm mt-1">
+                Active outing
+              </div>
+            )}
+          </div>
         </div>
 
         {activeOuting && (
