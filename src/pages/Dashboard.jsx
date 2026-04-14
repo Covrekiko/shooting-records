@@ -109,14 +109,14 @@ export default function Dashboard() {
            />
          </div>
        )}
-       <main className="max-w-7xl mx-auto px-4 pt-0 md:pt-12 pb-20">
+       <main className="max-w-7xl mx-auto px-4 md:pt-12 pb-20">
          <div className="mb-0 hidden md:block">
            <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-1">Dashboard</h1>
            <p className="text-sm text-muted-foreground">Welcome back, <span className="font-semibold text-foreground">{user?.full_name}</span></p>
          </div>
 
          {user?.role === 'admin' ? (
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 md:mt-6">
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
             <StatCard
               icon={<Map className="w-8 h-8" />}
               label="Stalking Map"
@@ -142,7 +142,7 @@ export default function Dashboard() {
              />
           </div>
         ) : (
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6 md:mt-6">
+         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
            <StatCard
              icon={<Map className="w-8 h-8" />}
              label="Stalking Map"
@@ -155,7 +155,7 @@ export default function Dashboard() {
               link="/target-shooting"
             />
             <StatCard
-              icon={<img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/8ff9783bc_generated_image.png" alt="shotgun" className="w-6 h-6 sm:w-8 sm:h-8 object-contain" />}
+              icon={<img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/2c232ed56_generated_image.png" alt="shotgun" className="w-5 h-5 sm:w-7 sm:h-7 object-contain" />}
               label="Clay Shooting Sessions"
               value={stats?.claySessions || 0}
               link="/clay-shooting"
