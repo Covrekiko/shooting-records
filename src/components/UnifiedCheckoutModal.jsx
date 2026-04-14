@@ -75,7 +75,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   };
 
   return (
-    <div className="bg-card rounded-lg max-w-md w-full p-6 flex flex-col max-h-[90vh]" onClick={(e) => {
+    <div className="bg-card rounded-lg max-w-md w-[calc(100%-2rem)] sm:w-full p-4 sm:p-6 flex flex-col max-h-[85vh] sm:max-h-[90vh]" onClick={(e) => {
       console.log('🔴 UnifiedCheckoutModal modal container clicked');
       e.stopPropagation();
     }} style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
