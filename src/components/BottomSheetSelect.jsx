@@ -33,6 +33,7 @@ export default function BottomSheetSelect({ value, onChange, options = [], place
           <div
             className="fixed inset-0 bg-black/40 z-[60000]"
             onClick={() => setOpen(false)}
+            style={{ pointerEvents: 'auto' }}
           />
           <div className="fixed bottom-0 left-0 right-0 z-[60001] bg-card rounded-t-2xl shadow-2xl"
             style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)', maxHeight: '70vh' }}
