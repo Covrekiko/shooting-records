@@ -4,6 +4,7 @@ import Navigation from '@/components/Navigation';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import ManualRecordModal from '@/components/ManualRecordModal';
+import { createPortal } from 'react-dom';
 import { Download, Eye, Trash2, X, FileText, Map, Image, ChevronDown, Plus, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { exportRecordsToPdf, getRecordsPdfBlob } from '@/utils/recordsPdfExport';
@@ -257,20 +258,24 @@ export default function Records() {
           </div>
         )}
         
-        {viewingRecord && (
-          <RecordModal record={viewingRecord} onClose={() => setViewingRecord(null)} rifles={rifles} shotguns={shotguns} clubs={clubs} locations={deerLocations} user={user} />
+        {viewingRecord && createPortal(
+          <RecordModal record={viewingRecord} onClose={() => setViewingRecord(null)} rifles={rifles} shotguns={shotguns} clubs={clubs} locations={deerLocations} user={user} />,
+          document.body
         )}
         
-        {previewingPdf && (
-          <PdfPreviewModal records={previewingPdf} userInfo={user} rifles={rifles} clubs={clubs} shotguns={shotguns} onClose={() => setPreviewingPdf(null)} />
+        {previewingPdf && createPortal(
+          <PdfPreviewModal records={previewingPdf} userInfo={user} rifles={rifles} clubs={clubs} shotguns={shotguns} onClose={() => setPreviewingPdf(null)} />,
+          document.body
         )}
         
-        {viewingTrack && (
-          <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />
+        {viewingTrack && createPortal(
+          <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />,
+          document.body
         )}
         
-        {viewingPhoto && (
-          <PhotoModal photo={viewingPhoto} onClose={() => setViewingPhoto(null)} />
+        {viewingPhoto && createPortal(
+          <PhotoModal photo={viewingPhoto} onClose={() => setViewingPhoto(null)} />,
+          document.body
         )}
 
         {manualRecordModal && (
@@ -409,7 +414,7 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
   const getLocationName = (locationId) => locations[locationId]?.place_name || 'Unknown Location';
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[50001] overflow-y-auto">
       <div className="bg-card rounded-lg max-w-3xl w-full p-8 my-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-12 border-b border-border pb-8">
@@ -819,7 +824,7 @@ function PhotoModal({ photo, onClose }) {
   }, [isDragging, dragStart, offset]);
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[50001]" onClick={onClose}>
       <div className="relative w-[95vw] h-[95vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between p-3 bg-black/40 border-b border-white/10">
           <button
@@ -906,7 +911,7 @@ function PdfPreviewModal({ records, userInfo, rifles, clubs, shotguns, onClose }
   }, [records, userInfo]);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[50001]">
       <div className="bg-card rounded-lg w-full max-w-4xl h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-bold">PDF Preview</h2>

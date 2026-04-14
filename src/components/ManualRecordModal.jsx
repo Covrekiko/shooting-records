@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useFormValidation } from '@/lib/formValidation';
 import { useMobileKeyboardHandler } from '@/lib/mobileKeyboardHandler';
 import { cameraPermissionHandler } from '@/lib/cameraPermissionHandler';
 import { base44 } from '@/api/base44Client';
 import { X } from 'lucide-react';
 import AddRifleForm from './AddRifleForm';
+import BottomSheetSelect from '@/components/BottomSheetSelect';
 
 async function handlePhotoUpload(files, data, setFormData) {
   if (!files || files.length === 0) return;
@@ -177,17 +179,18 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
   };
 
   if (loading) {
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    return createPortal(
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[50001]">
         <div className="bg-card rounded-lg p-6 max-w-md w-full">
           <div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto" ref={modalRef}>
+  return createPortal(
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[50001] overflow-y-auto" ref={modalRef}>
       <div className="bg-card rounded-lg max-w-2xl w-full p-6 my-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold">{record ? 'Edit Record' : 'Add Manual Record'}</h2>
@@ -201,16 +204,16 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">Record Type</label>
-              <select
+              <BottomSheetSelect
                 value={recordType}
-                onChange={(e) => setRecordType(e.target.value)}
-                disabled={!!record}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-background disabled:opacity-50"
-              >
-                <option value="target">Target Shooting</option>
-                <option value="clay">Clay Shooting</option>
-                <option value="deer">Deer Management</option>
-              </select>
+                onChange={setRecordType}
+                placeholder="Select type"
+                options={[
+                  { value: 'target', label: 'Target Shooting' },
+                  { value: 'clay', label: 'Clay Shooting' },
+                  { value: 'deer', label: 'Deer Management' },
+                ]}
+              />
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">Date</label>
@@ -235,21 +238,12 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
             <>
               <div>
                 <label className="block text-sm font-medium mb-2">Club</label>
-                <select
+                <BottomSheetSelect
                   value={formData.club_id}
-                  onChange={(e) => {
-                    setFormData({ ...formData, club_id: e.target.value });
-                    clearError('club');
-                  }}
-                  className={`w-full px-3 py-2 border rounded-lg bg-background ${
-                    errors.club ? 'border-destructive' : 'border-border'
-                  }`}
-                >
-                  <option value="">Select a club</option>
-                  {clubs.filter(c => c.type === 'Target Shooting' || c.type === 'Both').map((club) => (
-                    <option key={club.id} value={club.id}>{club.name}</option>
-                  ))}
-                </select>
+                  onChange={(val) => { setFormData({ ...formData, club_id: val }); clearError('club'); }}
+                  placeholder="Select a club"
+                  options={clubs.filter(c => c.type === 'Target Shooting' || c.type === 'Both').map(c => ({ value: c.id, label: c.name }))}
+                />
                 {errors.club && <p className="text-xs text-destructive mt-1">{errors.club}</p>}
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -308,21 +302,12 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
             <>
               <div>
                 <label className="block text-sm font-medium mb-2">Club</label>
-                <select
+                <BottomSheetSelect
                   value={formData.club_id}
-                  onChange={(e) => {
-                    setFormData({ ...formData, club_id: e.target.value });
-                    clearError('club');
-                  }}
-                  className={`w-full px-3 py-2 border rounded-lg bg-background ${
-                    errors.club ? 'border-destructive' : 'border-border'
-                  }`}
-                >
-                  <option value="">Select a club</option>
-                  {clubs.filter(c => c.type === 'Clay Shooting' || c.type === 'Both').map((club) => (
-                    <option key={club.id} value={club.id}>{club.name}</option>
-                  ))}
-                </select>
+                  onChange={(val) => { setFormData({ ...formData, club_id: val }); clearError('club'); }}
+                  placeholder="Select a club"
+                  options={clubs.filter(c => c.type === 'Clay Shooting' || c.type === 'Both').map(c => ({ value: c.id, label: c.name }))}
+                />
                 {errors.club && <p className="text-xs text-destructive mt-1">{errors.club}</p>}
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -347,16 +332,12 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Shotgun</label>
-                <select
+                <BottomSheetSelect
                   value={formData.shotgun_id}
-                  onChange={(e) => setFormData({ ...formData, shotgun_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                >
-                  <option value="">Select a shotgun</option>
-                  {shotguns.map((shotgun) => (
-                    <option key={shotgun.id} value={shotgun.id}>{shotgun.name}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setFormData({ ...formData, shotgun_id: val })}
+                  placeholder="Select a shotgun"
+                  options={shotguns.map(s => ({ value: s.id, label: s.name }))}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -388,21 +369,12 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
             <>
               <div>
                 <label className="block text-sm font-medium mb-2">Location</label>
-                <select
+                <BottomSheetSelect
                   value={formData.location_id}
-                  onChange={(e) => {
-                    setFormData({ ...formData, location_id: e.target.value });
-                    clearError('location');
-                  }}
-                  className={`w-full px-3 py-2 border rounded-lg bg-background ${
-                    errors.location ? 'border-destructive' : 'border-border'
-                  }`}
-                >
-                  <option value="">Select a location</option>
-                  {locations.map((loc) => (
-                    <option key={loc.id} value={loc.id}>{loc.place_name}</option>
-                  ))}
-                </select>
+                  onChange={(val) => { setFormData({ ...formData, location_id: val }); clearError('location'); }}
+                  placeholder="Select a location"
+                  options={locations.map(l => ({ value: l.id, label: l.place_name }))}
+                />
                 {errors.location && <p className="text-xs text-destructive mt-1">{errors.location}</p>}
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -427,31 +399,27 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Species</label>
-                <select
+                <BottomSheetSelect
                   value={formData.deer_species}
-                  onChange={(e) => setFormData({ ...formData, deer_species: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                >
-                  <option value="">Select a species</option>
-                  <optgroup label="Deer">
-                    <option>Roe</option>
-                    <option>Muntjac</option>
-                    <option>Fallow</option>
-                    <option>Red</option>
-                    <option>Sika</option>
-                    <option>Chinese Water Deer</option>
-                  </optgroup>
-                  <optgroup label="Pest Control">
-                    <option>Rabbit</option>
-                    <option>Grey Squirrel</option>
-                    <option>Rat</option>
-                    <option>Fox</option>
-                    <option>Crow</option>
-                    <option>Wood Pigeon</option>
-                    <option>Feral Cat</option>
-                  </optgroup>
-                  <option>Other</option>
-                </select>
+                  onChange={(val) => setFormData({ ...formData, deer_species: val })}
+                  placeholder="Select a species"
+                  options={[
+                    { value: 'Roe', label: 'Roe' },
+                    { value: 'Muntjac', label: 'Muntjac' },
+                    { value: 'Fallow', label: 'Fallow' },
+                    { value: 'Red', label: 'Red' },
+                    { value: 'Sika', label: 'Sika' },
+                    { value: 'Chinese Water Deer', label: 'Chinese Water Deer' },
+                    { value: 'Rabbit', label: 'Rabbit' },
+                    { value: 'Grey Squirrel', label: 'Grey Squirrel' },
+                    { value: 'Rat', label: 'Rat' },
+                    { value: 'Fox', label: 'Fox' },
+                    { value: 'Crow', label: 'Crow' },
+                    { value: 'Wood Pigeon', label: 'Wood Pigeon' },
+                    { value: 'Feral Cat', label: 'Feral Cat' },
+                    { value: 'Other', label: 'Other' },
+                  ]}
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -466,38 +434,29 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Rifle</label>
-                  <select
+                  <BottomSheetSelect
                     value={formData.rifle_id}
-                    onChange={(e) => setFormData({ ...formData, rifle_id: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  >
-                    <option value="">Select a rifle</option>
-                    {rifles.map((rifle) => (
-                      <option key={rifle.id} value={rifle.id}>{rifle.name}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, rifle_id: val })}
+                    placeholder="Select a rifle"
+                    options={rifles.map(r => ({ value: r.id, label: r.name }))}
+                  />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Ammunition</label>
-                <select
+                <BottomSheetSelect
                   value={formData.ammunition_id || ''}
-                  onChange={(e) => {
-                    const selectedAmmo = ammunition.find(a => a.id === e.target.value);
-                    setFormData({ ...formData, ammunition_id: e.target.value });
-                    if (selectedAmmo) {
-                      setFormData(prev => ({ ...prev, ammunition_used: `${selectedAmmo.brand} ${selectedAmmo.caliber || ''} ${selectedAmmo.bullet_type || ''}`.trim() }));
-                    }
+                  onChange={(val) => {
+                    const selectedAmmo = ammunition.find(a => a.id === val);
+                    setFormData(prev => ({
+                      ...prev,
+                      ammunition_id: val,
+                      ammunition_used: selectedAmmo ? `${selectedAmmo.brand} ${selectedAmmo.caliber || ''} ${selectedAmmo.bullet_type || ''}`.trim() : prev.ammunition_used,
+                    }));
                   }}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background mb-2"
-                >
-                  <option value="">Select saved ammunition</option>
-                  {ammunition.length > 0 ? ammunition.map((ammo) => (
-                    <option key={ammo.id} value={ammo.id}>
-                      {ammo.brand} {ammo.caliber ? `(${ammo.caliber})` : ''} {ammo.bullet_type ? `- ${ammo.bullet_type}` : ''}
-                    </option>
-                  )) : <option disabled>No ammunition available</option>}
-                </select>
+                  placeholder="Select saved ammunition"
+                  options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
+                />
                 <span className="text-xs text-muted-foreground">Or enter manually:</span>
                 <input
                   type="text"
@@ -588,6 +547,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

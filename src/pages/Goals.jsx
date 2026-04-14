@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import GoalCard from '@/components/GoalCard';
+import BottomSheetSelect from '@/components/BottomSheetSelect';
 import { Plus, Trophy } from 'lucide-react';
 
 export default function Goals() {
@@ -73,11 +75,14 @@ export default function Goals() {
           </button>
         </div>
 
-        {showForm && (
-          <GoalForm onSuccess={() => {
-            loadGoals();
-            setShowForm(false);
-          }} onCancel={() => setShowForm(false)} />
+        {showForm && createPortal(
+          <div className="fixed inset-0 z-[50001] bg-black/50 flex items-end sm:items-center justify-center">
+            <div className="bg-card w-full sm:max-w-lg sm:rounded-lg rounded-t-2xl overflow-y-auto max-h-[90dvh]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+              <div className="w-10 h-1 bg-border rounded-full mx-auto mt-3 mb-1 sm:hidden" />
+              <GoalForm onSuccess={() => { loadGoals(); setShowForm(false); }} onCancel={() => setShowForm(false)} />
+            </div>
+          </div>,
+          document.body
         )}
 
         {goals.length === 0 ? (
@@ -143,39 +148,31 @@ function GoalForm({ onSuccess, onCancel }) {
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6 mb-8">
+    <div className="p-6">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-2">Activity Type</label>
-            <select
+            <BottomSheetSelect
               value={formData.activity_type}
-              onChange={(e) => {
-                setFormData({
-                  ...formData,
-                  activity_type: e.target.value,
-                  goal_type: goalTypesByActivity[e.target.value][0].value,
-                });
-              }}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            >
-              <option value="target">Target Shooting</option>
-              <option value="clay">Clay Shooting</option>
-              <option value="deer">Deer Management</option>
-            </select>
+              onChange={(val) => setFormData({ ...formData, activity_type: val, goal_type: goalTypesByActivity[val][0].value })}
+              placeholder="Select activity"
+              options={[
+                { value: 'target', label: 'Target Shooting' },
+                { value: 'clay', label: 'Clay Shooting' },
+                { value: 'deer', label: 'Deer Management' },
+              ]}
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-2">Goal Type</label>
-            <select
+            <BottomSheetSelect
               value={formData.goal_type}
-              onChange={(e) => setFormData({ ...formData, goal_type: e.target.value })}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            >
-              {goalTypesByActivity[formData.activity_type].map(gt => (
-                <option key={gt.value} value={gt.value}>{gt.label}</option>
-              ))}
-            </select>
+              onChange={(val) => setFormData({ ...formData, goal_type: val })}
+              placeholder="Select goal type"
+              options={goalTypesByActivity[formData.activity_type].map(gt => ({ value: gt.value, label: gt.label }))}
+            />
           </div>
 
           <div>
@@ -193,15 +190,16 @@ function GoalForm({ onSuccess, onCancel }) {
 
           <div>
             <label className="block text-sm font-medium mb-2">Period</label>
-            <select
+            <BottomSheetSelect
               value={formData.period}
-              onChange={(e) => setFormData({ ...formData, period: e.target.value })}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            >
-              <option value="monthly">Monthly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="yearly">Yearly</option>
-            </select>
+              onChange={(val) => setFormData({ ...formData, period: val })}
+              placeholder="Select period"
+              options={[
+                { value: 'monthly', label: 'Monthly' },
+                { value: 'quarterly', label: 'Quarterly' },
+                { value: 'yearly', label: 'Yearly' },
+              ]}
+            />
           </div>
         </div>
 

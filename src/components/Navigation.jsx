@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, Settings, Target, Crosshair, Map, LayoutDashboard, BookOpen, User } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
@@ -7,6 +7,7 @@ export default function Navigation() {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -138,9 +139,9 @@ export default function Navigation() {
             const Icon = item.icon;
             const active = isActive(item.path);
             return (
-              <Link
+              <button
                 key={item.path}
-                to={item.path}
+                onClick={() => navigate(item.path)}
                 className={`flex-1 max-w-[80px] flex flex-col items-center justify-center py-4 gap-1 transition-colors ${
                   active ? 'text-primary' : 'text-muted-foreground'
                 }`}
@@ -148,7 +149,7 @@ export default function Navigation() {
                 {Icon && <Icon className={`w-6 h-6 ${active ? 'text-primary' : ''}`} />}
                 {item.emoji && <span className="text-xl leading-none">{item.emoji}</span>}
                 <span className="text-[11px] font-medium leading-tight text-center">{item.label}</span>
-              </Link>
+              </button>
             );
           })}
         </div>

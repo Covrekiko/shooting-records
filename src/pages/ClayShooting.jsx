@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
@@ -241,44 +242,48 @@ export default function ClayShooting() {
           </button>
         )}
 
-        {showCheckin && (
-          <CheckinModal
-            data={checkinData}
-            clubs={clubs}
-            onSubmit={handleCheckin}
-            onChange={(field, value) =>
-              setCheckinData({ ...checkinData, [field]: value })
-            }
-            onClose={() => setShowCheckin(false)}
-          />
-        )}
-
-        {showCheckout && activeSession && (
-          <CheckoutModal
-            data={checkoutData}
-            shotguns={shotguns}
-            ammunition={ammunition}
-            onSubmit={handleCheckout}
-            onChange={(field, value) =>
-              setCheckoutData({ ...checkoutData, [field]: value })
-            }
-            onClose={() => setShowCheckout(false)}
-            gpsTrack={gpsTrack}
-            onViewTrack={setViewingTrack}
-          />
-        )}
-        
-        {viewingTrack && (
-          <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />
+        {viewingTrack && createPortal(
+          <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />,
+          document.body
         )}
       </main>
+      {createPortal(
+        <>
+          {(showCheckin || showCheckout) && <div className="fixed inset-0 z-[50000] bg-black/50" />}
+          {showCheckin && (
+            <div className="fixed inset-0 z-[50001] flex items-end sm:items-center justify-center">
+              <CheckinModal
+                data={checkinData}
+                clubs={clubs}
+                onSubmit={handleCheckin}
+                onChange={(field, value) => setCheckinData({ ...checkinData, [field]: value })}
+                onClose={() => setShowCheckin(false)}
+              />
+            </div>
+          )}
+          {showCheckout && activeSession && (
+            <div className="fixed inset-0 z-[50001] flex items-end sm:items-center justify-center">
+              <CheckoutModal
+                data={checkoutData}
+                shotguns={shotguns}
+                ammunition={ammunition}
+                onSubmit={handleCheckout}
+                onChange={(field, value) => setCheckoutData({ ...checkoutData, [field]: value })}
+                onClose={() => setShowCheckout(false)}
+                gpsTrack={gpsTrack}
+                onViewTrack={setViewingTrack}
+              />
+            </div>
+          )}
+        </>,
+        document.body
+      )}
     </div>
   );
 }
 
 function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
       <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4 sm:hidden" />
         <h2 className="text-xl font-bold mb-4">Check In</h2>
@@ -310,7 +315,6 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
           </div>
         </form>
       </div>
-    </div>
   );
 }
 
@@ -353,7 +357,6 @@ function CheckoutModal({ data, shotguns, ammunition, onSubmit, onChange, onClose
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
       <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl overflow-y-auto max-h-[90dvh] p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         <h2 className="text-xl font-bold mb-4">Check Out</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -488,6 +491,5 @@ function CheckoutModal({ data, shotguns, ammunition, onSubmit, onChange, onClose
           </div>
         </form>
       </div>
-    </div>
   );
 }

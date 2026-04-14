@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
+import BottomSheetSelect from '@/components/BottomSheetSelect';
 
 const COUNTRIES = [
   'United Kingdom', 'United States', 'Australia', 'Canada', 'Ireland',
@@ -227,16 +228,12 @@ export default function ProfileSetup({ onComplete }) {
                 </div>
                 <div className="sm:col-span-1">
                   <Field label="Country" error={errors.country}>
-                    <select
+                    <BottomSheetSelect
                       value={form.country}
-                      onChange={e => set('country', e.target.value)}
-                      className={inputClass('country')}
-                      autoComplete="country-name"
-                    >
-                      {COUNTRIES.map(c => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
+                      onChange={(val) => set('country', val)}
+                      placeholder="Select country"
+                      options={COUNTRIES.map(c => ({ value: c, label: c }))}
+                    />
                   </Field>
                 </div>
               </div>

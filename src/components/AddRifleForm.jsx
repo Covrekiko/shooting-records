@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
+import BottomSheetSelect from '@/components/BottomSheetSelect';
 
 export default function AddRifleForm({ rifles, ammunition, formData, setFormData }) {
   const [showForm, setShowForm] = useState(false);
@@ -54,16 +55,12 @@ export default function AddRifleForm({ rifles, ammunition, formData, setFormData
         <div className="space-y-3 p-3 bg-secondary/20 rounded-lg">
           <div>
             <label className="block text-sm font-medium mb-2">Select Rifle</label>
-            <select
+            <BottomSheetSelect
               value={rifle}
-              onChange={(e) => setRifle(e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
-            >
-              <option value="">Choose a rifle</option>
-              {Object.entries(rifles).map(([id, r]) => (
-                <option key={id} value={id}>{r.name} ({r.caliber})</option>
-              ))}
-            </select>
+              onChange={setRifle}
+              placeholder="Choose a rifle"
+              options={Object.entries(rifles).map(([id, r]) => ({ value: id, label: `${r.name} (${r.caliber})` }))}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-2">
@@ -91,18 +88,12 @@ export default function AddRifleForm({ rifles, ammunition, formData, setFormData
 
           <div>
             <label className="block text-sm font-medium mb-2">Ammunition</label>
-            <select
+            <BottomSheetSelect
               value={ammoId}
-              onChange={(e) => setAmmoId(e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm mb-2"
-            >
-              <option value="">Select saved ammunition</option>
-              {ammunition.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.brand} ({a.caliber})
-                </option>
-              ))}
-            </select>
+              onChange={setAmmoId}
+              placeholder="Select saved ammunition"
+              options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}` }))}
+            />
             {!ammoId && (
               <>
                 <label className="text-xs text-muted-foreground block mb-1">Or enter manually:</label>
