@@ -132,8 +132,8 @@ export default function Navigation() {
       </nav>
 
       {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border" style={{ paddingBottom: 'env(safe-area-inset-bottom, 12px)' }}>
-        <div className="flex">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
+        <div className="flex justify-center px-4">
           {mainNavItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -141,13 +141,13 @@ export default function Navigation() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors ${
+                className={`flex-1 max-w-[80px] flex flex-col items-center justify-center py-4 gap-1 transition-colors ${
                   active ? 'text-primary' : 'text-muted-foreground'
                 }`}
               >
                 {Icon && <Icon className={`w-6 h-6 ${active ? 'text-primary' : ''}`} />}
                 {item.emoji && <span className="text-xl leading-none">{item.emoji}</span>}
-                <span className="text-[11px] font-medium">{item.label}</span>
+                <span className="text-[11px] font-medium leading-tight text-center">{item.label}</span>
               </Link>
             );
           })}
@@ -155,7 +155,7 @@ export default function Navigation() {
       </nav>
 
       {/* Bottom padding spacer for mobile so content isn't hidden behind bottom nav */}
-      <div className="md:hidden" style={{ height: 'calc(64px + env(safe-area-inset-bottom, 12px))' }} />
+      <div className="md:hidden" style={{ height: 'calc(80px + env(safe-area-inset-bottom, 16px))' }} />
     </>
   );
 }
