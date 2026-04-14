@@ -162,32 +162,32 @@ export default function Records() {
       <Navigation />
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
             <h1 className="text-3xl font-bold">All Records</h1>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setManualRecordModal({ isNew: true })}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+                className="px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
               >
                 <Plus className="w-4 h-4" />
-                Add Manual Record
+                Add Record
               </button>
               {filteredRecords.length > 0 && (
                 <>
                   <button
                     onClick={() => setPreviewingPdf(filteredRecords)}
-                    className="px-4 py-2 bg-secondary text-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
-                    >
+                    className="px-3 py-2 bg-secondary text-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
+                  >
                     <FileText className="w-4 h-4" />
-                    Preview PDF
-                    </button>
-                    <button
-                      onClick={() => exportRecordsToPdf(filteredRecords, user, 'shooting-records.pdf', rifles, clubs, shotguns)}
-                      className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
-                    >
-                      <Download className="w-4 h-4" />
-                      Export PDF
-                    </button>
+                    <span className="hidden sm:inline">Preview </span>PDF
+                  </button>
+                  <button
+                    onClick={() => exportRecordsToPdf(filteredRecords, user, 'shooting-records.pdf', rifles, clubs, shotguns)}
+                    className="px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span className="hidden sm:inline">Export </span>PDF
+                  </button>
                 </>
               )}
             </div>
