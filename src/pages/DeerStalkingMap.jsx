@@ -486,27 +486,18 @@ export default function DeerStalkingMap() {
       </MapContainer>
       </div>
 
-      {/* Floating Map Controls - Bottom Right Group */}
-      <div className="fixed bottom-24 right-4 z-[9999] flex flex-col gap-2 pointer-events-auto items-end">
+      {/* Floating Map Search & Satellite - Top Right */}
+      <div className="fixed top-16 right-4 z-[9999] flex flex-col gap-2 pointer-events-auto items-end">
         {/* Satellite Toggle */}
         <button
           onClick={() => setUseSatellite(!useSatellite)}
-          className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-800 text-white rounded-full hover:bg-slate-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center"
+          className="p-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all shadow-lg"
           title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
         >
-          <Satellite className="w-4 h-4 sm:w-5 sm:h-5" />
+          <Satellite className="w-4 h-4" />
         </button>
         
-        <FloatingMapSearch onSearch={handleMapSearch} isGrouped={true} />
-
-        {/* Dashboard Button */}
-        <Link
-          to="/"
-          className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-800 text-white rounded-full hover:bg-slate-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center"
-          title="Back to Dashboard"
-        >
-          <Home className="w-4 h-4 sm:w-5 sm:h-5" />
-        </Link>
+        <FloatingMapSearch onSearch={handleMapSearch} />
       </div>
 
       {/* Area Selector - Top Left */}
@@ -518,6 +509,15 @@ export default function DeerStalkingMap() {
           userLocation={userLocation}
         />
       </div>
+
+      {/* Back to Dashboard */}
+      <Link
+        to="/"
+        className="fixed top-4 right-4 z-[9999] flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all pointer-events-auto"
+      >
+        <Home className="w-4 h-4" />
+        Dashboard
+      </Link>
       {/* Selection Mode Instruction */}
       {waitingForPin && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[9998] bg-blue-500 text-white px-2 py-0.5 rounded flex items-center justify-between pointer-events-auto gap-1 h-6 w-48">
