@@ -11,6 +11,7 @@ import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
+import MissingFieldsAlert from '@/components/MissingFieldsAlert';
 
 export default function ClayShooting() {
    const [activeSession, setActiveSession] = useState(null);
@@ -286,38 +287,66 @@ export default function ClayShooting() {
 }
 
 function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
+  const [showAlert, setShowAlert] = useState(false);
+
+  const handleClose = () => {
+    const missingFields = [];
+    if (!data.date) missingFields.push('Date');
+    if (!data.club_id) missingFields.push('Club');
+    if (!data.checkin_time) missingFields.push('Check-in Time');
+
+    if (missingFields.length > 0) {
+      setShowAlert(true);
+    } else {
+      onClose();
+    }
+  };
+
   return (
-      <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
-        <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4 sm:hidden" />
-        <h2 className="text-xl font-bold mb-4">Check In</h2>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Date</label>
-            <input type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Club</label>
-            <BottomSheetSelect
-              value={data.club_id}
-              onChange={(val) => onChange('club_id', val)}
-              placeholder="Select a club"
-              options={clubs.map(c => ({ value: c.id, label: c.name }))}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Check-in Time</label>
-            <input type="time" value={data.checkin_time} onChange={(e) => onChange('checkin_time', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Notes (optional)</label>
-            <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" rows="3" />
-          </div>
-          <div className="flex gap-3 pt-2">
-            <button type="submit" className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-base hover:opacity-90">Check In</button>
-            <button type="button" onClick={onClose} className="flex-1 px-4 py-3 border border-border rounded-xl text-base hover:bg-secondary">Cancel</button>
-          </div>
-        </form>
-      </div>
+      <>
+        <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+          <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4 sm:hidden" />
+          <h2 className="text-xl font-bold mb-4">Check In</h2>
+          <form onSubmit={onSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Date</label>
+              <input type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Club</label>
+              <BottomSheetSelect
+                value={data.club_id}
+                onChange={(val) => onChange('club_id', val)}
+                placeholder="Select a club"
+                options={clubs.map(c => ({ value: c.id, label: c.name }))}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Check-in Time</label>
+              <input type="time" value={data.checkin_time} onChange={(e) => onChange('checkin_time', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Notes (optional)</label>
+              <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" rows="3" />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button type="submit" className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-base hover:opacity-90">Check In</button>
+              <button type="button" onClick={handleClose} className="flex-1 px-4 py-3 border border-border rounded-xl text-base hover:bg-secondary">Cancel</button>
+            </div>
+          </form>
+        </div>
+        {showAlert && createPortal(
+          <div className="fixed inset-0 z-[50000] bg-black/50" />,
+          document.body
+        )}
+        {showAlert && createPortal(
+          <MissingFieldsAlert
+            fields={['Date', 'Club', 'Check-in Time']}
+            onClose={() => setShowAlert(false)}
+          />,
+          document.body
+        )}
+      </>
   );
 }
 
@@ -362,18 +391,32 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
      notes: '',
      photos: [],
    });
+   const [showAlert, setShowAlert] = useState(false);
 
    const onChange = (field, value) => setData(prev => ({ ...prev, [field]: value }));
 
    const handleCheckoutClick = () => {
      if (!data.shotgun_id || !data.rounds_fired) {
-       alert('Please select a shotgun and enter rounds fired');
+       setShowAlert(true);
        return;
      }
      onSubmit(data);
    };
 
+   const handleClose = () => {
+     const missingFields = [];
+     if (!data.shotgun_id) missingFields.push('Shotgun');
+     if (!data.rounds_fired) missingFields.push('Rounds Fired');
+
+     if (missingFields.length > 0) {
+       setShowAlert(true);
+     } else {
+       onClose();
+     }
+   };
+
    return (
+       <>
        <div className="bg-card w-full sm:max-w-sm sm:rounded-lg rounded-t-2xl flex flex-col" style={{ maxHeight: 'min(90vh, 100vh - 100px)' }}>
            {/* Header */}
            <div className="flex-shrink-0 p-4 sm:p-5 border-b border-border">
@@ -515,12 +558,25 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
             </button>
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary text-sm font-medium transition-all active:scale-95"
             >
               Cancel
             </button>
           </div>
           </div>
+
+          {showAlert && createPortal(
+            <div className="fixed inset-0 z-[50000] bg-black/50" />,
+            document.body
+          )}
+          {showAlert && createPortal(
+            <MissingFieldsAlert
+              fields={['Shotgun', 'Rounds Fired']}
+              onClose={() => setShowAlert(false)}
+            />,
+            document.body
+          )}
+       </>
   );
 }
