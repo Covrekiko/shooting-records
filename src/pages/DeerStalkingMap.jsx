@@ -513,10 +513,10 @@ export default function DeerStalkingMap() {
       {/* Back to Dashboard */}
       <Link
         to="/"
-        className="fixed top-4 right-20 z-[9999] flex items-center gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all pointer-events-auto text-xs sm:text-sm"
+        className="fixed top-4 right-20 z-[9999] w-10 h-10 sm:w-12 sm:h-12 bg-slate-800 text-white rounded-full shadow-lg hover:bg-slate-700 transition-all pointer-events-auto flex items-center justify-center"
+        title="Dashboard"
       >
-        <Home className="w-3 h-3 sm:w-4 sm:h-4" />
-        <span className="hidden sm:inline">Dashboard</span>
+        <Home className="w-4 h-4 sm:w-5 sm:h-5" />
       </Link>
       {/* Selection Mode Instruction */}
       {waitingForPin && (
