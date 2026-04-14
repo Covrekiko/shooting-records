@@ -10,13 +10,13 @@ export default function AreaSelector({ savedAreas, selectedAreaId, onSelectArea 
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-lg hover:bg-secondary transition-colors min-w-48"
+        className="flex items-center gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 bg-card border border-border rounded-lg hover:bg-secondary transition-colors min-w-40 sm:min-w-48"
       >
-        <MapPin className="w-4 h-4 text-primary" />
-        <span className="font-medium text-sm flex-1 text-left truncate">
+        <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-primary flex-shrink-0" />
+        <span className="font-medium text-xs sm:text-sm flex-1 text-left truncate">
           {selectedArea?.name || 'Select Area'}
         </span>
-        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
