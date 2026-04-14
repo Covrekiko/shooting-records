@@ -14,7 +14,6 @@ export const trackingService = {
   // Start GPS tracking for a session
   startTracking(sessionId, sessionType) {
     console.log('🟢 TRACKING STARTED - sessionId:', sessionId, 'type:', sessionType);
-    console.log('🟢 WATCH ID ASSIGNED:', trackingState.watchId);
     
     if (trackingState.isTracking) {
       console.warn('⚠️ Tracking already active, stopping previous...');
@@ -28,6 +27,7 @@ export const trackingService = {
 
     if (!navigator.geolocation) {
       console.error('❌ GEOLOCATION NOT SUPPORTED');
+      trackingState.isTracking = false;
       return;
     }
 
@@ -43,8 +43,7 @@ export const trackingService = {
       const point = { lat: latitude, lng: longitude, timestamp };
       trackingState.track.push(point);
       
-      console.log('📍 GPS UPDATE RECEIVED - sessionId:', trackingState.sessionId, 'type:', trackingState.sessionType);
-      console.log('   Points:', trackingState.track.length, 'Location:', latitude, longitude);
+      console.log('📍 GPS UPDATE RECEIVED - Points:', trackingState.track.length, 'Location:', latitude, longitude);
       
       // Notify all listeners with fresh copy
       const trackSnapshot = [...trackingState.track];
@@ -62,12 +61,13 @@ export const trackingService = {
       }
     };
 
-    trackingState.watchId = navigator.geolocation.watchPosition(
+    const watchId = navigator.geolocation.watchPosition(
       handlePositionUpdate,
       handlePositionError,
       { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }  // 30s timeout for mobile
     );
     
+    trackingState.watchId = watchId;
     console.log('🟢 WATCH STARTED with ID:', trackingState.watchId);
   },
 
