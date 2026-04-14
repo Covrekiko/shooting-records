@@ -100,15 +100,16 @@ export default function FloatingMapSearch({ onSearch, onError, isGrouped = false
   return (
     <div className={isGrouped ? "relative" : "fixed bottom-24 right-6 z-[9999] pointer-events-auto sm:bottom-32"}>
       {/* Floating Search Icon Button */}
-      {!isOpen ? (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-800 text-white rounded-full shadow-lg hover:shadow-xl hover:bg-slate-700 transition-all flex items-center justify-center flex-shrink-0"
-          title="Search location"
-        >
-          <Search className="w-4 h-4 sm:w-5 sm:h-5" />
-        </button>
-      ) : (
+       {!isOpen ? (
+         <button
+           onClick={() => setIsOpen(true)}
+           className="w-10 h-10 sm:w-12 sm:h-12 bg-white/15 text-black rounded-full shadow-md hover:shadow-lg hover:bg-white/20 transition-all flex items-center justify-center flex-shrink-0 border border-white/20"
+           style={{ WebkitBackdropFilter: 'blur(20px)', backdropFilter: 'blur(20px)' }}
+           title="Search location"
+         >
+           <Search className="w-4 h-4 sm:w-5 sm:h-5" />
+         </button>
+       ) : (
         /* Expanded Search Bar */
         <form onSubmit={handleSearch} className={isGrouped ? "absolute -bottom-72 -right-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] pointer-events-auto" : "absolute bottom-0 right-0 w-72 sm:w-80 max-w-[calc(100vw-2rem)] pointer-events-auto"}>
           <div className="bg-card rounded-lg shadow-lg overflow-hidden border border-border animate-in fade-in slide-in-from-bottom-2 duration-200">
