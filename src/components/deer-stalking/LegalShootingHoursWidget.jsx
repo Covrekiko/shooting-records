@@ -70,8 +70,13 @@ export default function LegalShootingHoursWidget() {
   const startTime = formatTime(sunTimes.sunrise);
   const endTime = formatTime(sunTimes.sunset);
 
-  const legalStartTime = startTime;
-  const legalEndTime = endTime;
+  const legalStart = new Date(sunTimes.sunrise);
+  legalStart.setHours(legalStart.getHours() - 1);
+  const legalEnd = new Date(sunTimes.sunset);
+  legalEnd.setHours(legalEnd.getHours() + 1);
+
+  const legalStartTime = formatTime(legalStart);
+  const legalEndTime = formatTime(legalEnd);
 
   return (
     <button onClick={() => navigate('/sunrise-sunset')} className="w-full text-left hover:opacity-80 transition-opacity">

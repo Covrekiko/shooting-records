@@ -64,8 +64,13 @@ function LegalShootingHoursWidgetLarge() {
 
   const startTime = formatTime(sunTimes.sunrise);
   const endTime = formatTime(sunTimes.sunset);
-  const legalStartTime = formatTime(sunTimes.sunrise);
-  const legalEndTime = formatTime(sunTimes.sunset);
+  const legalStart = new Date(sunTimes.sunrise);
+  legalStart.setHours(legalStart.getHours() - 1);
+  const legalEnd = new Date(sunTimes.sunset);
+  legalEnd.setHours(legalEnd.getHours() + 1);
+
+  const legalStartTime = formatTime(legalStart);
+  const legalEndTime = formatTime(legalEnd);
 
   return (
     <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-3xl px-8 py-8 border border-border shadow-lg">
@@ -84,7 +89,8 @@ function LegalShootingHoursWidgetLarge() {
         <div className="bg-primary/10 rounded-2xl p-4 text-center">
           <div className="text-sm font-medium text-muted-foreground mb-2">Legal Shooting Hours</div>
           <div className="text-xl font-bold text-primary">{legalStartTime} — {legalEndTime}</div>
-          <div className="text-xs text-muted-foreground mt-2">(Sunrise to Sunset)</div>
+          <div className="text-xs text-muted-foreground mt-2">(1 hour before sunrise to 1 hour after sunset)</div>
+          <div className="text-[10px] text-muted-foreground mt-1">UK Government Wildlife & Countryside Act 1981</div>
         </div>
         
         <div className="flex items-center justify-between gap-4 bg-card rounded-2xl p-4">
