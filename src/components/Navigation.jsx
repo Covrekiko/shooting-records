@@ -172,8 +172,8 @@ export default function Navigation() {
       </nav>
 
       {/* Mobile Bottom Nav - iOS glass style */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/15 backdrop-blur-xl border-t border-white/20 shadow-lg" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)', WebkitBackdropFilter: 'blur(20px)' }}>
-        <div className="flex justify-around px-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/15 backdrop-blur-xl border-t border-white/20 shadow-lg" style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)', WebkitBackdropFilter: 'blur(20px)' }}>
+        <div className="flex justify-center gap-1 px-3 py-2">
           {mainNavItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -182,13 +182,13 @@ export default function Navigation() {
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 whileTap={{ scale: 0.95 }}
-                className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-all duration-200 rounded-lg ${
+                className={`flex flex-col items-center justify-center py-2 px-3 gap-0.5 transition-all duration-200 rounded-lg min-w-16 ${
                   active ? 'text-primary' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                {Icon && <Icon className={`w-5 h-5 ${active ? '' : ''}`} />}
+                {Icon && <Icon className={`w-5 h-5`} />}
                 {item.emoji && <span className="text-lg leading-none">{item.emoji}</span>}
-                <span className="text-[10px] font-semibold leading-tight text-center">{item.label}</span>
+                <span className="text-[9px] font-semibold leading-tight text-center">{item.label}</span>
               </motion.button>
             );
           })}
