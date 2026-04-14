@@ -5,6 +5,7 @@ import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import GpsPathViewer from '@/components/GpsPathViewer';
+import RecordsList from '@/components/RecordsList';
 import { Clock, CheckCircle, Plus } from 'lucide-react';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
@@ -16,6 +17,7 @@ export default function TargetShooting() {
   const [clubs, setClubs] = useState([]);
   const [rifles, setRifles] = useState([]);
   const [ammunition, setAmmunition] = useState([]);
+  const [records, setRecords] = useState([]);
   const [showCheckin, setShowCheckin] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -56,7 +58,7 @@ export default function TargetShooting() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
 
-        const [clubsList, riflesList, ammoList, activeSession] = await Promise.all([
+        const [clubsList, riflesList, ammoList, activeSession, recordsList] = await Promise.all([
           base44.entities.Club.filter({ created_by: currentUser.email }),
           base44.entities.Rifle.filter({ created_by: currentUser.email }),
           base44.entities.Ammunition.filter({ created_by: currentUser.email }),
@@ -64,11 +66,13 @@ export default function TargetShooting() {
             created_by: currentUser.email,
             active_checkin: true,
           }),
+          base44.entities.TargetShooting.filter({ created_by: currentUser.email }),
         ]);
 
         setClubs(clubsList);
         setRifles(riflesList);
         setAmmunition(ammoList);
+        setRecords(recordsList);
         if (activeSession.length > 0) {
           const session = activeSession[0];
           setActiveSession(session);
@@ -125,6 +129,7 @@ export default function TargetShooting() {
      try {
        const session = await base44.entities.TargetShooting.create({
          ...checkinData,
+         category: 'target_shooting',
          active_checkin: true,
        });
        console.log('🟢 CHECK IN SAVE SUCCESS - session id:', session.id);
@@ -250,11 +255,21 @@ export default function TargetShooting() {
           </button>
         )}
 
+        {/* Records List */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-4">Session Records</h2>
+          <RecordsList 
+            records={records} 
+            category="target_shooting"
+            emptyMessage="No target shooting sessions recorded yet"
+          />
+        </div>
+
         {/* GPS Track Viewer */}
         {viewingTrack && (
           <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />
         )}
-      </main>
+        </main>
 
       {/* Modals via portal so fixed positioning works correctly */}
       {createPortal(

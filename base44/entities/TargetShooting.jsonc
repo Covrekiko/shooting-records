@@ -2,6 +2,16 @@
   "name": "TargetShooting",
   "type": "object",
   "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "target_shooting",
+        "clay_shooting",
+        "deer_management"
+      ],
+      "default": "target_shooting",
+      "description": "Session category"
+    },
     "date": {
       "type": "string",
       "format": "date"
@@ -80,6 +90,7 @@
   "required": [
     "date",
     "club_id",
-    "checkin_time"
+    "checkin_time",
+    "category"
   ]
 }

@@ -6,6 +6,7 @@ import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import { Clock, Plus, Map } from 'lucide-react';
 import GpsPathViewer from '@/components/GpsPathViewer';
+import RecordsList from '@/components/RecordsList';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
@@ -16,6 +17,7 @@ export default function ClayShooting() {
    const [clubs, setClubs] = useState([]);
    const [shotguns, setShotguns] = useState([]);
    const [ammunition, setAmmunition] = useState([]);
+   const [records, setRecords] = useState([]);
   const [showCheckin, setShowCheckin] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -39,7 +41,7 @@ export default function ClayShooting() {
       try {
         const currentUser = await base44.auth.me();
 
-        const [clubsList, shotgunsList, ammoList, activeSession] = await Promise.all([
+        const [clubsList, shotgunsList, ammoList, activeSession, recordsList] = await Promise.all([
           base44.entities.Club.filter({ created_by: currentUser.email }),
           base44.entities.Shotgun.filter({ created_by: currentUser.email }),
           base44.entities.Ammunition.filter({ created_by: currentUser.email }),
@@ -47,11 +49,13 @@ export default function ClayShooting() {
             created_by: currentUser.email,
             active_checkin: true,
           }),
+          base44.entities.ClayShooting.filter({ created_by: currentUser.email }),
         ]);
 
         setClubs(clubsList);
         setShotguns(shotgunsList);
         setAmmunition(ammoList);
+        setRecords(recordsList);
         if (activeSession.length > 0) {
           setActiveSession(activeSession[0]);
         }
@@ -91,6 +95,7 @@ export default function ClayShooting() {
      try {
        const session = await base44.entities.ClayShooting.create({
          ...checkinData,
+         category: 'clay_shooting',
          active_checkin: true,
        });
        console.log('🟢 CHECK IN SAVE SUCCESS - session id:', session.id);
@@ -219,11 +224,21 @@ export default function ClayShooting() {
           </button>
         )}
 
+        {/* Records List */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-4">Session Records</h2>
+          <RecordsList 
+            records={records} 
+            category="clay_shooting"
+            emptyMessage="No clay shooting sessions recorded yet"
+          />
+        </div>
+
         {viewingTrack && createPortal(
           <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />,
           document.body
         )}
-      </main>
+        </main>
       {createPortal(
         <>
           {(showCheckin || showCheckout) && <div className="fixed inset-0 z-[50000] bg-black/50" />}

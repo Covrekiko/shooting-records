@@ -6,6 +6,7 @@ import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import { useOuting } from '@/context/OutingContext';
 import { Plus, Clock } from 'lucide-react';
+import RecordsList from '@/components/RecordsList';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal';
 import { trackingService } from '@/lib/trackingService';
@@ -19,6 +20,7 @@ export default function DeerManagement() {
   const [areas, setAreas] = useState([]);
   const [rifles, setRifles] = useState([]);
   const [ammunition, setAmmunition] = useState([]);
+  const [records, setRecords] = useState([]);
   const [showCheckin, setShowCheckin] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -38,15 +40,17 @@ export default function DeerManagement() {
       try {
         const currentUser = await base44.auth.me();
 
-        const [areasList, riflesList, ammoList] = await Promise.all([
+        const [areasList, riflesList, ammoList, recordsList] = await Promise.all([
           base44.entities.Area.filter({ created_by: currentUser.email }),
           base44.entities.Rifle.filter({ created_by: currentUser.email }),
           base44.entities.Ammunition.filter({ created_by: currentUser.email }),
+          base44.entities.DeerManagement.filter({ created_by: currentUser.email }),
         ]);
 
         setAreas(areasList);
         setRifles(riflesList);
         setAmmunition(ammoList);
+        setRecords(recordsList);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -218,9 +222,19 @@ export default function DeerManagement() {
               </div>
             </div>
           </div>
-        )}
+          )}
 
-        {/* Modals rendered via Portal */}
+          {/* Records List */}
+          <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-4">Outing Records</h2>
+          <RecordsList 
+            records={records} 
+            category="deer_management"
+            emptyMessage="No deer management outings recorded yet"
+          />
+          </div>
+
+          {/* Modals rendered via Portal */}
         {createPortal(
           <>
             {(showCheckin || showCheckout) && (

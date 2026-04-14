@@ -2,6 +2,16 @@
   "name": "DeerManagement",
   "type": "object",
   "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "target_shooting",
+        "clay_shooting",
+        "deer_management"
+      ],
+      "default": "deer_management",
+      "description": "Session category"
+    },
     "date": {
       "type": "string",
       "format": "date"
@@ -96,6 +106,7 @@
     "date",
     "start_time",
     "location_id",
-    "place_name"
+    "place_name",
+    "category"
   ]
 }
