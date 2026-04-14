@@ -1,7 +1,9 @@
 import { MapContainer, TileLayer, Polygon, Marker, Popup } from 'react-leaflet';
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import L from 'leaflet';
 import { Map, Satellite, Trash2, Locate } from 'lucide-react';
+import MissingFieldsAlert from './MissingFieldsAlert';
 
 // Fix marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -62,6 +64,7 @@ function MapControls({ map }) {
 export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData = {} }) {
   const [mapType, setMapType] = useState('map');
   const [map, setMap] = useState(null);
+  const [showAlert, setShowAlert] = useState(false);
   const center = initialCenter || [54.5973, -3.1578];
 
   const clearAll = () => {
@@ -73,11 +76,22 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
     : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
   return (
-    <div className="space-y-3">
-      <div className="space-y-3">
-        <div className="flex flex-wrap gap-2">
-          <MapControls map={map} />
-        </div>
+     <div className="space-y-3">
+       <div className="space-y-3">
+         <div className="flex flex-wrap gap-2">
+           <button
+             onClick={() => {
+               if (!mapData.features || mapData.features.length === 0) {
+                 setShowAlert(true);
+               }
+             }}
+             className="px-4 py-2 sm:px-4 sm:py-2 rounded-full sm:rounded-lg flex items-center gap-2 font-medium text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors"
+             title="Boundary area must be drawn"
+           >
+             {mapData.features && mapData.features.length > 0 ? '✓' : '!'} Boundary
+           </button>
+           <MapControls map={map} />
+         </div>
 
         <div className="flex flex-wrap gap-3 sm:gap-2">
            <button
@@ -127,6 +141,14 @@ export default function BoundaryMapEditor({ initialCenter, onDataChange, mapData
           <MapRenderer mapData={mapData} />
         </MapContainer>
       </div>
-    </div>
-  );
-}
+
+      {showAlert && createPortal(
+        <MissingFieldsAlert
+          fields={['Draw a boundary polygon on the map']}
+          onClose={() => setShowAlert(false)}
+        />,
+        document.body
+      )}
+      </div>
+      );
+      }
