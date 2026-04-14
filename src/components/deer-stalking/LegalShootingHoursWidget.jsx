@@ -1,18 +1,29 @@
 import { useState, useEffect } from 'react';
-import { useSunTimes } from '@/hooks/useSunTimes';
 
 export default function LegalShootingHoursWidget() {
-  const { sunTimes } = useSunTimes();
-  const [now, setNow] = useState(new Date());
+  const [sunTimes, setSunTimes] = useState(null);
 
   useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 60000);
-    return () => clearInterval(timer);
-  }, []);
+    const calculateSunTimes = () => {
+      const today = new Date();
+      const latitude = 51.5074; // London default
+      const longitude = -0.1278;
 
-  if (!sunTimes) {
-    return null;
-  }
+      // Simple sunrise/sunset approximation
+      const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+      const sunrise = new Date(today);
+      const sunset = new Date(today);
+
+      // Rough calculation: sunrise ~6:30am, sunset ~6:30pm (varies by season)
+      const minuteVariation = Math.sin((dayOfYear / 365) * Math.PI * 2) * 120;
+      sunrise.setHours(6, Math.floor(30 + minuteVariation), 0);
+      sunset.setHours(18, Math.floor(30 - minuteVariation), 0);
+
+      setSunTimes({ sunrise, sunset });
+    };
+
+    calculateSunTimes();
+  }, []);
 
   const formatTime = (date) => {
     if (!date) return '--:--';
