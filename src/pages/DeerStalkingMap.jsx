@@ -54,6 +54,7 @@ export default function DeerStalkingMap() {
   const [selectedAreaId, setSelectedAreaId] = useState(null);
   const [areaBounds, setAreaBounds] = useState(null);
   const [useSatellite, setUseSatellite] = useState(false);
+  const [showError, setShowError] = useState(true);
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -538,10 +539,11 @@ export default function DeerStalkingMap() {
         </div>
       )}
 
-      {error && (
+      {error && showError && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9998] bg-red-500 text-white px-2 py-1 rounded text-xs flex items-center gap-1 pointer-events-auto max-w-xs">
           <AlertCircle className="w-3 h-3 flex-shrink-0" />
           <span className="truncate">{error}</span>
+          <button onClick={() => setShowError(false)} className="ml-1 hover:opacity-80">×</button>
         </div>
       )}
 
