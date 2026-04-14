@@ -50,21 +50,31 @@ export default function LegalShootingHoursWidget() {
   const startTime = formatTime(sunTimes.sunrise);
   const endTime = formatTime(sunTimes.sunset);
 
+  // Calculate legal shooting hours (30 mins before sunrise to 30 mins after sunset in UK)
+  const legalStart = new Date(sunTimes.sunrise);
+  legalStart.setMinutes(legalStart.getMinutes() - 30);
+  const legalEnd = new Date(sunTimes.sunset);
+  legalEnd.setMinutes(legalEnd.getMinutes() + 30);
+
+  const legalStartTime = formatTime(legalStart);
+  const legalEndTime = formatTime(legalEnd);
+
   return (
-    <div className="bg-card/95 backdrop-blur-sm rounded-2xl px-3 py-2 border border-border shadow-lg">
-      <div className="text-xs font-medium text-muted-foreground mb-2">Legal Shooting Hours</div>
-      <div className="flex items-center gap-3">
-        <div className="text-center">
-          <Sun className="w-4 h-4 text-amber-500 mx-auto mb-1" />
-          <div className="text-xs text-muted-foreground">Sunrise</div>
-          <div className="text-xs font-semibold text-foreground">{startTime}</div>
-        </div>
-        <div className="text-muted-foreground">—</div>
-        <div className="text-center">
-          <Sun className="w-4 h-4 text-amber-600 mx-auto mb-1 opacity-70" />
-          <div className="text-xs text-muted-foreground">Sunset</div>
-          <div className="text-xs font-semibold text-foreground">{endTime}</div>
-        </div>
+    <div className="flex gap-4">
+      {/* Sunrise Card */}
+      <div className="bg-card/95 backdrop-blur-sm rounded-2xl px-4 py-3 border border-border shadow-lg text-center">
+        <Sun className="w-6 h-6 text-amber-500 mx-auto mb-2" />
+        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Sunrise</div>
+        <div className="text-2xl font-bold text-foreground mb-1">{startTime}</div>
+        <div className="text-xs text-muted-foreground">Legal: {legalStartTime}</div>
+      </div>
+
+      {/* Sunset Card */}
+      <div className="bg-card/95 backdrop-blur-sm rounded-2xl px-4 py-3 border border-border shadow-lg text-center">
+        <Sun className="w-6 h-6 text-amber-600 mx-auto mb-2 opacity-70" />
+        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">Sunset</div>
+        <div className="text-2xl font-bold text-foreground mb-1">{endTime}</div>
+        <div className="text-xs text-muted-foreground">Legal: {legalEndTime}</div>
       </div>
     </div>
   );
