@@ -118,14 +118,15 @@ export default function TargetShooting() {
 
   const handleCheckin = async (e) => {
      e.preventDefault();
-     console.log('🟢 CHECK IN TRIGGERED - TargetShooting');
+     console.log('🟢 CHECK IN CLICKED - TargetShooting');
+     console.log('🟢 CHECK IN SAVE STARTED - club:', checkinData.club_id, 'date:', checkinData.date);
      try {
        const session = await base44.entities.TargetShooting.create({
          ...checkinData,
          active_checkin: true,
        });
+       console.log('🟢 CHECK IN SAVE SUCCESS - session id:', session.id);
        setActiveSession(session);
-       console.log('🟢 TRACKING STARTED for TargetShooting session:', session.id);
        trackingService.startTracking(session.id, 'target');
        setGpsTrack([]);
 
@@ -137,67 +138,54 @@ export default function TargetShooting() {
          notes: '',
        });
      } catch (error) {
-       console.error('Error checking in:', error);
+       console.error('🟢 CHECK IN SAVE FAILED:', error.message);
+       alert('Check-in failed: ' + error.message);
      }
    };
 
-  const handleCheckout = async (e) => {
-   e.preventDefault();
-   console.log('🔴 CHECK OUT TRIGGERED - TargetShooting', 'sessionId:', activeSession?.id);
-   // Validate at least one rifle with required fields
-   const hasValidRifle = checkoutData.rifles_used.some(r => r.rifle_id && r.rounds_fired && r.meters_range);
-   if (!hasValidRifle) {
-     alert('Please add at least one rifle with rounds and distance');
-     return;
-   }
+  // handleCheckout receives the final form data directly from the modal
+  const handleCheckout = async (formData) => {
+   console.log('🔴 CHECK OUT CLICKED - TargetShooting, sessionId:', activeSession?.id);
+   console.log('🔴 CHECK OUT SAVE STARTED - rifles:', formData.rifles_used?.length, 'photos:', formData.photos?.length);
    try {
      // Decrement ammo stock for each rifle used
      const uniqueAmmoIds = new Set();
-     for (const rifle of checkoutData.rifles_used) {
+     for (const rifle of formData.rifles_used || []) {
        if (rifle.ammunition_id && rifle.rounds_fired && !uniqueAmmoIds.has(rifle.ammunition_id)) {
          await decrementAmmoStock(rifle.ammunition_id, parseInt(rifle.rounds_fired));
          uniqueAmmoIds.add(rifle.ammunition_id);
        }
      }
      // Extract photo URLs from photo objects
-     const photoUrls = checkoutData.photos.map(photo => typeof photo === 'string' ? photo : photo.url);
+     const photoUrls = (formData.photos || []).map(photo => typeof photo === 'string' ? photo : photo.url);
      const finalTrack = trackingService.stopTracking();
-     console.log('🔴 TRACKING STOPPED - saved', finalTrack.length, 'GPS points');
+     console.log('🔴 GPS TRACK - saved', finalTrack.length, 'points');
 
      const updatePayload = {
-       ...checkoutData,
+       checkout_time: formData.checkout_time,
+       rifles_used: formData.rifles_used,
+       notes: formData.notes,
        photos: photoUrls,
        active_checkin: false,
        gps_track: finalTrack,
      };
-     console.log('🔴 UPDATE PAYLOAD - rifles:', checkoutData.rifles_used.length, 'photos:', photoUrls.length, 'gps:', finalTrack.length);
 
      await base44.entities.TargetShooting.update(activeSession.id, updatePayload);
-     console.log('🔴 CHECKOUT SUCCESS - Record updated:', activeSession.id);
+     console.log('🔴 CHECK OUT SAVE SUCCESS - Record updated:', activeSession.id);
 
       setActiveSession(null);
       setGpsTrack([]);
       setShowCheckout(false);
       setCheckoutData({
         checkout_time: new Date().toTimeString().slice(0, 5),
-        rifles_used: [
-          {
-            rifle_id: '',
-            rounds_fired: '',
-            meters_range: '',
-            ammunition_brand: '',
-            caliber: '',
-            bullet_type: '',
-            grain: '',
-          }
-        ],
+        rifles_used: [{ rifle_id: '', rounds_fired: '', meters_range: '', ammunition_brand: '', caliber: '', bullet_type: '', grain: '' }],
         notes: '',
         photos: [],
       });
       setViewingTrack(null);
     } catch (error) {
-      console.error('🔴 CHECKOUT ERROR:', error.message, error.status, error.response?.data);
-      alert('Error during checkout: ' + error.message);
+      console.error('🔴 CHECK OUT SAVE FAILED:', error.message, error.status, error.response?.data);
+      alert('Checkout failed: ' + error.message);
     }
   };
 
@@ -416,7 +404,6 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
       if (!rifle.rifle_id) missing.push('Rifle');
       if (!rifle.rounds_fired) missing.push('Rounds fired');
       if (!rifle.meters_range) missing.push('Meters range');
-      if (!rifle.ammunition_brand && !rifle.caliber && !rifle.bullet_type && !rifle.grain) missing.push('Ammunition details');
       if (missing.length > 0) {
         newErrors[`rifle_${idx}`] = `Required: ${missing.join(', ')}`;
       }
@@ -428,7 +415,8 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
     }
 
     setErrors({});
-    onSubmit(e);
+    // Pass the modal's own data state directly — parent's checkoutData is stale
+    onSubmit(data);
   };
 
   const updateRifleEntry = (index, field, value) => {

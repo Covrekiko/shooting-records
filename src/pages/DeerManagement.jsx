@@ -92,10 +92,11 @@ export default function DeerManagement() {
 
   const handleCheckin = async (e) => {
      e.preventDefault();
-     console.log('🟢 CHECK IN TRIGGERED - DeerManagement');
+     console.log('🟢 CHECK IN CLICKED - DeerManagement');
+     console.log('🟢 CHECK IN SAVE STARTED - location:', checkinData.place_name, 'date:', checkinData.date);
      try {
        const outing = await startOuting(checkinData);
-       console.log('🟢 TRACKING STARTED for DeerManagement outing:', outing.id);
+       console.log('🟢 CHECK IN SAVE SUCCESS - outing id:', outing.id);
        trackingService.startTracking(outing.id, 'deer');
 
        setShowCheckin(false);
@@ -106,16 +107,18 @@ export default function DeerManagement() {
          start_time: new Date().toTimeString().slice(0, 5),
        });
      } catch (error) {
-       console.error('Error checking in:', error);
+       console.error('🟢 CHECK IN SAVE FAILED:', error.message);
+       alert('Check-in failed: ' + error.message);
      }
    };
 
   const handleCheckout = async (checkoutData) => {
-     console.log('🔴 CHECK OUT TRIGGERED - DeerManagement', 'outingId:', activeOuting?.id);
+     console.log('🔴 CHECK OUT CLICKED - DeerManagement, outingId:', activeOuting?.id);
      if (!activeOuting) {
        alert('No active outing to check out from');
        return;
      }
+     console.log('🔴 CHECK OUT SAVE STARTED - shot_anything:', checkoutData.shot_anything);
      try {
        if (checkoutData.ammunition_id && checkoutData.total_count) {
          await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count));
@@ -130,16 +133,12 @@ export default function DeerManagement() {
        }
 
        const finalTrack = trackingService.stopTracking();
-       console.log('🔴 DeerManagement CHECKOUT: finalTrack has', finalTrack.length, 'points');
-       console.log('🔴 DeerManagement CHECKOUT: submitData.shot_anything:', submitData.shot_anything);
-       console.log('🔴 DeerManagement CHECKOUT: submitData keys:', Object.keys(submitData).join(', '));
-
        await endOutingWithData(activeOuting.id, submitData, finalTrack);
-       console.log('🔴 CHECKOUT SUCCESS - Outing finalized:', activeOuting.id);
+       console.log('🔴 CHECK OUT SAVE SUCCESS - Outing finalized:', activeOuting.id);
        setShowCheckout(false);
      } catch (error) {
-       console.error('🔴 CHECKOUT ERROR:', error.message, error.status, error.response?.data);
-       alert('Error during checkout: ' + error.message);
+       console.error('🔴 CHECK OUT SAVE FAILED:', error.message, error.status, error.response?.data);
+       alert('Checkout failed: ' + error.message);
      }
    };
 

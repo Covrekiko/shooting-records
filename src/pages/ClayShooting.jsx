@@ -92,14 +92,15 @@ export default function ClayShooting() {
 
   const handleCheckin = async (e) => {
      e.preventDefault();
-     console.log('🟢 CHECK IN TRIGGERED - ClayShooting');
+     console.log('🟢 CHECK IN CLICKED - ClayShooting');
+     console.log('🟢 CHECK IN SAVE STARTED - club:', checkinData.club_id, 'date:', checkinData.date);
      try {
        const session = await base44.entities.ClayShooting.create({
          ...checkinData,
          active_checkin: true,
        });
+       console.log('🟢 CHECK IN SAVE SUCCESS - session id:', session.id);
        setActiveSession(session);
-       console.log('🟢 TRACKING STARTED for ClayShooting session:', session.id);
        trackingService.startTracking(session.id, 'clay');
 
        setShowCheckin(false);
@@ -110,53 +111,43 @@ export default function ClayShooting() {
          notes: '',
        });
      } catch (error) {
-       console.error('Error checking in:', error);
+       console.error('🟢 CHECK IN SAVE FAILED:', error.message);
+       alert('Check-in failed: ' + error.message);
      }
    };
 
-  const handleCheckout = async (e) => {
-     e.preventDefault();
-     console.log('🔴 CHECK OUT TRIGGERED - ClayShooting', 'sessionId:', activeSession?.id);
-     if (!checkoutData.shotgun_id || !checkoutData.rounds_fired) {
+  // handleCheckout receives final form data directly from CheckoutModal
+  const handleCheckout = async (formData) => {
+     console.log('🔴 CHECK OUT CLICKED - ClayShooting, sessionId:', activeSession?.id);
+     console.log('🔴 CHECK OUT SAVE STARTED - shotgun:', formData.shotgun_id, 'rounds:', formData.rounds_fired);
+     if (!formData.shotgun_id || !formData.rounds_fired) {
        alert('Please select a shotgun and enter rounds fired');
        return;
      }
      try {
-       const uploadedPhotos = [];
-       if (checkoutData.photos && checkoutData.photos.length > 0) {
-         for (const photoData of checkoutData.photos) {
-           try {
-             if (photoData.startsWith('data:')) {
-               const res = await fetch(photoData);
-               const blob = await res.blob();
-               const result = await base44.integrations.Core.UploadFile({ file: blob });
-               if (result?.file_url) uploadedPhotos.push(result.file_url);
-             } else {
-               uploadedPhotos.push(photoData);
-             }
-           } catch (err) {
-             console.error('Photo upload error:', err);
-           }
-         }
-       }
+       // Photos are already uploaded as URLs by the modal's handlePhotoUpload
+       const photoUrls = (formData.photos || []).filter(p => typeof p === 'string' && !p.startsWith('data:'));
+
        // Decrement ammo stock
-       if (checkoutData.ammunition_id && checkoutData.rounds_fired) {
-         await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.rounds_fired));
+       if (formData.ammunition_id && formData.rounds_fired) {
+         await decrementAmmoStock(formData.ammunition_id, parseInt(formData.rounds_fired));
        }
        const finalTrack = trackingService.stopTracking();
-       console.log('🔴 TRACKING STOPPED - saved', finalTrack.length, 'GPS points');
 
        const updatePayload = {
-        ...checkoutData,
-        rounds_fired: checkoutData.rounds_fired ? parseInt(checkoutData.rounds_fired) : 0,
-        photos: uploadedPhotos,
+        checkout_time: formData.checkout_time,
+        shotgun_id: formData.shotgun_id,
+        rounds_fired: formData.rounds_fired ? parseInt(formData.rounds_fired) : 0,
+        ammunition_id: formData.ammunition_id,
+        ammunition_used: formData.ammunition_used,
+        notes: formData.notes,
+        photos: photoUrls,
         active_checkin: false,
         gps_track: finalTrack,
        };
-       console.log('🔴 UPDATE PAYLOAD:', JSON.stringify(updatePayload).substring(0, 200) + '...');
 
        await base44.entities.ClayShooting.update(activeSession.id, updatePayload);
-       console.log('🔴 CHECKOUT SUCCESS - Record updated:', activeSession.id);
+       console.log('🔴 CHECK OUT SAVE SUCCESS - Record updated:', activeSession.id);
 
        setActiveSession(null);
        setGpsTrack([]);
@@ -172,8 +163,8 @@ export default function ClayShooting() {
        });
        setViewingTrack(null);
      } catch (error) {
-       console.error('🔴 CHECKOUT ERROR:', error.message, error.status, error.response?.data);
-       alert('Error during checkout: ' + error.message);
+       console.error('🔴 CHECK OUT SAVE FAILED:', error.message, error.status, error.response?.data);
+       alert('Checkout failed: ' + error.message);
      }
    };
 
@@ -388,11 +379,17 @@ async function handlePhotoUpload(files, data, onChange) {
 }
 
 function CheckoutModal({ data, shotguns, ammunition, onSubmit, onChange, onClose, gpsTrack, onViewTrack }) {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Pass the current form data directly — avoids stale parent state
+    onSubmit(data);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-card rounded-lg max-w-md w-full p-6 my-8">
         <h2 className="text-xl font-bold mb-4">Check Out</h2>
-        <form onSubmit={onSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Check-out Time</label>
             <input

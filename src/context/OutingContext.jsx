@@ -29,7 +29,7 @@ export function OutingProvider({ children }) {
 
   const startOuting = async (data) => {
     try {
-      console.log('🟢 startOuting called with data:', data);
+      console.log('🟢 CHECK IN SAVE STARTED - OutingContext, data:', data.place_name);
       // Create DeerOuting (map system)
       const outing = await base44.entities.DeerOuting.create({
         location_name: data.place_name || data.location_name,
@@ -39,7 +39,7 @@ export function OutingProvider({ children }) {
         active: true,
       });
       
-      console.log('🟢 DeerOuting created with ID:', outing.id, 'GPS tracking will start immediately');
+      console.log('🟢 CHECK IN SAVE SUCCESS - DeerOuting created with ID:', outing.id);
       
       // Create DeerManagement session (deer management system)
       if (data.place_name && data.date && data.start_time) {
