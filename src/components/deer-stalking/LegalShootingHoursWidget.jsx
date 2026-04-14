@@ -8,29 +8,47 @@ export default function LegalShootingHoursWidget() {
     const calculateSunTimes = () => {
       const today = new Date();
       const lat = 51.5074; // London latitude
-      const lng = -0.1278; // London longitude
-
-      // Day of year
-      const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+      const lng = 0.1278; // London longitude (positive for East)
       
-      // Simplified accurate sunrise/sunset using equation of time
-      const J = dayOfYear - 1;
-      const M = (6.2401 + 0.01720197 * (365.25 * (today.getFullYear() - 2000) + J)) % (2 * Math.PI);
-      const eot = 9.87 * Math.sin(2 * M) - 7.53 * Math.cos(M) - 1.5 * Math.sin(M);
+      const J = today.getFullYear();
+      const M = today.getMonth() + 1;
+      const D = today.getDate();
       
-      const decl = 0.4093 * Math.sin((2 * Math.PI * (dayOfYear - 81)) / 365);
-      const ha = Math.acos(-Math.tan(lat * Math.PI / 180) * Math.tan(decl));
+      const n = 367 * J - Math.floor(7 * (J + Math.floor((M + 9) / 12)) / 4) + Math.floor(275 * M / 9) + D - 730531.5;
+      
+      const J2000 = n + 0.0008;
+      const M_sun = (357.5291 + 0.98560028 * J2000) % 360;
+      const lambda = 280.4659 + 0.98564736 * J2000 + 1.9146 * Math.sin(M_sun * Math.PI / 180) + 0.0200 * Math.sin(2 * M_sun * Math.PI / 180);
+      
+      const JD = J2000 + 2451545;
+      const dec = Math.asin(Math.sin(lambda * Math.PI / 180) * Math.sin(23.439 * Math.PI / 180)) * 180 / Math.PI;
+      
+      const cosH = -Math.tan(lat * Math.PI / 180) * Math.tan(dec * Math.PI / 180);
+      let h = 0;
+      
+      if (cosH < -1) {
+        h = 180; // Polar night
+      } else if (cosH > 1) {
+        h = 0; // Polar day
+      } else {
+        h = Math.acos(cosH) * 180 / Math.PI;
+      }
+      
+      const eq = 9.81 * Math.sin(2 * lambda * Math.PI / 180) - 7.53 * Math.cos((lambda - 78.51) * Math.PI / 180) - 1.5 * Math.sin((lambda - 2.4) * Math.PI / 180);
+      
+      const sunrise_ut = (h + lng) / 15 + 12 - eq / 60 - (JD - Math.floor(JD));
+      const sunset_ut = (-h + lng) / 15 + 12 - eq / 60 - (JD - Math.floor(JD));
+      
+      // Convert to local time (BST/GMT)
+      const offset = today.getTimezoneOffset() / -60; // Get timezone offset in hours
       
       const sunrise = new Date(today);
+      sunrise.setHours(Math.floor((sunrise_ut + offset) % 24));
+      sunrise.setMinutes(Math.round(((sunrise_ut + offset) % 1) * 60));
+      
       const sunset = new Date(today);
-      
-      // UTC times
-      const solarNoon = (12 - lng / 15 - eot / 60) * 60;
-      const sunriseMin = (solarNoon - (ha * 180 / Math.PI) / 15 * 60);
-      const sunsetMin = (solarNoon + (ha * 180 / Math.PI) / 15 * 60);
-      
-      sunrise.setMinutes(sunriseMin);
-      sunset.setMinutes(sunsetMin);
+      sunset.setHours(Math.floor((sunset_ut + offset) % 24));
+      sunset.setMinutes(Math.round(((sunset_ut + offset) % 1) * 60));
 
       setSunTimes({ sunrise, sunset });
     };
