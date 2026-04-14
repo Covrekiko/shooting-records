@@ -1,7 +1,8 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Settings, Target, Crosshair, Map, LayoutDashboard, BookOpen, User } from 'lucide-react';
+import { Menu, X, Settings, Target, Crosshair, Map, LayoutDashboard, BookOpen, User, ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navigation() {
   const [open, setOpen] = useState(false);
@@ -81,55 +82,93 @@ export default function Navigation() {
           {/* Mobile: hamburger for extras */}
           <button
             onClick={() => setOpen(!open)}
-            className="md:hidden p-2 hover:bg-secondary rounded-lg"
+            className="md:hidden p-1.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/20 transition-all active:scale-90"
           >
-            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {open ? <X className="w-5 h-5 text-slate-900" /> : <Menu className="w-5 h-5 text-slate-900" />}
           </button>
         </div>
 
-        {/* Mobile dropdown extra menu */}
-        {open && (
-          <div className="md:hidden bg-card border-t border-border px-4 pb-4 pt-2 space-y-1">
-            {moreNavItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setOpen(false)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive(item.path) ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-secondary'
-                  }`}
-                >
-                  {Icon && <Icon className="w-4 h-4" />}
-                  {item.label}
-                </Link>
-              );
-            })}
-            {user?.role === 'admin' && (
-              <Link
-                to="/admin/users"
-                onClick={() => setOpen(false)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  isActive('/admin/users') ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-secondary'
-                }`}
-              >
-                <Settings className="w-4 h-4" />
-                Admin
-              </Link>
-            )}
-            <Link
-              to="/profile"
-              onClick={() => setOpen(false)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive('/profile') ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-secondary'
-              }`}
+        {/* Mobile dropdown extra menu - iOS glass style */}
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden bg-white/15 backdrop-blur-xl border-t border-white/20 px-3 pb-3 pt-2 space-y-0.5"
+              style={{ WebkitBackdropFilter: 'blur(20px)' }}
             >
-              <User className="w-4 h-4" />
-              Profile
-            </Link>
-          </div>
-        )}
+              {/* Header */}
+              <div className="px-3 py-2 pb-3">
+                <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Menu</p>
+              </div>
+
+              {/* Records & Users section */}
+              <div className="space-y-0">
+                {moreNavItems.map((item, idx) => {
+                  const Icon = item.icon;
+                  return (
+                    <motion.div key={item.path} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.05 }}>
+                      <Link
+                        to={item.path}
+                        onClick={() => setOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all active:scale-95 ${
+                          isActive(item.path)
+                            ? 'bg-primary/20 text-primary'
+                            : 'text-slate-900 hover:bg-white/20'
+                        }`}
+                      >
+                        {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
+                        <span className="flex-1">{item.label}</span>
+                        <ChevronRight className="w-4 h-4 text-slate-400" />
+                      </Link>
+                    </motion.div>
+                  );
+                })}
+              </div>
+
+              {/* Divider */}
+              <div className="my-2 h-px bg-white/10" />
+
+              {/* Admin & Profile section */}
+              <div className="space-y-0">
+                {user?.role === 'admin' && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
+                    <Link
+                      to="/admin/users"
+                      onClick={() => setOpen(false)}
+                      className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all active:scale-95 ${
+                        isActive('/admin/users')
+                          ? 'bg-primary/20 text-primary'
+                          : 'text-slate-900 hover:bg-white/20'
+                      }`}
+                    >
+                      <Settings className="w-4 h-4 flex-shrink-0" />
+                      <span className="flex-1">Admin</span>
+                      <ChevronRight className="w-4 h-4 text-slate-400" />
+                    </Link>
+                  </motion.div>
+                )}
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
+                  <Link
+                    to="/profile"
+                    onClick={() => setOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all active:scale-95 ${
+                      isActive('/profile')
+                        ? 'bg-primary/20 text-primary'
+                        : 'text-slate-900 hover:bg-white/20'
+                    }`}
+                  >
+                    <User className="w-4 h-4 flex-shrink-0" />
+                    <span className="flex-1">Profile</span>
+                    <ChevronRight className="w-4 h-4 text-slate-400" />
+                  </Link>
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
 
       {/* Mobile Bottom Nav */}
