@@ -42,7 +42,7 @@ export default function Profile() {
                 My Details
               </Link>
               <Link
-                to="/settings/rifles"
+                to="/profile/settings"
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive('/profile/settings')
                     ? 'bg-primary text-primary-foreground'
@@ -98,18 +98,26 @@ export default function Profile() {
 
           {/* Content */}
           <div className="flex-1">
-            {isActive('/profile') ? (
-              <PersonalDetailsPanel />
-            ) : isActive('/profile/settings') || isActive('/settings') ? (
+            {isActive('/profile/settings') ? (
               <SettingsPanel />
-            ) : isActive('/records') ? (
-              <RecordsPanel />
             ) : (
               <PersonalDetailsPanel />
             )}
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+function Field({ label, error, required, children }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium mb-1">
+        {label}{required && <span className="text-destructive ml-1">*</span>}
+      </label>
+      {children}
+      {error && <p className="text-destructive text-xs mt-1">{error}</p>}
     </div>
   );
 }
@@ -230,16 +238,6 @@ function PersonalDetailsPanel() {
     `w-full px-3 py-2 border rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-colors ${
       errors[field] ? 'border-destructive' : 'border-border'
     }`;
-
-  const Field = ({ label, error, required, children }) => (
-    <div>
-      <label className="block text-sm font-medium mb-1">
-        {label}{required && <span className="text-destructive ml-1">*</span>}
-      </label>
-      {children}
-      {error && <p className="text-destructive text-xs mt-1">{error}</p>}
-    </div>
-  );
 
   return (
     <div>
