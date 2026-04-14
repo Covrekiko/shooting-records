@@ -349,10 +349,7 @@ export default function DeerStalkingMap() {
           onClick={handleMapClick}
           options={{
             mapTypeId: useSatellite ? 'satellite' : 'roadmap',
-            zoomControl: false,
-            streetViewControl: false,
-            fullscreenControl: false,
-            mapTypeControl: false,
+            disableDefaultUI: true,
           }}
         >
           {/* User location */}
