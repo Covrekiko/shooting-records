@@ -36,30 +36,30 @@ export function OutingProvider({ children }) {
 
   const startOuting = async (data) => {
      try {
-       console.log('🟢 CHECK IN SAVE STARTED - OutingContext, data:', data.place_name);
+       console.log('🟢 CHECK IN SAVE STARTED - OutingContext, areaId:', data.location_id, 'placeName:', data.place_name);
 
        // Construct proper ISO date-time from date and time inputs
        const [year, month, day] = (data.date || '').split('-');
        const [hours, minutes] = (data.start_time || '').split(':');
        const isoDateTime = new Date(year, parseInt(month) - 1, day, hours, minutes).toISOString();
 
-       // Create DeerOuting (map system)
+       // Create DeerOuting (map system) - primary record with area_id link
        const outing = await base44.entities.DeerOuting.create({
-         location_name: data.place_name || data.location_name,
-         area_id: data.location_id || data.area_id || '',
+         location_name: data.place_name || '',
+         area_id: data.location_id || '',
          start_time: isoDateTime,
          gps_track: [],
          active: true,
        });
 
-       console.log('🟢 CHECK IN SAVE SUCCESS - DeerOuting created with ID:', outing.id, 'start_time:', isoDateTime);
+       console.log('🟢 CHECK IN SAVE SUCCESS - DeerOuting created with ID:', outing.id, 'areaId:', outing.area_id, 'start_time:', isoDateTime);
 
-       // Create SessionRecord for deer management - this is the primary record
-       if (data.place_name && data.date && data.start_time) {
+       // Create SessionRecord for deer management - mirror with location_id
+       if (data.place_name && data.date && data.start_time && data.location_id) {
          const sr = await base44.entities.SessionRecord.create({
            category: 'deer_management',
            date: data.date,
-           location_id: data.location_id || '',
+           location_id: data.location_id,
            location_name: data.place_name,
            start_time: data.start_time,
            status: 'active',
@@ -68,7 +68,7 @@ export function OutingProvider({ children }) {
            gps_track: [],
            checkin_time: data.start_time,
          });
-         console.log('🟢 SessionRecord created with ID:', sr.id);
+         console.log('🟢 SessionRecord created with ID:', sr.id, 'location_id:', sr.location_id);
        }
 
        setActiveOuting(outing);

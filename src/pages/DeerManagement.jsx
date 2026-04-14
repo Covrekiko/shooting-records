@@ -276,11 +276,16 @@ export default function DeerManagement() {
 }
 
 function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
+  const selectedArea = areas.find(a => a.id === data.location_id);
+
   const handleAreaSelect = (areaId) => {
     onChange('location_id', areaId);
+    // Auto-fill place_name only if it's empty
+    if (!data.place_name && areaId) {
+      const selected = areas.find(a => a.id === areaId);
+      if (selected) onChange('place_name', selected.name);
+    }
   };
-
-  const selectedArea = areas.find(a => a.id === data.location_id);
 
   return (
     <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
@@ -300,7 +305,13 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
             required
           >
             <option value="">Select your area</option>
-            {areas.map((area) => (<option key={area.id} value={area.id}>{area.name}</option>))}
+            {areas && areas.length > 0 ? (
+              areas.map((area) => (
+                <option key={area.id} value={area.id}>{area.name || 'Unnamed Area'}</option>
+              ))
+            ) : (
+              <option disabled>No areas available</option>
+            )}
           </select>
           {selectedArea && (
             <p className="text-xs text-primary mt-2 font-medium">✓ {selectedArea.name} selected</p>
@@ -308,7 +319,7 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Place Name</label>
-          <input type="text" value={data.place_name} onChange={(e) => onChange('place_name', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required />
+          <input type="text" value={data.place_name} onChange={(e) => onChange('place_name', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" placeholder={selectedArea ? `Suggested: ${selectedArea.name}` : 'Enter location name'} required />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Check-in Time</label>
