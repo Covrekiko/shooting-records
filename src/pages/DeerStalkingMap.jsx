@@ -486,18 +486,18 @@ export default function DeerStalkingMap() {
       </MapContainer>
       </div>
 
-      {/* Floating Map Search & Satellite - Top Right */}
-      <div className="fixed top-16 right-4 z-[9999] flex flex-col gap-2 pointer-events-auto items-end">
+      {/* Floating Map Controls - Top Right */}
+      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-auto items-end">
         {/* Satellite Toggle */}
         <button
           onClick={() => setUseSatellite(!useSatellite)}
-          className="p-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all shadow-lg"
+          className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-800 text-white rounded-full hover:bg-slate-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center"
           title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
         >
-          <Satellite className="w-4 h-4" />
+          <Satellite className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
         
-        <FloatingMapSearch onSearch={handleMapSearch} />
+        <FloatingMapSearch onSearch={handleMapSearch} isGrouped={true} />
       </div>
 
       {/* Area Selector - Top Left */}
@@ -513,7 +513,7 @@ export default function DeerStalkingMap() {
       {/* Back to Dashboard */}
       <Link
         to="/"
-        className="fixed top-4 right-4 z-[9999] flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all pointer-events-auto"
+        className="fixed top-4 left-4 z-[9999] flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all pointer-events-auto md:top-20"
       >
         <Home className="w-4 h-4" />
         Dashboard
