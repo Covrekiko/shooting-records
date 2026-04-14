@@ -50,7 +50,7 @@ export default function FloatingActionBar({
             className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-full shadow-lg hover:bg-slate-600 transition-all cursor-pointer pointer-events-auto active:scale-95"
           >
             <Crosshair className="w-5 h-5" />
-            <span className="text-sm font-medium">Live Location</span>
+            <span className="text-sm font-medium">My Location</span>
           </button>
           <button
             onClick={() => handleAction(onPOI)}
