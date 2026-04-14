@@ -174,7 +174,7 @@ export default function Reports() {
   return (
     <div>
       <Navigation />
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 pt-4 md:pt-16 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Reports & Analytics</h1>
           <p className="text-muted-foreground">View detailed analytics and generate PDF reports of your shooting activities</p>

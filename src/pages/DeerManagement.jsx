@@ -166,7 +166,7 @@ export default function DeerManagement() {
           onCheckin={() => setShowCheckin(true)}
         />
       )}
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-4 pt-4 md:pt-16 py-8">
         <div className="mb-8">
           <div className="flex items-start justify-between gap-3">
             <div>

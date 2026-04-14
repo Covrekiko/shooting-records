@@ -224,7 +224,7 @@ export default function TargetShooting() {
           onCheckin={() => setShowCheckin(true)}
         />
       )}
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-4 pt-4 md:pt-16 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Target Shooting</h1>
           <p className="text-muted-foreground">Record your rifle shooting sessions</p>

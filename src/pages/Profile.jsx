@@ -23,7 +23,7 @@ export default function Profile() {
   return (
     <div>
       <Navigation />
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4 pt-4 md:pt-16 py-8">
         <h1 className="text-3xl font-bold mb-8">Profile</h1>
 
         <div className="flex flex-col md:flex-row gap-8">

@@ -57,7 +57,7 @@ export default function Goals() {
   return (
     <div>
       <Navigation />
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-4 pt-4 md:pt-16 py-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2 mb-2">
