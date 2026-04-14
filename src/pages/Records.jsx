@@ -196,7 +196,7 @@ export default function Records() {
                     <span className="hidden sm:inline">Preview PDF</span>
                   </button>
                   <button
-                    onClick={() => exportRecordsToPdf(filteredRecords, user, 'shooting-records.pdf', rifles, clubs, shotguns)}
+                    onClick={() => exportRecordsToPdf(filteredRecords, null, 'shooting-records.pdf', rifles, clubs, shotguns)}
                     className="p-2 sm:px-3 sm:py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
                     title="Export PDF"
                   >
@@ -265,9 +265,9 @@ export default function Records() {
         )}
         
         {previewingPdf && createPortal(
-          <PdfPreviewModal records={previewingPdf} userInfo={user} rifles={rifles} clubs={clubs} shotguns={shotguns} onClose={() => setPreviewingPdf(null)} />,
-          document.body
-        )}
+           <PdfPreviewModal records={previewingPdf} userInfo={null} rifles={rifles} clubs={clubs} shotguns={shotguns} onClose={() => setPreviewingPdf(null)} />,
+           document.body
+         )}
         
         {viewingTrack && createPortal(
           <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />,
@@ -937,7 +937,7 @@ function PdfPreviewModal({ records, userInfo, rifles, clubs, shotguns, onClose }
         </div>
         <div className="p-4 border-t border-border flex justify-end gap-2">
           <button
-            onClick={() => exportRecordsToPdf(records, userInfo, 'shooting-records.pdf', rifles, clubs, shotguns)}
+            onClick={() => exportRecordsToPdf(records, null, 'shooting-records.pdf', rifles, clubs, shotguns)}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
