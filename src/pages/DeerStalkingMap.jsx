@@ -62,12 +62,13 @@ export default function DeerStalkingMap() {
     loadRiflesAndAmmo();
   }, []);
 
-  // GPS tracking for active outing — throttled to save DB every 30s
+  // GPS tracking for active outing — throttled to save DB every 60s
   useEffect(() => {
     if (!activeOuting?.id) return;
 
     let currentTrack = activeOuting.gps_track || [];
     let lastSaveTime = 0;
+    let isScheduled = false;
 
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
@@ -75,10 +76,12 @@ export default function DeerStalkingMap() {
         const timestamp = Date.now();
         currentTrack = [...currentTrack, { lat: latitude, lng: longitude, timestamp }];
 
-        // Only save to DB at most once every 30 seconds
-        if (timestamp - lastSaveTime >= 30000) {
+        // Throttle to once every 60 seconds
+        if (timestamp - lastSaveTime >= 60000 && !isScheduled) {
+          isScheduled = true;
           lastSaveTime = timestamp;
           updateGpsTrack(activeOuting.id, currentTrack);
+          isScheduled = false;
         }
       },
       (error) => console.error('❌ Geolocation error:', error),
