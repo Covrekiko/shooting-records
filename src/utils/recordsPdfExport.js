@@ -23,25 +23,36 @@ const STYLES = {
 };
 
 export async function exportRecordsToPdf(records, userInfo = null, fileName = 'shooting-records.pdf', rifles = {}, clubs = {}, shotguns = {}) {
-   const doc = new jsPDF();
-   const pageWidth = doc.internal.pageSize.getWidth();
-   const pageHeight = doc.internal.pageSize.getHeight();
-   const docId = generateDocumentId();
-   let pageNum = 1;
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const docId = generateDocumentId();
+    let pageNum = 1;
 
-   // Always fetch fresh user data from the current session
-   let userData = userInfo;
-   if (!userData) {
-     try {
-       const { base44 } = await import('@/api/base44Client');
-       const authUser = await base44.auth.me();
-       // Fetch full user entity data which has custom fields (date_of_birth, address, etc.)
-       const fullUserData = await base44.entities.User.get(authUser.id);
-       userData = { ...authUser, ...fullUserData };
-     } catch (e) {
-       console.warn('Could not fetch fresh user data:', e);
-     }
-   }
+    // Always fetch fresh user data from the current session
+    let userData = userInfo;
+    if (!userData) {
+      try {
+        const { base44 } = await import('@/api/base44Client');
+        const authUser = await base44.auth.me();
+        // Fetch full user entity data with all profile fields (firstName, lastName, dateOfBirth, address fields, etc.)
+        const fullUserData = await base44.entities.User.get(authUser.id);
+        userData = {
+          email: authUser.email,
+          firstName: fullUserData.firstName || '',
+          middleName: fullUserData.middleName || '',
+          lastName: fullUserData.lastName || '',
+          dateOfBirth: fullUserData.dateOfBirth || '',
+          addressLine1: fullUserData.addressLine1 || '',
+          addressLine2: fullUserData.addressLine2 || '',
+          city: fullUserData.city || '',
+          postcode: fullUserData.postcode || '',
+          country: fullUserData.country || '',
+        };
+      } catch (e) {
+        console.warn('Could not fetch fresh user data:', e);
+      }
+    }
 
    if (userData) {
      createFrontPage(doc, userData, pageWidth, pageHeight, docId);
@@ -83,25 +94,36 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
 }
 
 export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, clubs = {}, shotguns = {}) {
-   const doc = new jsPDF();
-   const pageWidth = doc.internal.pageSize.getWidth();
-   const pageHeight = doc.internal.pageSize.getHeight();
-   const docId = generateDocumentId();
-   let pageNum = 1;
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const docId = generateDocumentId();
+    let pageNum = 1;
 
-   // Always fetch fresh user data from the current session
-   let userData = userInfo;
-   if (!userData) {
-     try {
-       const { base44 } = await import('@/api/base44Client');
-       const authUser = await base44.auth.me();
-       // Fetch full user entity data which has custom fields (date_of_birth, address, etc.)
-       const fullUserData = await base44.entities.User.get(authUser.id);
-       userData = { ...authUser, ...fullUserData };
-     } catch (e) {
-       console.warn('Could not fetch fresh user data:', e);
-     }
-   }
+    // Always fetch fresh user data from the current session
+    let userData = userInfo;
+    if (!userData) {
+      try {
+        const { base44 } = await import('@/api/base44Client');
+        const authUser = await base44.auth.me();
+        // Fetch full user entity data with all profile fields (firstName, lastName, dateOfBirth, address fields, etc.)
+        const fullUserData = await base44.entities.User.get(authUser.id);
+        userData = {
+          email: authUser.email,
+          firstName: fullUserData.firstName || '',
+          middleName: fullUserData.middleName || '',
+          lastName: fullUserData.lastName || '',
+          dateOfBirth: fullUserData.dateOfBirth || '',
+          addressLine1: fullUserData.addressLine1 || '',
+          addressLine2: fullUserData.addressLine2 || '',
+          city: fullUserData.city || '',
+          postcode: fullUserData.postcode || '',
+          country: fullUserData.country || '',
+        };
+      } catch (e) {
+        console.warn('Could not fetch fresh user data:', e);
+      }
+    }
 
    if (userData) {
      createFrontPage(doc, userData, pageWidth, pageHeight, docId);
@@ -143,78 +165,85 @@ export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, c
 }
 
 function createFrontPage(doc, userInfo, pageWidth, pageHeight, docId) {
-  const { margin } = STYLES;
-  let yPosition = pageHeight * 0.15;
+   const { margin } = STYLES;
+   let yPosition = pageHeight * 0.15;
 
-  doc.setFontSize(28);
-  doc.setFont(undefined, 'bold');
-  doc.setTextColor(...STYLES.headingColor);
-  doc.text('SHOOTING ACTIVITY RECORD', pageWidth / 2, yPosition, { align: 'center' });
-  yPosition += 12;
+   doc.setFontSize(28);
+   doc.setFont(undefined, 'bold');
+   doc.setTextColor(...STYLES.headingColor);
+   doc.text('SHOOTING ACTIVITY RECORD', pageWidth / 2, yPosition, { align: 'center' });
+   yPosition += 12;
 
-  doc.setFontSize(11);
-  doc.setFont(undefined, 'normal');
-  doc.setTextColor(100, 100, 100);
-  doc.text('Official Regulatory Compliance Report', pageWidth / 2, yPosition, { align: 'center' });
-  yPosition += 20;
+   doc.setFontSize(11);
+   doc.setFont(undefined, 'normal');
+   doc.setTextColor(100, 100, 100);
+   doc.text('Official Regulatory Compliance Report', pageWidth / 2, yPosition, { align: 'center' });
+   yPosition += 20;
 
-  // Personal Information Section
-  doc.setFillColor(...STYLES.lightGray);
-  doc.rect(margin, yPosition, pageWidth - 2 * margin, 3, 'F');
-  yPosition += 5;
+   // Personal Information Section
+   doc.setFillColor(...STYLES.lightGray);
+   doc.rect(margin, yPosition, pageWidth - 2 * margin, 3, 'F');
+   yPosition += 5;
 
-  doc.setFontSize(11);
-  doc.setFont(undefined, 'bold');
-  doc.setTextColor(...STYLES.headingColor);
-  doc.text('PARTICIPANT INFORMATION', margin + 5, yPosition);
-  yPosition += 10;
+   doc.setFontSize(11);
+   doc.setFont(undefined, 'bold');
+   doc.setTextColor(...STYLES.headingColor);
+   doc.text('PARTICIPANT INFORMATION', margin + 5, yPosition);
+   yPosition += 10;
 
-  doc.setFontSize(10);
-  doc.setFont(undefined, 'normal');
-  doc.setTextColor(...STYLES.textColor);
+   doc.setFontSize(10);
+   doc.setFont(undefined, 'normal');
+   doc.setTextColor(...STYLES.textColor);
 
-  // Full Name
-  doc.setFont(undefined, 'bold');
-  doc.text('Name:', margin + 5, yPosition);
-  doc.setFont(undefined, 'normal');
-  doc.text(userInfo.full_name || '-', margin + 40, yPosition);
-  yPosition += 8;
+   // Build full name from firstName, middleName, lastName
+   const fullName = [userInfo.firstName, userInfo.middleName, userInfo.lastName].filter(Boolean).join(' ');
+   doc.setFont(undefined, 'bold');
+   doc.text('Name:', margin + 5, yPosition);
+   doc.setFont(undefined, 'normal');
+   doc.text(fullName || '-', margin + 40, yPosition);
+   yPosition += 8;
 
-  // Email
-  doc.setFont(undefined, 'bold');
-  doc.text('Email:', margin + 5, yPosition);
-  doc.setFont(undefined, 'normal');
-  doc.text(userInfo.email || '-', margin + 40, yPosition);
-  yPosition += 8;
+   // Email
+   doc.setFont(undefined, 'bold');
+   doc.text('Email:', margin + 5, yPosition);
+   doc.setFont(undefined, 'normal');
+   doc.text(userInfo.email || '-', margin + 40, yPosition);
+   yPosition += 8;
 
-  // Date of Birth
-  doc.setFont(undefined, 'bold');
-  doc.text('Date of Birth:', margin + 5, yPosition);
-  doc.setFont(undefined, 'normal');
-  if (userInfo.dateOfBirth) {
-    const dob = new Date(userInfo.dateOfBirth);
-    const dobStr = dob.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
-    doc.text(dobStr, margin + 40, yPosition);
-  } else {
-    doc.text('-', margin + 40, yPosition);
-  }
-  yPosition += 8;
+   // Date of Birth
+   doc.setFont(undefined, 'bold');
+   doc.text('Date of Birth:', margin + 5, yPosition);
+   doc.setFont(undefined, 'normal');
+   if (userInfo.dateOfBirth) {
+     const dob = new Date(userInfo.dateOfBirth);
+     const dobStr = dob.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+     doc.text(dobStr, margin + 40, yPosition);
+   } else {
+     doc.text('-', margin + 40, yPosition);
+   }
+   yPosition += 8;
 
-  // Address
-  doc.setFont(undefined, 'bold');
-  doc.text('Address:', margin + 5, yPosition);
-  doc.setFont(undefined, 'normal');
-  const fullAddress = [userInfo.addressLine1, userInfo.addressLine2, userInfo.city, userInfo.postcode, userInfo.country].filter(Boolean).join(', ');
-  if (fullAddress) {
-    const addressText = doc.splitTextToSize(fullAddress, pageWidth - 2 * margin - 50);
-    addressText.forEach((line, idx) => {
-      doc.text(line, margin + 40, yPosition);
-      yPosition += 5;
-    });
-  } else {
-    doc.text('-', margin + 40, yPosition);
-    yPosition += 5;
-  }
+   // Address - build from address components
+   doc.setFont(undefined, 'bold');
+   doc.text('Address:', margin + 5, yPosition);
+   doc.setFont(undefined, 'normal');
+   const addressParts = [];
+   if (userInfo.addressLine1) addressParts.push(userInfo.addressLine1);
+   if (userInfo.addressLine2) addressParts.push(userInfo.addressLine2);
+   if (userInfo.city) addressParts.push(userInfo.city);
+   if (userInfo.postcode) addressParts.push(userInfo.postcode);
+   if (userInfo.country) addressParts.push(userInfo.country);
+   const fullAddress = addressParts.join(', ');
+   if (fullAddress) {
+     const addressText = doc.splitTextToSize(fullAddress, pageWidth - 2 * margin - 50);
+     addressText.forEach((line, idx) => {
+       doc.text(line, margin + 40, yPosition);
+       yPosition += 5;
+     });
+   } else {
+     doc.text('-', margin + 40, yPosition);
+     yPosition += 5;
+   }
 
   yPosition = pageHeight - 25;
   doc.setFontSize(8);

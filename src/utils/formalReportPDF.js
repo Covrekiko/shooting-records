@@ -69,9 +69,20 @@ export async function generateFormalReport(records, user, options = {}) {
      try {
        const { base44 } = await import('@/api/base44Client');
        const authUser = await base44.auth.me();
-       // Fetch full user entity data which has custom fields (date_of_birth, address, etc.)
+       // Fetch full user entity data with all profile fields (firstName, lastName, dateOfBirth, address fields, etc.)
        const fullUserData = await base44.entities.User.get(authUser.id);
-       userData = { ...authUser, ...fullUserData };
+       userData = {
+         email: authUser.email,
+         firstName: fullUserData.firstName || '',
+         middleName: fullUserData.middleName || '',
+         lastName: fullUserData.lastName || '',
+         dateOfBirth: fullUserData.dateOfBirth || '',
+         addressLine1: fullUserData.addressLine1 || '',
+         addressLine2: fullUserData.addressLine2 || '',
+         city: fullUserData.city || '',
+         postcode: fullUserData.postcode || '',
+         country: fullUserData.country || '',
+       };
      } catch (e) {
        console.warn('Could not fetch fresh user data:', e);
      }
@@ -112,9 +123,10 @@ export async function generateFormalReport(records, user, options = {}) {
   
   doc.setFont(undefined, 'normal');
   doc.setFontSize(10);
+  const fullName = [userData.firstName, userData.middleName, userData.lastName].filter(Boolean).join(' ');
   const fullAddress = [userData.addressLine1, userData.addressLine2, userData.city, userData.postcode, userData.country].filter(Boolean).join(', ');
   const reportInfo = [
-    `Name: ${userData.full_name || 'Unknown'}`,
+    `Name: ${fullName || 'Unknown'}`,
     `Email: ${userData.email || 'Not provided'}`,
     `Address: ${fullAddress || 'Not provided'}`,
     `Date of Birth: ${userData.dateOfBirth ? format(new Date(userData.dateOfBirth), 'dd/MM/yyyy') : 'Not provided'}`,
@@ -279,8 +291,9 @@ export async function generateFormalReport(records, user, options = {}) {
   doc.setTextColor(DARK_TEXT[0], DARK_TEXT[1], DARK_TEXT[2]);
   doc.setFont(undefined, 'normal');
   
+  const certFullName = [userData.firstName, userData.middleName, userData.lastName].filter(Boolean).join(' ') || 'the account holder';
   const certText = `This report contains a comprehensive record of shooting activities and deer management
-  operations conducted by ${userData.firstName ? userData.firstName + ' ' + userData.lastName : userData.full_name || 'the account holder'} as documented in the Shooting Records
+  operations conducted by ${certFullName} as documented in the Shooting Records
   Management System. All information contained herein is accurate to the best of the account
   holder's knowledge and has been compiled in accordance with relevant regulations and best practices.
 
