@@ -110,7 +110,7 @@ export default function FloatingMapSearch({ onSearch, onError, isGrouped = false
         </button>
       ) : (
         /* Expanded Search Bar */
-        <form onSubmit={handleSearch} className={isGrouped ? "absolute top-12 left-0 w-72 sm:w-80 pointer-events-auto" : "absolute bottom-0 right-0 w-72 sm:w-80 max-w-[calc(100vw-2rem)] pointer-events-auto"}>
+        <form onSubmit={handleSearch} className={isGrouped ? "absolute top-full left-1/2 -translate-x-1/2 mt-2 w-72 sm:w-80 pointer-events-auto z-50" : "absolute bottom-0 right-0 w-72 sm:w-80 max-w-[calc(100vw-2rem)] pointer-events-auto"}>
           <div className="bg-card rounded-lg shadow-lg overflow-hidden border border-border animate-in fade-in slide-in-from-bottom-2 duration-200">
             {/* Search Input */}
             <div className="flex items-center gap-1.5 px-2 py-2">
