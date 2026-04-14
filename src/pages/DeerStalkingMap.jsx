@@ -352,6 +352,7 @@ export default function DeerStalkingMap() {
             zoomControl: false,
             streetViewControl: false,
             fullscreenControl: false,
+            mapTypeControl: false,
           }}
         >
           {/* User location */}
