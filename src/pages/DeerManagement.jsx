@@ -16,7 +16,7 @@ const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water 
 
 export default function DeerManagement() {
   const { activeOuting, loading: outingLoading, startOuting, endOutingWithData } = useOuting();
-  const [locations, setLocations] = useState([]);
+  const [areas, setAreas] = useState([]);
   const [rifles, setRifles] = useState([]);
   const [ammunition, setAmmunition] = useState([]);
   const [showCheckin, setShowCheckin] = useState(false);
@@ -38,13 +38,13 @@ export default function DeerManagement() {
       try {
         const currentUser = await base44.auth.me();
 
-        const [locationsList, riflesList, ammoList] = await Promise.all([
-          base44.entities.DeerLocation.filter({ created_by: currentUser.email }),
+        const [areasList, riflesList, ammoList] = await Promise.all([
+          base44.entities.Area.filter({ created_by: currentUser.email }),
           base44.entities.Rifle.filter({ created_by: currentUser.email }),
           base44.entities.Ammunition.filter({ created_by: currentUser.email }),
         ]);
 
-        setLocations(locationsList);
+        setAreas(areasList);
         setRifles(riflesList);
         setAmmunition(ammoList);
       } catch (error) {
@@ -72,23 +72,22 @@ export default function DeerManagement() {
   }, []);
 
   useEffect(() => {
-    if (location && locations.length > 0) {
-      locations.forEach((loc) => {
-        const match = loc.location?.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
-        if (match) {
+    if (location && areas.length > 0) {
+      areas.forEach((area) => {
+        if (area.center_point?.lat && area.center_point?.lng) {
           const distance = calculateDistance(
             location.latitude,
             location.longitude,
-            parseFloat(match[1]),
-            parseFloat(match[2])
+            area.center_point.lat,
+            area.center_point.lng
           );
           if (distance < 0.5) {
-            setNearbyLocation({ name: loc.place_name, distance });
+            setNearbyLocation({ name: area.name, distance });
           }
         }
       });
     }
-  }, [location, locations]);
+  }, [location, areas]);
 
   const handleCheckin = async (e) => {
      e.preventDefault();
@@ -233,7 +232,7 @@ export default function DeerManagement() {
                 <div className="fixed inset-0 z-[50001] flex items-end sm:items-center justify-center">
                     <CheckinModal
                     data={checkinData}
-                    locations={locations}
+                    areas={areas}
                     onSubmit={handleCheckin}
                     onChange={(field, value) =>
                       setCheckinData({ ...checkinData, [field]: value })
@@ -265,7 +264,13 @@ export default function DeerManagement() {
   );
 }
 
-function CheckinModal({ data, locations, onSubmit, onChange, onClose }) {
+function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
+  const handleAreaSelect = (areaId) => {
+    const selected = areas.find(a => a.id === areaId);
+    onChange('location_id', areaId);
+    if (selected) onChange('place_name', selected.name);
+  };
+
   return (
     <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
       <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4 sm:hidden" />
@@ -276,10 +281,10 @@ function CheckinModal({ data, locations, onSubmit, onChange, onClose }) {
           <input type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Location</label>
-          <select value={data.location_id} onChange={(e) => onChange('location_id', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required>
-            <option value="">Select a location</option>
-            {locations.map((loc) => (<option key={loc.id} value={loc.id}>{loc.place_name}</option>))}
+          <label className="block text-sm font-medium mb-1">Select Area</label>
+          <select value={data.location_id} onChange={(e) => handleAreaSelect(e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required>
+            <option value="">Select your area</option>
+            {areas.map((area) => (<option key={area.id} value={area.id}>{area.name}</option>))}
           </select>
         </div>
         <div>
