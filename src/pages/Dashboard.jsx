@@ -109,8 +109,8 @@ export default function Dashboard() {
            />
          </div>
        )}
-       <main className="max-w-7xl mx-auto px-4 py-4 md:py-12 pb-20">
-         <div className="mb-8">
+       <main className="max-w-7xl mx-auto px-4 py-2 md:py-12 pb-20">
+         <div className="mb-4 hidden md:block">
            <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-1">Dashboard</h1>
            <p className="text-sm text-muted-foreground">Welcome back, <span className="font-semibold text-foreground">{user?.full_name}</span></p>
          </div>
