@@ -82,19 +82,34 @@ export default function Records() {
         query.created_by = currentUser.email;
       }
 
-      const sessionRecords = await base44.entities.SessionRecord.filter(query);
+      // Load from both SessionRecord (new) and legacy entities
+      const [sessionRecords, targetRecords, clayRecords, deerRecords] = await Promise.all([
+        base44.entities.SessionRecord.filter(query).catch(() => []),
+        base44.entities.TargetShooting?.filter(query).catch(() => []),
+        base44.entities.ClayShooting?.filter(query).catch(() => []),
+        base44.entities.DeerManagement?.filter(query).catch(() => [])
+      ]);
 
       // Map category to recordType for compatibility
-      const records = sessionRecords.map((r) => {
+      const mappedSession = (sessionRecords || []).map((r) => {
         const recordTypeMap = {
           'target_shooting': 'target',
           'clay_shooting': 'clay',
           'deer_management': 'deer'
         };
         return { ...r, recordType: recordTypeMap[r.category] || r.category };
-      }).sort((a, b) => new Date(b.date) - new Date(a.date));
+      });
 
-      setAllRecords(records);
+      // Restore legacy records
+      const legacyTarget = (targetRecords || []).map((r) => ({ ...r, recordType: 'target', category: 'target_shooting' }));
+      const legacyClay = (clayRecords || []).map((r) => ({ ...r, recordType: 'clay', category: 'clay_shooting' }));
+      const legacyDeer = (deerRecords || []).map((r) => ({ ...r, recordType: 'deer', category: 'deer_management' }));
+
+      // Combine all records
+      const allRecordsList = [...mappedSession, ...legacyTarget, ...legacyClay, ...legacyDeer]
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      setAllRecords(allRecordsList);
     } catch (error) {
       console.error('Error loading records:', error);
     } finally {

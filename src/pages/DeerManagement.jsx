@@ -299,7 +299,12 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Select Area</label>
-          <select value={data.location_id} onChange={(e) => handleAreaSelect(e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required>
+          <select 
+            value={data.location_id || ''} 
+            onChange={(e) => handleAreaSelect(e.target.value)} 
+            className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" 
+            required
+          >
             <option value="">Select your area</option>
             {areas.map((area) => (<option key={area.id} value={area.id}>{area.name}</option>))}
           </select>
