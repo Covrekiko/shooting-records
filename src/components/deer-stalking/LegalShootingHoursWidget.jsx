@@ -36,8 +36,8 @@ export default function LegalShootingHoursWidget() {
       
       const eq = 9.81 * Math.sin(2 * lambda * Math.PI / 180) - 7.53 * Math.cos((lambda - 78.51) * Math.PI / 180) - 1.5 * Math.sin((lambda - 2.4) * Math.PI / 180);
       
-      const sunrise_ut = (h + lng) / 15 + 12 - eq / 60 - (JD - Math.floor(JD));
-      const sunset_ut = (-h + lng) / 15 + 12 - eq / 60 - (JD - Math.floor(JD));
+      const sunrise_ut = 12 - h / 15 + lng / 15 - eq / 60;
+      const sunset_ut = 12 + h / 15 + lng / 15 - eq / 60;
       
       // Convert to local time (BST/GMT)
       const offset = today.getTimezoneOffset() / -60; // Get timezone offset in hours
