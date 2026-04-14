@@ -116,17 +116,11 @@ export default function Dashboard() {
          </div>
 
          {user?.role === 'admin' ? (
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
             <StatCard
               icon={<Map className="w-8 h-8" />}
               label="Stalking Map"
               link="/deer-stalking"
-            />
-            <StatCard
-              icon={<span className="text-2xl">🦌</span>}
-              label="Deer Management"
-              value={stats?.deerRecords || 0}
-              link="/deer-management"
             />
             <StatCard
               icon={<Crosshair className="w-8 h-8" />}
@@ -139,9 +133,16 @@ export default function Dashboard() {
               label="Clay Shooting"
               value={stats?.clayRecords || 0}
               link="/clay-shooting"
-             />
+            />
+            <StatCard
+              icon={<span className="text-2xl">🦌</span>}
+              label="Deer Management"
+              value={stats?.deerRecords || 0}
+              link="/deer-management"
+              hideOnMobile={true}
+            />
           </div>
-        ) : (
+         ) : (
          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
            <StatCard
              icon={<Map className="w-8 h-8" />}
