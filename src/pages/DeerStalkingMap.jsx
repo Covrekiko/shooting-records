@@ -613,6 +613,7 @@ export default function DeerStalkingMap() {
                 userLocation={userLocation}
                 mapCenter={areaBounds?.center}
                 mapZoom={areaBounds?.zoom}
+                savedAreas={savedAreas}
                 onFinish={handleFinishDrawing}
                 onCancel={() => {
                   setShowAreaDrawer(false);

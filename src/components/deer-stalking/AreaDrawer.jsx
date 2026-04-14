@@ -23,11 +23,11 @@ function DrawingMap({ points, onAddPoint, onUndo, onCancel, onFinish }) {
   return null;
 }
 
-export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter, mapZoom }) {
-  const [points, setPoints] = useState([]);
-  const [isClosed, setIsClosed] = useState(false);
-  const [useSatellite, setUseSatellite] = useState(false);
-  const mapRef = useRef(null);
+export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter, mapZoom, savedAreas = [] }) {
+   const [points, setPoints] = useState([]);
+   const [isClosed, setIsClosed] = useState(false);
+   const [useSatellite, setUseSatellite] = useState(false);
+   const mapRef = useRef(null);
 
   const handleAddPoint = (point) => {
     // If boundary is closed, don't add new points
@@ -82,46 +82,58 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         />
         <DrawingMap points={points} onAddPoint={handleAddPoint} onUndo={handleUndo} onCancel={onCancel} onFinish={handleFinish} />
 
-          {/* Points markers */}
-          {points.map((point, idx) => (
-            <Marker key={`point-${idx}`} position={point}>
-              <Popup>{`Point ${idx + 1}`}</Popup>
-            </Marker>
-          ))}
+          {/* Render all saved area boundaries - stay visible while drawing */}
+           {savedAreas.map((area) => (
+             <Polyline
+               key={`saved-area-${area.id}`}
+               positions={area.polygon_coordinates}
+               color="#9333ea"
+               weight={4}
+               opacity={0.6}
+               dashArray="4, 4"
+             />
+           ))}
 
-        {/* Preview polyline - with closing line when ready to close */}
-        {points.length > 1 && !isClosed && (
-          <Polyline 
-            positions={points} 
-            color="#3b82f6" 
-            weight={4} 
-            opacity={1}
-          />
-        )}
-        
-        {/* Show closing line hint when 3+ points */}
-        {points.length >= 3 && !isClosed && (
-          <Polyline
-            positions={[points[points.length - 1], points[0]]}
-            color="#3b82f6"
-            weight={4}
-            opacity={0.5}
-            dashArray="5, 5"
-          />
-        )}
-        
-        {/* Closed polygon with fill */}
-        {isClosed && points.length > 2 && (
-          <Polygon
-            positions={points}
-            color="#3b82f6"
-            fillColor="#3b82f6"
-            weight={5}
-            opacity={1}
-            fillOpacity={0.4}
-            interactive={false}
-          />
-        )}
+           {/* Points markers */}
+           {points.map((point, idx) => (
+             <Marker key={`point-${idx}`} position={point}>
+               <Popup>{`Point ${idx + 1}`}</Popup>
+             </Marker>
+           ))}
+
+           {/* Preview polyline - with closing line when ready to close */}
+           {points.length > 1 && !isClosed && (
+             <Polyline 
+               positions={points} 
+               color="#3b82f6" 
+               weight={4} 
+               opacity={1}
+             />
+           )}
+
+           {/* Show closing line hint when 3+ points */}
+           {points.length >= 3 && !isClosed && (
+             <Polyline
+               positions={[points[points.length - 1], points[0]]}
+               color="#3b82f6"
+               weight={4}
+               opacity={0.5}
+               dashArray="5, 5"
+             />
+           )}
+
+           {/* Closed polygon with fill */}
+           {isClosed && points.length > 2 && (
+             <Polygon
+               positions={points}
+               color="#3b82f6"
+               fillColor="#3b82f6"
+               weight={5}
+               opacity={1}
+               fillOpacity={0.4}
+               interactive={false}
+             />
+           )}
       </MapContainer>
 
       {/* Satellite Toggle */}
