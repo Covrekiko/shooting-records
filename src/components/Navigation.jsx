@@ -82,9 +82,9 @@ export default function Navigation() {
           {/* Mobile: hamburger for extras */}
           <button
             onClick={() => setOpen(!open)}
-            className="md:hidden p-1.5 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/20 transition-all active:scale-90"
+            className="md:hidden p-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/20 transition-all active:scale-90"
           >
-            {open ? <X className="w-5 h-5 text-slate-900" /> : <Menu className="w-5 h-5 text-slate-900" />}
+            {open ? <X className="w-6 h-6 text-slate-900" /> : <Menu className="w-6 h-6 text-slate-900" />}
           </button>
         </div>
 
@@ -113,15 +113,15 @@ export default function Navigation() {
                       <Link
                         to={item.path}
                         onClick={() => setOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all active:scale-95 ${
+                        className={`flex items-center gap-3 px-3 py-3 rounded-xl text-base font-medium transition-all active:scale-95 ${
                           isActive(item.path)
                             ? 'bg-primary/20 text-primary'
                             : 'text-slate-900 hover:bg-white/20'
                         }`}
                       >
-                        {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
+                        {Icon && <Icon className="w-5 h-5 flex-shrink-0" />}
                         <span className="flex-1">{item.label}</span>
-                        <ChevronRight className="w-4 h-4 text-slate-400" />
+                        <ChevronRight className="w-5 h-5 text-slate-400" />
                       </Link>
                     </motion.div>
                   );
@@ -136,34 +136,34 @@ export default function Navigation() {
                 {user?.role === 'admin' && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
                     <Link
-                      to="/admin/users"
-                      onClick={() => setOpen(false)}
-                      className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all active:scale-95 ${
-                        isActive('/admin/users')
-                          ? 'bg-primary/20 text-primary'
-                          : 'text-slate-900 hover:bg-white/20'
-                      }`}
-                    >
-                      <Settings className="w-4 h-4 flex-shrink-0" />
-                      <span className="flex-1">Admin</span>
-                      <ChevronRight className="w-4 h-4 text-slate-400" />
-                    </Link>
+                       to="/admin/users"
+                       onClick={() => setOpen(false)}
+                       className={`flex items-center gap-3 px-3 py-3 rounded-xl text-base font-medium transition-all active:scale-95 ${
+                         isActive('/admin/users')
+                           ? 'bg-primary/20 text-primary'
+                           : 'text-slate-900 hover:bg-white/20'
+                       }`}
+                     >
+                       <Settings className="w-5 h-5 flex-shrink-0" />
+                       <span className="flex-1">Admin</span>
+                       <ChevronRight className="w-5 h-5 text-slate-400" />
+                     </Link>
                   </motion.div>
                 )}
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15 }}>
                   <Link
-                    to="/profile"
-                    onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all active:scale-95 ${
-                      isActive('/profile')
-                        ? 'bg-primary/20 text-primary'
-                        : 'text-slate-900 hover:bg-white/20'
-                    }`}
-                  >
-                    <User className="w-4 h-4 flex-shrink-0" />
-                    <span className="flex-1">Profile</span>
-                    <ChevronRight className="w-4 h-4 text-slate-400" />
-                  </Link>
+                     to="/profile"
+                     onClick={() => setOpen(false)}
+                     className={`flex items-center gap-3 px-3 py-3 rounded-xl text-base font-medium transition-all active:scale-95 ${
+                       isActive('/profile')
+                         ? 'bg-primary/20 text-primary'
+                         : 'text-slate-900 hover:bg-white/20'
+                     }`}
+                   >
+                     <User className="w-5 h-5 flex-shrink-0" />
+                     <span className="flex-1">Profile</span>
+                     <ChevronRight className="w-5 h-5 text-slate-400" />
+                   </Link>
                 </motion.div>
               </div>
             </motion.div>
@@ -173,7 +173,7 @@ export default function Navigation() {
 
       {/* Mobile Bottom Nav - iOS glass style */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/15 backdrop-blur-xl border-t border-white/20 shadow-lg" style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)', WebkitBackdropFilter: 'blur(20px)' }}>
-        <div className="flex justify-center gap-1 px-3 py-2">
+        <div className="flex justify-center gap-1 px-3 py-3">
           {mainNavItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -182,13 +182,13 @@ export default function Navigation() {
                 key={item.path}
                 onClick={() => navigate(item.path)}
                 whileTap={{ scale: 0.95 }}
-                className={`flex flex-col items-center justify-center py-2 px-3 gap-0.5 transition-all duration-200 rounded-lg min-w-16 ${
+                className={`flex flex-col items-center justify-center py-2 px-3 gap-1 transition-all duration-200 rounded-lg min-h-16 min-w-16 ${
                   active ? 'text-primary' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                {Icon && <Icon className={`w-5 h-5`} />}
-                {item.emoji && <span className="text-lg leading-none">{item.emoji}</span>}
-                <span className="text-[9px] font-semibold leading-tight text-center">{item.label}</span>
+                {Icon && <Icon className={`w-6 h-6`} />}
+                {item.emoji && <span className="text-xl leading-none">{item.emoji}</span>}
+                <span className="text-[10px] font-semibold leading-tight text-center">{item.label}</span>
               </motion.button>
             );
           })}
