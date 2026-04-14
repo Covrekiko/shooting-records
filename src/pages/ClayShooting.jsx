@@ -6,7 +6,7 @@ import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import { Clock, Plus, Map } from 'lucide-react';
 import GpsPathViewer from '@/components/GpsPathViewer';
-import RecordsList from '@/components/RecordsList';
+import RecordsSection from '@/components/RecordsSection';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
@@ -14,11 +14,10 @@ import BottomSheetSelect from '@/components/BottomSheetSelect';
 
 export default function ClayShooting() {
    const [activeSession, setActiveSession] = useState(null);
-   const [clubs, setClubs] = useState([]);
-   const [shotguns, setShotguns] = useState([]);
-   const [ammunition, setAmmunition] = useState([]);
-   const [records, setRecords] = useState([]);
-  const [showCheckin, setShowCheckin] = useState(false);
+    const [clubs, setClubs] = useState([]);
+    const [shotguns, setShotguns] = useState([]);
+    const [ammunition, setAmmunition] = useState([]);
+   const [showCheckin, setShowCheckin] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(true);
   const { location } = useGeolocation();
@@ -41,7 +40,7 @@ export default function ClayShooting() {
       try {
         const currentUser = await base44.auth.me();
 
-        const [clubsList, shotgunsList, ammoList, activeSession, recordsList] = await Promise.all([
+        const [clubsList, shotgunsList, ammoList, activeSession] = await Promise.all([
           base44.entities.Club.filter({ created_by: currentUser.email }),
           base44.entities.Shotgun.filter({ created_by: currentUser.email }),
           base44.entities.Ammunition.filter({ created_by: currentUser.email }),
@@ -50,16 +49,11 @@ export default function ClayShooting() {
             category: 'clay_shooting',
             status: 'active',
           }),
-          base44.entities.SessionRecord.filter({
-            created_by: currentUser.email,
-            category: 'clay_shooting',
-          }),
         ]);
 
         setClubs(clubsList);
         setShotguns(shotgunsList);
         setAmmunition(ammoList);
-        setRecords(recordsList);
         if (activeSession.length > 0) {
           setActiveSession(activeSession[0]);
         }
@@ -231,9 +225,9 @@ export default function ClayShooting() {
         {/* Records List */}
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-4">Session Records</h2>
-          <RecordsList 
-            records={records} 
+          <RecordsSection 
             category="clay_shooting"
+            title="Session Records"
             emptyMessage="No clay shooting sessions recorded yet"
           />
         </div>

@@ -6,7 +6,7 @@ import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import { useOuting } from '@/context/OutingContext';
 import { Plus, Clock } from 'lucide-react';
-import RecordsList from '@/components/RecordsList';
+import RecordsSection from '@/components/RecordsSection';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal';
 import { trackingService } from '@/lib/trackingService';
@@ -18,10 +18,9 @@ const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water 
 export default function DeerManagement() {
   const { activeOuting, loading: outingLoading, startOuting, endOutingWithData } = useOuting();
   const [areas, setAreas] = useState([]);
-  const [rifles, setRifles] = useState([]);
-  const [ammunition, setAmmunition] = useState([]);
-  const [records, setRecords] = useState([]);
-  const [showCheckin, setShowCheckin] = useState(false);
+   const [rifles, setRifles] = useState([]);
+   const [ammunition, setAmmunition] = useState([]);
+   const [showCheckin, setShowCheckin] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(true);
   const { location } = useGeolocation();
@@ -40,20 +39,15 @@ export default function DeerManagement() {
       try {
         const currentUser = await base44.auth.me();
 
-        const [areasList, riflesList, ammoList, recordsList] = await Promise.all([
+        const [areasList, riflesList, ammoList] = await Promise.all([
           base44.entities.Area.filter({ created_by: currentUser.email }),
           base44.entities.Rifle.filter({ created_by: currentUser.email }),
           base44.entities.Ammunition.filter({ created_by: currentUser.email }),
-          base44.entities.SessionRecord.filter({
-            created_by: currentUser.email,
-            category: 'deer_management',
-          }),
         ]);
 
         setAreas(areasList);
         setRifles(riflesList);
         setAmmunition(ammoList);
-        setRecords(recordsList);
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {
@@ -230,9 +224,9 @@ export default function DeerManagement() {
           {/* Records List */}
           <div className="mt-12">
           <h2 className="text-2xl font-bold mb-4">Outing Records</h2>
-          <RecordsList 
-            records={records} 
+          <RecordsSection 
             category="deer_management"
+            title="Outing Records"
             emptyMessage="No deer management outings recorded yet"
           />
           </div>

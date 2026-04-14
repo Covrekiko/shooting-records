@@ -5,7 +5,7 @@ import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import GpsPathViewer from '@/components/GpsPathViewer';
-import RecordsList from '@/components/RecordsList';
+import RecordsSection from '@/components/RecordsSection';
 import { Clock, CheckCircle, Plus } from 'lucide-react';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
@@ -17,7 +17,6 @@ export default function TargetShooting() {
   const [clubs, setClubs] = useState([]);
   const [rifles, setRifles] = useState([]);
   const [ammunition, setAmmunition] = useState([]);
-  const [records, setRecords] = useState([]);
   const [showCheckin, setShowCheckin] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -58,7 +57,7 @@ export default function TargetShooting() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
 
-        const [clubsList, riflesList, ammoList, activeSession, recordsList] = await Promise.all([
+        const [clubsList, riflesList, ammoList, activeSession] = await Promise.all([
           base44.entities.Club.filter({ created_by: currentUser.email }),
           base44.entities.Rifle.filter({ created_by: currentUser.email }),
           base44.entities.Ammunition.filter({ created_by: currentUser.email }),
@@ -67,16 +66,11 @@ export default function TargetShooting() {
             category: 'target_shooting',
             status: 'active',
           }),
-          base44.entities.SessionRecord.filter({
-            created_by: currentUser.email,
-            category: 'target_shooting',
-          }),
         ]);
 
         setClubs(clubsList);
         setRifles(riflesList);
         setAmmunition(ammoList);
-        setRecords(recordsList);
         if (activeSession.length > 0) {
           const session = activeSession[0];
           setActiveSession(session);
@@ -260,14 +254,14 @@ export default function TargetShooting() {
         )}
 
         {/* Records List */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-4">Session Records</h2>
-          <RecordsList 
-            records={records} 
-            category="target_shooting"
-            emptyMessage="No target shooting sessions recorded yet"
-          />
-        </div>
+         <div className="mt-12">
+           <h2 className="text-2xl font-bold mb-4">Session Records</h2>
+           <RecordsSection 
+             category="target_shooting"
+             title="Session Records"
+             emptyMessage="No target shooting sessions recorded yet"
+           />
+         </div>
 
         {/* GPS Track Viewer */}
         {viewingTrack && (

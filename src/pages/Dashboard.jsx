@@ -27,30 +27,34 @@ export default function Dashboard() {
         setUser(currentUser);
 
         if (currentUser.role === 'admin') {
-          const [users, targetShoots, clayShoots, deerMgmt] = await Promise.all([
+          const [users, allRecords] = await Promise.all([
             base44.entities.User.list(),
-            base44.entities.TargetShooting.list(),
-            base44.entities.ClayShooting.list(),
-            base44.entities.DeerManagement.list(),
+            base44.entities.SessionRecord.list(),
           ]);
+
+          const targetRecords = allRecords.filter(r => r.category === 'target_shooting');
+          const clayRecords = allRecords.filter(r => r.category === 'clay_shooting');
+          const deerRecords = allRecords.filter(r => r.category === 'deer_management');
 
           setStats({
             totalUsers: users.length,
-            totalRecords: targetShoots.length + clayShoots.length + deerMgmt.length,
-            targetRecords: targetShoots.length,
-            clayRecords: clayShoots.length,
-            deerRecords: deerMgmt.length,
+            totalRecords: allRecords.length,
+            targetRecords: targetRecords.length,
+            clayRecords: clayRecords.length,
+            deerRecords: deerRecords.length,
           });
         } else {
-          const [targetShoots, clayShoots, deerMgmt, rifles, shotguns, clubs, locations] = await Promise.all([
-            base44.entities.TargetShooting.filter({ created_by: currentUser.email }),
-            base44.entities.ClayShooting.filter({ created_by: currentUser.email }),
-            base44.entities.DeerManagement.filter({ created_by: currentUser.email }),
+          const [allRecords, rifles, shotguns, clubs, locations] = await Promise.all([
+            base44.entities.SessionRecord.filter({ created_by: currentUser.email }),
             base44.entities.Rifle.filter({ created_by: currentUser.email }),
             base44.entities.Shotgun.filter({ created_by: currentUser.email }),
             base44.entities.Club.filter({ created_by: currentUser.email }),
             base44.entities.DeerLocation.filter({ created_by: currentUser.email }),
           ]);
+
+          const targetShoots = allRecords.filter(r => r.category === 'target_shooting');
+          const clayShoots = allRecords.filter(r => r.category === 'clay_shooting');
+          const deerMgmt = allRecords.filter(r => r.category === 'deer_management');
 
           const totalRounds = targetShoots.reduce((sum, s) => sum + (s.rounds_fired || 0), 0);
           const totalShotgunRounds = clayShoots.reduce((sum, s) => sum + (s.rounds_fired || 0), 0);
@@ -254,27 +258,32 @@ function getMonthlyData(targetShoots, clayShoots, deerMgmt) {
 }
 
 function getFirearmData(targetShoots, clayShoots, rifles, shotguns) {
-  const firearmMap = {};
+   const firearmMap = {};
+   const rifleMap = rifles.reduce((acc, r) => ({ ...acc, [r.id]: r.name }), {});
+   const shotgunMap = shotguns.reduce((acc, s) => ({ ...acc, [s.id]: s.name }), {});
 
-  // Map rifles
-  const rifleMap = rifles.reduce((acc, r) => ({ ...acc, [r.id]: r.name }), {});
-  const shotgunMap = shotguns.reduce((acc, s) => ({ ...acc, [s.id]: s.name }), {});
+   targetShoots.forEach((record) => {
+     if (record.rifles_used && Array.isArray(record.rifles_used)) {
+       record.rifles_used.forEach((rifle) => {
+         const name = rifleMap[rifle.rifle_id] || 'Unknown Rifle';
+         firearmMap[name] = (firearmMap[name] || 0) + (rifle.rounds_fired || 0);
+       });
+     } else if (record.rifle_id) {
+       const name = rifleMap[record.rifle_id] || 'Unknown Rifle';
+       firearmMap[name] = (firearmMap[name] || 0) + (record.rounds_fired || 0);
+     }
+   });
 
-  targetShoots.forEach((record) => {
-    const name = rifleMap[record.rifle_id] || 'Unknown Rifle';
-    firearmMap[name] = (firearmMap[name] || 0) + (record.rounds_fired || 0);
-  });
+   clayShoots.forEach((record) => {
+     const name = shotgunMap[record.shotgun_id] || 'Unknown Shotgun';
+     firearmMap[name] = (firearmMap[name] || 0) + (record.rounds_fired || 0);
+   });
 
-  clayShoots.forEach((record) => {
-    const name = shotgunMap[record.shotgun_id] || 'Unknown Shotgun';
-    firearmMap[name] = (firearmMap[name] || 0) + (record.rounds_fired || 0);
-  });
-
-  return Object.entries(firearmMap)
-    .map(([name, rounds]) => ({ name, rounds }))
-    .sort((a, b) => b.rounds - a.rounds)
-    .slice(0, 8);
-}
+   return Object.entries(firearmMap)
+     .map(([name, rounds]) => ({ name, rounds }))
+     .sort((a, b) => b.rounds - a.rounds)
+     .slice(0, 8);
+ }
 
 function getRoundsPerMonth(targetShoots, clayShoots) {
   const monthlyMap = {};
@@ -303,21 +312,32 @@ function getRoundsPerMonth(targetShoots, clayShoots) {
 }
 
 function getDeerSuccessRate(deerMgmt) {
-  const speciesMap = {};
+   const speciesMap = {};
 
-  deerMgmt.forEach((record) => {
-    const species = record.deer_species || 'Other';
-    if (!speciesMap[species]) {
-      speciesMap[species] = { species, count: 0, successful: 0 };
-    }
-    speciesMap[species].count++;
-    if (record.number_shot && record.number_shot > 0) {
-      speciesMap[species].successful++;
-    }
-  });
+   deerMgmt.forEach((record) => {
+     if (record.species_list && Array.isArray(record.species_list)) {
+       record.species_list.forEach((item) => {
+         const species = item.species || 'Other';
+         if (!speciesMap[species]) {
+           speciesMap[species] = { species, count: 0, successful: 0 };
+         }
+         speciesMap[species].count++;
+         speciesMap[species].successful++;
+       });
+     } else if (record.deer_species) {
+       const species = record.deer_species;
+       if (!speciesMap[species]) {
+         speciesMap[species] = { species, count: 0, successful: 0 };
+       }
+       speciesMap[species].count++;
+       if (record.number_shot && record.number_shot > 0) {
+         speciesMap[species].successful++;
+       }
+     }
+   });
 
-  return Object.values(speciesMap).sort((a, b) => b.count - a.count);
-}
+   return Object.values(speciesMap).sort((a, b) => b.count - a.count);
+ }
 
 function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
   const locationMap = {};
