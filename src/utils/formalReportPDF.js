@@ -68,7 +68,10 @@ export async function generateFormalReport(records, user, options = {}) {
    if (!userData) {
      try {
        const { base44 } = await import('@/api/base44Client');
-       userData = await base44.auth.me();
+       const authUser = await base44.auth.me();
+       // Fetch full user entity data which has custom fields (date_of_birth, address, etc.)
+       const fullUserData = await base44.entities.User.get(authUser.id);
+       userData = { ...authUser, ...fullUserData };
      } catch (e) {
        console.warn('Could not fetch fresh user data:', e);
      }
