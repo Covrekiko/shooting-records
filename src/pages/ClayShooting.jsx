@@ -277,69 +277,33 @@ export default function ClayShooting() {
 
 function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-card rounded-lg max-w-md w-full p-6">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
+      <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+        <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4 sm:hidden" />
         <h2 className="text-xl font-bold mb-4">Check In</h2>
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-1">Date</label>
-            <input
-              type="date"
-              value={data.date}
-              onChange={(e) => onChange('date', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-              required
-            />
+            <input type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Club</label>
-            <select
-              value={data.club_id}
-              onChange={(e) => onChange('club_id', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-              required
-            >
+            <select value={data.club_id} onChange={(e) => onChange('club_id', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required>
               <option value="">Select a club</option>
-              {clubs.map((club) => (
-                <option key={club.id} value={club.id}>
-                  {club.name}
-                </option>
-              ))}
+              {clubs.map((club) => (<option key={club.id} value={club.id}>{club.name}</option>))}
             </select>
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Check-in Time</label>
-            <input
-              type="time"
-              value={data.checkin_time}
-              onChange={(e) => onChange('checkin_time', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-              required
-            />
+            <input type="time" value={data.checkin_time} onChange={(e) => onChange('checkin_time', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Notes (optional)</label>
-            <textarea
-              value={data.notes}
-              onChange={(e) => onChange('notes', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-              rows="3"
-            />
+            <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" rows="3" />
           </div>
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
-            >
-              Check In
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary"
-            >
-              Cancel
-            </button>
+          <div className="flex gap-3 pt-2">
+            <button type="submit" className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-base hover:opacity-90">Check In</button>
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-3 border border-border rounded-xl text-base hover:bg-secondary">Cancel</button>
           </div>
         </form>
       </div>
@@ -386,8 +350,8 @@ function CheckoutModal({ data, shotguns, ammunition, onSubmit, onChange, onClose
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-card rounded-lg max-w-md w-full p-6 my-8">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
+      <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl overflow-y-auto max-h-[90dvh] p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
         <h2 className="text-xl font-bold mb-4">Check Out</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

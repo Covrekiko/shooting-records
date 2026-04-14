@@ -230,7 +230,7 @@ export default function DeerManagement() {
             {showCheckin && (
               <>
                 {console.log('🔵 CHECK-IN MODAL RENDERING - showCheckin is TRUE')}
-                <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+                <div className="fixed inset-0 z-[50001] flex items-end sm:items-center justify-center">
                     <CheckinModal
                     data={checkinData}
                     locations={locations}
@@ -267,69 +267,32 @@ export default function DeerManagement() {
 
 function CheckinModal({ data, locations, onSubmit, onChange, onClose }) {
   return (
-    <div className="bg-card rounded-lg max-w-md w-full p-6">
+    <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+      <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4 sm:hidden" />
       <h2 className="text-xl font-bold mb-4">Check In</h2>
       <form onSubmit={onSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">Date</label>
-          <input
-            type="date"
-            value={data.date}
-            onChange={(e) => onChange('date', e.target.value)}
-            className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            required
-          />
+          <input type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Location</label>
-          <select
-            value={data.location_id}
-            onChange={(e) => onChange('location_id', e.target.value)}
-            className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            required
-          >
+          <select value={data.location_id} onChange={(e) => onChange('location_id', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required>
             <option value="">Select a location</option>
-            {locations.map((loc) => (
-              <option key={loc.id} value={loc.id}>
-                {loc.place_name}
-              </option>
-            ))}
+            {locations.map((loc) => (<option key={loc.id} value={loc.id}>{loc.place_name}</option>))}
           </select>
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Place Name</label>
-          <input
-            type="text"
-            value={data.place_name}
-            onChange={(e) => onChange('place_name', e.target.value)}
-            className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            required
-          />
+          <input type="text" value={data.place_name} onChange={(e) => onChange('place_name', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">Check-in Time</label>
-          <input
-            type="time"
-            value={data.start_time}
-            onChange={(e) => onChange('start_time', e.target.value)}
-            className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            required
-          />
+          <input type="time" value={data.start_time} onChange={(e) => onChange('start_time', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required />
         </div>
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
-          >
-            Check In
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary"
-          >
-            Cancel
-          </button>
+        <div className="flex gap-3 pt-2">
+          <button type="submit" className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-base hover:opacity-90">Check In</button>
+          <button type="button" onClick={onClose} className="flex-1 px-4 py-3 border border-border rounded-xl text-base hover:bg-secondary">Cancel</button>
         </div>
       </form>
     </div>
