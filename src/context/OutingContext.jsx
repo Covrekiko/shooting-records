@@ -101,10 +101,15 @@ export function OutingProvider({ children }) {
         if (deerManagements.length > 0) {
           const dmId = deerManagements[0].id;
           const updateDmPayload = {
-            ...checkoutData,
             active_checkin: false,
             end_time: checkoutData.end_time || new Date().toTimeString().slice(0, 5),
             gps_track: gpsTrack || [],
+            notes: checkoutData.notes || '',
+            photos: checkoutData.photos || [],
+            species_list: checkoutData.shot_anything ? (checkoutData.species_list || []) : [],
+            total_count: checkoutData.shot_anything ? (checkoutData.total_count || null) : null,
+            rifle_id: checkoutData.shot_anything ? (checkoutData.rifle_id || null) : null,
+            ammunition_used: checkoutData.shot_anything ? (checkoutData.ammunition_used || null) : null,
           };
           console.log('🟢 Updating DeerManagement ID:', dmId, 'with checkout data - gps:', gpsTrack?.length || 0, 'points');
 
