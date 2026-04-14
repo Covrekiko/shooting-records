@@ -496,8 +496,7 @@ export default function DeerStalkingMap() {
          {/* Satellite Toggle */}
          <button
            onClick={() => setUseSatellite(!useSatellite)}
-           className="w-10 h-10 sm:w-12 sm:h-12 bg-white/15 text-black rounded-full hover:bg-white/20 transition-all shadow-md hover:shadow-lg flex items-center justify-center border border-white/20"
-           style={{ WebkitBackdropFilter: 'blur(20px)', backdropFilter: 'blur(20px)' }}
+           className="w-10 h-10 sm:w-12 sm:h-12 bg-white/15 text-slate-900 rounded-full hover:bg-white/25 transition-all backdrop-blur-lg shadow-lg hover:shadow-xl flex items-center justify-center border border-white/30"
            title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
          >
            <Satellite className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -520,8 +519,7 @@ export default function DeerStalkingMap() {
       {/* Back to Dashboard */}
        <Link
          to="/"
-         className="fixed top-4 right-20 z-[9999] w-10 h-10 sm:w-12 sm:h-12 bg-white/15 text-black rounded-full shadow-md hover:shadow-lg transition-all pointer-events-auto flex items-center justify-center border border-white/20 hover:bg-white/20"
-         style={{ WebkitBackdropFilter: 'blur(20px)', backdropFilter: 'blur(20px)' }}
+         className="fixed top-4 right-20 z-[9999] w-10 h-10 sm:w-12 sm:h-12 bg-white/15 text-slate-900 rounded-full shadow-lg hover:shadow-xl transition-all pointer-events-auto flex items-center justify-center border border-white/30 hover:bg-white/25 backdrop-blur-lg"
          title="Dashboard"
        >
          <Home className="w-4 h-4 sm:w-5 sm:h-5" />
