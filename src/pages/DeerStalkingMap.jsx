@@ -1,14 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { GoogleMap, Marker, Polyline, InfoWindow, useLoadScript } from '@react-google-maps/api';
 import { Link } from 'react-router-dom';
-import L from 'leaflet';
 import { base44 } from '@/api/base44Client';
 import { useOuting } from '@/context/OutingContext';
 import FloatingActionBar from '@/components/deer-stalking/FloatingActionBar';
 import POIModal from '@/components/deer-stalking/POIModal';
 import HarvestModal from '@/components/deer-stalking/HarvestModal';
 import OutingModal from '@/components/deer-stalking/OutingModal';
-import MapClickHandler from '@/components/deer-stalking/MapClickHandler';
 import { AlertCircle, Home, Satellite } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal';
@@ -19,20 +17,26 @@ import AreaSelector from '@/components/deer-stalking/AreaSelector';
 import FloatingMapSearch from '@/components/deer-stalking/FloatingMapSearch';
 import LegalShootingHoursWidget from '@/components/deer-stalking/LegalShootingHoursWidget';
 
-// Fix Leaflet default icons
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%',
+};
+
+const defaultCenter = {
+  lat: 51.5074,
+  lng: -0.1278,
+};
 
 export default function DeerStalkingMap() {
   const { activeOuting, loading: outingLoading, startOuting, endOuting, endOutingWithData, updateGpsTrack } = useOuting();
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyByd7U3DJDZ6CqjhGmlllVXz3a56B45Df0',
+  });
+
   const [markers, setMarkers] = useState([]);
   const [harvests, setHarvests] = useState([]);
   const [locations, setLocations] = useState([]);
-  const [userLocation, setUserLocation] = useState([51.5074, -0.1278]); // Default: London
+  const [userLocation, setUserLocation] = useState(defaultCenter);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mapClick, setMapClick] = useState(null);
@@ -43,7 +47,7 @@ export default function DeerStalkingMap() {
   const [showOuting, setShowOuting] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [focusedHarvestId, setFocusedHarvestId] = useState(null);
-  const [waitingForPin, setWaitingForPin] = useState(null); // 'poi' or 'harvest'
+  const [waitingForPin, setWaitingForPin] = useState(null);
   const [rifles, setRifles] = useState([]);
   const [ammunition, setAmmunition] = useState([]);
   const [showAreaDrawer, setShowAreaDrawer] = useState(false);
@@ -55,6 +59,8 @@ export default function DeerStalkingMap() {
   const [areaBounds, setAreaBounds] = useState(null);
   const [useSatellite, setUseSatellite] = useState(false);
   const [showError, setShowError] = useState(true);
+  const [openInfoWindowId, setOpenInfoWindowId] = useState(null);
+  const [openInfoWindowType, setOpenInfoWindowType] = useState(null);
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -63,7 +69,7 @@ export default function DeerStalkingMap() {
     loadRiflesAndAmmo();
   }, []);
 
-  // GPS tracking for active outing — throttled to save DB every 60s
+  // GPS tracking for active outing
   useEffect(() => {
     if (!activeOuting?.id) return;
 
@@ -77,7 +83,6 @@ export default function DeerStalkingMap() {
         const timestamp = Date.now();
         currentTrack = [...currentTrack, { lat: latitude, lng: longitude, timestamp }];
 
-        // Throttle to once every 60 seconds
         if (timestamp - lastSaveTime >= 60000 && !isScheduled) {
           isScheduled = true;
           lastSaveTime = timestamp;
@@ -117,9 +122,9 @@ export default function DeerStalkingMap() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation([position.coords.latitude, position.coords.longitude]);
+          setUserLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
         },
-        () => {} // Silent fail, use default
+        () => {}
       );
     }
   };
@@ -139,13 +144,14 @@ export default function DeerStalkingMap() {
   };
 
   const handleRecenter = () => {
-    if (!mapRef.current) return;
-    
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const { latitude, longitude } = position.coords;
-        mapRef.current.setView([latitude, longitude], 16);
-        setUserLocation([latitude, longitude]);
+        const newLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+        setUserLocation(newLocation);
+        if (mapRef.current) {
+          mapRef.current.panTo(newLocation);
+          mapRef.current.setZoom(16);
+        }
       },
       (error) => {
         let errorMsg = 'Unable to get location';
@@ -161,11 +167,10 @@ export default function DeerStalkingMap() {
 
   const handleMapClick = (e) => {
     if (!waitingForPin) return;
-    
-    const clickLocation = { lat: e.latlng.lat, lng: e.latlng.lng };
+
+    const clickLocation = { lat: e.latLng.lat(), lng: e.latLng.lng() };
     setMapClick(clickLocation);
-    
-    // If waiting for pin, open the appropriate modal
+
     if (waitingForPin === 'poi') {
       setShowPOI(true);
       setWaitingForPin(null);
@@ -187,7 +192,7 @@ export default function DeerStalkingMap() {
       });
       setShowPOI(false);
       setMapClick(null);
-      setWaitingForPin('poi'); // Stay in POI selection mode
+      setWaitingForPin('poi');
       loadData();
     } catch (err) {
       setError(err.message);
@@ -207,7 +212,7 @@ export default function DeerStalkingMap() {
       });
       setShowHarvest(false);
       setMapClick(null);
-      setWaitingForPin('harvest'); // Stay in harvest selection mode
+      setWaitingForPin('harvest');
       loadData();
     } catch (err) {
       setError(err.message);
@@ -225,19 +230,15 @@ export default function DeerStalkingMap() {
   };
 
   const handleEndOuting = () => {
-    console.log('🔴 DeerStalkingMap.handleEndOuting called - opening modal instead of direct checkout');
     setShowCheckout(true);
   };
 
   const handleCheckoutSubmit = async (checkoutData) => {
-    console.log('🟢 DeerStalkingMap.handleCheckoutSubmit called with data:', checkoutData);
     if (!activeOuting) {
       console.error('🔴 No active outing found for checkout');
       return;
     }
     try {
-      console.log('🟢 Current GPS track at checkout:', activeOuting.gps_track?.length || 0, 'points');
-      
       if (checkoutData.ammunition_id && checkoutData.total_count) {
         await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count));
       }
@@ -250,9 +251,7 @@ export default function DeerStalkingMap() {
         submitData.ammunition_used = null;
       }
 
-      console.log('🟢 Calling endOutingWithData() with', activeOuting.gps_track?.length || 0, 'GPS points...');
       await endOutingWithData(activeOuting.id, submitData, activeOuting.gps_track || []);
-      console.log('🟢 Outing ended successfully');
       setShowCheckout(false);
       loadData();
     } catch (err) {
@@ -282,8 +281,7 @@ export default function DeerStalkingMap() {
   const handleStartAreaCreation = () => {
     const currentCenter = mapRef.current?.getCenter();
     const currentZoom = mapRef.current?.getZoom();
-    console.log('🔴 Create Area clicked - preserving map view. Center:', currentCenter, 'Zoom:', currentZoom);
-    setAreaBounds({ center: [currentCenter.lat, currentCenter.lng], zoom: currentZoom });
+    setAreaBounds({ center: { lat: currentCenter.lat(), lng: currentCenter.lng() }, zoom: currentZoom });
     setShowAreaDrawer(true);
   };
 
@@ -308,33 +306,31 @@ export default function DeerStalkingMap() {
 
   const handleSelectArea = (area) => {
     setSelectedAreaId(area.id);
-    
-    // Pan and zoom to fit the area boundary
+
     if (mapRef.current && area.center_point) {
-      mapRef.current.setView([area.center_point.lat, area.center_point.lng], 14);
+      mapRef.current.panTo({ lat: area.center_point.lat, lng: area.center_point.lng });
+      mapRef.current.setZoom(14);
     }
   };
 
   const handleMapSearch = (result) => {
-    // Set search marker
     setSearchMarker({
       lat: result.lat,
       lng: result.lng,
       label: result.query,
     });
 
-    // Pan and zoom to location
     if (mapRef.current) {
-      mapRef.current.setView([result.lat, result.lng], 15);
+      mapRef.current.panTo({ lat: result.lat, lng: result.lng });
+      mapRef.current.setZoom(15);
     }
 
-    // Auto-clear marker after 10 seconds
     setTimeout(() => {
       setSearchMarker(null);
     }, 10000);
   };
 
-  if (loading || outingLoading) {
+  if (loading || outingLoading || !isLoaded) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-slate-900">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
@@ -342,168 +338,171 @@ export default function DeerStalkingMap() {
     );
   }
 
-  console.log('🔴 DeerStalkingMap RENDER - showOuting:', showOuting, 'activeOuting:', activeOuting?.id);
-  
   return (
     <div className="w-full h-screen bg-slate-900 relative overflow-hidden cursor-crosshair">
       <div className={`absolute inset-0 z-0 ${showPOI || showHarvest || showOuting ? 'pointer-events-none' : ''}`}>
-        <MapContainer
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
           center={userLocation}
           zoom={13}
-          style={{ width: '100%', height: '100%', cursor: 'crosshair' }}
-          zoomControl={false}
-          ref={mapRef}
+          onLoad={(map) => (mapRef.current = map)}
+          onClick={handleMapClick}
+          options={{
+            mapTypeId: useSatellite ? 'satellite' : 'roadmap',
+            zoomControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+          }}
         >
-        <MapClickHandler onMapClick={handleMapClick} isSelectionMode={!!waitingForPin} />
-        <TileLayer
-          url={useSatellite ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}' : 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'}
-          attribution={useSatellite ? '&copy; Esri' : '&copy; OpenStreetMap contributors'}
-          interactive={false}
-        />
+          {/* User location */}
+          <Marker position={userLocation} title="My Location" />
 
-        {/* User location */}
-        <Marker position={userLocation}>
-          <Popup>My Location</Popup>
-        </Marker>
-
-        {/* POI Markers */}
-        {markers.map((marker) => (
-          <Marker 
-            key={marker.id} 
-            position={[marker.latitude, marker.longitude]}
-            icon={L.icon({
-              iconUrl: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%233b82f6%22 stroke=%22white%22 stroke-width=%222%22%3E%3Cpath d=%22M12 2C7.58 2 4 5.58 4 10c0 5.25 8 13 8 13s8-7.75 8-13c0-4.42-3.58-8-8-8z%22/%3E%3C/svg%3E',
-              iconSize: [32, 40],
-              iconAnchor: [16, 40],
-              popupAnchor: [0, -40]
-            })}
-          >
-            <Popup>
-              <div className="text-sm max-w-xs">
-                <p className="font-bold capitalize mb-2">{marker.marker_type.replace(/_/g, ' ')}</p>
-                {marker.notes && <p className="mb-2">{marker.notes}</p>}
-                {marker.photos && marker.photos.length > 0 && (
-                  <div className="grid grid-cols-2 gap-2 mb-2">
-                    {marker.photos.map((photo, idx) => (
-                      <img key={idx} src={photo} alt="poi" className="w-full h-20 object-cover rounded" />
-                    ))}
+          {/* POI Markers */}
+          {markers.map((marker) => (
+            <Marker
+              key={marker.id}
+              position={{ lat: marker.latitude, lng: marker.longitude }}
+              onClick={() => {
+                setOpenInfoWindowId(marker.id);
+                setOpenInfoWindowType('poi');
+              }}
+            >
+              {openInfoWindowId === marker.id && openInfoWindowType === 'poi' && (
+                <InfoWindow onCloseClick={() => setOpenInfoWindowId(null)}>
+                  <div className="text-sm max-w-xs bg-white p-2 rounded">
+                    <p className="font-bold capitalize mb-2">{marker.marker_type.replace(/_/g, ' ')}</p>
+                    {marker.notes && <p className="mb-2">{marker.notes}</p>}
+                    {marker.photos && marker.photos.length > 0 && (
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        {marker.photos.map((photo, idx) => (
+                          <img key={idx} src={photo} alt="poi" className="w-full h-20 object-cover rounded" />
+                        ))}
+                      </div>
+                    )}
+                    <button
+                      onClick={() => handleDeletePOI(marker.id)}
+                      className="w-full mt-2 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                    >
+                      Delete
+                    </button>
                   </div>
-                )}
-                <button
-                  onClick={() => handleDeletePOI(marker.id)}
-                  className="w-full mt-2 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
-                >
-                  Delete
-                </button>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+                </InfoWindow>
+              )}
+            </Marker>
+          ))}
 
-        {/* Temporary Pin Preview */}
-        {waitingForPin && mapClick && (
-          <Marker
-            position={[mapClick.lat, mapClick.lng]}
-            icon={L.icon({
-              iconUrl: 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%2310b981%22 stroke=%22white%22 stroke-width=%222%22%3E%3Cpath d=%22M12 2C7.58 2 4 5.58 4 10c0 5.25 8 13 8 13s8-7.75 8-13c0-4.42-3.58-8-8-8z%22/%3E%3C/svg%3E',
-              iconSize: [32, 40],
-              iconAnchor: [16, 40],
-            })}
-          />
-        )}
+          {/* Temporary Pin Preview */}
+          {waitingForPin && mapClick && (
+            <Marker position={mapClick} />
+          )}
 
-        {/* Harvest Markers */}
-        {harvests.map((harvest) => (
-          <Marker
-            key={harvest.id}
-            position={[harvest.latitude, harvest.longitude]}
-            icon={L.icon({
-              iconUrl: focusedHarvestId === harvest.id 
-                ? 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23fbbf24%22 stroke=%22white%22 stroke-width=%222%22%3E%3Cpath d=%22M12 2C7.58 2 4 5.58 4 10c0 5.25 8 13 8 13s8-7.75 8-13c0-4.42-3.58-8-8-8z%22/%3E%3C/svg%3E'
-                : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%233b82f6%22 stroke=%22white%22 stroke-width=%222%22%3E%3Cpath d=%22M12 2C7.58 2 4 5.58 4 10c0 5.25 8 13 8 13s8-7.75 8-13c0-4.42-3.58-8-8-8z%22/%3E%3C/svg%3E',
-              iconSize: [32, 40],
-              iconAnchor: [16, 40],
-              popupAnchor: [0, -40]
-            })}
-          >
-            <Popup>
-              <div className="text-sm max-w-xs">
-                <p className="font-bold text-base mb-2">{harvest.species}</p>
-                <p className="text-xs text-slate-600 mb-2"><strong>Sex:</strong> {harvest.sex}</p>
-                {harvest.harvest_date && <p className="text-xs text-slate-600 mb-2"><strong>Date:</strong> {new Date(harvest.harvest_date).toLocaleDateString()}</p>}
-                {harvest.notes && <p className="text-xs mb-3">{harvest.notes}</p>}
-                {harvest.photos && harvest.photos.length > 0 && (
-                  <details className="mb-2">
-                    <summary className="cursor-pointer text-xs font-semibold text-primary hover:underline mb-2">View Photos ({harvest.photos.length})</summary>
-                    <div className="grid grid-cols-2 gap-2">
-                      {harvest.photos.map((photo, idx) => (
-                        <a key={idx} href={photo} target="_blank" rel="noopener noreferrer">
-                          <img src={photo} alt="harvest" className="w-full h-24 object-cover rounded hover:opacity-80 transition-opacity" />
-                        </a>
-                      ))}
-                    </div>
-                  </details>
-                )}
-                <button
-                  onClick={() => setFocusedHarvestId(focusedHarvestId === harvest.id ? null : harvest.id)}
-                  className="w-full mt-2 px-2 py-1 bg-primary text-white text-xs rounded hover:bg-primary/90"
-                >
-                  {focusedHarvestId === harvest.id ? 'Unpin' : 'Pin on Map'}
-                </button>
-                <button
-                  onClick={() => handleDeleteHarvest(harvest.id)}
-                  className="w-full mt-1 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
-                >
-                  Delete
-                </button>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+          {/* Harvest Markers */}
+          {harvests.map((harvest) => (
+            <Marker
+              key={harvest.id}
+              position={{ lat: harvest.latitude, lng: harvest.longitude }}
+              onClick={() => {
+                setOpenInfoWindowId(harvest.id);
+                setOpenInfoWindowType('harvest');
+              }}
+            >
+              {openInfoWindowId === harvest.id && openInfoWindowType === 'harvest' && (
+                <InfoWindow onCloseClick={() => setOpenInfoWindowId(null)}>
+                  <div className="text-sm max-w-xs bg-white p-2 rounded">
+                    <p className="font-bold text-base mb-2">{harvest.species}</p>
+                    <p className="text-xs text-slate-600 mb-2">
+                      <strong>Sex:</strong> {harvest.sex}
+                    </p>
+                    {harvest.harvest_date && (
+                      <p className="text-xs text-slate-600 mb-2">
+                        <strong>Date:</strong> {new Date(harvest.harvest_date).toLocaleDateString()}
+                      </p>
+                    )}
+                    {harvest.notes && <p className="text-xs mb-3">{harvest.notes}</p>}
+                    {harvest.photos && harvest.photos.length > 0 && (
+                      <details className="mb-2">
+                        <summary className="cursor-pointer text-xs font-semibold text-primary hover:underline mb-2">
+                          View Photos ({harvest.photos.length})
+                        </summary>
+                        <div className="grid grid-cols-2 gap-2">
+                          {harvest.photos.map((photo, idx) => (
+                            <a key={idx} href={photo} target="_blank" rel="noopener noreferrer">
+                              <img
+                                src={photo}
+                                alt="harvest"
+                                className="w-full h-24 object-cover rounded hover:opacity-80 transition-opacity"
+                              />
+                            </a>
+                          ))}
+                        </div>
+                      </details>
+                    )}
+                    <button
+                      onClick={() => setFocusedHarvestId(focusedHarvestId === harvest.id ? null : harvest.id)}
+                      className="w-full mt-2 px-2 py-1 bg-primary text-white text-xs rounded hover:bg-primary/90"
+                    >
+                      {focusedHarvestId === harvest.id ? 'Unpin' : 'Pin on Map'}
+                    </button>
+                    <button
+                      onClick={() => handleDeleteHarvest(harvest.id)}
+                      className="w-full mt-1 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </InfoWindow>
+              )}
+            </Marker>
+          ))}
 
-        {/* Active Outing GPS Track */}
-        {activeOuting && activeOuting.gps_track && activeOuting.gps_track.length > 1 && (
-          <Polyline
-            positions={activeOuting.gps_track.map((p) => [p.lat, p.lng])}
-            color="#3b82f6"
-            weight={3}
-            opacity={0.7}
-          />
-        )}
+          {/* Active Outing GPS Track */}
+          {activeOuting && activeOuting.gps_track && activeOuting.gps_track.length > 1 && (
+            <Polyline
+              path={activeOuting.gps_track.map((p) => ({ lat: p.lat, lng: p.lng }))}
+              options={{
+                strokeColor: '#3b82f6',
+                strokeOpacity: 0.7,
+                strokeWeight: 3,
+              }}
+            />
+          )}
 
-        {/* All Saved Area Boundaries */}
-        {savedAreas.map((area) => (
-          <Polyline
-            key={area.id}
-            positions={area.polygon_coordinates}
-            color="#3b82f6"
-            weight={5}
-            opacity={1}
-          />
-        ))}
+          {/* Saved Area Boundaries */}
+          {savedAreas.map((area) => (
+            <Polyline
+              key={area.id}
+              path={area.polygon_coordinates.map((coord) => ({ lat: coord[0], lng: coord[1] }))}
+              options={{
+                strokeColor: '#3b82f6',
+                strokeOpacity: 1,
+                strokeWeight: 5,
+              }}
+            />
+          ))}
 
-        {/* Search Result Marker */}
-        {searchMarker && (
-          <Marker position={[searchMarker.lat, searchMarker.lng]}>
-            <Popup>{searchMarker.label}</Popup>
-          </Marker>
-        )}
-      </MapContainer>
+          {/* Search Result Marker */}
+          {searchMarker && (
+            <Marker position={{ lat: searchMarker.lat, lng: searchMarker.lng }}>
+              <InfoWindow>
+                <div>{searchMarker.label}</div>
+              </InfoWindow>
+            </Marker>
+          )}
+        </GoogleMap>
       </div>
 
       {/* Floating Map Controls - Top Right */}
-       <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-auto items-end">
-         {/* Satellite Toggle */}
-         <button
-           onClick={() => setUseSatellite(!useSatellite)}
-           className="w-10 h-10 sm:w-12 sm:h-12 bg-white/15 text-slate-900 rounded-full hover:bg-white/25 transition-all backdrop-blur-lg shadow-lg hover:shadow-xl flex items-center justify-center border border-white/30"
-           title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
-         >
-           <Satellite className="w-4 h-4 sm:w-5 sm:h-5" />
-         </button>
+      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-auto items-end">
+        <button
+          onClick={() => setUseSatellite(!useSatellite)}
+          className="w-10 h-10 sm:w-12 sm:h-12 bg-white/15 text-slate-900 rounded-full hover:bg-white/25 transition-all backdrop-blur-lg shadow-lg hover:shadow-xl flex items-center justify-center border border-white/30"
+          title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
+        >
+          <Satellite className="w-4 h-4 sm:w-5 sm:h-5" />
+        </button>
 
-         <FloatingMapSearch onSearch={handleMapSearch} isGrouped={true} />
-       </div>
+        <FloatingMapSearch onSearch={handleMapSearch} isGrouped={true} />
+      </div>
 
       {/* Legal Shooting Hours Widget + Area Selector - Top Left */}
       <div className="fixed top-4 left-4 z-[9999] pointer-events-auto space-y-2">
@@ -517,13 +516,14 @@ export default function DeerStalkingMap() {
       </div>
 
       {/* Back to Dashboard */}
-       <Link
-         to="/"
-         className="fixed top-4 right-20 z-[9999] w-10 h-10 sm:w-12 sm:h-12 bg-white/15 text-slate-900 rounded-full shadow-lg hover:shadow-xl transition-all pointer-events-auto flex items-center justify-center border border-white/30 hover:bg-white/25 backdrop-blur-lg"
-         title="Dashboard"
-       >
-         <Home className="w-4 h-4 sm:w-5 sm:h-5" />
-       </Link>
+      <Link
+        to="/"
+        className="fixed top-4 right-20 z-[9999] w-10 h-10 sm:w-12 sm:h-12 bg-white/15 text-slate-900 rounded-full shadow-lg hover:shadow-xl transition-all pointer-events-auto flex items-center justify-center border border-white/30 hover:bg-white/25 backdrop-blur-lg"
+        title="Dashboard"
+      >
+        <Home className="w-4 h-4 sm:w-5 sm:h-5" />
+      </Link>
+
       {/* Selection Mode Instruction */}
       {waitingForPin && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[9998] bg-blue-500 text-white px-2 py-0.5 rounded flex items-center justify-between pointer-events-auto gap-1 h-6 w-48">
@@ -541,15 +541,23 @@ export default function DeerStalkingMap() {
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9998] bg-red-500 text-white px-2 py-1 rounded text-xs flex items-center gap-1 pointer-events-auto max-w-xs">
           <AlertCircle className="w-3 h-3 flex-shrink-0" />
           <span className="truncate">{error}</span>
-          <button onClick={() => setShowError(false)} className="ml-1 hover:opacity-80">×</button>
+          <button onClick={() => setShowError(false)} className="ml-1 hover:opacity-80">
+            ×
+          </button>
         </div>
       )}
 
       {/* Floating Action Bar - Bottom Right */}
       <div className="fixed bottom-6 right-6 z-[9999] pointer-events-auto">
         <FloatingActionBar
-          onPOI={() => { setMapClick(null); setWaitingForPin('poi'); }}
-          onHarvest={() => { setMapClick(null); setWaitingForPin('harvest'); }}
+          onPOI={() => {
+            setMapClick(null);
+            setWaitingForPin('poi');
+          }}
+          onHarvest={() => {
+            setMapClick(null);
+            setWaitingForPin('harvest');
+          }}
           onOuting={() => setShowOuting(true)}
           onRecenter={handleRecenter}
           activeOuting={activeOuting}
@@ -558,13 +566,13 @@ export default function DeerStalkingMap() {
         />
       </div>
 
-      {/* Modals - rendered via portal for consistent z-index handling */}
+      {/* Modals - rendered via portal */}
       {createPortal(
         <>
           {(showPOI || showHarvest || showOuting || showCheckout || showAreaDrawer || showAreaForm) && (
             <div className="fixed inset-0 z-[50000] pointer-events-auto" />
           )}
-          
+
           {showPOI && mapClick && (
             <div className="fixed inset-0 z-[50001] flex items-center justify-center">
               <POIModal
@@ -597,7 +605,7 @@ export default function DeerStalkingMap() {
                 locations={locations}
                 onClose={() => setShowOuting(false)}
                 onSubmit={handleStartOuting}
-                selectedArea={savedAreas.find(a => a.id === selectedAreaId)}
+                selectedArea={savedAreas.find((a) => a.id === selectedAreaId)}
               />
             </div>
           )}
