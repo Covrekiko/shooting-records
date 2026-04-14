@@ -486,19 +486,7 @@ export default function DeerStalkingMap() {
       </MapContainer>
       </div>
 
-      {/* Floating Map Search & Satellite - Top Right */}
-      <div className="fixed top-16 right-4 z-[9999] flex flex-col gap-2 pointer-events-auto items-end">
-        {/* Satellite Toggle */}
-        <button
-          onClick={() => setUseSatellite(!useSatellite)}
-          className="p-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all shadow-lg"
-          title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
-        >
-          <Satellite className="w-4 h-4" />
-        </button>
-        
-        <FloatingMapSearch onSearch={handleMapSearch} />
-      </div>
+
 
       {/* Area Selector - Top Left */}
       <div className="fixed top-4 left-4 z-[9999] pointer-events-auto">
@@ -510,14 +498,7 @@ export default function DeerStalkingMap() {
         />
       </div>
 
-      {/* Back to Dashboard */}
-      <Link
-        to="/"
-        className="fixed top-4 right-4 z-[9999] flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all pointer-events-auto"
-      >
-        <Home className="w-4 h-4" />
-        Dashboard
-      </Link>
+
       {/* Selection Mode Instruction */}
       {waitingForPin && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[9998] bg-blue-500 text-white px-2 py-0.5 rounded flex items-center justify-between pointer-events-auto gap-1 h-6 w-48">
@@ -538,8 +519,8 @@ export default function DeerStalkingMap() {
         </div>
       )}
 
-      {/* Floating Action Bar - Bottom Right */}
-      <div className="fixed bottom-6 right-6 z-[9999] pointer-events-auto">
+      {/* Floating Action Bar - Bottom Right with Dashboard & Map Controls */}
+      <div className="fixed bottom-6 right-6 z-[9999] pointer-events-auto flex flex-col-reverse items-end gap-3">
         <FloatingActionBar
           onPOI={() => { setMapClick(null); setWaitingForPin('poi'); }}
           onHarvest={() => { setMapClick(null); setWaitingForPin('harvest'); }}
@@ -549,6 +530,31 @@ export default function DeerStalkingMap() {
           onEndOuting={handleEndOuting}
           onCreateArea={handleStartAreaCreation}
         />
+        
+        {/* Grouped Map Controls - Satellite & Search */}
+        <div className="flex flex-col gap-2 items-end">
+          {/* Satellite Toggle */}
+          <button
+            onClick={() => setUseSatellite(!useSatellite)}
+            className="p-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all shadow-lg"
+            title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
+          >
+            <Satellite className="w-4 h-4" />
+          </button>
+          
+          {/* Search */}
+          <FloatingMapSearch onSearch={handleMapSearch} />
+        </div>
+        
+        {/* Dashboard Button */}
+        <Link
+          to="/"
+          className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all"
+          title="Back to Dashboard"
+        >
+          <Home className="w-4 h-4" />
+          <span className="text-sm font-medium">Dashboard</span>
+        </Link>
       </div>
 
       {/* Modals - rendered via portal for consistent z-index handling */}
