@@ -105,6 +105,12 @@ export default function Dashboard() {
         {user?.role === 'admin' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <StatCard
+              icon={<Map className="w-8 h-8" />}
+              label="Stalking Map"
+              value="Open"
+              link="/deer-stalking"
+            />
+            <StatCard
               icon={<span className="text-2xl">🦌</span>}
               label="Deer Management"
               value={stats?.deerRecords || 0}
