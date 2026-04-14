@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
@@ -75,15 +76,14 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   };
 
   return (
-    <div className="bg-card rounded-lg max-w-md w-[calc(100%-2rem)] sm:w-full p-4 sm:p-6 flex flex-col max-h-[85vh] sm:max-h-[90vh]" onClick={(e) => {
-      console.log('🔴 UnifiedCheckoutModal modal container clicked');
+    <div className="bg-white/98 backdrop-blur-xl rounded-3xl max-w-md w-[calc(100%-2rem)] sm:w-full p-4 sm:p-6 flex flex-col max-h-[85vh] sm:max-h-[90vh] shadow-2xl border border-white/40 overflow-hidden" onClick={(e) => {
       e.stopPropagation();
-    }} style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">Check Out</h2>
-        <button onClick={onClose} className="p-0.5 hover:bg-slate-100 rounded">
-          <X className="w-4 h-4" />
-        </button>
+    }} style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', WebkitBackdropFilter: 'blur(20px)' }}>
+      <div className="flex items-center justify-between mb-4 border-b border-slate-200/50 pb-4">
+        <h2 className="text-lg font-semibold text-slate-900">Check Out</h2>
+        <motion.button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors" whileTap={{ scale: 0.9 }}>
+          <X className="w-5 h-5 text-slate-600" />
+        </motion.button>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-4" style={{ WebkitOverflowScrolling: 'touch' }}>
@@ -93,7 +93,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
             type="time"
             value={checkoutData.end_time}
             onChange={(e) => setCheckoutData({ ...checkoutData, end_time: e.target.value })}
-            className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white text-slate-900"
             required
           />
         </div>
@@ -101,28 +101,30 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
         <div>
           <label className="block text-sm font-medium mb-2">Did you shoot anything?</label>
           <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={() => setCheckoutData({ ...checkoutData, shot_anything: false })}
-              className={`flex-1 px-3 py-2 rounded-lg transition-colors ${
-                !checkoutData.shot_anything
-                  ? 'bg-primary text-primary-foreground'
-                  : 'border border-border hover:bg-secondary'
-              }`}
-            >
-              No
-            </button>
-            <button
-              type="button"
-              onClick={() => setCheckoutData({ ...checkoutData, shot_anything: true })}
-              className={`flex-1 px-3 py-2 rounded-lg transition-colors ${
-                checkoutData.shot_anything
-                  ? 'bg-primary text-primary-foreground'
-                  : 'border border-border hover:bg-secondary'
-              }`}
-            >
-              Yes
-            </button>
+            <motion.button
+                  type="button"
+                  onClick={() => setCheckoutData({ ...checkoutData, shot_anything: false })}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex-1 px-3 py-2 rounded-xl transition-colors font-medium ${
+                    !checkoutData.shot_anything
+                      ? 'bg-primary text-primary-foreground'
+                      : 'border border-slate-200 bg-white text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  No
+                </motion.button>
+                <motion.button
+                  type="button"
+                  onClick={() => setCheckoutData({ ...checkoutData, shot_anything: true })}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex-1 px-3 py-2 rounded-xl transition-colors font-medium ${
+                    checkoutData.shot_anything
+                      ? 'bg-primary text-primary-foreground'
+                      : 'border border-slate-200 bg-white text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  Yes
+                </motion.button>
           </div>
         </div>
 
@@ -131,32 +133,34 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
             <div>
               <div className="flex items-center justify-between mb-3">
                 <label className="block text-sm font-bold">Species Harvested</label>
-                <button
+                <motion.button
                   type="button"
                   onClick={addSpecies}
-                  className="text-xs bg-secondary hover:bg-primary hover:text-primary-foreground px-2 py-1 rounded"
+                  whileTap={{ scale: 0.98 }}
+                  className="text-xs bg-slate-200 hover:bg-primary hover:text-primary-foreground px-3 py-1.5 rounded-lg font-medium transition-all"
                 >
                   + Add Species
-                </button>
+                </motion.button>
               </div>
               {checkoutData.species_list.map((entry, idx) => (
-                <div key={idx} className="bg-secondary/30 p-3 rounded-lg mb-3 space-y-2">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-xs font-medium text-muted-foreground">Species {idx + 1}</span>
-                    {checkoutData.species_list.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeSpecies(idx)}
-                        className="text-xs text-destructive hover:underline"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
+                <div key={idx} className="bg-slate-100 p-3 rounded-xl mb-3 space-y-2 border border-slate-200">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-medium text-slate-600">Species {idx + 1}</span>
+                      {checkoutData.species_list.length > 1 && (
+                        <motion.button
+                          type="button"
+                          onClick={() => removeSpecies(idx)}
+                          whileTap={{ scale: 0.95 }}
+                          className="text-xs text-red-500 hover:text-red-700 font-medium"
+                        >
+                          Remove
+                        </motion.button>
+                      )}
+                    </div>
                   <select
                     value={entry.species}
                     onChange={(e) => updateSpecies(idx, 'species', e.target.value)}
-                    className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
+                    className="w-full px-2 py-1 text-sm border border-slate-200 rounded-lg bg-white text-slate-900"
                     required
                   >
                     <option value="">Select species</option>
@@ -183,7 +187,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                     placeholder="Count"
                     value={entry.count}
                     onChange={(e) => updateSpecies(idx, 'count', e.target.value)}
-                    className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
+                    className="w-full px-2 py-1 text-sm border border-slate-200 rounded-lg bg-white text-slate-900"
                     required
                   />
                 </div>
@@ -195,7 +199,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
               <select
                 value={checkoutData.rifle_id}
                 onChange={(e) => setCheckoutData({ ...checkoutData, rifle_id: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white text-slate-900"
               >
                 <option value="">Select a rifle</option>
                 {rifles.map((rifle) => (
@@ -219,7 +223,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                     });
                   }
                 }}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-background mb-2"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white text-slate-900 mb-2"
               >
                 <option value="">Select saved ammunition</option>
                 {ammunition.map((ammo) => (
@@ -233,7 +237,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                 placeholder="e.g. Federal 308 Win"
                 value={checkoutData.ammunition_used}
                 onChange={(e) => setCheckoutData({ ...checkoutData, ammunition_used: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white text-slate-900"
               />
             </div>
           </>
@@ -244,7 +248,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
           <textarea
             value={checkoutData.notes}
             onChange={(e) => setCheckoutData({ ...checkoutData, notes: e.target.value })}
-            className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white text-slate-900"
             rows="2"
           />
         </div>
@@ -252,11 +256,11 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
         <div>
           <label className="block text-sm font-medium mb-2">Photos</label>
           <div className="flex gap-2 mb-3">
-            <label className="flex-1 px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors">
+            <label className="flex-1 px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl text-center cursor-pointer font-medium transition-colors">
               📁 Choose Photo
               <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
             </label>
-            <label className="flex-1 px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors">
+            <label className="flex-1 px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-xl text-center cursor-pointer font-medium transition-colors">
               📷 Take Photo
               <input type="file" accept="image/*" capture="environment" multiple onChange={handlePhotoUpload} className="hidden" />
             </label>
@@ -265,14 +269,15 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
             <div className="flex flex-wrap gap-2">
               {checkoutData.photos.map((photo, idx) => (
                 <div key={idx} className="relative group">
-                  <img src={photo} alt="preview" className="h-20 w-20 object-cover rounded" />
-                  <button
-                    type="button"
-                    onClick={() => setCheckoutData({ ...checkoutData, photos: checkoutData.photos.filter((_, i) => i !== idx) })}
-                    className="absolute top-0 right-0 bg-destructive text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100"
-                  >
-                    ×
-                  </button>
+                  <img src={photo} alt="preview" className="h-20 w-20 object-cover rounded-lg" />
+                   <motion.button
+                     type="button"
+                     onClick={() => setCheckoutData({ ...checkoutData, photos: checkoutData.photos.filter((_, i) => i !== idx) })}
+                     whileTap={{ scale: 0.9 }}
+                     className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                   >
+                     ×
+                   </motion.button>
                 </div>
               ))}
             </div>
@@ -280,21 +285,23 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
         </div>
 
       </div>
-      <div className="flex-shrink-0 flex gap-3 pt-4 border-t border-border bg-card">
-        <button
+      <div className="flex-shrink-0 flex gap-3 pt-4 border-t border-slate-200/50 bg-slate-50/50 flex-col-reverse sm:flex-row">
+        <motion.button
           type="button"
           onClick={handleSubmit}
-          className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
+          whileTap={{ scale: 0.98 }}
+          className="flex-1 px-4 py-2.5 bg-primary text-primary-foreground rounded-xl hover:opacity-90 font-medium text-sm transition-all"
         >
           Check Out
-        </button>
-        <button
+        </motion.button>
+        <motion.button
           type="button"
           onClick={onClose}
-          className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary"
+          whileTap={{ scale: 0.98 }}
+          className="flex-1 px-4 py-2.5 border border-slate-200 bg-white rounded-xl hover:bg-slate-100 font-medium text-sm transition-all"
         >
           Cancel
-        </button>
+        </motion.button>
       </div>
     </div>
   );
