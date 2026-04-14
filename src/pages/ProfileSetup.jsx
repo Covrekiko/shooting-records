@@ -17,6 +17,18 @@ function getAge(dob) {
   return age;
 }
 
+function Field({ label, error, required, children }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-foreground mb-1">
+        {label}{required && <span className="text-destructive ml-1">*</span>}
+      </label>
+      {children}
+      {error && <p className="text-destructive text-xs mt-1">{error}</p>}
+    </div>
+  );
+}
+
 export default function ProfileSetup({ onComplete }) {
   const [form, setForm] = useState({
     firstName: '',
@@ -77,16 +89,6 @@ export default function ProfileSetup({ onComplete }) {
     setSaving(false);
     onComplete();
   };
-
-  const Field = ({ label, error, required, children }) => (
-    <div>
-      <label className="block text-sm font-medium text-foreground mb-1">
-        {label}{required && <span className="text-destructive ml-1">*</span>}
-      </label>
-      {children}
-      {error && <p className="text-destructive text-xs mt-1">{error}</p>}
-    </div>
-  );
 
   const inputClass = (field) =>
     `w-full px-3 py-2 border rounded-lg bg-background text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring ${
