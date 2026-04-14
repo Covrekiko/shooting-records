@@ -488,27 +488,36 @@ export default function DeerStalkingMap() {
 
       {/* Floating Map Controls - Top Right */}
       <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-auto items-end">
-         <FloatingMapSearch onSearch={handleMapSearch} isGrouped={true} onSatelliteToggle={() => setUseSatellite(!useSatellite)} useSatellite={useSatellite} />
-       </div>
+        {/* Satellite Toggle */}
+        <button
+          onClick={() => setUseSatellite(!useSatellite)}
+          className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-800 text-white rounded-full hover:bg-slate-700 transition-all shadow-lg hover:shadow-xl flex items-center justify-center"
+          title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
+        >
+          <Satellite className="w-4 h-4 sm:w-5 sm:h-5" />
+        </button>
+        
+        <FloatingMapSearch onSearch={handleMapSearch} isGrouped={true} />
+      </div>
 
-       {/* Area Selector - Top Left */}
-       <div className="fixed top-4 left-4 z-[9999] pointer-events-auto">
-         <AreaSelector
-           savedAreas={savedAreas}
-           selectedAreaId={selectedAreaId}
-           onSelectArea={handleSelectArea}
-           userLocation={userLocation}
-         />
-       </div>
+      {/* Area Selector - Top Left */}
+      <div className="fixed top-4 left-4 z-[9999] pointer-events-auto">
+        <AreaSelector
+          savedAreas={savedAreas}
+          selectedAreaId={selectedAreaId}
+          onSelectArea={handleSelectArea}
+          userLocation={userLocation}
+        />
+      </div>
 
-       {/* Back to Dashboard */}
-       <Link
-         to="/"
-         className="fixed top-4 right-4 z-[9997] flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all pointer-events-auto"
-       >
-         <Home className="w-4 h-4" />
-         Dashboard
-       </Link>
+      {/* Back to Dashboard */}
+      <Link
+        to="/"
+        className="fixed top-4 right-20 z-[9999] flex items-center gap-2 px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all pointer-events-auto md:top-4"
+      >
+        <Home className="w-4 h-4" />
+        Dashboard
+      </Link>
       {/* Selection Mode Instruction */}
       {waitingForPin && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[9998] bg-blue-500 text-white px-2 py-0.5 rounded flex items-center justify-between pointer-events-auto gap-1 h-6 w-48">
