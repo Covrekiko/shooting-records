@@ -99,24 +99,24 @@ export default function Dashboard() {
   }
 
   return (
-    <div>
-      <Navigation />
-      {(pulling || refreshing) && (
-        <div className="flex justify-center pt-3 pb-1">
-          <div
-            className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
-            style={{ animation: refreshing ? 'spin 0.6s linear infinite' : 'none', opacity: refreshing ? 1 : progress, transform: `rotate(${progress * 360}deg)` }}
-          />
-        </div>
-      )}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-foreground mb-2">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome, {user?.full_name}</p>
-        </div>
+     <div className="bg-gradient-to-b from-background via-background to-secondary/5">
+       <Navigation />
+       {(pulling || refreshing) && (
+         <div className="flex justify-center pt-3 pb-1">
+           <div
+             className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
+             style={{ animation: refreshing ? 'spin 0.6s linear infinite' : 'none', opacity: refreshing ? 1 : progress, transform: `rotate(${progress * 360}deg)` }}
+           />
+         </div>
+       )}
+       <main className="max-w-7xl mx-auto px-4 py-8 md:py-12 pb-20">
+         <div className="mb-12">
+           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-2">Dashboard</h1>
+           <p className="text-sm text-muted-foreground">Welcome back, <span className="font-semibold text-foreground">{user?.full_name}</span></p>
+         </div>
 
-        {user?.role === 'admin' ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+         {user?.role === 'admin' ? (
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             <StatCard
               icon={<Map className="w-8 h-8" />}
               label="Stalking Map"
@@ -143,7 +143,7 @@ export default function Dashboard() {
              />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             <StatCard
               icon={<Map className="w-8 h-8" />}
               label="Stalking Map"
@@ -367,29 +367,32 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
 }
 
 function StatCard({ icon, label, value, link, hideOnMobile }) {
-  const content = (
-    <div className="flex items-start justify-between gap-2">
-      <div className="flex-1 min-w-0">
-        <p className="text-xs sm:text-sm text-muted-foreground mb-2">{label}</p>
-        <p className="text-3xl sm:text-4xl font-bold text-primary">{value}</p>
-      </div>
-      <div className="text-muted-foreground cursor-pointer hover:text-primary transition-colors flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 sm:[&_svg]:w-8 sm:[&_svg]:h-8 [&_img]:w-6 [&_img]:h-6 sm:[&_img]:w-8 sm:[&_img]:h-8 text-lg sm:text-2xl">{icon}</div>
-    </div>
-  );
+   const content = (
+     <div className="flex flex-col items-start justify-between h-full">
+       <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4 flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 [&_img]:w-5 [&_img]:h-5 text-lg">
+         {icon}
+       </div>
+       <div className="flex-1 min-w-0 w-full">
+         <p className="text-xs text-muted-foreground font-medium mb-2 uppercase tracking-wide">{label}</p>
+         <p className="text-3xl md:text-4xl font-bold text-foreground">{value}</p>
+       </div>
+     </div>
+   );
 
-  const cardClass = hideOnMobile ? "hidden md:block" : "";
+   const cardClass = hideOnMobile ? "hidden md:block" : "";
+   const baseClass = "bg-card rounded-2xl p-5 md:p-6 border border-border/50 hover:border-border transition-all duration-200 hover:shadow-md hover:-translate-y-1 active:scale-95";
 
-  if (link) {
-    return (
-      <Link to={link} className={`bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-shadow block ${cardClass}`}>
-        {content}
-      </Link>
-    );
-  }
+   if (link) {
+     return (
+       <Link to={link} className={`${baseClass} block ${cardClass}`}>
+         {content}
+       </Link>
+     );
+   }
 
-  return (
-    <div className={`bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-shadow ${cardClass}`}>
-      {content}
-    </div>
-  );
+   return (
+     <div className={`${baseClass} ${cardClass}`}>
+       {content}
+     </div>
+   );
 }

@@ -35,39 +35,49 @@ export function OutingProvider({ children }) {
   };
 
   const startOuting = async (data) => {
-    try {
-      console.log('🟢 CHECK IN SAVE STARTED - OutingContext, data:', data.place_name);
-      // Create DeerOuting (map system)
-      const outing = await base44.entities.DeerOuting.create({
-        location_name: data.place_name || data.location_name,
-        area_id: data.area_id || '',
-        start_time: new Date((data.date || data.start_time) + 'T' + (data.start_time || '').slice(0, 5)).toISOString(),
-        gps_track: [],
-        active: true,
-      });
+     try {
+       console.log('🟢 CHECK IN SAVE STARTED - OutingContext, data:', data.place_name);
 
-      console.log('🟢 CHECK IN SAVE SUCCESS - DeerOuting created with ID:', outing.id);
+       // Construct proper ISO date-time from date and time inputs
+       const [year, month, day] = (data.date || '').split('-');
+       const [hours, minutes] = (data.start_time || '').split(':');
+       const isoDateTime = new Date(year, parseInt(month) - 1, day, hours, minutes).toISOString();
 
-      // Create SessionRecord for deer management
-      if (data.place_name && data.date && data.start_time) {
-        await base44.entities.SessionRecord.create({
-          category: 'deer_management',
-          date: data.date,
-          location_id: data.location_id || '',
-          location_name: data.place_name,
-          start_time: data.start_time,
-          status: 'active',
-        });
-        console.log('🟢 SessionRecord created');
-      }
+       // Create DeerOuting (map system)
+       const outing = await base44.entities.DeerOuting.create({
+         location_name: data.place_name || data.location_name,
+         area_id: data.location_id || data.area_id || '',
+         start_time: isoDateTime,
+         gps_track: [],
+         active: true,
+       });
 
-      setActiveOuting(outing);
-      return outing;
-    } catch (error) {
-      console.error('🔴 Error starting outing:', error);
-      throw error;
-    }
-  };
+       console.log('🟢 CHECK IN SAVE SUCCESS - DeerOuting created with ID:', outing.id, 'start_time:', isoDateTime);
+
+       // Create SessionRecord for deer management - this is the primary record
+       if (data.place_name && data.date && data.start_time) {
+         const sr = await base44.entities.SessionRecord.create({
+           category: 'deer_management',
+           date: data.date,
+           location_id: data.location_id || '',
+           location_name: data.place_name,
+           start_time: data.start_time,
+           status: 'active',
+           notes: '',
+           photos: [],
+           gps_track: [],
+           checkin_time: data.start_time,
+         });
+         console.log('🟢 SessionRecord created with ID:', sr.id);
+       }
+
+       setActiveOuting(outing);
+       return outing;
+     } catch (error) {
+       console.error('🔴 Error starting outing:', error);
+       throw error;
+     }
+   };
 
   const endOuting = async (outingId) => {
     try {
@@ -83,58 +93,60 @@ export function OutingProvider({ children }) {
   };
 
   const endOutingWithData = async (outingId, checkoutData, gpsTrack) => {
-    try {
-      const currentUser = await base44.auth.me();
-      console.log('🟢 endOutingWithData called - outingId:', outingId, 'gpsTrack:', gpsTrack?.length || 0, 'points');
+     try {
+       const currentUser = await base44.auth.me();
+       console.log('🟢 endOutingWithData called - outingId:', outingId, 'gpsTrack:', gpsTrack?.length || 0, 'points', 'checkoutData:', checkoutData);
 
-      // Update DeerOuting
-      const updateOutingPayload = {
-        end_time: new Date().toISOString(),
-        active: false,
-        gps_track: gpsTrack || [],
-      };
-      console.log('🟢 Updating DeerOuting with payload:', JSON.stringify(updateOutingPayload).substring(0, 100));
+       // Update DeerOuting
+       const updateOutingPayload = {
+         end_time: new Date().toISOString(),
+         active: false,
+         gps_track: gpsTrack || [],
+       };
 
-      await base44.entities.DeerOuting.update(outingId, updateOutingPayload);
-      console.log('🟢 DeerOuting updated and closed - ID:', outingId, 'GPS points saved:', gpsTrack?.length || 0);
+       await base44.entities.DeerOuting.update(outingId, updateOutingPayload);
+       console.log('🟢 DeerOuting updated and closed - ID:', outingId, 'GPS points saved:', gpsTrack?.length || 0);
 
-      // Update SessionRecord with checkout data if it exists
-      if (checkoutData) {
-        const sessionRecords = await base44.entities.SessionRecord.filter({
-          created_by: currentUser.email,
-          category: 'deer_management',
-          status: 'active',
-        });
-        console.log('🟢 Found', sessionRecords.length, 'active SessionRecord(s) for deer management');
+       // Update SessionRecord with checkout data - find by location_name and active status
+       const sessionRecords = await base44.entities.SessionRecord.filter({
+         created_by: currentUser.email,
+         category: 'deer_management',
+         status: 'active',
+       });
+       console.log('🟢 Found', sessionRecords.length, 'active SessionRecord(s) for deer management');
 
-        if (sessionRecords.length > 0) {
-          const srId = sessionRecords[0].id;
-          const updateSrPayload = {
-            status: 'completed',
-            end_time: checkoutData.end_time || new Date().toTimeString().slice(0, 5),
-            gps_track: gpsTrack || [],
-            notes: checkoutData.notes || '',
-            photos: checkoutData.photos || [],
-            species_list: checkoutData.shot_anything ? (checkoutData.species_list || []) : [],
-            total_count: checkoutData.shot_anything ? (checkoutData.total_count || null) : null,
-            rifle_id: checkoutData.shot_anything ? (checkoutData.rifle_id || null) : null,
-            ammunition_used: checkoutData.shot_anything ? (checkoutData.ammunition_used || null) : null,
-          };
-          console.log('🟢 Updating SessionRecord ID:', srId, 'with checkout data - gps:', gpsTrack?.length || 0, 'points');
+       if (sessionRecords.length > 0) {
+         const srId = sessionRecords[0].id;
+         const endTimeStr = new Date().toTimeString().slice(0, 5);
 
-          await base44.entities.SessionRecord.update(srId, updateSrPayload);
-          console.log('🟢 SessionRecord updated and closed - ID:', srId);
-        } else {
-          console.warn('⚠️ No active SessionRecord found to update');
-        }
-      }
+         const updateSrPayload = {
+           status: 'completed',
+           checkout_time: endTimeStr,
+           end_time: endTimeStr,
+           gps_track: gpsTrack || [],
+           notes: checkoutData.notes || '',
+           photos: checkoutData.photos || [],
+           species_list: checkoutData.shot_anything ? (checkoutData.species_list || []) : [],
+           total_count: checkoutData.shot_anything ? (checkoutData.total_count || '0') : '0',
+           number_shot: checkoutData.shot_anything ? parseInt(checkoutData.total_count || 0) : 0,
+           rifle_id: checkoutData.shot_anything ? (checkoutData.rifle_id || null) : null,
+           ammunition_used: checkoutData.shot_anything ? (checkoutData.ammunition_used || null) : null,
+           ammunition_id: checkoutData.shot_anything ? (checkoutData.ammunition_id || null) : null,
+         };
+         console.log('🟢 Updating SessionRecord ID:', srId, 'with checkout data - gps:', gpsTrack?.length || 0, 'points');
 
-      setActiveOuting(null);
-    } catch (error) {
-      console.error('🔴 Error ending outing with data:', error.message, error.status, error.response?.data);
-      throw error;
-    }
-  };
+         await base44.entities.SessionRecord.update(srId, updateSrPayload);
+         console.log('🟢 SessionRecord updated and closed - ID:', srId, 'new status: completed');
+       } else {
+         console.warn('⚠️ No active SessionRecord found to update');
+       }
+
+       setActiveOuting(null);
+     } catch (error) {
+       console.error('🔴 Error ending outing with data:', error.message, error.status, error.response?.data);
+       throw error;
+     }
+   };
 
   const updateGpsTrack = async (outingId, track) => {
     try {

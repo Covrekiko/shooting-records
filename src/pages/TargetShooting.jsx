@@ -125,12 +125,20 @@ export default function TargetShooting() {
      console.log('🟢 CHECK IN CLICKED - TargetShooting');
      console.log('🟢 CHECK IN SAVE STARTED - club:', checkinData.club_id, 'date:', checkinData.date);
      try {
+       // Find club name for location_name field
+       const selectedClub = clubs.find(c => c.id === checkinData.club_id);
        const session = await base44.entities.SessionRecord.create({
          ...checkinData,
          category: 'target_shooting',
          status: 'active',
+         location_id: checkinData.club_id,
+         location_name: selectedClub?.name || 'Unknown Club',
+         start_time: checkinData.checkin_time,
+         notes: checkinData.notes || '',
+         photos: [],
+         gps_track: [],
        });
-       console.log('🟢 CHECK IN SAVE SUCCESS - session id:', session.id);
+       console.log('🟢 CHECK IN SAVE SUCCESS - session id:', session.id, 'club:', selectedClub?.name);
        setActiveSession(session);
        trackingService.startTracking(session.id, 'target');
        setGpsTrack([]);

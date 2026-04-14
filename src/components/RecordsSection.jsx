@@ -139,18 +139,21 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
   const getLocationName = (locationId) => locations[locationId]?.place_name || 'Unknown Location';
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[50001] overflow-y-auto">
-      <div className="bg-card rounded-lg max-w-3xl w-full p-8 my-4">
+    <div className="fixed inset-0 bg-black/50 z-[50001] flex items-start sm:items-center justify-center p-4 overflow-y-auto" style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}>
+      <div className="bg-card rounded-2xl max-w-4xl w-full my-4 sm:my-0 flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[90vh]" style={{ maxHeight: 'calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 2rem)' }}>
         {/* Header */}
-        <div className="flex items-center justify-between mb-12 border-b border-border pb-8">
+        <div className="flex items-center justify-between mb-8 pb-6 border-b border-border flex-shrink-0 p-6 sm:p-8">
           <div>
-            <h2 className="text-3xl font-bold">Session Report</h2>
-            <p className="text-muted-foreground text-sm mt-1">Detailed Activity Record</p>
+            <h2 className="text-2xl sm:text-3xl font-bold">Session Report</h2>
+            <p className="text-muted-foreground text-xs sm:text-sm mt-1">Detailed Activity Record</p>
           </div>
-          <button onClick={onClose} className="p-1 hover:bg-secondary rounded">
-            <X className="w-6 h-6" />
+          <button onClick={onClose} className="p-1 hover:bg-secondary rounded flex-shrink-0 ml-4">
+            <X className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
         </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto px-6 sm:px-8 pb-6 sm:pb-8">
 
         {/* Photos Section */}
         {currentRecord.photos && currentRecord.photos.length > 0 && (
@@ -164,23 +167,23 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
           </div>
         )}
 
-        {/* Basic Session Info */}
-        <div className="grid grid-cols-2 gap-4 mb-6 pb-4 border-b border-border">
+        {/* Basic Session Info - 2 col on desktop, 1 on mobile */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 pb-4 border-b border-border">
           <div>
-            <label className="font-bold text-sm text-primary">Session Date</label>
-            <p className="text-lg">{format(new Date(currentRecord.date), 'EEEE, MMMM d, yyyy')}</p>
+            <label className="font-bold text-xs text-primary uppercase">Session Date</label>
+            <p className="text-base sm:text-lg">{format(new Date(currentRecord.date), 'MMM d, yyyy')}</p>
           </div>
           <div>
-            <label className="font-bold text-sm text-primary">Session Type</label>
-            <p className="text-lg">{category === 'target_shooting' ? 'Target Shooting' : category === 'clay_shooting' ? 'Clay Shooting' : 'Deer Management'}</p>
+            <label className="font-bold text-xs text-primary uppercase">Session Type</label>
+            <p className="text-base sm:text-lg">{category === 'target_shooting' ? 'Target Shooting' : category === 'clay_shooting' ? 'Clay Shooting' : 'Deer Management'}</p>
           </div>
           <div>
-            <label className="font-bold text-sm text-primary">Check-In Time</label>
-            <p className="text-lg">{category === 'deer_management' ? currentRecord.start_time : currentRecord.checkin_time}</p>
+            <label className="font-bold text-xs text-primary uppercase">Check-In</label>
+            <p className="text-base sm:text-lg">{category === 'deer_management' ? currentRecord.start_time : currentRecord.checkin_time}</p>
           </div>
           <div>
-            <label className="font-bold text-sm text-primary">Check-Out Time</label>
-            <p className="text-lg">{currentRecord.end_time || currentRecord.checkout_time || 'N/A'}</p>
+            <label className="font-bold text-xs text-primary uppercase">Check-Out</label>
+            <p className="text-base sm:text-lg">{currentRecord.end_time || currentRecord.checkout_time || 'N/A'}</p>
           </div>
         </div>
 
@@ -209,7 +212,7 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
                       const rifleData = getRifleDetails(rifleStat.rifle_id);
                       return (
                         <div key={idx} className="bg-secondary/30 p-4 rounded-lg">
-                          <div className="grid grid-cols-2 gap-4 mb-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
                             <div>
                               <label className="text-xs font-bold text-muted-foreground uppercase">Firearm #{idx + 1}</label>
                               <p className="font-semibold text-base">{rifleStat.rifle_id ? getRifleName(rifleStat.rifle_id) : 'N/A'}</p>
@@ -293,7 +296,7 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
           <>
             {getClubName(currentRecord.location_id) && (
               <div className="mb-6 pb-4 border-b border-border">
-                <h3 className="font-bold text-lg mb-3 text-primary">Venue Details</h3>
+                <h3 className="font-bold text-base sm:text-lg mb-3 text-primary">Venue Details</h3>
                 <div className="bg-secondary/30 p-4 rounded-lg">
                   <p className="font-semibold text-base">{getClubName(currentRecord.location_id)}</p>
                   {clubs[currentRecord.location_id]?.location && (
@@ -305,22 +308,22 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
 
             {currentRecord.shotgun_id && (
               <div className="mb-6 pb-4 border-b border-border">
-                <h3 className="font-bold text-lg mb-3 text-primary">Shotgun Details</h3>
+                <h3 className="font-bold text-base sm:text-lg mb-3 text-primary">Shotgun Details</h3>
                 <div className="bg-secondary/30 p-4 rounded-lg">
                   {getShotgunDetails(currentRecord.shotgun_id) && (
                     <>
                       <p className="font-semibold text-base">{getShotgunName(currentRecord.shotgun_id)}</p>
-                      <div className="grid grid-cols-3 gap-3 mt-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
                         <div>
-                          <label className="text-xs font-bold text-muted-foreground">Make</label>
+                          <label className="text-xs font-bold text-muted-foreground uppercase">Make</label>
                           <p className="text-sm">{getShotgunDetails(currentRecord.shotgun_id).make || '-'}</p>
                         </div>
                         <div>
-                          <label className="text-xs font-bold text-muted-foreground">Model</label>
+                          <label className="text-xs font-bold text-muted-foreground uppercase">Model</label>
                           <p className="text-sm">{getShotgunDetails(currentRecord.shotgun_id).model || '-'}</p>
                         </div>
                         <div>
-                          <label className="text-xs font-bold text-muted-foreground">Gauge</label>
+                          <label className="text-xs font-bold text-muted-foreground uppercase">Gauge</label>
                           <p className="text-sm">{getShotgunDetails(currentRecord.shotgun_id).gauge || '-'}</p>
                         </div>
                       </div>
@@ -337,11 +340,9 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
             )}
 
             <div className="mb-6 pb-4 border-b border-border">
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label className="font-bold text-sm text-primary">Total Rounds Fired</label>
-                  <p className="text-lg">{currentRecord.rounds_fired || '0'} rounds</p>
-                </div>
+              <div className="mb-4">
+                <label className="font-bold text-xs text-primary uppercase">Total Rounds Fired</label>
+                <p className="text-base sm:text-lg">{currentRecord.rounds_fired || '0'} rounds</p>
               </div>
               {currentRecord.ammunition_used && (
                 <div className="bg-blue-50/30 p-3 rounded border border-blue-200/50">
@@ -369,20 +370,20 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
             <div className="mb-6 pb-4 border-b border-border">
               {currentRecord.total_count && currentRecord.total_count !== '0' ? (
                 <>
-                  <h3 className="font-bold text-lg mb-3 text-primary">Species Harvested</h3>
+                  <h3 className="font-bold text-base sm:text-lg mb-3 text-primary">Species Harvested</h3>
                   {currentRecord.species_list && currentRecord.species_list.length > 0 ? (
-                    <div className="space-y-2 mb-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
                       {currentRecord.species_list.map((s, idx) => (
-                        <div key={idx} className="bg-secondary/30 p-3 rounded-lg flex justify-between">
-                          <span className="font-medium">{s.species}</span>
-                          <span className="font-semibold">{s.count}</span>
+                        <div key={idx} className="bg-secondary/30 p-3 rounded-lg flex justify-between items-center">
+                          <span className="font-medium text-sm">{s.species}</span>
+                          <span className="font-semibold text-base">{s.count}</span>
                         </div>
                       ))}
                     </div>
                   ) : null}
-                  <div className="bg-primary/10 p-3 rounded-lg mb-4">
-                    <label className="text-xs font-bold text-primary">Total Shots Fired</label>
-                    <p className="text-lg font-semibold">{currentRecord.total_count}</p>
+                  <div className="bg-primary/10 p-4 rounded-lg mb-4">
+                    <label className="text-xs font-bold text-primary uppercase">Total Shots Fired</label>
+                    <p className="text-lg sm:text-xl font-semibold mt-1">{currentRecord.total_count}</p>
                   </div>
                   {currentRecord.ammunition_used && (
                     <div className="bg-blue-50/30 p-3 rounded border border-blue-200/50">
@@ -404,17 +405,17 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
                 <div className="bg-secondary/30 p-4 rounded-lg space-y-4">
                   <div>
                     <p className="font-semibold text-base mb-3">{getRifleName(currentRecord.rifle_id)}</p>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       <div>
-                        <label className="text-xs font-bold text-muted-foreground">Make</label>
+                        <label className="text-xs font-bold text-muted-foreground uppercase">Make</label>
                         <p className="text-sm">{rifles[currentRecord.rifle_id].make || '-'}</p>
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-muted-foreground">Model</label>
+                        <label className="text-xs font-bold text-muted-foreground uppercase">Model</label>
                         <p className="text-sm">{rifles[currentRecord.rifle_id].model || '-'}</p>
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-muted-foreground">Caliber</label>
+                        <label className="text-xs font-bold text-muted-foreground uppercase">Caliber</label>
                         <p className="text-sm">{rifles[currentRecord.rifle_id].caliber || '-'}</p>
                       </div>
                     </div>
@@ -440,25 +441,29 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
         {/* Notes Section */}
         {currentRecord.notes && (
           <div className="mb-6 pb-4 border-b border-border">
-            <h3 className="font-bold text-lg mb-2 text-primary">Session Notes</h3>
+            <h3 className="font-bold text-base sm:text-lg mb-2 text-primary">Session Notes</h3>
             <div className="bg-secondary/20 p-4 rounded-lg">
               <p className="whitespace-pre-wrap text-sm">{currentRecord.notes}</p>
             </div>
           </div>
         )}
 
-        {/* Footer with record info */}
-        <div className="text-xs text-muted-foreground bg-secondary/20 p-3 rounded-lg text-center">
-          <p>Record ID: {currentRecord.id}</p>
-          <p>Created: {format(new Date(currentRecord.created_date), 'PPpp')}</p>
+          {/* Footer with record info */}
+          <div className="text-xs text-muted-foreground bg-secondary/20 p-3 rounded-lg text-center">
+            <p>Record ID: {currentRecord.id}</p>
+            <p>Created: {format(new Date(currentRecord.created_date), 'PPpp')}</p>
+          </div>
         </div>
 
-        <button
-          onClick={onClose}
-          className="mt-6 w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 font-semibold"
-        >
-          Close Report
-        </button>
+        {/* Action Button - Sticky */}
+        <div className="flex-shrink-0 p-6 sm:p-8 border-t border-border bg-card">
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 font-semibold transition-all active:scale-95"
+          >
+            Close Report
+          </button>
+        </div>
       </div>
     </div>
   );
