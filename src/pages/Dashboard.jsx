@@ -29,7 +29,7 @@ export default function Dashboard() {
         if (currentUser.role === 'admin') {
           const [users, allRecords] = await Promise.all([
             base44.entities.User.list(),
-            base44.entities.SessionRecord.list(),
+            base44.entities.SessionRecord.filter({ created_by: currentUser.email }),
           ]);
 
           const targetRecords = allRecords.filter(r => r.category === 'target_shooting');

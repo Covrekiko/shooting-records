@@ -5,9 +5,8 @@ export default function OutingModal({ onClose, onSubmit, locations = [], selecte
   const [areas, setAreas] = useState([]);
   const [data, setData] = useState({
     date: new Date().toISOString().split('T')[0],
-    location_id: '',
+    location_id: selectedArea?.id || '',
     place_name: selectedArea?.name || '',
-    area_id: selectedArea?.id || '',
     start_time: new Date().toTimeString().slice(0, 5),
   });
 
@@ -39,7 +38,7 @@ export default function OutingModal({ onClose, onSubmit, locations = [], selecte
     if (selected) {
       setData({
         ...data,
-        area_id: selected.id,
+        location_id: selected.id,
         place_name: selected.name,
       });
     }
@@ -63,7 +62,7 @@ export default function OutingModal({ onClose, onSubmit, locations = [], selecte
           <div>
             <label className="block text-sm font-medium mb-1">Select Area</label>
             <select
-              value={data.area_id}
+              value={data.location_id}
               onChange={(e) => handleAreaSelect(e.target.value)}
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
             >

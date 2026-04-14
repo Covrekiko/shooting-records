@@ -75,10 +75,10 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   };
 
   return (
-    <div className="bg-card rounded-lg max-w-md w-full p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => {
+    <div className="bg-card rounded-lg max-w-md w-full p-6 flex flex-col max-h-[90vh]" onClick={(e) => {
       console.log('🔴 UnifiedCheckoutModal modal container clicked');
       e.stopPropagation();
-    }}>
+    }} style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold">Check Out</h2>
         <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded">
@@ -86,7 +86,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
         </button>
       </div>
 
-      <div className="space-y-4">
+      <div className="flex-1 overflow-y-auto space-y-4" style={{ WebkitOverflowScrolling: 'touch' }}>
         <div>
           <label className="block text-sm font-medium mb-1">Check-out Time</label>
           <input
@@ -279,22 +279,22 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
           )}
         </div>
 
-        <div className="flex gap-3 sticky bottom-0 bg-card pt-4">
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
-          >
-            Check Out
-          </button>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary"
-          >
-            Cancel
-          </button>
-        </div>
+      </div>
+      <div className="flex-shrink-0 flex gap-3 pt-4 border-t border-border bg-card">
+        <button
+          type="button"
+          onClick={handleSubmit}
+          className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
+        >
+          Check Out
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary"
+        >
+          Cancel
+        </button>
       </div>
     </div>
   );
