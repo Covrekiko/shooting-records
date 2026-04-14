@@ -11,6 +11,7 @@ export default function AdminUsers() {
     email: '',
     full_name: '',
     phone: '',
+    date_of_birth: '',
     address: '',
     vehicle_make: '',
     vehicle_model: '',
@@ -44,6 +45,7 @@ export default function AdminUsers() {
         email: '',
         full_name: '',
         phone: '',
+        date_of_birth: '',
         address: '',
         vehicle_make: '',
         vehicle_model: '',
@@ -126,6 +128,15 @@ export default function AdminUsers() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Date of Birth</label>
+                  <input
+                    type="date"
+                    value={formData.date_of_birth}
+                    onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                   />
                 </div>
