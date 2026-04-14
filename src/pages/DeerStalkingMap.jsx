@@ -360,16 +360,19 @@ export default function DeerStalkingMap() {
 
           {/* POI Markers */}
           {markers.map((marker) => (
-            <Marker
-              key={marker.id}
-              position={{ lat: marker.latitude, lng: marker.longitude }}
-              onClick={() => {
-                setOpenInfoWindowId(marker.id);
-                setOpenInfoWindowType('poi');
-              }}
-            >
+            <div key={marker.id}>
+              <Marker
+                position={{ lat: marker.latitude, lng: marker.longitude }}
+                onClick={() => {
+                  setOpenInfoWindowId(marker.id);
+                  setOpenInfoWindowType('poi');
+                }}
+              />
               {openInfoWindowId === marker.id && openInfoWindowType === 'poi' && (
-                <InfoWindow onCloseClick={() => setOpenInfoWindowId(null)}>
+                <InfoWindow
+                  position={{ lat: marker.latitude, lng: marker.longitude }}
+                  onCloseClick={() => setOpenInfoWindowId(null)}
+                >
                   <div className="text-sm max-w-xs bg-white p-2 rounded">
                     <p className="font-bold capitalize mb-2">{marker.marker_type.replace(/_/g, ' ')}</p>
                     {marker.notes && <p className="mb-2">{marker.notes}</p>}
@@ -389,7 +392,7 @@ export default function DeerStalkingMap() {
                   </div>
                 </InfoWindow>
               )}
-            </Marker>
+            </div>
           ))}
 
           {/* Temporary Pin Preview */}
@@ -399,16 +402,19 @@ export default function DeerStalkingMap() {
 
           {/* Harvest Markers */}
           {harvests.map((harvest) => (
-            <Marker
-              key={harvest.id}
-              position={{ lat: harvest.latitude, lng: harvest.longitude }}
-              onClick={() => {
-                setOpenInfoWindowId(harvest.id);
-                setOpenInfoWindowType('harvest');
-              }}
-            >
+            <div key={harvest.id}>
+              <Marker
+                position={{ lat: harvest.latitude, lng: harvest.longitude }}
+                onClick={() => {
+                  setOpenInfoWindowId(harvest.id);
+                  setOpenInfoWindowType('harvest');
+                }}
+              />
               {openInfoWindowId === harvest.id && openInfoWindowType === 'harvest' && (
-                <InfoWindow onCloseClick={() => setOpenInfoWindowId(null)}>
+                <InfoWindow
+                  position={{ lat: harvest.latitude, lng: harvest.longitude }}
+                  onCloseClick={() => setOpenInfoWindowId(null)}
+                >
                   <div className="text-sm max-w-xs bg-white p-2 rounded">
                     <p className="font-bold text-base mb-2">{harvest.species}</p>
                     <p className="text-xs text-slate-600 mb-2">
@@ -453,7 +459,7 @@ export default function DeerStalkingMap() {
                   </div>
                 </InfoWindow>
               )}
-            </Marker>
+            </div>
           ))}
 
           {/* Active Outing GPS Track */}
