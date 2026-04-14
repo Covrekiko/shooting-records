@@ -66,8 +66,10 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
 
   return (
     <>
-      {/* Floating Map Search */}
-      <FloatingMapSearch onSearch={handleMapSearch} />
+      {/* Floating Map Search - Right Middle */}
+      <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-[9999]">
+        <FloatingMapSearch onSearch={handleMapSearch} />
+      </div>
 
       {/* Drawing Map */}
       <MapContainer
