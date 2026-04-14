@@ -28,7 +28,7 @@ export default function FloatingActionBar({
       {activeOuting && (
         <button
           onClick={() => handleAction(onEndOuting)}
-          className="flex items-center gap-2 px-4 py-2 bg-orange-500/20 text-slate-900 rounded-full shadow-md hover:shadow-lg hover:bg-orange-500/30 transition-all animate-pulse cursor-pointer pointer-events-auto active:scale-95 border border-orange-500/30"
+          className="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-600 rounded-full shadow-md hover:shadow-lg hover:bg-red-500/30 transition-all animate-pulse cursor-pointer pointer-events-auto active:scale-95 border border-red-500/30"
           style={{ WebkitBackdropFilter: 'blur(20px)', backdropFilter: 'blur(20px)' }}
         >
           <LogOut className="w-5 h-5" />
