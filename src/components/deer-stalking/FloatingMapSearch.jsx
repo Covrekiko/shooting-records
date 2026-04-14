@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 
 const COORDINATE_REGEX = /^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/;
 
-export default function FloatingMapSearch({ onSearch, onError }) {
+export default function FloatingMapSearch({ onSearch, onError, isGrouped = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -98,12 +98,12 @@ export default function FloatingMapSearch({ onSearch, onError }) {
   };
 
   return (
-    <div className="fixed bottom-24 right-6 z-[9999] pointer-events-auto sm:bottom-32">
+    <div className="relative">
       {/* Floating Search Icon Button */}
       {!isOpen ? (
         <button
           onClick={() => setIsOpen(true)}
-          className="w-10 h-10 sm:w-12 sm:h-12 bg-primary text-primary-foreground rounded-full shadow-lg hover:shadow-xl hover:bg-primary/90 transition-all flex items-center justify-center"
+          className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-800 text-white rounded-full shadow-lg hover:shadow-xl hover:bg-slate-700 transition-all flex items-center justify-center"
           title="Search location"
         >
           <Search className="w-4 h-4 sm:w-5 sm:h-5" />
