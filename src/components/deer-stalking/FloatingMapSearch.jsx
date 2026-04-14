@@ -103,7 +103,7 @@ export default function FloatingMapSearch({ onSearch, onError, isGrouped = false
       {!isOpen ? (
         <button
           onClick={() => setIsOpen(true)}
-          className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-800 text-white rounded-full shadow-lg hover:shadow-xl hover:bg-slate-700 transition-all flex items-center justify-center"
+          className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-800 text-white rounded-full shadow-lg hover:shadow-xl hover:bg-slate-700 transition-all flex items-center justify-center flex-shrink-0"
           title="Search location"
         >
           <Search className="w-4 h-4 sm:w-5 sm:h-5" />
