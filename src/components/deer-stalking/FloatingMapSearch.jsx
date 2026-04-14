@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Search, X, AlertCircle, ChevronUp } from 'lucide-react';
+import { Search, X, AlertCircle, ChevronUp, Satellite } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const COORDINATE_REGEX = /^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/;
 
-export default function FloatingMapSearch({ onSearch, onError, isGrouped = false }) {
+export default function FloatingMapSearch({ onSearch, onError, isGrouped = false, onSatelliteToggle, useSatellite }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -137,14 +137,22 @@ export default function FloatingMapSearch({ onSearch, onError, isGrouped = false
                   <X className="w-3 h-3 text-muted-foreground" />
                 </button>
               )}
-              <button
-                type="button"
-                onClick={handleClose}
-                className="p-0.5 hover:bg-secondary rounded transition-colors"
-              >
-                <ChevronUp className="w-3 h-3 text-muted-foreground" />
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => onSatelliteToggle && onSatelliteToggle()}
+                  className="p-0.5 hover:bg-secondary rounded transition-colors"
+                  title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
+                >
+                  <Satellite className="w-3 h-3 text-muted-foreground" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="p-0.5 hover:bg-secondary rounded transition-colors"
+                >
+                  <ChevronUp className="w-3 h-3 text-muted-foreground" />
+                </button>
+              </div>
 
             {/* Error Message */}
             {error && (
