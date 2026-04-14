@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import Navigation from '@/components/Navigation';
+import ChildScreenHeader from '@/components/ChildScreenHeader';
+import BottomSheetSelect from '@/components/BottomSheetSelect';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 
 export default function Clubs() {
@@ -69,7 +70,7 @@ export default function Clubs() {
   if (loading) {
     return (
       <div>
-        <Navigation />
+        <ChildScreenHeader title="Clubs" />
         <div className="flex items-center justify-center min-h-screen">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
@@ -79,7 +80,7 @@ export default function Clubs() {
 
   return (
     <div>
-      <Navigation />
+      <ChildScreenHeader title="Clubs" />
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Clubs</h1>
@@ -109,17 +110,16 @@ export default function Clubs() {
                 className="px-3 py-2 border border-border rounded-lg bg-background"
                 required
               />
-              <select
+              <BottomSheetSelect
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                className="px-3 py-2 border border-border rounded-lg bg-background"
-                required
-              >
-                <option value="">Select type</option>
-                <option value="Target Shooting">Target Shooting</option>
-                <option value="Clay Shooting">Clay Shooting</option>
-                <option value="Both">Both</option>
-              </select>
+                onChange={(val) => setFormData({ ...formData, type: val })}
+                placeholder="Select type"
+                options={[
+                  { value: 'Target Shooting', label: 'Target Shooting' },
+                  { value: 'Clay Shooting', label: 'Clay Shooting' },
+                  { value: 'Both', label: 'Both' },
+                ]}
+              />
               <input
                 type="text"
                 placeholder="Location / Address"

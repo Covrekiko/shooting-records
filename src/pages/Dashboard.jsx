@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { Activity, Zap, Target, MapPin, BarChart3, Crosshair, BookOpen, Map } from 'lucide-react';
 
 import {
@@ -20,8 +21,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState(null);
 
-  useEffect(() => {
-    async function loadData() {
+  const loadData = useCallback(async () => {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
@@ -77,10 +77,11 @@ export default function Dashboard() {
       } finally {
         setLoading(false);
       }
-    }
-
-    loadData();
   }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
+
+  const { pulling, progress, refreshing } = usePullToRefresh(loadData);
 
   if (loading) {
     return (
@@ -96,6 +97,14 @@ export default function Dashboard() {
   return (
     <div>
       <Navigation />
+      {(pulling || refreshing) && (
+        <div className="flex justify-center pt-3 pb-1">
+          <div
+            className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
+            style={{ animation: refreshing ? 'spin 0.6s linear infinite' : 'none', opacity: refreshing ? 1 : progress, transform: `rotate(${progress * 360}deg)` }}
+          />
+        </div>
+      )}
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-2">Dashboard</h1>

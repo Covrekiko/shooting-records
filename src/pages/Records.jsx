@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import ManualRecordModal from '@/components/ManualRecordModal';
 import { Download, Eye, Trash2, X, FileText, Map, Image, ChevronDown, Plus, Edit } from 'lucide-react';
@@ -11,6 +12,7 @@ export default function Records() {
   const [allRecords, setAllRecords] = useState([]);
   const [filteredRecords, setFilteredRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { pulling, progress, refreshing } = usePullToRefresh(useCallback(() => loadRecords(), []));
   const [user, setUser] = useState(null);
   const [viewingRecord, setViewingRecord] = useState(null);
   const [users, setUsers] = useState({});
@@ -160,6 +162,14 @@ export default function Records() {
   return (
     <div>
       <Navigation />
+      {(pulling || refreshing) && (
+        <div className="flex justify-center pt-3 pb-1">
+          <div
+            className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
+            style={{ animation: refreshing ? 'spin 0.6s linear infinite' : 'none', opacity: refreshing ? 1 : progress, transform: `rotate(${progress * 360}deg)` }}
+          />
+        </div>
+      )}
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4 gap-3">

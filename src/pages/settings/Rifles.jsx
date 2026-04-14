@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import Navigation from '@/components/Navigation';
+import ChildScreenHeader from '@/components/ChildScreenHeader';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 
 export default function Rifles() {
@@ -71,7 +71,7 @@ export default function Rifles() {
   if (loading) {
     return (
       <div>
-        <Navigation />
+        <ChildScreenHeader title="Rifles" />
         <div className="flex items-center justify-center min-h-screen">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
@@ -81,7 +81,7 @@ export default function Rifles() {
 
   return (
     <div>
-      <Navigation />
+      <ChildScreenHeader title="Rifles" />
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Rifles</h1>

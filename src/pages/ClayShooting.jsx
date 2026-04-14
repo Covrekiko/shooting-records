@@ -8,6 +8,7 @@ import GpsPathViewer from '@/components/GpsPathViewer';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
+import BottomSheetSelect from '@/components/BottomSheetSelect';
 
 export default function ClayShooting() {
    const [activeSession, setActiveSession] = useState(null);
@@ -288,10 +289,12 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Club</label>
-            <select value={data.club_id} onChange={(e) => onChange('club_id', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required>
-              <option value="">Select a club</option>
-              {clubs.map((club) => (<option key={club.id} value={club.id}>{club.name}</option>))}
-            </select>
+            <BottomSheetSelect
+              value={data.club_id}
+              onChange={(val) => onChange('club_id', val)}
+              placeholder="Select a club"
+              options={clubs.map(c => ({ value: c.id, label: c.name }))}
+            />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Check-in Time</label>
@@ -366,18 +369,12 @@ function CheckoutModal({ data, shotguns, ammunition, onSubmit, onChange, onClose
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Shotgun Used</label>
-            <select
+            <BottomSheetSelect
               value={data.shotgun_id}
-              onChange={(e) => onChange('shotgun_id', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            >
-              <option value="">Select a shotgun</option>
-              {shotguns.map((shotgun) => (
-                <option key={shotgun.id} value={shotgun.id}>
-                  {shotgun.name}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => onChange('shotgun_id', val)}
+              placeholder="Select a shotgun"
+              options={shotguns.map(s => ({ value: s.id, label: s.name }))}
+            />
           </div>
           <div>
            <label className="block text-sm font-medium mb-1">Rounds Fired</label>
@@ -391,24 +388,19 @@ function CheckoutModal({ data, shotguns, ammunition, onSubmit, onChange, onClose
           </div>
           <div>
            <label className="block text-sm font-medium mb-1">Ammunition</label>
-           <select
+           <BottomSheetSelect
              value={data.ammunition_id || ''}
-             onChange={(e) => {
-               const selectedAmmo = ammunition.find(a => a.id === e.target.value);
-               onChange('ammunition_id', e.target.value);
+             onChange={(val) => {
+               const selectedAmmo = ammunition.find(a => a.id === val);
+               onChange('ammunition_id', val);
                if (selectedAmmo) {
                  onChange('ammunition_used', `${selectedAmmo.brand} ${selectedAmmo.caliber || ''} ${selectedAmmo.bullet_type || ''}`.trim());
                }
              }}
-             className="w-full px-3 py-2 border border-border rounded-lg bg-background mb-2"
-           >
-             <option value="">Select saved ammunition</option>
-             {ammunition.length > 0 ? ammunition.map((ammo) => (
-               <option key={ammo.id} value={ammo.id}>
-                 {ammo.brand} {ammo.caliber ? `(${ammo.caliber})` : ''} {ammo.bullet_type ? `- ${ammo.bullet_type}` : ''}
-               </option>
-             )) : <option disabled>No ammunition available</option>}
-           </select>
+             placeholder="Select saved ammunition"
+             options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
+             className="mb-2"
+           />
            <span className="text-xs text-muted-foreground">Or enter manually:</span>
            <input
              type="text"

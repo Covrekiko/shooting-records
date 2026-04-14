@@ -1,12 +1,14 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { OutingProvider } from '@/context/OutingContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { useEffect } from 'react';
 import ProfileSetup from './pages/ProfileSetup';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
@@ -27,6 +29,46 @@ import AdminUsers from './pages/admin/Users';
 import DeerStalkingMap from './pages/DeerStalkingMap';
 import DeerStalkingLogs from './pages/DeerStalkingLogs';
 import Users from './pages/Users';
+
+// Sync dark mode with system preference
+function ThemeSync() {
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const apply = (dark) => {
+      document.documentElement.classList.toggle('dark', dark);
+    };
+    apply(mq.matches);
+    mq.addEventListener('change', (e) => apply(e.matches));
+    return () => mq.removeEventListener('change', () => {});
+  }, []);
+  return null;
+}
+
+const pageVariants = {
+  initial: { opacity: 0, x: 20 },
+  in: { opacity: 1, x: 0 },
+  out: { opacity: 0, x: -20 },
+};
+const pageTransition = { duration: 0.18, ease: 'easeInOut' };
+
+function AnimatedRoutes({ children }) {
+  const location = useLocation();
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        initial="initial"
+        animate="in"
+        exit="out"
+        variants={pageVariants}
+        transition={pageTransition}
+        style={{ minHeight: '100%' }}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user, refreshUser } = useAuth();
@@ -58,29 +100,31 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
-    <Routes>
-      <Route path="/" element={<Dashboard />} />
-      <Route path="/target-shooting" element={<TargetShooting />} />
-      <Route path="/clay-shooting" element={<ClayShooting />} />
-      <Route path="/deer-management" element={<DeerManagement />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/profile/settings" element={<Profile />} />
-      <Route path="/records" element={<Records />} />
-      <Route path="/goals" element={<Goals />} />
+    <AnimatedRoutes>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/target-shooting" element={<TargetShooting />} />
+        <Route path="/clay-shooting" element={<ClayShooting />} />
+        <Route path="/deer-management" element={<DeerManagement />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile/settings" element={<Profile />} />
+        <Route path="/records" element={<Records />} />
+        <Route path="/goals" element={<Goals />} />
 
-      <Route path="/settings/rifles" element={<Rifles />} />
-      <Route path="/settings/shotguns" element={<Shotguns />} />
-      <Route path="/settings/clubs" element={<Clubs />} />
-      <Route path="/settings/locations" element={<Locations />} />
-      <Route path="/settings/ammunition" element={<Ammunition />} />
-      <Route path="/settings/ammunition-inventory" element={<AmmunitionInventory />} />
-      <Route path="/reports" element={<Reports />} />
-      <Route path="/admin/users" element={<AdminUsers />} />
-      <Route path="/users" element={<Users />} />
-      <Route path="/deer-stalking" element={<DeerStalkingMap />} />
-      <Route path="/deer-stalking-logs" element={<DeerStalkingLogs />} />
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+        <Route path="/settings/rifles" element={<Rifles />} />
+        <Route path="/settings/shotguns" element={<Shotguns />} />
+        <Route path="/settings/clubs" element={<Clubs />} />
+        <Route path="/settings/locations" element={<Locations />} />
+        <Route path="/settings/ammunition" element={<Ammunition />} />
+        <Route path="/settings/ammunition-inventory" element={<AmmunitionInventory />} />
+        <Route path="/reports" element={<Reports />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/users" element={<Users />} />
+        <Route path="/deer-stalking" element={<DeerStalkingMap />} />
+        <Route path="/deer-stalking-logs" element={<DeerStalkingLogs />} />
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </AnimatedRoutes>
   );
 };
 
@@ -89,6 +133,7 @@ function App() {
 
   return (
     <ErrorBoundary>
+      <ThemeSync />
       <AuthProvider>
         <QueryClientProvider client={queryClientInstance}>
           <OutingProvider>

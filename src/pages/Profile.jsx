@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight } from 'lucide-react';
+import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 export default function Profile() {
@@ -319,6 +319,70 @@ function PersonalDetailsPanel() {
           {saved && <span className="text-sm text-green-600 font-medium">✓ Saved successfully</span>}
         </div>
       </form>
+
+      <DeleteAccountSection />
+    </div>
+  );
+}
+
+function DeleteAccountSection() {
+  const [confirming, setConfirming] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (confirmText !== 'DELETE') return;
+    setDeleting(true);
+    try {
+      await base44.auth.updateMe({ accountDeleteRequested: true, accountDeleteRequestedAt: new Date().toISOString() });
+      await base44.auth.logout();
+    } catch {
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <div className="mt-10 border border-destructive/30 rounded-xl p-5 bg-destructive/5">
+      <h3 className="text-sm font-semibold text-destructive uppercase tracking-wide mb-2 flex items-center gap-2">
+        <Trash2 className="w-4 h-4" /> Delete Account
+      </h3>
+      <p className="text-sm text-muted-foreground mb-4">
+        Permanently delete your account and all associated data. This action cannot be undone.
+      </p>
+      {!confirming ? (
+        <button
+          onClick={() => setConfirming(true)}
+          className="px-4 py-2 border border-destructive text-destructive rounded-lg text-sm font-medium hover:bg-destructive hover:text-destructive-foreground transition-colors"
+        >
+          Delete My Account
+        </button>
+      ) : (
+        <div className="space-y-3">
+          <p className="text-sm font-medium">Type <strong>DELETE</strong> to confirm:</p>
+          <input
+            type="text"
+            value={confirmText}
+            onChange={(e) => setConfirmText(e.target.value)}
+            placeholder="DELETE"
+            className="w-full px-3 py-2 border border-destructive rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-destructive"
+          />
+          <div className="flex gap-3">
+            <button
+              onClick={handleDelete}
+              disabled={confirmText !== 'DELETE' || deleting}
+              className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg text-sm font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
+            >
+              {deleting ? 'Deleting...' : 'Confirm Delete'}
+            </button>
+            <button
+              onClick={() => { setConfirming(false); setConfirmText(''); }}
+              className="px-4 py-2 border border-border rounded-lg text-sm hover:bg-secondary transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -9,6 +9,7 @@ import { Clock, CheckCircle, Plus } from 'lucide-react';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
+import BottomSheetSelect from '@/components/BottomSheetSelect';
 
 export default function TargetShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -308,17 +309,12 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Club</label>
-            <select
+            <BottomSheetSelect
               value={data.club_id}
-              onChange={(e) => onChange('club_id', e.target.value)}
-              className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base"
-              required
-            >
-              <option value="">Select a club</option>
-              {clubs.map((club) => (
-                <option key={club.id} value={club.id}>{club.name}</option>
-              ))}
-            </select>
+              onChange={(val) => onChange('club_id', val)}
+              placeholder="Select a club"
+              options={clubs.map(c => ({ value: c.id, label: c.name }))}
+            />
           </div>
           <div>
             <label className="block text-sm font-medium mb-1">Check-in Time</label>
@@ -482,18 +478,12 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
                     </button>
                   )}
                 </div>
-                <select
+                <BottomSheetSelect
                   value={rifle.rifle_id}
-                  onChange={(e) => updateRifleEntry(index, 'rifle_id', e.target.value)}
-                  className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
-                >
-                  <option value="">Select rifle</option>
-                  {rifles.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => updateRifleEntry(index, 'rifle_id', val)}
+                  placeholder="Select rifle"
+                  options={rifles.map(r => ({ value: r.id, label: r.name }))}
+                />
                 <input
                   type="number"
                   placeholder="Rounds fired"
@@ -510,14 +500,14 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
                 />
                 <div>
                   <label className="text-xs font-medium text-muted-foreground block mb-1">Ammunition</label>
-                  <select
+                  <BottomSheetSelect
                     value={rifle.ammunition_id || ''}
-                    onChange={(e) => {
-                      const selectedAmmo = ammunition.find(a => a.id === e.target.value);
+                    onChange={(val) => {
+                      const selectedAmmo = ammunition.find(a => a.id === val);
                       const updated = [...data.rifles_used];
                       updated[index] = {
                         ...updated[index],
-                        ammunition_id: e.target.value,
+                        ammunition_id: val,
                         ammunition_brand: selectedAmmo?.brand || '',
                         caliber: selectedAmmo?.caliber || '',
                         bullet_type: selectedAmmo?.bullet_type || '',
@@ -525,15 +515,10 @@ function CheckoutModal({ data, setData, rifles, ammunition, onSubmit, onClose })
                       };
                       setData({ ...data, rifles_used: updated });
                     }}
-                    className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background mb-2"
-                  >
-                    <option value="">Select saved ammunition</option>
-                    {ammunition.length > 0 ? ammunition.map((ammo) => (
-                      <option key={ammo.id} value={ammo.id}>
-                        {ammo.brand} {ammo.caliber ? `(${ammo.caliber})` : ''} {ammo.bullet_type ? `- ${ammo.bullet_type}` : ''}
-                      </option>
-                    )) : <option disabled>No ammunition available</option>}
-                  </select>
+                    placeholder="Select saved ammunition"
+                    options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
+                    className="mb-2"
+                  />
                   <span className="text-xs text-muted-foreground">Or enter manually:</span>
                 </div>
                 <input
