@@ -228,7 +228,7 @@ export default function ClayShooting() {
         <>
           {(showCheckin || showCheckout) && <div className="fixed inset-0 z-[50000] bg-black/50" />}
           {showCheckin && (
-            <div className="fixed inset-0 z-[50001] flex items-end sm:items-center justify-center">
+            <div className="fixed inset-0 z-[50001] flex items-end justify-center pt-12">
               <CheckinModal
                 data={checkinData}
                 clubs={clubs}
@@ -239,7 +239,7 @@ export default function ClayShooting() {
             </div>
           )}
           {showCheckout && activeSession && (
-            <div className="fixed inset-0 z-[50001] flex items-end sm:items-center justify-center">
+            <div className="fixed inset-0 z-[50001] flex items-end justify-center pt-12">
               <CheckoutModal
                 shotguns={shotguns}
                 ammunition={ammunition}
