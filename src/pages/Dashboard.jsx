@@ -109,10 +109,10 @@ export default function Dashboard() {
            />
          </div>
        )}
-       <main className="max-w-7xl mx-auto px-4 py-2 md:py-12 pb-20">
-         <div className="mb-4 hidden md:block">
-           <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-1">Dashboard</h1>
-           <p className="text-sm text-muted-foreground">Welcome back, <span className="font-semibold text-foreground">{user?.full_name}</span></p>
+       <main className="max-w-7xl mx-auto px-4 py-4 md:py-12 pb-24">
+         <div className="mb-6 block">
+           <h1 className="text-2xl md:text-5xl font-semibold text-foreground mb-1">Dashboard</h1>
+           <p className="text-sm text-muted-foreground">Welcome back, <span className="font-medium text-foreground">{user?.full_name}</span></p>
          </div>
 
          {user?.role === 'admin' ? (
@@ -367,20 +367,20 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
 function StatCard({ icon, label, value, link, hideOnMobile }) {
     const content = (
       <div className="flex flex-col items-start justify-between h-full">
-        <div className="w-12 h-12 rounded-2xl bg-white/15 text-slate-900 flex items-center justify-center mb-4 flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 [&_img]:w-5 [&_img]:h-5 text-lg border border-white/30 shadow-lg backdrop-blur-lg transition-all active:scale-90" style={{ WebkitBackdropFilter: 'blur(20px)' }}>
+        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 text-primary flex items-center justify-center mb-3 flex-shrink-0 [&_svg]:w-4 [&_svg]:h-4 [&_img]:w-4 [&_img]:h-4 text-lg shadow-md" style={{ WebkitBackdropFilter: 'blur(10px)' }}>
           {icon}
         </div>
         <div className="flex-1 min-w-0 w-full">
-          <p className="text-xs text-muted-foreground font-medium mb-2 uppercase tracking-wide">{label}</p>
+          <p className="text-xs text-muted-foreground font-medium mb-1.5 uppercase tracking-wide leading-none">{label}</p>
           {value !== undefined && (
-            <p className="text-3xl md:text-4xl font-bold text-foreground">{value}</p>
+            <p className="text-2xl md:text-3xl font-semibold text-foreground">{value}</p>
           )}
         </div>
       </div>
     );
 
     const cardClass = hideOnMobile ? "hidden md:block" : "";
-    const baseClass = "bg-white/10 rounded-3xl p-5 md:p-6 border border-white/20 backdrop-blur-xl shadow-lg hover:shadow-xl hover:bg-white/15 transition-all duration-300 active:scale-95" + " " + cardClass;
+    const baseClass = "bg-white/12 rounded-2xl p-4 md:p-6 border border-white/20 shadow-sm hover:shadow-md hover:bg-white/15 transition-all duration-200 active:scale-[0.98]" + " " + cardClass;
 
     if (link) {
       return (

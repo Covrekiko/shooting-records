@@ -32,11 +32,11 @@ export default function Navigation() {
   return (
     <>
       {/* Top Nav (desktop) */}
-      <nav className="sticky top-0 z-50 bg-card border-b border-border shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link to="/" className="text-xl font-bold text-primary">
-            🎯 Shooting Records
-          </Link>
+       <nav className="sticky top-0 z-50 bg-white/12 backdrop-blur-xl border-b border-white/20 shadow-sm" style={{ WebkitBackdropFilter: 'blur(20px)' }}>
+         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+           <Link to="/" className="text-lg font-semibold text-slate-900">
+             🎯 Shooting Records
+           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex gap-6 items-center">
@@ -171,24 +171,25 @@ export default function Navigation() {
         </AnimatePresence>
       </nav>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)' }}>
-        <div className="flex justify-center px-4">
+      {/* Mobile Bottom Nav - iOS glass style */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/15 backdrop-blur-xl border-t border-white/20 shadow-lg" style={{ paddingBottom: 'env(safe-area-inset-bottom, 16px)', WebkitBackdropFilter: 'blur(20px)' }}>
+        <div className="flex justify-around px-2">
           {mainNavItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
             return (
-              <button
+              <motion.button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`flex-1 max-w-[80px] flex flex-col items-center justify-center py-4 gap-1 transition-colors ${
-                  active ? 'text-primary' : 'text-muted-foreground'
+                whileTap={{ scale: 0.95 }}
+                className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-all duration-200 rounded-lg ${
+                  active ? 'text-primary' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                {Icon && <Icon className={`w-6 h-6 ${active ? 'text-primary' : ''}`} />}
-                {item.emoji && <span className="text-xl leading-none">{item.emoji}</span>}
-                <span className="text-[11px] font-medium leading-tight text-center">{item.label}</span>
-              </button>
+                {Icon && <Icon className={`w-5 h-5 ${active ? '' : ''}`} />}
+                {item.emoji && <span className="text-lg leading-none">{item.emoji}</span>}
+                <span className="text-[10px] font-semibold leading-tight text-center">{item.label}</span>
+              </motion.button>
             );
           })}
         </div>
