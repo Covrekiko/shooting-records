@@ -56,7 +56,7 @@ export default function Profile() {
                 }`}
               >
                 <Settings className="w-4 h-4" />
-                Settings
+                Equipment & Areas
               </Link>
               <Link
                 to="/records"
@@ -153,7 +153,7 @@ function SettingsPanel() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-4">Settings</h2>
+        <h2 className="text-2xl font-bold mb-4">Equipment & Areas</h2>
         <p className="text-muted-foreground">Manage your firearms and locations</p>
       </div>
 
