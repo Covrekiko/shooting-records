@@ -220,22 +220,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Stalking Map Section */}
-         {user && (
-           <div className="mt-8 hidden md:block">
-            <div className="flex items-center justify-between mb-4">
-               <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Deer Stalking Map</h2>
-             </div>
-             <Link
-               to="/deer-stalking"
-               className="bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/80 rounded-3xl p-8 hover:shadow-lg transition-shadow block text-center shadow-sm hover:border-slate-200/90 dark:hover:border-slate-600"
-             >
-              <div className="text-4xl mb-3">🗺️</div>
-              <p className="text-lg font-semibold text-foreground mb-2">Open Deer Stalking Map</p>
-              <p className="text-sm text-muted-foreground">View boundaries, track outings, and log harvests</p>
-            </Link>
-          </div>
-        )}
+
 
         {/* Charts Section */}
         {chartData && (
