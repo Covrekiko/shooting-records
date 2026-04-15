@@ -99,18 +99,18 @@ export default function Dashboard() {
   }
 
   return (
-     <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
+     <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen flex flex-col">
        <Navigation />
        {(pulling || refreshing) && (
-         <div className="flex justify-center pt-3 pb-1">
+         <div className="flex justify-center py-1">
            <div
-             className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
+             className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full"
              style={{ animation: refreshing ? 'spin 0.6s linear infinite' : 'none', opacity: refreshing ? 1 : progress, transform: `rotate(${progress * 360}deg)` }}
            />
          </div>
        )}
-       <main className="max-w-7xl mx-auto px-4 pt-3 md:pt-16 pb-4 md:py-12 mobile-page-padding">
-         <div className="mb-2 md:mb-4 hidden md:block">
+       <main className="max-w-7xl mx-auto px-3 pt-0 md:pt-16 pb-4 md:py-12 mobile-page-padding">
+         <div className="mb-4 md:mb-6 hidden md:block">
            <h1 className="text-2xl md:text-5xl font-semibold text-foreground mb-1">Dashboard</h1>
            <p className="text-sm text-muted-foreground">Welcome back, <span className="font-medium text-foreground">{user?.full_name}</span></p>
          </div>
@@ -375,39 +375,28 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
 
 function StatCard({ icon, label, subtitle, value, link, hideOnMobile }) {
     const content = (
-      <div className="flex flex-col h-full">
-        {/* Top row: icon + title + chevron */}
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-[#f5e6d0] dark:bg-slate-700 flex items-center justify-center flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 [&_img]:w-5 [&_img]:h-5 text-xl [&_svg]:text-slate-800 dark:[&_svg]:text-slate-200">
-            {icon}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug">{label}</p>
-            {subtitle && <p className="text-xs text-slate-400 dark:text-slate-500 leading-tight mt-0.5">{subtitle}</p>}
-          </div>
-          <span className="text-slate-300 dark:text-slate-600 text-base flex-shrink-0">›</span>
+      <div className="flex items-center gap-2.5">
+        {/* Icon container */}
+        <div className="w-10 h-10 rounded-xl bg-[#f0e6d6] dark:bg-slate-700 flex items-center justify-center flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 text-lg [&_svg]:text-slate-700 dark:[&_svg]:text-slate-200">
+          {icon}
         </div>
-        {/* Value below */}
-        {value !== undefined && (
-          <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-3 pl-0.5">{value}</p>
-        )}
+        {/* Text */}
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-semibold text-slate-800 dark:text-slate-100 leading-tight truncate">{label}</p>
+          {subtitle && <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-tight mt-0.5 truncate">{subtitle}</p>}
+          {value !== undefined && (
+            <p className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-0.5 leading-tight">{value}</p>
+          )}
+        </div>
+        <span className="text-slate-300 dark:text-slate-600 text-sm flex-shrink-0">›</span>
       </div>
     );
 
     const cardClass = hideOnMobile ? "hidden md:block" : "";
-    const baseClass = "bg-white dark:bg-slate-800 rounded-2xl p-3.5 border border-slate-200/80 dark:border-slate-700 shadow-sm active:scale-[0.97] transition-transform duration-100" + " " + cardClass;
+    const baseClass = `bg-white dark:bg-slate-800 rounded-2xl p-3 border border-slate-200/70 dark:border-slate-700 shadow-sm active:scale-[0.97] transition-transform duration-100 ${cardClass}`;
 
     if (link) {
-      return (
-        <Link to={link} className={`${baseClass} block`}>
-          {content}
-        </Link>
-      );
+      return <Link to={link} className={`${baseClass} block`}>{content}</Link>;
     }
-
-    return (
-      <div className={baseClass}>
-        {content}
-      </div>
-    );
+    return <div className={baseClass}>{content}</div>;
 }
