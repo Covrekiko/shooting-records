@@ -110,13 +110,6 @@ export default function ReloadingManagement() {
     <div>
       <Navigation />
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8">
-        {/* Header */}
-        <div className="flex items-center justify-end mb-6 md:mb-8">
-          <button className="p-2 hover:bg-secondary rounded-lg hidden md:block">
-            <Menu className="w-5 h-5" />
-          </button>
-        </div>
-
         {/* Title Section */}
         <div className="flex items-start justify-between mb-8">
           <div>
@@ -136,19 +129,19 @@ export default function ReloadingManagement() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
           <div className="bg-card border border-border rounded-lg p-4">
-            <p className="text-xs text-muted-foreground font-semibold uppercase mb-1">Sessions</p>
+            <p className="text-xs text-muted-foreground font-semibold uppercase mb-1.5">Sessions</p>
             <p className="text-2xl font-bold">{sessions.length}</p>
           </div>
           <div className="bg-card border border-border rounded-lg p-4">
-            <p className="text-xs text-muted-foreground font-semibold uppercase mb-1">Rounds Loaded</p>
+            <p className="text-xs text-muted-foreground font-semibold uppercase mb-1.5">Rounds Loaded</p>
             <p className="text-2xl font-bold">{totalRounds.toLocaleString()}</p>
           </div>
           <div className="bg-card border border-border rounded-lg p-4">
-            <p className="text-xs text-muted-foreground font-semibold uppercase mb-1">Total Cost</p>
+            <p className="text-xs text-muted-foreground font-semibold uppercase mb-1.5">Total Cost</p>
             <p className="text-2xl font-bold text-primary">£{totalCost.toFixed(2)}</p>
           </div>
           <div className="bg-card border border-border rounded-lg p-4">
-            <p className="text-xs text-muted-foreground font-semibold uppercase mb-1">Avg Cost/Rnd</p>
+            <p className="text-xs text-muted-foreground font-semibold uppercase mb-1.5">Avg Cost/Rnd</p>
             <p className="text-2xl font-bold">{sessions.length > 0 ? '£' + (totalCost / totalRounds).toFixed(2) : '-'}</p>
           </div>
         </div>
@@ -199,9 +192,9 @@ export default function ReloadingManagement() {
                 <div key={session.id} className="bg-card border border-border rounded-lg p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{session.caliber}</h3>
-                      <p className="text-sm text-muted-foreground">Batch: {session.batch_number}</p>
-                      <div className="mt-2 space-y-1 text-sm">
+                      <h3 className="font-semibold">{session.caliber}</h3>
+                      <p className="text-xs text-muted-foreground mt-1">Batch: {session.batch_number}</p>
+                      <div className="mt-3 space-y-1 text-xs">
                         <p><span className="font-medium">Rounds:</span> {session.rounds_loaded}</p>
                         <p><span className="font-medium">Cost:</span> £{session.total_cost?.toFixed(2) || '0.00'} (£{session.cost_per_round?.toFixed(2) || '0.00'}/rd)</p>
                         <p><span className="font-medium">Date:</span> {format(new Date(session.date), 'MMM d, yyyy')}</p>
@@ -214,14 +207,14 @@ export default function ReloadingManagement() {
                           setEditingSession(session);
                           setShowForm(true);
                         }}
-                        className="p-2 bg-secondary hover:bg-primary hover:text-primary-foreground rounded-lg transition-colors"
+                        className="p-2 hover:bg-primary hover:text-primary-foreground rounded transition-colors"
                         title="Edit"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(session.id)}
-                        className="p-2 bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded-lg transition-colors"
+                        className="p-2 hover:bg-destructive/10 text-destructive rounded transition-colors"
                         title="Delete"
                       >
                         <Trash2 className="w-4 h-4" />

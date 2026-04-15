@@ -1,14 +1,13 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, AlertCircle, CheckCircle2, Crosshair } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import Navigation from '@/components/Navigation';
+import { AlertCircle, CheckCircle2, Crosshair } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function AmmoSummary() {
   const [rifles, setRifles] = useState([]);
   const [shotguns, setShotguns] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
     loadData();
@@ -49,196 +48,195 @@ export default function AmmoSummary() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-4 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <div>
+        <Navigation />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background mobile-page-padding">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="sticky top-0 bg-background z-10 pt-4 pb-4 border-b border-border">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate('/')}
-              className="p-2 hover:bg-secondary rounded-lg transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <h1 className="text-2xl font-bold">Ammunition Summary</h1>
-          </div>
+    <div>
+      <Navigation />
+      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8">
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold mb-1">Ammunition Summary</h1>
+          <p className="text-muted-foreground">Track maintenance and firearm statistics</p>
         </div>
 
-        <div className="p-4 space-y-6">
-          {/* Cleaning Alerts */}
-          {riflesNeedingCleaning.length > 0 && (
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <h2 className="font-semibold text-amber-900 dark:text-amber-100 mb-3">
-                    {riflesNeedingCleaning.length} Rifle(s) Need Cleaning
-                  </h2>
-                  <div className="space-y-2">
-                    {riflesNeedingCleaning.map((rifle) => (
-                      <div
-                        key={rifle.id}
-                        className="flex items-center justify-between bg-white dark:bg-slate-800 rounded-lg p-3"
-                      >
-                        <div>
-                          <p className="font-medium text-sm">{rifle.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {rifle.rounds_since_cleaning} / {rifle.cleaning_reminder_threshold} rounds
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleMarkCleaned(rifle.id)}
-                          className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs rounded-lg transition-colors"
-                        >
-                          Mark Clean
-                        </button>
+        <div className="space-y-6">
+        {/* Cleaning Alerts */}
+        {riflesNeedingCleaning.length > 0 && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h2 className="font-semibold text-amber-900 dark:text-amber-100 mb-3">
+                  {riflesNeedingCleaning.length} Rifle(s) Need Cleaning
+                </h2>
+                <div className="space-y-2">
+                  {riflesNeedingCleaning.map((rifle) => (
+                    <div
+                      key={rifle.id}
+                      className="flex items-center justify-between bg-card border border-border rounded-lg p-3"
+                    >
+                      <div>
+                        <p className="font-medium text-sm">{rifle.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {rifle.rounds_since_cleaning} / {rifle.cleaning_reminder_threshold} rounds
+                        </p>
                       </div>
-                    ))}
-                  </div>
+                      <button
+                        onClick={() => handleMarkCleaned(rifle.id)}
+                        className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs rounded-lg font-semibold transition-colors"
+                      >
+                        Mark Clean
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Rifles Section */}
-          <div>
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Crosshair className="w-5 h-5 text-primary" />
-              Rifles ({rifles.length})
-            </h2>
-            <div className="grid gap-4">
-              {rifles.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No rifles configured</p>
-              ) : (
-                rifles.map((rifle) => {
-                  const cleaningStatus =
-                    rifle.cleaning_reminder_threshold && rifle.rounds_since_cleaning >= rifle.cleaning_reminder_threshold
-                      ? 'needs_cleaning'
-                      : rifle.last_cleaning_date
-                      ? 'clean'
-                      : 'unknown';
+        {/* Rifles Section */}
+        <div>
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <Crosshair className="w-5 h-5 text-primary" />
+            Rifles ({rifles.length})
+          </h2>
+          <div className="grid gap-3">
+            {rifles.length === 0 ? (
+              <div className="bg-card border border-border rounded-lg p-8 text-center">
+                <p className="text-muted-foreground">No rifles configured</p>
+              </div>
+            ) : (
+              rifles.map((rifle) => {
+                const cleaningStatus =
+                  rifle.cleaning_reminder_threshold && rifle.rounds_since_cleaning >= rifle.cleaning_reminder_threshold
+                    ? 'needs_cleaning'
+                    : rifle.last_cleaning_date
+                    ? 'clean'
+                    : 'unknown';
 
-                  return (
-                    <div
-                      key={rifle.id}
-                      className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5"
-                    >
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <h3 className="font-bold text-lg">{rifle.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {rifle.make} {rifle.model} • {rifle.caliber}
-                          </p>
-                        </div>
-                        {cleaningStatus === 'needs_cleaning' && (
-                          <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-                            <AlertCircle className="w-4 h-4 text-amber-600" />
-                            <span className="text-xs font-semibold text-amber-600">Needs Cleaning</span>
-                          </div>
-                        )}
-                        {cleaningStatus === 'clean' && (
-                          <div className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                            <CheckCircle2 className="w-4 h-4 text-green-600" />
-                            <span className="text-xs font-semibold text-green-600">Clean</span>
-                          </div>
-                        )}
+                return (
+                  <div
+                    key={rifle.id}
+                    className="bg-card border border-border rounded-lg p-4"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className="font-semibold text-lg">{rifle.name}</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {rifle.make} {rifle.model} • {rifle.caliber}
+                        </p>
                       </div>
-
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <div className="bg-slate-50 dark:bg-slate-700/30 rounded-lg p-3">
-                          <p className="text-xs text-muted-foreground mb-1">Total Rounds</p>
-                          <p className="text-2xl font-bold">{rifle.total_rounds_fired || 0}</p>
+                      {cleaningStatus === 'needs_cleaning' && (
+                        <div className="flex items-center gap-1 px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                          <AlertCircle className="w-4 h-4 text-amber-600" />
+                          <span className="text-xs font-semibold text-amber-600">Needs Cleaning</span>
                         </div>
-                        <div className="bg-slate-50 dark:bg-slate-700/30 rounded-lg p-3">
-                          <p className="text-xs text-muted-foreground mb-1">Since Cleaning</p>
-                          <p className="text-2xl font-bold">{rifle.rounds_since_cleaning || 0}</p>
-                        </div>
-                        {rifle.cleaning_reminder_threshold && (
-                          <div className="bg-slate-50 dark:bg-slate-700/30 rounded-lg p-3">
-                            <p className="text-xs text-muted-foreground mb-1">Target</p>
-                            <p className="text-2xl font-bold">{rifle.cleaning_reminder_threshold}</p>
-                          </div>
-                        )}
-                        {rifle.last_cleaning_date && (
-                          <div className="bg-slate-50 dark:bg-slate-700/30 rounded-lg p-3">
-                            <p className="text-xs text-muted-foreground mb-1">Last Cleaned</p>
-                            <p className="text-xs font-semibold">{format(new Date(rifle.last_cleaning_date), 'MMM d')}</p>
-                          </div>
-                        )}
-                      </div>
-
-                      {rifle.cleaning_reminder_threshold && (
-                        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-medium">Cleaning Progress</span>
-                            <span className="text-xs text-muted-foreground">
-                              {Math.round(
-                                (rifle.rounds_since_cleaning / rifle.cleaning_reminder_threshold) * 100
-                              )}%
-                            </span>
-                          </div>
-                          <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full transition-all ${
-                                cleaningStatus === 'needs_cleaning' ? 'bg-amber-600' : 'bg-primary'
-                              }`}
-                              style={{
-                                width: `${Math.min(
-                                  (rifle.rounds_since_cleaning / rifle.cleaning_reminder_threshold) * 100,
-                                  100
-                                )}%`,
-                              }}
-                            />
-                          </div>
+                      )}
+                      {cleaningStatus === 'clean' && (
+                        <div className="flex items-center gap-1 px-2.5 py-1 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                          <CheckCircle2 className="w-4 h-4 text-green-600" />
+                          <span className="text-xs font-semibold text-green-600">Clean</span>
                         </div>
                       )}
                     </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
 
-          {/* Shotguns Section */}
-          <div>
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-primary" />
-              Shotguns ({shotguns.length})
-            </h2>
-            <div className="grid gap-4">
-              {shotguns.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">No shotguns configured</p>
-              ) : (
-                shotguns.map((shotgun) => (
-                  <div
-                    key={shotgun.id}
-                    className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-5"
-                  >
-                    <div>
-                      <h3 className="font-bold text-lg">{shotgun.name}</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        {shotgun.make} {shotgun.model} • {shotgun.gauge}
-                      </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                      <div className="bg-secondary/30 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-1">Total Rounds</p>
+                        <p className="text-xl font-bold">{rifle.total_rounds_fired || 0}</p>
+                      </div>
+                      <div className="bg-secondary/30 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-1">Since Cleaning</p>
+                        <p className="text-xl font-bold">{rifle.rounds_since_cleaning || 0}</p>
+                      </div>
+                      {rifle.cleaning_reminder_threshold && (
+                        <div className="bg-secondary/30 rounded-lg p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Target</p>
+                          <p className="text-xl font-bold">{rifle.cleaning_reminder_threshold}</p>
+                        </div>
+                      )}
+                      {rifle.last_cleaning_date && (
+                        <div className="bg-secondary/30 rounded-lg p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Last Cleaned</p>
+                          <p className="text-xs font-semibold">{format(new Date(rifle.last_cleaning_date), 'MMM d')}</p>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="bg-slate-50 dark:bg-slate-700/30 rounded-lg p-4">
-                      <p className="text-xs text-muted-foreground mb-1">Total Cartridges Fired</p>
-                      <p className="text-3xl font-bold">{shotgun.total_cartridges_fired || 0}</p>
-                    </div>
+                    {rifle.cleaning_reminder_threshold && (
+                      <div className="pt-4 border-t border-border">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-medium text-muted-foreground">Cleaning Progress</span>
+                          <span className="text-xs font-semibold">
+                            {Math.round(
+                              (rifle.rounds_since_cleaning / rifle.cleaning_reminder_threshold) * 100
+                            )}%
+                          </span>
+                        </div>
+                        <div className="h-2 bg-border rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all ${
+                              cleaningStatus === 'needs_cleaning' ? 'bg-amber-600' : 'bg-primary'
+                            }`}
+                            style={{
+                              width: `${Math.min(
+                                (rifle.rounds_since_cleaning / rifle.cleaning_reminder_threshold) * 100,
+                                100
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
-                ))
-              )}
-            </div>
+                );
+              })
+            )}
           </div>
         </div>
-      </div>
+
+        {/* Shotguns Section */}
+        <div>
+          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-primary" />
+            Shotguns ({shotguns.length})
+          </h2>
+          <div className="grid gap-3">
+            {shotguns.length === 0 ? (
+              <div className="bg-card border border-border rounded-lg p-8 text-center">
+                <p className="text-muted-foreground">No shotguns configured</p>
+              </div>
+            ) : (
+              shotguns.map((shotgun) => (
+                <div
+                  key={shotgun.id}
+                  className="bg-card border border-border rounded-lg p-4"
+                >
+                  <div>
+                    <h3 className="font-semibold text-lg">{shotgun.name}</h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {shotgun.make} {shotgun.model} • {shotgun.gauge}
+                    </p>
+                  </div>
+
+                  <div className="bg-secondary/30 rounded-lg p-4 mt-4">
+                    <p className="text-xs text-muted-foreground mb-1">Total Cartridges Fired</p>
+                    <p className="text-2xl font-bold">{shotgun.total_cartridges_fired || 0}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

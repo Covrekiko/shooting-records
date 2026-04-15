@@ -195,19 +195,23 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     return <div className="text-center py-4"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div></div>;
   }
 
-  const inputCls = "w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground";
+  const inputCls = "w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm";
   const labelCls = "text-xs font-bold text-muted-foreground uppercase mb-2 block";
 
   return (
-    <div className="bg-card border border-border rounded-xl p-4 max-h-[90vh] overflow-y-auto space-y-4">
-      <div className="flex items-center justify-between sticky top-0 bg-card z-10 pb-3 border-b border-border">
-        <h3 className="font-bold text-lg">New Reload Batch</h3>
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between p-5 border-b border-border flex-shrink-0">
+        <h2 className="text-lg font-bold">New Reload Batch</h2>
         <button onClick={onClose} className="p-1 hover:bg-secondary rounded">
           <X className="w-5 h-5" />
         </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Form Content */}
+      <div className="flex-1 overflow-y-auto p-5 space-y-4">
+
+      <form id="reload-batch-form" onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Date</label>
@@ -343,10 +347,10 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <div className="bg-secondary/30 rounded-lg p-4 space-y-2 border border-border">
             <h4 className="font-bold mb-3">Cost Breakdown</h4>
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <div>Primers: <span className="font-semibold">£{costBreakdown.primerCost.toFixed(2)}</span></div>
-              <div>Powder: <span className="font-semibold">£{costBreakdown.powderCost.toFixed(2)}</span></div>
-              <div>Brass: <span className="font-semibold">£{costBreakdown.brassCost.toFixed(2)}</span></div>
-              <div>Bullets: <span className="font-semibold">£{costBreakdown.bulletCost.toFixed(2)}</span></div>
+              <div><span className="text-muted-foreground">Primers:</span> <span className="font-semibold">£{costBreakdown.primerCost.toFixed(2)}</span></div>
+              <div><span className="text-muted-foreground">Powder:</span> <span className="font-semibold">£{costBreakdown.powderCost.toFixed(2)}</span></div>
+              <div><span className="text-muted-foreground">Brass:</span> <span className="font-semibold">£{costBreakdown.brassCost.toFixed(2)}</span></div>
+              <div><span className="text-muted-foreground">Bullets:</span> <span className="font-semibold">£{costBreakdown.bulletCost.toFixed(2)}</span></div>
             </div>
             <div className="border-t border-border pt-2 mt-2">
               <div className="text-lg font-bold">Total: £{costBreakdown.totalCost.toFixed(2)}</div>
@@ -354,16 +358,25 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
             </div>
           </div>
         )}
-
-        <div className="flex gap-3 pt-4">
-          <button type="submit" className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90">
-            Create Batch
-          </button>
-          <button type="button" onClick={onClose} className="flex-1 px-4 py-3 bg-secondary text-secondary-foreground rounded-lg font-semibold hover:opacity-90">
-            Cancel
-          </button>
-        </div>
       </form>
+
+      {/* Footer */}
+      <div className="flex gap-2 p-5 border-t border-border flex-shrink-0">
+        <button
+          form="reload-batch-form"
+          type="submit"
+          className="flex-1 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90"
+        >
+          Create Batch
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-1 py-3 border border-border rounded-lg font-semibold hover:bg-secondary"
+        >
+          Cancel
+        </button>
+      </div>
     </div>
   );
 }
