@@ -15,11 +15,9 @@ export default function PowderStockCalculator({ component }) {
     'grains': 0.06479891,
   };
 
-  const calculateRemaining = () => {
-    const stock = stockInput ? parseFloat(stockInput) : null;
-    const charge = chargePerRound ? parseFloat(chargePerRound) : null;
-
-    if (stock === null || charge === null || stock <= 0 || charge <= 0 || isNaN(stock) || isNaN(charge)) {
+  const calculateRemaining = (stock, charge) => {
+    // Validate inputs - both must be present and valid
+    if (!stock || !charge || isNaN(stock) || isNaN(charge) || stock <= 0 || charge <= 0) {
       setResult(null);
       return;
     }
@@ -59,8 +57,10 @@ export default function PowderStockCalculator({ component }) {
               type="number"
               value={stockInput}
               onChange={(e) => {
-                setStockInput(e.target.value);
-                if (chargePerRound) calculateRemaining();
+                const val = e.target.value;
+                setStockInput(val);
+                if (val && chargePerRound) calculateRemaining(parseFloat(val), parseFloat(chargePerRound));
+                else setResult(null);
               }}
               placeholder="1"
               step="0.01"
@@ -73,7 +73,7 @@ export default function PowderStockCalculator({ component }) {
               value={stockUnit}
               onChange={(e) => {
                 setStockUnit(e.target.value);
-                if (stockInput && chargePerRound) calculateRemaining();
+                if (stockInput && chargePerRound) calculateRemaining(parseFloat(stockInput), parseFloat(chargePerRound));
               }}
               className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm"
             >
@@ -94,8 +94,10 @@ export default function PowderStockCalculator({ component }) {
           type="number"
           value={chargePerRound}
           onChange={(e) => {
-            setChargePerRound(e.target.value);
-            if (stockInput) calculateRemaining();
+            const val = e.target.value;
+            setChargePerRound(val);
+            if (stockInput && val) calculateRemaining(parseFloat(stockInput), parseFloat(val));
+            else setResult(null);
           }}
           placeholder="40"
           step="0.1"
