@@ -44,7 +44,7 @@ export default function Navigation() {
             <div className="flex gap-1 items-center">
               {[...mainNavItems, ...moreNavItems].map((item) => {
                 const Icon = item.icon;
-                const active = isActive(item.path);
+                const active = location.pathname === item.path;
                 return (
                 <Link key={item.path} to={item.path}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
@@ -61,7 +61,7 @@ export default function Navigation() {
               {user?.role === 'admin' && (
                 <Link to="/admin/users"
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    isActive('/admin/users')
+                    location.pathname === '/admin/users'
                       ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
                   }`}>
@@ -70,7 +70,7 @@ export default function Navigation() {
               )}
               <Link to="/profile"
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  isActive('/profile')
+                  location.pathname === '/profile'
                     ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}>
