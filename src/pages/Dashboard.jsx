@@ -111,7 +111,7 @@ export default function Dashboard() {
            />
          </div>
        )}
-       <main className="max-w-7xl mx-auto px-3 pt-1 md:pt-3 pb-4 mobile-page-padding">
+       <main className="max-w-7xl mx-auto px-3 pt-1 md:pt-3 pb-4">
          <div className="mb-4 hidden md:flex items-center gap-3">
            <div>
              <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight">Dashboard</h1>
