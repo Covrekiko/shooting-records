@@ -15,6 +15,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
   const [caliberResults, setCaliberResults] = useState([]);
   const [validationError, setValidationError] = useState(null);
   const [showCaliberDropdown, setShowCaliberDropdown] = useState(false);
+  const [stockWarnings, setStockWarnings] = useState({});
 
   const [formData, setFormData] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
@@ -272,6 +273,74 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     setCaliberResults(results);
   };
 
+  const checkStockWarnings = () => {
+    const cartridgesLoaded = parseInt(formData.cartridges_loaded) || 0;
+    const warnings = {};
+
+    if (cartridgesLoaded <= 0) return warnings;
+
+    const unitConversions = {
+      'grams': 1,
+      'kg': 1000,
+      'oz': 28.3495,
+      'lb': 453.592,
+      'grains': 0.06479891,
+    };
+
+    // Check primer
+    if (formData.primer_id) {
+      const primer = components.primer.find(p => p.id === formData.primer_id);
+      if (primer && primer.quantity_remaining < cartridgesLoaded) {
+        warnings.primer = `Only ${primer.quantity_remaining} in stock`;
+      }
+    }
+
+    // Check powder
+    if (formData.powder_id && formData.powder_charge) {
+      const powder = components.powder.find(p => p.id === formData.powder_id);
+      if (powder) {
+        const chargePerRoundInGrams = parseFloat(formData.powder_charge) * unitConversions[formData.powder_unit];
+        const totalPowderNeededInGrams = chargePerRoundInGrams * cartridgesLoaded;
+        const powderStockInGrams = powder.quantity_remaining * (unitConversions[powder.unit] || 1);
+
+        if (powderStockInGrams < totalPowderNeededInGrams) {
+          // Display remaining in original unit
+          let displayRemaining = powder.quantity_remaining;
+          let displayUnit = powder.unit;
+          if (powder.unit === 'grams' && powder.quantity_remaining >= 1000) {
+            displayRemaining = (powder.quantity_remaining / 1000).toFixed(2);
+            displayUnit = 'kg';
+          } else if (powder.unit === 'grams') {
+            displayRemaining = powder.quantity_remaining.toFixed(2);
+          }
+          warnings.powder = `Only ${displayRemaining} ${displayUnit} in stock`;
+        }
+      }
+    }
+
+    // Check brass
+    if (formData.brass_id && !formData.brass_is_used) {
+      const brass = components.brass.find(b => b.id === formData.brass_id);
+      if (brass && brass.quantity_remaining < cartridgesLoaded) {
+        warnings.brass = `Only ${brass.quantity_remaining} in stock`;
+      }
+    }
+
+    // Check bullet
+    if (formData.bullet_id) {
+      const bullet = components.bullet.find(b => b.id === formData.bullet_id);
+      if (bullet && bullet.quantity_remaining < cartridgesLoaded) {
+        warnings.bullet = `Only ${bullet.quantity_remaining} in stock`;
+      }
+    }
+
+    return warnings;
+  };
+
+  useEffect(() => {
+    setStockWarnings(checkStockWarnings());
+  }, [formData.cartridges_loaded, formData.primer_id, formData.powder_id, formData.brass_id, formData.brass_is_used, formData.bullet_id, formData.powder_charge, formData.powder_unit, components]);
+
   const validateStock = () => {
     const cartridgesLoaded = parseInt(formData.cartridges_loaded) || 0;
     if (cartridgesLoaded <= 0) {
@@ -285,12 +354,12 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
     // Primer validation
     if (!primer || primer.quantity_remaining < cartridgesLoaded) {
-      return { valid: false, message: 'Primer: not enough in stock' };
+      return { valid: false, message: `Primer: only ${primer?.quantity_remaining || 0} in stock` };
     }
 
     // Powder validation
     if (!powder || powder.quantity_remaining <= 0) {
-      return { valid: false, message: 'Powder is not in stock' };
+      return { valid: false, message: 'Powder: not in stock' };
     }
 
     const unitConversions = {
@@ -310,12 +379,12 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
     // Brass validation
     if (!brass || (brass.quantity_remaining < cartridgesLoaded && !formData.brass_is_used)) {
-      return { valid: false, message: 'Brass: not enough in stock' };
+      return { valid: false, message: `Brass: only ${brass?.quantity_remaining || 0} in stock` };
     }
 
     // Bullet validation
     if (!bullet || bullet.quantity_remaining < cartridgesLoaded) {
-      return { valid: false, message: 'Bullet: not enough in stock' };
+      return { valid: false, message: `Bullet: only ${bullet?.quantity_remaining || 0} in stock` };
     }
 
     return { valid: true };
@@ -427,8 +496,11 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <label className={labelCls}>Primer</label>
           <select value={formData.primer_id} onChange={(e) => setFormData({ ...formData, primer_id: e.target.value })} className={inputCls} required>
             <option value="">Select primer</option>
-            {components.primer.map(p => <option key={p.id} value={p.id}>{p.name} (£{p.cost_per_unit.toFixed(4)}/ea)</option>)}
+            {components.primer.map(p => <option key={p.id} value={p.id}>{p.name} - {p.quantity_remaining} in stock (£{p.cost_per_unit.toFixed(4)}/ea)</option>)}
           </select>
+          {stockWarnings.primer && (
+            <p className="text-xs text-destructive font-semibold mt-1.5">{stockWarnings.primer}</p>
+          )}
         </div>
 
         <div>
@@ -448,6 +520,9 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               return <option key={p.id} value={p.id}>{p.name} - {displayRemaining} {displayUnit} remaining (£{p.cost_per_unit.toFixed(4)}/g)</option>;
             })}
           </select>
+          {stockWarnings.powder && (
+            <p className="text-xs text-destructive font-semibold mt-1.5">{stockWarnings.powder}</p>
+          )}
         </div>
 
         <div>
@@ -478,7 +553,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <div className="flex gap-2">
             <select value={formData.brass_id} onChange={(e) => setFormData({ ...formData, brass_id: e.target.value })} className={`${inputCls} flex-1`} required>
               <option value="">Select brass</option>
-              {components.brass.map(b => <option key={b.id} value={b.id}>{b.name} (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
+              {components.brass.map(b => <option key={b.id} value={b.id}>{b.name} - {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
             </select>
             <button
               type="button"
@@ -490,6 +565,9 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               Add
             </button>
           </div>
+          {stockWarnings.brass && (
+            <p className="text-xs text-destructive font-semibold mt-1.5">{stockWarnings.brass}</p>
+          )}
         </div>
 
         <div className="flex items-center gap-3 bg-secondary/30 p-3 rounded-lg">
@@ -509,8 +587,11 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <label className={labelCls}>Bullet</label>
           <select value={formData.bullet_id} onChange={(e) => setFormData({ ...formData, bullet_id: e.target.value })} className={inputCls} required>
             <option value="">Select bullet</option>
-            {components.bullet.map(b => <option key={b.id} value={b.id}>{b.name} (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
+            {components.bullet.map(b => <option key={b.id} value={b.id}>{b.name} - {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
           </select>
+          {stockWarnings.bullet && (
+            <p className="text-xs text-destructive font-semibold mt-1.5">{stockWarnings.bullet}</p>
+          )}
         </div>
 
         <div>
