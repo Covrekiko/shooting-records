@@ -150,7 +150,7 @@ export default function AmmoSummary() {
                          </p>
                        </div>
                        <div className="flex items-center gap-2">
-                         {rifle.caliber === '.308 Win' && (
+                         {rifle.caliber?.includes('.308') && (
                            <button
                              onClick={() => handleRemoveRounds(rifle.id, 40)}
                              className="px-2 py-1 text-xs bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg font-medium transition-colors"
