@@ -53,33 +53,61 @@ export default function ReloadingManagement() {
 
         // Restore each component used in the session
         for (const comp of session.components) {
-          if (comp.type === 'powder') {
-            // Restore powder: convert used amount to grams, then back to stored unit
-            const usedInGrams = parseFloat(comp.quantity_used) * (unitConversions[comp.unit] || 1);
-            const component = await base44.entities.ReloadingComponent.filter({
-              id: comp.component_id || comp.name,
-              component_type: 'powder',
-            }).then(results => results[0]);
+          try {
+            let component;
 
-            if (component) {
-              const restoredRemaining = component.quantity_remaining + usedInGrams / (unitConversions[component.unit] || 1);
-              await base44.entities.ReloadingComponent.update(component.id, {
-                quantity_remaining: restoredRemaining,
-              });
-            }
-          } else {
-            // Restore primer, brass, bullet: simple quantity addition
-            const component = await base44.entities.ReloadingComponent.filter({
-              id: comp.component_id || comp.name,
-              component_type: comp.type,
-            }).then(results => results[0]);
+            if (comp.type === 'powder') {
+              // Restore powder: convert used amount to grams, then back to stored unit
+              const usedInGrams = parseFloat(comp.quantity_used) * (unitConversions[comp.unit] || 1);
+              
+              // Try to find by ID first, then by name
+              if (comp.component_id) {
+                const results = await base44.entities.ReloadingComponent.filter({
+                  created_by: session.created_by,
+                  component_type: 'powder',
+                }).then(results => results.find(c => c.id === comp.component_id));
+                component = results;
+              } else if (comp.name) {
+                const results = await base44.entities.ReloadingComponent.filter({
+                  created_by: session.created_by,
+                  component_type: 'powder',
+                }).then(results => results.find(c => c.name === comp.name));
+                component = results;
+              }
 
-            if (component) {
-              const restoredRemaining = component.quantity_remaining + (comp.quantity_used || 0);
-              await base44.entities.ReloadingComponent.update(component.id, {
-                quantity_remaining: restoredRemaining,
-              });
+              if (component) {
+                const restoredRemaining = component.quantity_remaining + usedInGrams / (unitConversions[component.unit] || 1);
+                await base44.entities.ReloadingComponent.update(component.id, {
+                  quantity_remaining: restoredRemaining,
+                });
+              }
+            } else {
+              // Restore primer, brass, bullet: simple quantity addition
+              // Try to find by ID first, then by name
+              if (comp.component_id) {
+                const results = await base44.entities.ReloadingComponent.filter({
+                  created_by: session.created_by,
+                  component_type: comp.type,
+                }).then(results => results.find(c => c.id === comp.component_id));
+                component = results;
+              } else if (comp.name) {
+                const results = await base44.entities.ReloadingComponent.filter({
+                  created_by: session.created_by,
+                  component_type: comp.type,
+                }).then(results => results.find(c => c.name === comp.name));
+                component = results;
+              }
+
+              if (component) {
+                const restoredRemaining = component.quantity_remaining + (comp.quantity_used || 0);
+                await base44.entities.ReloadingComponent.update(component.id, {
+                  quantity_remaining: restoredRemaining,
+                });
+              }
             }
+          } catch (compError) {
+            console.warn('Could not restore component:', comp, compError);
+            // Continue with other components even if one fails
           }
         }
       }
