@@ -225,29 +225,30 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
   const inputCls = "w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/30";
   const labelCls = "block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5";
 
-  const handleClose = () => {
-    if (!data.date || !data.club_id || !data.checkin_time) { setShowAlert(true); } else { onClose(); }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!data.date || !data.club_id || !data.checkin_time) { setShowAlert(true); } else { onSubmit(e); }
   };
 
   return (
     <>
       <ModalShell
         title="Check In"
-        onClose={handleClose}
+        onClose={onClose}
         footer={
           <div className="flex gap-3">
             <motion.button type="submit" form="clay-checkin-form" whileTap={{ scale: 0.97 }}
               className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
               Check In
             </motion.button>
-            <motion.button type="button" onClick={handleClose} whileTap={{ scale: 0.97 }}
+            <motion.button type="button" onClick={onClose} whileTap={{ scale: 0.97 }}
               className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
               Cancel
             </motion.button>
           </div>
         }
       >
-        <form id="clay-checkin-form" onSubmit={onSubmit} className="px-5 py-4 space-y-4">
+        <form id="clay-checkin-form" onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
           <div>
             <label className={labelCls}>Date</label>
             <input type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} className={inputCls} required />
