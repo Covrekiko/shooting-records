@@ -74,6 +74,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         options={{
           mapTypeId: useSatellite ? 'satellite' : 'roadmap',
           disableDefaultUI: true,
+          clickableIcons: false,
         }}
       >
         {/* Saved area boundaries */}
