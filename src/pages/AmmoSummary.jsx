@@ -179,60 +179,62 @@ export default function AmmoSummary() {
                      </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                      <div className="bg-secondary/30 rounded-lg p-3">
-                        <p className="text-xs text-muted-foreground mb-1">Total Rounds</p>
-                        <p className="text-xl font-bold">{rifle.total_rounds_fired || 0}</p>
-                      </div>
-                      <div className="bg-secondary/30 rounded-lg p-3">
-                        <p className="text-xs text-muted-foreground mb-1">Since Cleaning</p>
-                        <p className="text-xl font-bold">{rifle.rounds_since_cleaning || 0}</p>
-                      </div>
-                      {rifle.cleaning_reminder_threshold && (
-                        <div className="bg-secondary/30 rounded-lg p-3">
-                          <p className="text-xs text-muted-foreground mb-1">Target</p>
-                          <p className="text-xl font-bold">{rifle.cleaning_reminder_threshold}</p>
-                        </div>
-                      )}
-                      {rifle.last_cleaning_date && (
-                        <div className="bg-secondary/30 rounded-lg p-3">
-                          <p className="text-xs text-muted-foreground mb-1">Last Cleaned</p>
-                          <p className="text-xs font-semibold">{format(new Date(rifle.last_cleaning_date), 'MMM d')}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    {rifle.cleaning_reminder_threshold && (
-                       <div className="pt-4 border-t border-border">
-                         <div className="flex items-center justify-between mb-2">
-                           <span className="text-xs font-medium text-muted-foreground">Cleaning Progress</span>
-                           <span className="text-xs font-semibold">
-                             {Math.round(
-                               (rifle.rounds_since_cleaning / rifle.cleaning_reminder_threshold) * 100
-                             )}%
-                           </span>
-                         </div>
-                         <div className="h-2 bg-border rounded-full overflow-hidden">
-                           <div
-                             className={`h-full transition-all ${
-                               cleaningStatus === 'needs_cleaning' ? 'bg-amber-600' : 'bg-primary'
-                             }`}
-                             style={{
-                               width: `${Math.min(
-                                 (rifle.rounds_since_cleaning / rifle.cleaning_reminder_threshold) * 100,
-                                 100
-                               )}%`,
-                             }}
-                           />
-                         </div>
-                         <button
-                           onClick={() => handleMarkCleaned(rifle.id)}
-                           className="mt-3 w-full px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
-                         >
-                           <Droplet className="w-4 h-4" />
-                           Mark as Cleaned
-                         </button>
+                       <div className="bg-secondary/30 rounded-lg p-3">
+                         <p className="text-xs text-muted-foreground mb-1">Total Rounds</p>
+                         <p className="text-xl font-bold">{rifle.total_rounds_fired || 0}</p>
                        </div>
-                     )}
+                       <div className="bg-secondary/30 rounded-lg p-3">
+                         <p className="text-xs text-muted-foreground mb-1">Since Cleaning</p>
+                         <p className="text-xl font-bold">{rifle.rounds_since_cleaning || 0}</p>
+                       </div>
+                       {rifle.cleaning_reminder_threshold && (
+                         <div className="bg-secondary/30 rounded-lg p-3">
+                           <p className="text-xs text-muted-foreground mb-1">Target</p>
+                           <p className="text-xl font-bold">{rifle.cleaning_reminder_threshold}</p>
+                         </div>
+                       )}
+                       {rifle.last_cleaning_date && (
+                         <div className="bg-secondary/30 rounded-lg p-3">
+                           <p className="text-xs text-muted-foreground mb-1">Last Cleaned</p>
+                           <p className="text-xs font-semibold">{format(new Date(rifle.last_cleaning_date), 'MMM d')}</p>
+                         </div>
+                       )}
+                     </div>
+
+                     <div className="pt-4 border-t border-border">
+                       {rifle.cleaning_reminder_threshold && (
+                         <div className="mb-3">
+                           <div className="flex items-center justify-between mb-2">
+                             <span className="text-xs font-medium text-muted-foreground">Cleaning Progress</span>
+                             <span className="text-xs font-semibold">
+                               {Math.round(
+                                 (rifle.rounds_since_cleaning / rifle.cleaning_reminder_threshold) * 100
+                               )}%
+                             </span>
+                           </div>
+                           <div className="h-2 bg-border rounded-full overflow-hidden">
+                             <div
+                               className={`h-full transition-all ${
+                                 cleaningStatus === 'needs_cleaning' ? 'bg-amber-600' : 'bg-primary'
+                               }`}
+                               style={{
+                                 width: `${Math.min(
+                                   (rifle.rounds_since_cleaning / rifle.cleaning_reminder_threshold) * 100,
+                                   100
+                                 )}%`,
+                               }}
+                             />
+                           </div>
+                         </div>
+                       )}
+                       <button
+                         onClick={() => handleMarkCleaned(rifle.id)}
+                         className="w-full px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                       >
+                         <Droplet className="w-4 h-4" />
+                         Mark as Cleaned
+                       </button>
+                     </div>
                   </div>
                 );
               })
