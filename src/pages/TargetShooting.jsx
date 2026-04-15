@@ -173,7 +173,7 @@ export default function TargetShooting() {
         
         // Decrement ammo if needed
         if (rifle.ammunition_id && roundsFired && !uniqueAmmoIds.has(rifle.ammunition_id)) {
-          await decrementAmmoStock(rifle.ammunition_id, roundsFired);
+          await decrementAmmoStock(rifle.ammunition_id, roundsFired, 'target_shooting');
           uniqueAmmoIds.add(rifle.ammunition_id);
         }
       }

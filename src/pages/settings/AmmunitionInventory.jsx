@@ -4,6 +4,7 @@ import Navigation from '@/components/Navigation';
 import { Plus, Trash2, Edit2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import AmmoSpendingBreakdown from '@/components/AmmoSpendingBreakdown';
 
 export default function AmmunitionInventory() {
   const navigate = useNavigate();
@@ -252,12 +253,18 @@ export default function AmmunitionInventory() {
           </div>
         )}
 
+        {/* Spending Breakdown */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4">Spending Breakdown</h2>
+          <AmmoSpendingBreakdown />
+        </div>
+
         {ammo.length === 0 ? (
-          <div className="bg-card border border-border rounded-lg p-8 text-center">
-            <p className="text-muted-foreground">No ammunition tracked yet</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
+           <div className="bg-card border border-border rounded-lg p-8 text-center">
+             <p className="text-muted-foreground">No ammunition tracked yet</p>
+           </div>
+         ) : (
+           <div className="space-y-3">
             {ammo.map((item) => (
               <div key={item.id} className="bg-card border border-border rounded-lg p-4">
                 <div className="flex items-start justify-between gap-4">

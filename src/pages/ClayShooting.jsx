@@ -163,7 +163,7 @@ export default function ClayShooting() {
 
       // Decrement ammo if needed
       if (formData.ammunition_id && formData.rounds_fired) {
-        await decrementAmmoStock(formData.ammunition_id, parseInt(formData.rounds_fired));
+        await decrementAmmoStock(formData.ammunition_id, parseInt(formData.rounds_fired), 'clay_shooting');
       }
 
       // Prepare data

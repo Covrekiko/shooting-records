@@ -128,7 +128,7 @@ export default function DeerManagement() {
 
       // Decrement ammo if needed
       if (checkoutData.ammunition_id && checkoutData.total_count) {
-        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count));
+        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count), 'deer_management');
       }
 
       // Prepare data

@@ -1,0 +1,50 @@
+{
+  "name": "AmmoSpending",
+  "type": "object",
+  "properties": {
+    "ammunition_id": {
+      "type": "string",
+      "description": "Reference to Ammunition entity"
+    },
+    "brand": {
+      "type": "string"
+    },
+    "caliber": {
+      "type": "string"
+    },
+    "quantity_used": {
+      "type": "integer",
+      "description": "Rounds or cartridges used"
+    },
+    "cost_per_unit": {
+      "type": "number"
+    },
+    "total_cost": {
+      "type": "number",
+      "description": "quantity_used \u00d7 cost_per_unit"
+    },
+    "date_used": {
+      "type": "string",
+      "format": "date"
+    },
+    "session_type": {
+      "type": "string",
+      "enum": [
+        "target_shooting",
+        "clay_shooting",
+        "deer_management"
+      ],
+      "description": "Type of shooting session"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "ammunition_id",
+    "quantity_used",
+    "cost_per_unit",
+    "total_cost",
+    "date_used"
+  ]
+}
