@@ -194,7 +194,6 @@ export default function ComponentManager() {
       notesText = `${catalogItem.weight_grains}gr • ${catalogItem.bullet_style}`.trim();
     } else if (componentType === 'brass') {
       displayName = catalogItem.brand;
-      notesText = catalogItem.cartridge_caliber || '';
     } else {
       displayName = catalogItem.product_name || catalogItem.short_name || '';
       notesText = `${catalogItem.brand || ''} ${catalogItem.product_line || ''}`.trim();
