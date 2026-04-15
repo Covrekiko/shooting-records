@@ -218,7 +218,8 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               type="date"
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className={inputCls}
+              className={inputCls + " text-sm"}
+              style={{ backgroundSize: '16px' }}
               required
             />
           </div>
