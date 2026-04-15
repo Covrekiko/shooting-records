@@ -108,7 +108,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
   useEffect(() => {
     setCostBreakdown(calculateCosts());
-  }, [formData.cartridges_loaded, formData.primer_id, formData.powder_id, formData.brass_id, formData.bullet_id, formData.powder_charge]);
+  }, [formData.cartridges_loaded, formData.primer_id, formData.powder_id, formData.brass_id, formData.brass_is_used, formData.bullet_id, formData.powder_charge, formData.powder_unit, components]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
