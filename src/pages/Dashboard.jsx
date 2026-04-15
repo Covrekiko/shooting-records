@@ -201,6 +201,15 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Widgets */}
+        {user && (
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <AmmoStockWidget />
+            <RifleAmmoTracker />
+            <ShotgunCartridgeTracker />
+          </div>
+        )}
+
         {/* Stalking Map Section */}
          {user && (
            <div className="mt-6 hidden md:block">
