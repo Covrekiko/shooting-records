@@ -20,7 +20,6 @@ export const AuthProvider = ({ children }) => {
   const checkAppState = async () => {
     try {
       setIsLoadingPublicSettings(true);
-      setAuthError(null);
       
       // First, check app public settings (with token if available)
       // This will tell us if auth is required, user not registered, etc.
@@ -43,10 +42,12 @@ export const AuthProvider = ({ children }) => {
         } else {
           setIsLoadingAuth(false);
           setIsAuthenticated(false);
+          setAuthError(null); // No error if no token and app doesn't require auth
         }
         setIsLoadingPublicSettings(false);
       } catch (appError) {
         console.error('App state check failed:', appError);
+        setIsLoadingPublicSettings(false);
         
         // Handle app-level errors
         if (appError.status === 403 && appError.data?.extra_data?.reason) {
@@ -56,25 +57,25 @@ export const AuthProvider = ({ children }) => {
               type: 'auth_required',
               message: 'Authentication required'
             });
+            setIsLoadingAuth(false);
           } else if (reason === 'user_not_registered') {
             setAuthError({
               type: 'user_not_registered',
               message: 'User not registered for this app'
             });
+            setIsLoadingAuth(false);
           } else {
             setAuthError({
               type: reason,
               message: appError.message
             });
+            setIsLoadingAuth(false);
           }
         } else {
-          setAuthError({
-            type: 'unknown',
-            message: appError.message || 'Failed to load app'
-          });
+          // Network or other errors - don't set auth error, just loading false
+          setIsLoadingAuth(false);
+          setIsLoadingPublicSettings(false);
         }
-        setIsLoadingPublicSettings(false);
-        setIsLoadingAuth(false);
       }
     } catch (error) {
       console.error('Unexpected error:', error);
@@ -94,11 +95,13 @@ export const AuthProvider = ({ children }) => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
+      setAuthError(null); // Clear any previous auth errors on success
       setIsLoadingAuth(false);
     } catch (error) {
       console.error('User auth check failed:', error);
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
+      setUser(null);
       
       // If user auth fails, it might be an expired token
       if (error.status === 401 || error.status === 403) {
