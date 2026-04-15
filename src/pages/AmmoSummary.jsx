@@ -67,7 +67,7 @@ export default function AmmoSummary() {
         </div>
 
         <div className="space-y-6">
-        {/* Cleaning Alerts */}
+          {/* Cleaning Alerts */}
         {riflesNeedingCleaning.length > 0 && (
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-4">
             <div className="flex items-start gap-3">
@@ -102,8 +102,8 @@ export default function AmmoSummary() {
           </div>
         )}
 
-        {/* Rifles Section */}
-        <div>
+          {/* Rifles Section */}
+          <div>
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <Crosshair className="w-5 h-5 text-primary" />
             Rifles ({rifles.length})
@@ -201,10 +201,10 @@ export default function AmmoSummary() {
               })
             )}
           </div>
-        </div>
+          </div>
 
-        {/* Shotguns Section */}
-        <div>
+          {/* Shotguns Section */}
+          <div>
           <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
             <AlertCircle className="w-5 h-5 text-primary" />
             Shotguns ({shotguns.length})
@@ -234,6 +234,7 @@ export default function AmmoSummary() {
                 </div>
               ))
             )}
+          </div>
           </div>
         </div>
       </main>
