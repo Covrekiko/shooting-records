@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Plus, Trash2, Edit2, ArrowLeft, Menu } from 'lucide-react';
+import { Plus, Trash2, Edit2, ArrowLeft, Menu, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
@@ -9,6 +9,7 @@ import ReloadingSessionForm from '@/components/reloading/ReloadingSessionForm';
 import ReloadingInventoryWidget from '@/components/reloading/ReloadingInventoryWidget';
 import ComponentManager from '@/components/reloading/ComponentManager';
 import ReloadBatchForm from '@/components/reloading/ReloadBatchForm';
+import { generateReloadingBatchPDF } from '@/utils/pdfGenerators';
 
 export default function ReloadingManagement() {
   const navigate = useNavigate();
@@ -43,6 +44,11 @@ export default function ReloadingManagement() {
     } catch (error) {
       console.error('Error deleting session:', error);
     }
+  };
+
+  const handleExportBatchPDF = (session) => {
+    const doc = generateReloadingBatchPDF(session);
+    doc.save(`batch-${session.batch_number}.pdf`);
   };
 
   const handleSubmit = async (data) => {
@@ -202,6 +208,13 @@ export default function ReloadingManagement() {
                       </div>
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => handleExportBatchPDF(session)}
+                        className="p-2 hover:bg-primary/10 text-primary rounded transition-colors"
+                        title="Export PDF"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
                       <button
                         onClick={() => {
                           setEditingSession(session);

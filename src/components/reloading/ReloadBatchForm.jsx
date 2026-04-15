@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
-import { X } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
+import AddBrassModal from './AddBrassModal';
 
 export default function ReloadBatchForm({ onSubmit, onClose }) {
   const [components, setComponents] = useState({});
@@ -9,6 +10,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [costBreakdown, setCostBreakdown] = useState(null);
+  const [showAddBrassModal, setShowAddBrassModal] = useState(false);
 
   const [formData, setFormData] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
@@ -193,6 +195,20 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     }
   };
 
+  const handleAddBrassSaved = async (brassData) => {
+    try {
+      const newBrass = await base44.entities.ReloadingComponent.create(brassData);
+      setComponents({
+        ...components,
+        brass: [...components.brass, newBrass],
+      });
+      setShowAddBrassModal(false);
+      setFormData({ ...formData, brass_id: newBrass.id });
+    } catch (error) {
+      console.error('Error adding brass:', error);
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-4"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div></div>;
   }
@@ -305,10 +321,21 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
         <div>
           <label className={labelCls}>Brass / Cartridge</label>
-          <select value={formData.brass_id} onChange={(e) => setFormData({ ...formData, brass_id: e.target.value })} className={inputCls} required>
-            <option value="">Select brass</option>
-            {components.brass.map(b => <option key={b.id} value={b.id}>{b.name} (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
-          </select>
+          <div className="flex gap-2">
+            <select value={formData.brass_id} onChange={(e) => setFormData({ ...formData, brass_id: e.target.value })} className={`${inputCls} flex-1`} required>
+              <option value="">Select brass</option>
+              {components.brass.map(b => <option key={b.id} value={b.id}>{b.name} (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
+            </select>
+            <button
+              type="button"
+              onClick={() => setShowAddBrassModal(true)}
+              className="px-3 py-2 bg-secondary text-secondary-foreground rounded-lg hover:opacity-90 flex items-center gap-1 font-medium text-sm whitespace-nowrap"
+              title="Add new brass"
+            >
+              <Plus className="w-4 h-4" />
+              Add
+            </button>
+          </div>
         </div>
 
         <div className="flex items-center gap-3 bg-secondary/30 p-3 rounded-lg">
@@ -379,6 +406,13 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           Cancel
         </button>
       </div>
+
+      {/* Add Brass Modal */}
+      <AddBrassModal
+        isOpen={showAddBrassModal}
+        onClose={() => setShowAddBrassModal(false)}
+        onSave={handleAddBrassSaved}
+      />
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { AlertCircle, CheckCircle2, Crosshair } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Crosshair, Download } from 'lucide-react';
 import { format } from 'date-fns';
+import { generateAmmunitionSummaryPDF } from '@/utils/pdfGenerators';
 
 export default function AmmoSummary() {
   const [rifles, setRifles] = useState([]);
@@ -46,6 +47,11 @@ export default function AmmoSummary() {
     (r) => r.cleaning_reminder_threshold && r.rounds_since_cleaning >= r.cleaning_reminder_threshold
   );
 
+  const handleExportPDF = () => {
+    const doc = generateAmmunitionSummaryPDF(rifles, shotguns);
+    doc.save('ammunition-summary.pdf');
+  };
+
   if (loading) {
     return (
       <div>
@@ -61,9 +67,18 @@ export default function AmmoSummary() {
     <div>
       <Navigation />
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8">
-        <div className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-1">Ammunition Summary</h1>
-          <p className="text-muted-foreground">Track maintenance and firearm statistics</p>
+        <div className="mb-8 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-1">Ammunition Summary</h1>
+            <p className="text-muted-foreground">Track maintenance and firearm statistics</p>
+          </div>
+          <button
+            onClick={handleExportPDF}
+            className="px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 whitespace-nowrap"
+          >
+            <Download className="w-4 h-4" />
+            Export PDF
+          </button>
         </div>
 
         <div className="space-y-6">

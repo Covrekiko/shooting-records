@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import ChildScreenHeader from '@/components/ChildScreenHeader';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, Download } from 'lucide-react';
+import AmmoEditModal from '@/components/AmmoEditModal';
+import { generateAmmunitionInventoryPDF } from '@/utils/pdfGenerators';
 
 export default function Ammunition() {
   const [ammunition, setAmmunition] = useState([]);
@@ -9,6 +11,8 @@ export default function Ammunition() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingAmmo, setEditingAmmo] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [formData, setFormData] = useState({
     brand: '',
     caliber: '',
@@ -57,6 +61,27 @@ export default function Ammunition() {
     }
   };
 
+  const handleEditAmmo = (ammo) => {
+    setEditingAmmo(ammo);
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async (updatedData) => {
+    try {
+      await base44.entities.Ammunition.update(editingAmmo.id, updatedData);
+      setAmmunition(ammunition.map(a => a.id === editingAmmo.id ? { ...a, ...updatedData } : a));
+      setShowEditModal(false);
+      setEditingAmmo(null);
+    } catch (error) {
+      console.error('Error saving ammunition:', error);
+    }
+  };
+
+  const handleExportPDF = () => {
+    const doc = generateAmmunitionInventoryPDF(ammunition);
+    doc.save('ammunition-inventory.pdf');
+  };
+
 
 
   if (loading) {
@@ -79,13 +104,24 @@ export default function Ammunition() {
           <p className="text-muted-foreground">Manage ammunition for your rifles</p>
         </div>
 
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="mb-6 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
-        >
-          <Plus className="w-5 h-5" />
-          Add Ammunition
-        </button>
+        <div className="mb-6 flex gap-3">
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Add Ammunition
+          </button>
+          {ammunition.length > 0 && (
+            <button
+              onClick={handleExportPDF}
+              className="px-6 py-3 bg-secondary text-secondary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+            >
+              <Download className="w-5 h-5" />
+              Export PDF
+            </button>
+          )}
+        </div>
 
         {showForm && (
           <div className="bg-card border border-border rounded-lg p-6 mb-6">
@@ -172,16 +208,37 @@ export default function Ammunition() {
                     <p className="text-sm text-muted-foreground">Grain: {ammo.grain}</p>
                   )}
                 </div>
-                <button
-                  onClick={() => handleDeleteAmmunition(ammo.id)}
-                  className="px-3 py-1 text-sm bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded transition-colors flex items-center gap-1"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEditAmmo(ammo)}
+                    className="px-3 py-1 text-sm bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center gap-1"
+                    title="Edit"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteAmmunition(ammo.id)}
+                    className="px-3 py-1 text-sm bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded transition-colors flex items-center gap-1"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
+
+        {/* Edit Modal */}
+        <AmmoEditModal
+          ammo={editingAmmo}
+          isOpen={showEditModal}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingAmmo(null);
+          }}
+          onSave={handleSaveEdit}
+        />
       </main>
     </div>
   );
