@@ -112,6 +112,25 @@ export default function ReloadingManagement() {
         }
       }
 
+      // Delete related AmmoSpending records for this session
+      try {
+        const user = await base44.auth.me();
+        const spendingRecords = await base44.entities.AmmoSpending.filter({
+          created_by: user.email,
+          caliber: session.caliber,
+          date_used: session.date,
+        });
+        
+        // Delete matching spending records
+        for (const record of spendingRecords) {
+          if (record.notes?.includes(session.batch_number)) {
+            await base44.entities.AmmoSpending.delete(record.id);
+          }
+        }
+      } catch (spendingError) {
+        console.warn('Could not delete AmmoSpending records:', spendingError);
+      }
+
       // Delete the session
       await base44.entities.ReloadingSession.delete(id);
       loadSessions();
