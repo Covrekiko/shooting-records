@@ -63,8 +63,8 @@ export default function ReloadingWidget() {
     <div className="bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/80 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-slate-200/90 dark:hover:border-slate-600 transition-all duration-100">
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Reloading Stats</h3>
-        <Link to="/reloading" className="text-primary hover:opacity-80 transition-opacity">
-          <ArrowRight className="w-4 h-4" />
+        <Link to="/reloading" className="text-primary hover:opacity-80 transition-opacity text-xs font-semibold">
+          Manage
         </Link>
       </div>
 
