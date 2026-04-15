@@ -116,19 +116,27 @@ export default function ReloadingManagement() {
       try {
         const user = await base44.auth.me();
         const spendingRecords = await base44.entities.AmmoSpending.filter({ created_by: user.email });
+        console.log('🔍 Searching AmmoSpending records. Total found:', spendingRecords.length);
+        console.log('Looking for - Caliber:', session.caliber, 'Date:', session.date, 'Brand:', session.brand || 'Reloaded');
         
         // Delete spending records matching this session's caliber, date, and brand
+        let deletedCount = 0;
         for (const record of spendingRecords) {
+          console.log('Checking record:', { id: record.id, caliber: record.caliber, date: record.date_used, brand: record.brand });
           const matchCalibер = record.caliber === session.caliber;
           const matchDate = record.date_used === session.date;
           const matchBrand = record.brand === 'Reloaded' || record.brand === (session.brand || 'Reloaded');
+          console.log('Match results:', { matchCalibер, matchDate, matchBrand });
           
           if (matchCalibер && matchDate && matchBrand) {
+            console.log('✅ Deleting spending record:', record.id);
             await base44.entities.AmmoSpending.delete(record.id);
+            deletedCount++;
           }
         }
+        console.log('🗑️ Total AmmoSpending records deleted:', deletedCount);
       } catch (spendingError) {
-        console.warn('Could not delete AmmoSpending records:', spendingError);
+        console.error('❌ Could not delete AmmoSpending records:', spendingError);
       }
 
       // Delete the session
