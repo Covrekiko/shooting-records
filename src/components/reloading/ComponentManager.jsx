@@ -173,7 +173,7 @@ export default function ComponentManager() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto">
-            {formData.map((item, index) => {
+            {Array.isArray(formData) && formData.map((item, index) => {
               const type = COMPONENT_TYPES.find(t => t.value === item.component_type);
               return (
                 <div key={index} className="border border-border rounded-lg p-3 space-y-3 bg-secondary/10">
