@@ -265,35 +265,34 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           </select>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>Powder</label>
-            <select value={formData.powder_id} onChange={(e) => setFormData({ ...formData, powder_id: e.target.value })} className={inputCls} required>
-              <option value="">Select powder</option>
-              {components.powder.map(p => <option key={p.id} value={p.id}>{p.name} (£{p.cost_per_unit.toFixed(4)}/{p.unit})</option>)}
+        <div>
+          <label className={labelCls}>Powder</label>
+          <select value={formData.powder_id} onChange={(e) => setFormData({ ...formData, powder_id: e.target.value })} className={inputCls} required>
+            <option value="">Select powder</option>
+            {components.powder.map(p => <option key={p.id} value={p.id}>{p.name} (£{p.cost_per_unit.toFixed(4)}/{p.unit})</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label className={labelCls}>Powder Charge & Unit</label>
+          <div className="flex gap-2">
+            <input
+              type="number"
+              value={formData.powder_charge}
+              onChange={(e) => setFormData({ ...formData, powder_charge: e.target.value })}
+              className="flex-1 px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+              placeholder="40"
+              step="0.1"
+              required
+            />
+            <select
+              value={formData.powder_unit}
+              onChange={(e) => setFormData({ ...formData, powder_unit: e.target.value })}
+              className="px-3 py-2 border border-border rounded-lg bg-background text-foreground font-medium min-w-max"
+            >
+              <option value="grains">grains</option>
+              <option value="grams">grams</option>
             </select>
-          </div>
-          <div>
-            <label className={labelCls}>Powder Charge</label>
-            <div className="flex gap-2">
-              <input
-                type="number"
-                value={formData.powder_charge}
-                onChange={(e) => setFormData({ ...formData, powder_charge: e.target.value })}
-                className="flex-1 px-3 py-2 border border-border rounded-lg bg-background text-foreground"
-                placeholder="40"
-                step="0.1"
-                required
-              />
-              <select
-                value={formData.powder_unit}
-                onChange={(e) => setFormData({ ...formData, powder_unit: e.target.value })}
-                className="px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm font-medium whitespace-nowrap"
-              >
-                <option value="grains">grains</option>
-                <option value="grams">grams</option>
-              </select>
-            </div>
           </div>
         </div>
 
