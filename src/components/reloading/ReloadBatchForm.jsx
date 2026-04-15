@@ -209,7 +209,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       </div>
 
       {/* Form Content */}
-      <div className="flex-1 overflow-y-auto p-5 space-y-4">
+      <div className="flex-1 overflow-y-auto p-5 pb-24 space-y-4">
       <form id="reload-batch-form" onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
