@@ -156,12 +156,6 @@ export default function Dashboard() {
             link="/deer-stalking"
           />
            <StatCard
-             icon={<Settings className="w-6 h-6" />}
-             label="Equipment & Areas"
-             subtitle="Manage gear"
-             link="/profile/settings"
-           />
-           <StatCard
              icon={<span className="text-2xl">🦌</span>}
              label="Deer Management"
              subtitle="Total Outings"
@@ -181,6 +175,12 @@ export default function Dashboard() {
              subtitle="Rounds Tracked"
              value={stats?.claySessions || 0}
              link="/clay-shooting"
+           />
+           <StatCard
+             icon={<Settings className="w-6 h-6" />}
+             label="Equipment & Areas"
+             subtitle="Manage gear"
+             link="/profile/settings"
            />
          </div>
          )}
