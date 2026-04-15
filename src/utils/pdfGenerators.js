@@ -75,10 +75,10 @@ export const generateReloadingBatchPDF = (session, components) => {
   if (session.components && Array.isArray(session.components)) {
     session.components.forEach((comp) => {
       const type = (comp.type || 'Unknown').charAt(0).toUpperCase() + (comp.type || 'Unknown').slice(1);
-      const name = comp.name || '-';
+      const name = String(comp.name || '-');
       
       // Handle powder unit conversion
-      let quantityStr = comp.quantity_used || '-';
+      let quantityStr = String(comp.quantity_used || '-');
       if (comp.type === 'powder' && comp.unit !== 'kg') {
         // If powder and not already converted, it's already in grains
         if (comp.quantity_used) {
@@ -92,7 +92,7 @@ export const generateReloadingBatchPDF = (session, components) => {
         quantityStr = `${grains}gr`;
       }
       
-      doc.text(type, 18, yPos);
+      doc.text(String(type), 18, yPos);
       doc.text(name, 50, yPos);
       doc.text(quantityStr, 100, yPos);
       yPos += 5;
