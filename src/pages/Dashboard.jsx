@@ -99,7 +99,7 @@ export default function Dashboard() {
   }
 
   return (
-     <div className="bg-gradient-to-b from-background via-background to-secondary/5">
+     <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
        <Navigation />
        {(pulling || refreshing) && (
          <div className="flex justify-center pt-3 pb-1">
@@ -116,73 +116,82 @@ export default function Dashboard() {
          </div>
 
          {user?.role === 'admin' ? (
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-            <StatCard
-              icon={<Map className="w-8 h-8" />}
-              label="Stalking Map"
-              link="/deer-stalking"
-            />
-            <StatCard
-              icon={<span className="text-2xl">🦌</span>}
-              label="Deer Management"
-              value={stats?.deerRecords || 0}
-              link="/deer-management"
-            />
-            <StatCard
-              icon={<Crosshair className="w-8 h-8" />}
-              label="Target Shooting"
-              value={stats?.targetRecords || 0}
-              link="/target-shooting"
-            />
-            <StatCard
-              icon={<span className="text-2xl">🎯</span>}
-              label="Clay Shooting"
-              value={stats?.clayRecords || 0}
-              link="/clay-shooting"
-             />
-          </div>
-        ) : (
-         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
            <StatCard
-             icon={<Map className="w-8 h-8" />}
+             icon={<Map className="w-6 h-6" />}
              label="Stalking Map"
+             subtitle="View & plan areas"
              link="/deer-stalking"
            />
-            <StatCard
-              icon={<Crosshair className="w-8 h-8" />}
-              label="Target Shooting Sessions"
-              value={stats?.targetSessions || 0}
-              link="/target-shooting"
+           <StatCard
+             icon={<span className="text-2xl">🦌</span>}
+             label="Deer Management"
+             subtitle="Total Deer"
+             value={stats?.deerRecords || 0}
+             link="/deer-management"
+           />
+           <StatCard
+             icon={<Crosshair className="w-6 h-6" />}
+             label="Target Shooting"
+             subtitle="Sessions"
+             value={stats?.targetRecords || 0}
+             link="/target-shooting"
+           />
+           <StatCard
+             icon={<Target className="w-6 h-6" />}
+             label="Clay Shooting"
+             subtitle="Sessions"
+             value={stats?.clayRecords || 0}
+             link="/clay-shooting"
             />
-            <StatCard
-              icon={<img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/d927f40c6_generated_image.png" alt="shotgun" className="w-6 h-6 sm:w-8 sm:h-8 object-contain" />}
-              label="Clay Shooting Sessions"
-              value={stats?.claySessions || 0}
-              link="/clay-shooting"
-            />
-            <StatCard
-              icon={<span className="text-2xl">🦌</span>}
-              label="Deer Management Outings"
-              value={stats?.deerOutings || 0}
-              link="/deer-management"
-              hideOnMobile={true}
-            />
-            <StatCard
-              icon={<Activity className="w-8 h-8" />}
-              label="Total Rifle Rounds"
-              value={stats?.totalRifleRounds || 0}
-              link="/records"
-              hideOnMobile={true}
-            />
-            <StatCard
-              icon={<Activity className="w-8 h-8" />}
-              label="Total Shotgun Rounds"
-              value={stats?.totalShotgunRounds || 0}
-              link="/records"
-              hideOnMobile={true}
-            />
-          </div>
-        )}
+         </div>
+         ) : (
+         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+          <StatCard
+            icon={<Map className="w-6 h-6" />}
+            label="Stalking Map"
+            subtitle="View & plan areas"
+            link="/deer-stalking"
+          />
+           <StatCard
+             icon={<span className="text-2xl">🦌</span>}
+             label="Deer Management"
+             subtitle="Total Outings"
+             value={stats?.deerOutings || 0}
+             link="/deer-management"
+           />
+           <StatCard
+             icon={<Crosshair className="w-6 h-6" />}
+             label="Target Shooting"
+             subtitle="Sessions Completed"
+             value={stats?.targetSessions || 0}
+             link="/target-shooting"
+           />
+           <StatCard
+             icon={<Target className="w-6 h-6" />}
+             label="Clay Shooting"
+             subtitle="Rounds Tracked"
+             value={stats?.claySessions || 0}
+             link="/clay-shooting"
+           />
+           <StatCard
+             icon={<Activity className="w-6 h-6" />}
+             label="Rifle Rounds"
+             subtitle="Total Fired"
+             value={stats?.totalRifleRounds || 0}
+             link="/records"
+             hideOnMobile={true}
+           />
+           <StatCard
+             icon={<Activity className="w-6 h-6" />}
+             label="Shotgun Rounds"
+             subtitle="Total Fired"
+             value={stats?.totalShotgunRounds || 0}
+             link="/records"
+             hideOnMobile={true}
+           />
+         </div>
+         )}
 
         {/* Widgets */}
         <div className="mt-6 md:mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -364,34 +373,39 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
     .slice(0, 8);
 }
 
-function StatCard({ icon, label, value, link, hideOnMobile }) {
+function StatCard({ icon, label, subtitle, value, link, hideOnMobile }) {
     const content = (
-      <div className="flex flex-col items-start justify-between h-full">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-700 text-white flex items-center justify-center mb-3 flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 [&_img]:w-5 [&_img]:h-5 text-xl shadow-lg border border-slate-600/50">
-          {icon}
+      <div className="flex flex-col h-full">
+        <div className="flex items-start gap-3 mb-2">
+          {/* Warm beige icon container */}
+          <div className="w-14 h-14 rounded-2xl bg-[#f5e6d0] flex items-center justify-center flex-shrink-0 [&_svg]:w-6 [&_svg]:h-6 [&_img]:w-6 [&_img]:h-6 text-2xl [&_svg]:text-slate-800">
+            {icon}
+          </div>
+          <div className="flex-1 min-w-0 pt-0.5">
+            <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-tight">{label}</p>
+            {subtitle && <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{subtitle}</p>}
+          </div>
+          <span className="text-slate-400 text-lg mt-1">›</span>
         </div>
-        <div className="flex-1 min-w-0 w-full">
-          <p className="text-xs text-muted-foreground font-medium mb-1.5 uppercase tracking-wide leading-none">{label}</p>
-          {value !== undefined && (
-            <p className="text-2xl md:text-3xl font-semibold text-foreground">{value}</p>
-          )}
-        </div>
+        {value !== undefined && (
+          <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mt-1 pl-1">{value}</p>
+        )}
       </div>
     );
 
     const cardClass = hideOnMobile ? "hidden md:block" : "";
-    const baseClass = "bg-slate-100 dark:bg-slate-800 rounded-2xl p-4 md:p-6 border border-slate-300 dark:border-slate-600 shadow-sm hover:shadow-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 active:scale-[0.98]" + " " + cardClass;
+    const baseClass = "bg-white dark:bg-slate-800 rounded-2xl p-4 md:p-6 border border-slate-200 dark:border-slate-700 shadow-sm active:scale-[0.98] transition-all duration-150" + " " + cardClass;
 
     if (link) {
       return (
-        <Link to={link} className={`${baseClass} block`} style={{ WebkitBackdropFilter: 'blur(20px)' }}>
+        <Link to={link} className={`${baseClass} block`}>
           {content}
         </Link>
       );
     }
 
     return (
-      <div className={baseClass} style={{ WebkitBackdropFilter: 'blur(20px)' }}>
+      <div className={baseClass}>
         {content}
       </div>
     );
