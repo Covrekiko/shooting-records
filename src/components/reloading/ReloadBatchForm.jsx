@@ -368,7 +368,18 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <label className={labelCls}>Powder</label>
           <select value={formData.powder_id} onChange={(e) => setFormData({ ...formData, powder_id: e.target.value })} className={inputCls} required>
             <option value="">Select powder</option>
-            {components.powder.map(p => <option key={p.id} value={p.id}>{p.name} (£{p.cost_per_unit.toFixed(4)}/unit)</option>)}
+            {components.powder.map(p => {
+              // Display powder with normalized unit
+              let displayUnit = p.unit;
+              let displayRemaining = p.quantity_remaining;
+              if (p.unit === 'grams' && p.quantity_remaining >= 1000) {
+                displayUnit = 'kg';
+                displayRemaining = (p.quantity_remaining / 1000).toFixed(2);
+              } else if (p.unit === 'grams') {
+                displayRemaining = p.quantity_remaining.toFixed(2);
+              }
+              return <option key={p.id} value={p.id}>{p.name} - {displayRemaining} {displayUnit} remaining (£{p.cost_per_unit.toFixed(4)}/g)</option>;
+            })}
           </select>
         </div>
 

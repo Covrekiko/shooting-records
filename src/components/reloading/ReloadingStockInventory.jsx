@@ -84,12 +84,17 @@ export default function ReloadingStockInventory() {
                     </div>
 
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Stock Remaining</span>
-                        <span className="font-semibold">
-                          {comp.quantity_remaining.toLocaleString()} / {comp.quantity_total.toLocaleString()} {comp.unit}
-                        </span>
-                      </div>
+                       <div className="flex items-center justify-between text-sm">
+                         <span className="text-muted-foreground">Stock Remaining</span>
+                         <span className="font-semibold">
+                           {(() => {
+                             if (type.value === 'powder' && comp.unit === 'grams' && comp.quantity_total >= 1000) {
+                               return `${(comp.quantity_remaining / 1000).toFixed(2)} / ${(comp.quantity_total / 1000).toFixed(2)} kg`;
+                             }
+                             return `${comp.quantity_remaining.toLocaleString()} / ${comp.quantity_total.toLocaleString()} ${comp.unit}`;
+                           })()}
+                         </span>
+                       </div>
 
                       <div className="w-full bg-white/40 dark:bg-black/40 rounded-full h-2 overflow-hidden">
                         <div

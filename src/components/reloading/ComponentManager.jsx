@@ -57,22 +57,46 @@ export default function ComponentManager() {
     }
   };
 
+  const convertToGrams = (value, unit) => {
+    const conversions = {
+      'grams': 1,
+      'kg': 1000,
+      'oz': 28.3495,
+      'lb': 453.592,
+      'grains': 0.06479891,
+    };
+    return value * (conversions[unit] || 1);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const costPerUnit = parseFloat(formData.price_total) / parseFloat(formData.quantity_total);
-      
+
       // For bullets, create a unique identifier combining brand, bullet_name, and caliber
       let displayName = formData.name;
       if (formData.component_type === 'bullet') {
         displayName = `${formData.brand} ${formData.bullet_name} (${formData.caliber})`;
       }
 
+      // For powder, normalize stock to grams for internal storage
+      let quantityTotal = parseFloat(formData.quantity_total);
+      let quantityRemaining = parseFloat(formData.quantity_total);
+      let storageUnit = formData.unit;
+
+      if (formData.component_type === 'powder') {
+        // Convert to grams for storage
+        quantityTotal = convertToGrams(quantityTotal, formData.unit);
+        quantityRemaining = quantityTotal;
+        storageUnit = 'grams';
+      }
+
       const data = {
         ...formData,
         name: displayName,
-        quantity_total: parseFloat(formData.quantity_total),
-        quantity_remaining: parseFloat(formData.quantity_total),
+        quantity_total: quantityTotal,
+        quantity_remaining: quantityRemaining,
+        unit: storageUnit,
         price_total: parseFloat(formData.price_total),
         cost_per_unit: costPerUnit,
       };
@@ -110,11 +134,21 @@ export default function ComponentManager() {
   const handleEdit = (component) => {
     setEditingId(component.id);
     setLockedComponentType(component.component_type);
+
+    // For powder stored in grams, convert back to a reasonable display unit
+    let displayQuantity = component.quantity_total;
+    let displayUnit = component.unit;
+
+    if (component.component_type === 'powder' && component.unit === 'grams' && component.quantity_total >= 1000) {
+      displayQuantity = component.quantity_total / 1000;
+      displayUnit = 'kg';
+    }
+
     setFormData({
       component_type: component.component_type,
       name: component.name,
-      quantity_total: component.quantity_total,
-      unit: component.unit,
+      quantity_total: displayQuantity,
+      unit: displayUnit,
       price_total: component.price_total,
       date_acquired: component.date_acquired,
       notes: component.notes,
@@ -614,13 +648,30 @@ export default function ComponentManager() {
                 <p className="text-muted-foreground text-sm text-center py-4">No {type.label.toLowerCase()}s added yet</p>
               ) : (
                 <div className="grid gap-3">
-                  {typeComponents.map(comp => (
+                  {typeComponents.map(comp => {
+                    // For powder in grams, display in kg if >= 1000g
+                    let displayRemaining = comp.quantity_remaining;
+                    let displayTotal = comp.quantity_total;
+                    let displayUnit = comp.unit;
+
+                    if (comp.component_type === 'powder' && comp.unit === 'grams') {
+                      if (comp.quantity_total >= 1000) {
+                        displayRemaining = (comp.quantity_remaining / 1000).toFixed(2);
+                        displayTotal = (comp.quantity_total / 1000).toFixed(2);
+                        displayUnit = 'kg';
+                      } else {
+                        displayRemaining = comp.quantity_remaining.toFixed(2);
+                        displayTotal = comp.quantity_total.toFixed(2);
+                      }
+                    }
+
+                    return (
                     <div key={comp.id} className="bg-card border border-border rounded-lg p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
                           <h4 className="font-semibold">{comp.name}</h4>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {comp.quantity_remaining}/{comp.quantity_total} {comp.unit}
+                            {displayRemaining}/{displayTotal} {displayUnit}
                           </p>
                         </div>
                         <div className="flex gap-2">
@@ -653,7 +704,8 @@ export default function ComponentManager() {
                         </div>
                       </div>
                     </div>
-                  ))}
+                  );
+                  })}
                 </div>
               )}
             </div>
