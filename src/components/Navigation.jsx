@@ -27,7 +27,6 @@ export default function Navigation() {
 
   const moreNavItems = [
     { path: '/records', label: 'Records', icon: BookOpen },
-    { path: '/users', label: 'Users', icon: User },
   ];
 
   return (
