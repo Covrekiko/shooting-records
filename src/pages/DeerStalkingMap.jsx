@@ -40,6 +40,7 @@ export default function DeerStalkingMap() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mapClick, setMapClick] = useState(null);
+  const loadDataTimeoutRef = useRef(null);
 
   // Modal states
   const [showPOI, setShowPOI] = useState(false);
@@ -193,7 +194,8 @@ export default function DeerStalkingMap() {
       setShowPOI(false);
       setMapClick(null);
       setWaitingForPin('poi');
-      loadData();
+      if (loadDataTimeoutRef.current) clearTimeout(loadDataTimeoutRef.current);
+      loadDataTimeoutRef.current = setTimeout(() => loadData(), 500);
     } catch (err) {
       setError(err.message);
     }
@@ -213,7 +215,8 @@ export default function DeerStalkingMap() {
       setShowHarvest(false);
       setMapClick(null);
       setWaitingForPin('harvest');
-      loadData();
+      if (loadDataTimeoutRef.current) clearTimeout(loadDataTimeoutRef.current);
+      loadDataTimeoutRef.current = setTimeout(() => loadData(), 500);
     } catch (err) {
       setError(err.message);
     }
@@ -263,7 +266,8 @@ export default function DeerStalkingMap() {
   const handleDeletePOI = async (id) => {
     try {
       await base44.entities.MapMarker.delete(id);
-      loadData();
+      if (loadDataTimeoutRef.current) clearTimeout(loadDataTimeoutRef.current);
+      loadDataTimeoutRef.current = setTimeout(() => loadData(), 500);
     } catch (err) {
       setError(err.message);
     }
@@ -272,7 +276,8 @@ export default function DeerStalkingMap() {
   const handleDeleteHarvest = async (id) => {
     try {
       await base44.entities.Harvest.delete(id);
-      loadData();
+      if (loadDataTimeoutRef.current) clearTimeout(loadDataTimeoutRef.current);
+      loadDataTimeoutRef.current = setTimeout(() => loadData(), 500);
     } catch (err) {
       setError(err.message);
     }
