@@ -532,19 +532,13 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
           )}
         </div>
 
-        <div className="bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl p-3">
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">GPS Track: <span className="font-semibold">{gpsTrack?.length || 0} points recorded</span></p>
-          {gpsTrack && gpsTrack.length > 0 && (
-            <motion.button type="button" onClick={() => onViewTrack(gpsTrack)} whileTap={{ scale: 0.97 }}
-              className="w-full px-3 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-primary hover:text-primary-foreground rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-              <Map className="w-4 h-4" />
-              View GPS Track
-            </motion.button>
-          )}
-          {(!gpsTrack || gpsTrack.length === 0) && (
-            <p className="text-xs text-slate-400 italic">No GPS data collected. Check location permissions and try again.</p>
-          )}
-        </div>
+        {gpsTrack && gpsTrack.length > 0 && (
+          <motion.button type="button" onClick={() => onViewTrack(gpsTrack)} whileTap={{ scale: 0.97 }}
+            className="w-full px-3 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-primary hover:text-primary-foreground rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            <Map className="w-4 h-4" />
+            View GPS Track
+          </motion.button>
+        )}
       </div>
     </ModalShell>
   );
