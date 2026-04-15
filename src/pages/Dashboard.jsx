@@ -145,7 +145,13 @@ export default function Dashboard() {
              subtitle="Sessions"
              value={stats?.clayRecords || 0}
              link="/clay-shooting"
-            />
+           />
+           <StatCard
+             icon={<Settings className="w-6 h-6" />}
+             label="Equipment & Areas"
+             subtitle="Manage gear"
+             link="/profile/settings"
+           />
          </div>
          ) : (
          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
