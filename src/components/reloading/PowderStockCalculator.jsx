@@ -22,22 +22,23 @@ export default function PowderStockCalculator({ component }) {
     }
 
     try {
-      const stockInGrains = parseFloat(stockInput) * toGrains[stockUnit];
-      const chargeGrains = parseFloat(chargePerRound);
+      const stock = parseFloat(stockInput);
+      const charge = parseFloat(chargePerRound);
       
-      if (chargeGrains <= 0 || stockInGrains <= 0) {
+      if (!stock || !charge || charge <= 0 || stock <= 0) {
         setResult(null);
         return;
       }
 
-      const estimatedLoads = Math.floor(stockInGrains / chargeGrains);
-      const remainingGrains = stockInGrains % chargeGrains;
+      const stockInGrains = stock * toGrains[stockUnit];
+      const estimatedLoads = Math.floor(stockInGrains / charge);
+      const remainingGrains = stockInGrains % charge;
       
       // Convert remaining grains back to original unit for display
       const remainingInOriginalUnit = remainingGrains / toGrains[stockUnit];
       
       // Convert charge to grams for display
-      const chargeInGrams = chargeGrains * 0.06479891;
+      const chargeInGrams = charge * 0.06479891;
 
       setResult({
         totalStockGrains: stockInGrains,
