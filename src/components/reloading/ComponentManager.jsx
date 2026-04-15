@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Plus, Trash2, Edit2, X } from 'lucide-react';
 import { format } from 'date-fns';
+import CatalogComponentSelector from './CatalogComponentSelector';
+import BottomSheet from '../BottomSheet';
 
 const COMPONENT_TYPES = [
   { value: 'primer', label: 'Primer', units: ['pieces'] },
@@ -16,6 +18,8 @@ export default function ComponentManager() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [user, setUser] = useState(null);
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [catalogType, setCatalogType] = useState(null);
   const [formData, setFormData] = useState({
     component_type: 'primer',
     name: '',
@@ -107,6 +111,22 @@ export default function ComponentManager() {
     }
   };
 
+  const handleCatalogSelect = async (catalogItem) => {
+    // Pre-fill form with catalog data and switch to manual form
+    const type = COMPONENT_TYPES.find(t => t.value === catalogType);
+    setFormData({
+      component_type: catalogType,
+      name: catalogItem.product_name || catalogItem.name || '',
+      quantity_total: '',
+      unit: type?.units[0] || 'pieces',
+      price_total: '',
+      date_acquired: format(new Date(), 'yyyy-MM-dd'),
+      notes: `From catalog: ${catalogItem.brand || ''} ${catalogItem.product_line || ''}`.trim(),
+    });
+    setCatalogOpen(false);
+    setShowForm(true);
+  };
+
   const selectedType = COMPONENT_TYPES.find(t => t.value === formData.component_type);
 
   if (loading) {
@@ -125,7 +145,7 @@ export default function ComponentManager() {
         <div className="bg-card border border-border rounded-xl p-4 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-lg">{editingId ? 'Edit Component' : 'Add Component'}</h3>
-            <button onClick={() => { setShowForm(false); setEditingId(null); }} className="p-1 hover:bg-secondary rounded">
+            <button onClick={() => { setShowForm(false); setEditingId(null); setCatalogOpen(false); }} className="p-1 hover:bg-secondary rounded">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -231,17 +251,28 @@ export default function ComponentManager() {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-lg">{type.label}s ({typeComponents.length})</h3>
                 {!showForm && (
-                  <button
-                    onClick={() => {
-                      setFormData({ ...formData, component_type: type.value, unit: type.units[0] });
-                      setShowForm(true);
-                    }}
-                    className="px-3 py-1 bg-primary text-primary-foreground rounded-lg text-sm font-medium flex items-center gap-1 hover:opacity-90"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add
-                  </button>
-                )}
+                   <div className="flex gap-2">
+                     <button
+                       onClick={() => {
+                         setCatalogType(type.value);
+                         setCatalogOpen(true);
+                       }}
+                       className="px-3 py-1 bg-secondary text-secondary-foreground rounded-lg text-sm font-medium hover:opacity-90"
+                     >
+                       Browse Catalog
+                     </button>
+                     <button
+                       onClick={() => {
+                         setFormData({ ...formData, component_type: type.value, unit: type.units[0] });
+                         setShowForm(true);
+                       }}
+                       className="px-3 py-1 bg-primary text-primary-foreground rounded-lg text-sm font-medium flex items-center gap-1 hover:opacity-90"
+                     >
+                       <Plus className="w-4 h-4" />
+                       Add
+                     </button>
+                   </div>
+                 )}
               </div>
 
               {typeComponents.length === 0 ? (
@@ -294,6 +325,17 @@ export default function ComponentManager() {
           );
         })}
       </div>
+
+      {/* Catalog Selector Modal */}
+      <BottomSheet isOpen={catalogOpen} onClose={() => setCatalogOpen(false)} title={`Browse ${COMPONENT_TYPES.find(t => t.value === catalogType)?.label}s`}>
+        {catalogOpen && catalogType && (
+          <CatalogComponentSelector
+            componentType={catalogType}
+            onSelect={handleCatalogSelect}
+            onClose={() => setCatalogOpen(false)}
+          />
+        )}
+      </BottomSheet>
     </div>
   );
 }
