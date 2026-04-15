@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { AlertCircle, CheckCircle2, Crosshair } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Crosshair, Edit2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function AmmoSummary() {
@@ -39,21 +39,6 @@ export default function AmmoSummary() {
       await loadData();
     } catch (error) {
       console.error('Error marking cleaned:', error);
-    }
-  };
-
-  const handleRemoveRounds = async (rifleId, roundsToRemove) => {
-    try {
-      const rifle = rifles.find(r => r.id === rifleId);
-      if (rifle) {
-        await base44.entities.Rifle.update(rifleId, {
-          rounds_since_cleaning: Math.max(0, (rifle.rounds_since_cleaning || 0) - roundsToRemove),
-          total_rounds_fired: Math.max(0, (rifle.total_rounds_fired || 0) - roundsToRemove),
-        });
-        await loadData();
-      }
-    } catch (error) {
-      console.error('Error removing rounds:', error);
     }
   };
 
@@ -150,14 +135,12 @@ export default function AmmoSummary() {
                          </p>
                        </div>
                        <div className="flex items-center gap-2">
-                         {rifle.caliber?.includes('.308') && (
-                           <button
-                             onClick={() => handleRemoveRounds(rifle.id, 40)}
-                             className="px-2 py-1 text-xs bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg font-medium transition-colors"
-                           >
-                             Remove 40
-                           </button>
-                         )}
+                         <button
+                           className="p-1.5 hover:bg-secondary rounded-lg transition-colors"
+                           title="Edit rifle"
+                         >
+                           <Edit2 className="w-4 h-4 text-muted-foreground" />
+                         </button>
                          {cleaningStatus === 'needs_cleaning' && (
                            <div className="flex items-center gap-1 px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
                              <AlertCircle className="w-4 h-4 text-amber-600" />
