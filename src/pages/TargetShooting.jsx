@@ -383,7 +383,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
   const [errors, setErrors] = useState({});
   const [data, setData] = useState({
     checkout_time: new Date().toTimeString().slice(0, 5),
-    rifles_used: [{ rifle_id: '', rounds_fired: '', meters_range: '', ammunition_brand: '', caliber: '', bullet_type: '', grain: '' }],
+    rifles_used: [{ rifle_id: '', rounds_fired: '', meters_range: '', ammunition_id: '', ammunition_brand: '', caliber: '', bullet_type: '', grain: '' }],
     notes: '',
     photos: [],
   });
@@ -397,7 +397,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
     setData(prev => ({ ...prev, rifles_used: updated }));
   };
 
-  const addRifleEntry = () => setData(prev => ({ ...prev, rifles_used: [...prev.rifles_used, { rifle_id: '', rounds_fired: '', meters_range: '', ammunition_brand: '', bullet_type: '', grain: '' }] }));
+  const addRifleEntry = () => setData(prev => ({ ...prev, rifles_used: [...prev.rifles_used, { rifle_id: '', rounds_fired: '', meters_range: '', ammunition_id: '', ammunition_brand: '', bullet_type: '', grain: '' }] }));
   const removeRifleEntry = (index) => setData(prev => ({ ...prev, rifles_used: prev.rifles_used.filter((_, i) => i !== index) }));
 
   const handleSubmit = () => {
