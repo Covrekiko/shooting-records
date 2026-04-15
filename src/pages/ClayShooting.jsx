@@ -152,15 +152,16 @@ export default function ClayShooting() {
       console.log('🟢 Checkout: Collected', finalTrack.length, 'GPS points before stop');
 
       // Update shotgun cartridge count
-      const cartridgesFired = parseInt(formData.rounds_fired) || 0;
-      if (formData.shotgun_id && cartridgesFired > 0) {
-        const currentShotgun = shotguns.find(s => s.id === formData.shotgun_id);
-        if (currentShotgun) {
-          await base44.entities.Shotgun.update(formData.shotgun_id, {
-            total_cartridges_fired: (currentShotgun.total_cartridges_fired || 0) + cartridgesFired,
-          });
-        }
-      }
+       const cartridgesFired = parseInt(formData.rounds_fired) || 0;
+       if (formData.shotgun_id && cartridgesFired > 0) {
+         const currentShotgun = shotguns.find(s => s.id === formData.shotgun_id);
+         if (currentShotgun) {
+           await base44.entities.Shotgun.update(formData.shotgun_id, {
+             total_cartridges_fired: (currentShotgun.total_cartridges_fired || 0) + cartridgesFired,
+             cartridges_since_cleaning: (currentShotgun.cartridges_since_cleaning || 0) + cartridgesFired,
+           });
+         }
+       }
 
       // Decrement ammo if needed
       if (formData.ammunition_id && formData.rounds_fired) {
