@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { trackingService } from '@/lib/trackingService';
 
 const OutingContext = createContext();
 
@@ -53,7 +54,12 @@ export function OutingProvider({ children }) {
           }
           setActiveOuting(null);
         } else {
+          // Fresh outing - resume tracking if not already running
           setActiveOuting(outing);
+          if (navigator.geolocation && !trackingService.isTracking()) {
+            console.log('🟢 Resuming GPS tracking for active outing after app restart - ID:', outing.id);
+            trackingService.startTracking(outing.id, 'deer');
+          }
         }
       } else {
         setActiveOuting(null);
@@ -125,60 +131,99 @@ export function OutingProvider({ children }) {
   };
 
   const endOutingWithData = async (outingId, checkoutData, gpsTrack) => {
-     try {
-       const currentUser = await base44.auth.me();
-       console.log('🟢 endOutingWithData called - outingId:', outingId, 'gpsTrack:', gpsTrack?.length || 0, 'points', 'checkoutData:', checkoutData);
+      try {
+        const currentUser = await base44.auth.me();
+        console.log('🟢 endOutingWithData called - outingId:', outingId, 'gpsTrack:', gpsTrack?.length || 0, 'points', 'checkoutData:', checkoutData);
 
-       // Update DeerOuting
-       const updateOutingPayload = {
-         end_time: new Date().toISOString(),
-         active: false,
-         gps_track: gpsTrack || [],
-       };
+        // CRITICAL: Stop tracking AFTER collecting points but BEFORE saving, to prevent data loss on failure
+        // GPS points are already in finalTrack passed to this function
 
-       await base44.entities.DeerOuting.update(outingId, updateOutingPayload);
-       console.log('🟢 DeerOuting updated and closed - ID:', outingId, 'GPS points saved:', gpsTrack?.length || 0);
+        // Update DeerOuting - try up to 2 times on failure
+        let outingUpdateSuccess = false;
+        let outingUpdateError = null;
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          try {
+            const updateOutingPayload = {
+              end_time: new Date().toISOString(),
+              active: false,
+              gps_track: gpsTrack || [],
+            };
+            await base44.entities.DeerOuting.update(outingId, updateOutingPayload);
+            console.log('🟢 DeerOuting updated and closed - ID:', outingId, 'GPS points saved:', gpsTrack?.length || 0);
+            outingUpdateSuccess = true;
+            break;
+          } catch (err) {
+            outingUpdateError = err;
+            if (attempt === 1) {
+              console.warn('⚠️ DeerOuting update failed (attempt 1), retrying...');
+              await new Promise(r => setTimeout(r, 500));
+            }
+          }
+        }
 
-       // Update SessionRecord with checkout data - find by explicit outing_id link
-       const sessionRecords = await base44.entities.SessionRecord.filter({
-         created_by: currentUser.email,
-         category: 'deer_management',
-         outing_id: outingId,
-       });
-       console.log('🟢 Found', sessionRecords.length, 'SessionRecord(s) linked to outing:', outingId);
+        if (!outingUpdateSuccess) {
+          throw new Error('Failed to update DeerOuting after 2 attempts: ' + outingUpdateError?.message);
+        }
 
-       if (sessionRecords.length > 0) {
-         const srId = sessionRecords[0].id;
-         const endTimeStr = new Date().toTimeString().slice(0, 5);
+        // Update SessionRecord with checkout data - find by explicit outing_id link
+        const sessionRecords = await base44.entities.SessionRecord.filter({
+          created_by: currentUser.email,
+          category: 'deer_management',
+          outing_id: outingId,
+        });
+        console.log('🟢 Found', sessionRecords.length, 'SessionRecord(s) linked to outing:', outingId);
 
-         const updateSrPayload = {
-           status: 'completed',
-           checkout_time: endTimeStr,
-           end_time: endTimeStr,
-           gps_track: gpsTrack || [],
-           notes: checkoutData.notes || '',
-           photos: checkoutData.photos || [],
-           species_list: checkoutData.shot_anything ? (checkoutData.species_list || []) : [],
-           total_count: checkoutData.shot_anything ? (checkoutData.total_count || '0') : '0',
-           number_shot: checkoutData.shot_anything ? parseInt(checkoutData.total_count || 0) : 0,
-           rifle_id: checkoutData.shot_anything ? (checkoutData.rifle_id || null) : null,
-           ammunition_used: checkoutData.shot_anything ? (checkoutData.ammunition_used || null) : null,
-           ammunition_id: checkoutData.shot_anything ? (checkoutData.ammunition_id || null) : null,
-         };
-         console.log('🟢 Updating SessionRecord ID:', srId, 'with checkout data - gps:', gpsTrack?.length || 0, 'points');
+        if (sessionRecords.length > 0) {
+          const srId = sessionRecords[0].id;
+          const endTimeStr = new Date().toTimeString().slice(0, 5);
 
-         await base44.entities.SessionRecord.update(srId, updateSrPayload);
-         console.log('🟢 SessionRecord updated and closed - ID:', srId, 'new status: completed');
-       } else {
-         console.warn('⚠️ No SessionRecord found for outing:', outingId);
-       }
+          const updateSrPayload = {
+            status: 'completed',
+            checkout_time: endTimeStr,
+            end_time: endTimeStr,
+            gps_track: gpsTrack || [],
+            notes: checkoutData.notes || '',
+            photos: checkoutData.photos || [],
+            species_list: checkoutData.shot_anything ? (checkoutData.species_list || []) : [],
+            total_count: checkoutData.shot_anything ? (checkoutData.total_count || '0') : '0',
+            number_shot: checkoutData.shot_anything ? parseInt(checkoutData.total_count || 0) : 0,
+            rifle_id: checkoutData.shot_anything ? (checkoutData.rifle_id || null) : null,
+            ammunition_used: checkoutData.shot_anything ? (checkoutData.ammunition_used || null) : null,
+            ammunition_id: checkoutData.shot_anything ? (checkoutData.ammunition_id || null) : null,
+          };
+          console.log('🟢 Updating SessionRecord ID:', srId, 'with checkout data - gps:', gpsTrack?.length || 0, 'points');
 
-       setActiveOuting(null);
-     } catch (error) {
-       console.error('🔴 Error ending outing with data:', error.message, error.status, error.response?.data);
-       throw error;
-     }
-   };
+          // Retry on SessionRecord update as well
+          let srUpdateSuccess = false;
+          let srUpdateError = null;
+          for (let attempt = 1; attempt <= 2; attempt++) {
+            try {
+              await base44.entities.SessionRecord.update(srId, updateSrPayload);
+              console.log('🟢 SessionRecord updated and closed - ID:', srId, 'new status: completed');
+              srUpdateSuccess = true;
+              break;
+            } catch (err) {
+              srUpdateError = err;
+              if (attempt === 1) {
+                console.warn('⚠️ SessionRecord update failed (attempt 1), retrying...');
+                await new Promise(r => setTimeout(r, 500));
+              }
+            }
+          }
+
+          if (!srUpdateSuccess) {
+            throw new Error('Failed to update SessionRecord after 2 attempts: ' + srUpdateError?.message);
+          }
+        } else {
+          console.warn('⚠️ No SessionRecord found for outing:', outingId);
+        }
+
+        setActiveOuting(null);
+      } catch (error) {
+        console.error('🔴 Error ending outing with data:', error.message, error.status, error.response?.data);
+        throw error;
+      }
+    };
 
   const updateGpsTrack = async (outingId, track) => {
     try {

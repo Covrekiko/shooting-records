@@ -49,8 +49,8 @@ export const trackingService = {
       return;
     }
     
-    if (trackingState.isTracking) {
-      console.warn('⚠️ Tracking already active for different session, stopping previous...');
+    if (trackingState.isTracking && trackingState.sessionId !== sessionId) {
+      console.warn('⚠️ Tracking already active for different session (ID:', trackingState.sessionId, '), stopping previous...');
       this.stopTracking();
     }
 

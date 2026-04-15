@@ -151,6 +151,11 @@ export default function TargetShooting() {
       return;
     }
     try {
+      // Collect GPS track BEFORE stopping tracking
+      const finalTrack = trackingService.getTrack();
+      console.log('🟢 Checkout: Collected', finalTrack.length, 'GPS points before stop');
+
+      // Decrement ammo if needed
       const uniqueAmmoIds = new Set();
       for (const rifle of formData.rifles_used || []) {
         if (rifle.ammunition_id && rifle.rounds_fired && !uniqueAmmoIds.has(rifle.ammunition_id)) {
@@ -158,24 +163,52 @@ export default function TargetShooting() {
           uniqueAmmoIds.add(rifle.ammunition_id);
         }
       }
+
+      // Prepare data
       const photoUrls = (formData.photos || []).map(photo => typeof photo === 'string' ? photo : photo.url);
-      const finalTrack = trackingService.stopTracking();
-      await base44.entities.SessionRecord.update(activeSession.id, {
-        status: 'completed',
-        checkout_time: formData.checkout_time,
-        rifles_used: formData.rifles_used,
-        notes: formData.notes,
-        photos: photoUrls,
-        active_checkin: false,
-        gps_track: finalTrack,
-      });
+
+      // Save to database with retry logic
+      let updateSuccess = false;
+      let updateError = null;
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          await base44.entities.SessionRecord.update(activeSession.id, {
+            status: 'completed',
+            checkout_time: formData.checkout_time,
+            rifles_used: formData.rifles_used,
+            notes: formData.notes,
+            photos: photoUrls,
+            active_checkin: false,
+            gps_track: finalTrack,
+          });
+          console.log('🟢 SessionRecord updated and closed - GPS points saved:', finalTrack.length);
+          updateSuccess = true;
+          break;
+        } catch (err) {
+          updateError = err;
+          if (attempt === 1) {
+            console.warn('⚠️ SessionRecord update failed (attempt 1), retrying...');
+            await new Promise(r => setTimeout(r, 500));
+          }
+        }
+      }
+
+      if (!updateSuccess) {
+        throw new Error('Failed to save session after 2 attempts: ' + updateError?.message);
+      }
+
+      // Only stop tracking AFTER successful database save
+      trackingService.stopTracking();
+      console.log('🟢 Checkout complete - tracking stopped after database save');
+
       setActiveSession(null);
       setGpsTrack([]);
       setShowCheckout(false);
       setViewingTrack(null);
     } catch (error) {
-      console.error('Checkout failed:', error.message);
+      console.error('🔴 Checkout failed:', error.message);
       alert('Checkout failed: ' + error.message);
+      // IMPORTANT: Don't stop tracking on error - allows user to retry
     }
   };
 

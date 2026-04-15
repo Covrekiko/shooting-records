@@ -110,9 +110,16 @@ export default function DeerManagement() {
   const handleCheckout = async (checkoutData) => {
     if (!activeOuting) { alert('No active outing to check out from'); return; }
     try {
+      // Collect GPS track BEFORE stopping tracking
+      const finalTrack = trackingService.getTrack();
+      console.log('🟢 Checkout: Collected', finalTrack.length, 'GPS points before stop');
+
+      // Decrement ammo if needed
       if (checkoutData.ammunition_id && checkoutData.total_count) {
         await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count));
       }
+
+      // Prepare data
       const submitData = { ...checkoutData, active_checkin: false };
       if (!checkoutData.shot_anything) {
         submitData.species_list = [];
@@ -120,12 +127,19 @@ export default function DeerManagement() {
         submitData.rifle_id = null;
         submitData.ammunition_used = null;
       }
-      const finalTrack = trackingService.stopTracking();
+
+      // Save to database FIRST, then stop tracking
       await endOutingWithData(activeOuting.id, submitData, finalTrack);
+      
+      // Only stop tracking AFTER successful database save
+      trackingService.stopTracking();
+      console.log('🟢 Checkout complete - tracking stopped after database save');
+      
       setShowCheckout(false);
     } catch (error) {
-      console.error('Checkout failed:', error.message);
+      console.error('🔴 Checkout failed:', error.message);
       alert('Checkout failed: ' + error.message);
+      // IMPORTANT: Don't stop tracking on error - allows user to retry
     }
   };
 
