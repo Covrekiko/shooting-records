@@ -137,6 +137,7 @@ export default function DeerManagement() {
         submitData.species_list = [];
         submitData.total_count = null;
         submitData.rifle_id = null;
+        submitData.ammunition_id = null; // Only clear if nothing shot
         submitData.ammunition_used = null;
       }
 

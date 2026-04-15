@@ -123,44 +123,21 @@ export default function Records() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this record?')) return;
+    if (!confirm('Delete this record? This will restore all ammunition stock.')) return;
     try {
-      // Fetch the record to get deduction data
-      const record = await base44.entities.SessionRecord.get(id);
+      console.log(`🟡 [handleDelete] Starting delete for session: ${id}`);
       
-      // Restore ammunition stock
-      if (record.ammunition_id && record.total_count) {
-        const quantity = parseInt(record.total_count) || 0;
-        if (quantity > 0) {
-          const ammo = await base44.entities.Ammunition.get(record.ammunition_id);
-          const restoredQuantity = (ammo.quantity_in_stock || 0) + quantity;
-          await base44.entities.Ammunition.update(record.ammunition_id, { 
-            quantity_in_stock: restoredQuantity 
-          });
-        }
-      }
-      
-      // Restore ammunition from rifles_used array (Target Shooting)
-      if (record.rifles_used && Array.isArray(record.rifles_used)) {
-        for (const rifle of record.rifles_used) {
-          if (rifle.ammunition_id && rifle.rounds_fired) {
-            const quantity = parseInt(rifle.rounds_fired) || 0;
-            if (quantity > 0) {
-              const ammo = await base44.entities.Ammunition.get(rifle.ammunition_id);
-              const restoredQuantity = (ammo.quantity_in_stock || 0) + quantity;
-              await base44.entities.Ammunition.update(rifle.ammunition_id, { 
-                quantity_in_stock: restoredQuantity 
-              });
-            }
-          }
-        }
-      }
-      
-      // Delete the record
+      // Call backend to restore stock
+      const restoreResponse = await base44.functions.invoke('restoreSessionStock', { sessionId: id });
+      console.log('🟢 [handleDelete] Stock restored:', restoreResponse.data);
+
+      // After stock is restored, delete the record
       await base44.entities.SessionRecord.delete(id);
+      console.log('🟢 [handleDelete] Session record deleted');
+      
       setAllRecords(allRecords.filter((r) => r.id !== id));
     } catch (error) {
-      console.error('Error deleting record:', error);
+      console.error('🔴 [handleDelete] Error deleting record:', error);
       alert('Error deleting record: ' + error.message);
     }
   };
