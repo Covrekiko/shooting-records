@@ -21,6 +21,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     powder_charge: '',
     powder_unit: 'grains',
     brass_id: '',
+    brass_is_used: false,
     bullet_id: '',
     notes: '',
   });
@@ -88,7 +89,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     const primerCost = primer.cost_per_unit * cartridgesLoaded;
     const powderUsed = powderChargeInStoredUnit * cartridgesLoaded;
     const powderCost = powder.cost_per_unit * powderUsed;
-    const brassCost = brass.cost_per_unit * cartridgesLoaded;
+    const brassCost = formData.brass_is_used ? 0 : brass.cost_per_unit * cartridgesLoaded;
     const bulletCost = bullet.cost_per_unit * cartridgesLoaded;
     const totalCost = primerCost + powderCost + brassCost + bulletCost;
     const costPerCartridge = totalCost / cartridgesLoaded;
@@ -302,6 +303,19 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
             <option value="">Select brass</option>
             {components.brass.map(b => <option key={b.id} value={b.id}>{b.name} (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
           </select>
+        </div>
+
+        <div className="flex items-center gap-3 bg-secondary/30 p-3 rounded-lg">
+          <input
+            type="checkbox"
+            id="brass_used"
+            checked={formData.brass_is_used}
+            onChange={(e) => setFormData({ ...formData, brass_is_used: e.target.checked })}
+            className="w-4 h-4"
+          />
+          <label htmlFor="brass_used" className="text-sm font-medium cursor-pointer">
+            Using previously fired/used brass (no cost)
+          </label>
         </div>
 
         <div>
