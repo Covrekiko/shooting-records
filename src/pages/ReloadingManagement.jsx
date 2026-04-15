@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import ReloadingSessionForm from '@/components/reloading/ReloadingSessionForm';
+import ReloadingInventoryWidget from '@/components/reloading/ReloadingInventoryWidget';
 
 export default function ReloadingManagement() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export default function ReloadingManagement() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
+  const [activeTab, setActiveTab] = useState('history');
 
   useEffect(() => {
     loadSessions();
@@ -46,6 +48,37 @@ export default function ReloadingManagement() {
         await base44.entities.ReloadingSession.update(editingSession.id, data);
       } else {
         await base44.entities.ReloadingSession.create(data);
+        
+        // Auto-add to ammunition if enabled
+        if (data.create_ammo) {
+          const user = await base44.auth.me();
+          const existingAmmo = await base44.entities.Ammunition.filter({
+            created_by: user.email,
+            brand: 'Reload',
+            caliber: data.caliber,
+          });
+
+          if (existingAmmo.length > 0) {
+            // Update existing ammo
+            const ammo = existingAmmo[0];
+            await base44.entities.Ammunition.update(ammo.id, {
+              quantity_in_stock: (ammo.quantity_in_stock || 0) + data.rounds_loaded,
+            });
+          } else {
+            // Create new ammo entry
+            await base44.entities.Ammunition.create({
+              brand: 'Reload',
+              caliber: data.caliber,
+              bullet_type: 'Custom',
+              quantity_in_stock: data.rounds_loaded,
+              units: 'rounds',
+              cost_per_unit: data.rounds_loaded > 0 ? data.total_cost / data.rounds_loaded : 0,
+              date_purchased: data.date,
+              low_stock_threshold: 50,
+              notes: `Reloaded batch ${data.batch_number}`,
+            });
+          }
+        }
       }
       setShowForm(false);
       setEditingSession(null);
@@ -129,50 +162,79 @@ export default function ReloadingManagement() {
           </div>
         </div>
 
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6 border-b border-border">
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'history'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Session History
+          </button>
+          <button
+            onClick={() => setActiveTab('inventory')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'inventory'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Component Inventory
+          </button>
+        </div>
+
         {/* Sessions List */}
-        {sessions.length === 0 ? (
-          <div className="bg-card border border-border rounded-lg p-8 text-center">
-            <p className="text-muted-foreground">No reloading sessions yet</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {sessions.map((session) => (
-              <div key={session.id} className="bg-card border border-border rounded-lg p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{session.caliber}</h3>
-                    <p className="text-sm text-muted-foreground">Batch: {session.batch_number}</p>
-                    <div className="mt-2 space-y-1 text-sm">
-                      <p><span className="font-medium">Rounds:</span> {session.rounds_loaded}</p>
-                      <p><span className="font-medium">Cost:</span> £{session.total_cost?.toFixed(2) || '0.00'} (£{session.cost_per_round?.toFixed(2) || '0.00'}/rd)</p>
-                      <p><span className="font-medium">Date:</span> {format(new Date(session.date), 'MMM d, yyyy')}</p>
-                      {session.notes && <p><span className="font-medium">Notes:</span> {session.notes}</p>}
+        {activeTab === 'history' && (
+          sessions.length === 0 ? (
+            <div className="bg-card border border-border rounded-lg p-8 text-center">
+              <p className="text-muted-foreground">No reloading sessions yet</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {sessions.map((session) => (
+                <div key={session.id} className="bg-card border border-border rounded-lg p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{session.caliber}</h3>
+                      <p className="text-sm text-muted-foreground">Batch: {session.batch_number}</p>
+                      <div className="mt-2 space-y-1 text-sm">
+                        <p><span className="font-medium">Rounds:</span> {session.rounds_loaded}</p>
+                        <p><span className="font-medium">Cost:</span> £{session.total_cost?.toFixed(2) || '0.00'} (£{session.cost_per_round?.toFixed(2) || '0.00'}/rd)</p>
+                        <p><span className="font-medium">Date:</span> {format(new Date(session.date), 'MMM d, yyyy')}</p>
+                        {session.notes && <p><span className="font-medium">Notes:</span> {session.notes}</p>}
+                      </div>
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => {
+                          setEditingSession(session);
+                          setShowForm(true);
+                        }}
+                        className="p-2 bg-secondary hover:bg-primary hover:text-primary-foreground rounded-lg transition-colors"
+                        title="Edit"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(session.id)}
+                        className="p-2 bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded-lg transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex gap-2 flex-shrink-0">
-                    <button
-                      onClick={() => {
-                        setEditingSession(session);
-                        setShowForm(true);
-                      }}
-                      className="p-2 bg-secondary hover:bg-primary hover:text-primary-foreground rounded-lg transition-colors"
-                      title="Edit"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(session.id)}
-                      className="p-2 bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded-lg transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )
         )}
+
+        {/* Inventory Tab */}
+        {activeTab === 'inventory' && <ReloadingInventoryWidget />}
 
         {/* Form Modal */}
         {showForm && createPortal(

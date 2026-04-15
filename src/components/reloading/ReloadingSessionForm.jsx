@@ -13,6 +13,12 @@ export default function ReloadingSessionForm({ session, onSubmit, onClose }) {
       notes: '',
       total_cost: 0,
       cost_per_round: 0,
+      powder_lot: '',
+      primer_lot: '',
+      bullet_lot: '',
+      oal: '',
+      charge_weight: '',
+      create_ammo: true,
     }
   );
 
@@ -143,6 +149,51 @@ export default function ReloadingSessionForm({ session, onSubmit, onClose }) {
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Powder Lot #</label>
+              <input
+                type="text"
+                value={formData.powder_lot}
+                onChange={(e) => setFormData({ ...formData, powder_lot: e.target.value })}
+                className={inputCls}
+                placeholder="Safety tracking"
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Primer Lot #</label>
+              <input
+                type="text"
+                value={formData.primer_lot}
+                onChange={(e) => setFormData({ ...formData, primer_lot: e.target.value })}
+                className={inputCls}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>OAL</label>
+              <input
+                type="text"
+                value={formData.oal}
+                onChange={(e) => setFormData({ ...formData, oal: e.target.value })}
+                className={inputCls}
+                placeholder="Overall Length"
+              />
+            </div>
+            <div>
+              <label className={labelCls}>Charge Weight</label>
+              <input
+                type="text"
+                value={formData.charge_weight}
+                onChange={(e) => setFormData({ ...formData, charge_weight: e.target.value })}
+                className={inputCls}
+                placeholder="e.g. 45.5gr"
+              />
+            </div>
+          </div>
+
           <div>
             <label className={labelCls}>Notes</label>
             <textarea
@@ -152,6 +203,19 @@ export default function ReloadingSessionForm({ session, onSubmit, onClose }) {
               rows="2"
               placeholder="Load data, observations, etc."
             />
+          </div>
+
+          <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/20">
+            <input
+              type="checkbox"
+              id="create_ammo"
+              checked={formData.create_ammo}
+              onChange={(e) => setFormData({ ...formData, create_ammo: e.target.checked })}
+              className="w-4 h-4"
+            />
+            <label htmlFor="create_ammo" className="text-sm font-medium cursor-pointer flex-1">
+              Auto-add to ammunition inventory
+            </label>
           </div>
 
           {/* Components Section */}

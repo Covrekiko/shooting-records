@@ -14,6 +14,7 @@ import { RoundsPerMonthChart } from '@/components/RoundsPerMonthChart';
 import { DeerSuccessRateChart } from '@/components/DeerSuccessRateChart';
 import AmmoStockWidget from '@/components/AmmoStockWidget';
 import AmmunitionTrackingWidget from '@/components/AmmunitionTrackingWidget';
+import ReloadingWidget from '@/components/widgets/ReloadingWidget';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
@@ -201,8 +202,9 @@ export default function Dashboard() {
 
         {/* Widgets */}
         {user && (
-          <div className="mt-4">
+          <div className="mt-4 space-y-4">
             <AmmoStockWidget />
+            <ReloadingWidget />
           </div>
         )}
 
