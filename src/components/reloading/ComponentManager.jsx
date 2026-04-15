@@ -102,7 +102,22 @@ export default function ComponentManager() {
       };
 
       if (editingId) {
-        await base44.entities.ReloadingComponent.update(editingId, data);
+        await base44.entities.ReloadingComponent.update(editingId, {
+          component_type: data.component_type,
+          name: data.name,
+          quantity_total: data.quantity_total,
+          quantity_remaining: data.quantity_remaining,
+          unit: data.unit,
+          price_total: data.price_total,
+          cost_per_unit: data.cost_per_unit,
+          date_acquired: data.date_acquired,
+          notes: data.notes,
+          caliber: data.caliber,
+          brand: data.brand,
+          bullet_name: data.bullet_name,
+          weight: data.weight,
+          weight_unit: data.weight_unit,
+        });
       } else {
         await base44.entities.ReloadingComponent.create(data);
       }
@@ -144,6 +159,18 @@ export default function ComponentManager() {
       displayUnit = 'kg';
     }
 
+    // For bullets, parse the name back into separate fields
+    let brand = component.brand || '';
+    let bullet_name = component.bullet_name || '';
+    if (component.component_type === 'bullet' && !brand && !bullet_name) {
+      // Try to parse from name: "Brand Name (Caliber)"
+      const match = component.name.match(/^(.+?)\s+(.+?)\s*\(([^)]+)\)$/);
+      if (match) {
+        brand = match[1];
+        bullet_name = match[2];
+      }
+    }
+
     setFormData({
       component_type: component.component_type,
       name: component.name,
@@ -153,8 +180,8 @@ export default function ComponentManager() {
       date_acquired: component.date_acquired,
       notes: component.notes,
       caliber: component.caliber || '',
-      brand: component.brand || '',
-      bullet_name: component.bullet_name || '',
+      brand: brand,
+      bullet_name: bullet_name,
       weight: component.weight || '',
       weight_unit: component.weight_unit || 'gr',
     });
