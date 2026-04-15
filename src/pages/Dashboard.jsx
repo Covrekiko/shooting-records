@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
-import { Activity, Zap, Target, MapPin, BarChart3, Crosshair, BookOpen, Map } from 'lucide-react';
+import { Activity, Zap, Target, MapPin, BarChart3, Crosshair, BookOpen, Map, Settings } from 'lucide-react';
 
 import {
   MonthlyActivityChart,
@@ -148,13 +148,19 @@ export default function Dashboard() {
             />
          </div>
          ) : (
-         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3">
+         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
           <StatCard
             icon={<Map className="w-6 h-6" />}
             label="Stalking Map"
             subtitle="View & plan areas"
             link="/deer-stalking"
           />
+           <StatCard
+             icon={<Settings className="w-6 h-6" />}
+             label="Equipment & Areas"
+             subtitle="Manage gear"
+             link="/profile/settings"
+           />
            <StatCard
              icon={<span className="text-2xl">🦌</span>}
              label="Deer Management"
@@ -175,22 +181,6 @@ export default function Dashboard() {
              subtitle="Rounds Tracked"
              value={stats?.claySessions || 0}
              link="/clay-shooting"
-           />
-           <StatCard
-             icon={<Activity className="w-6 h-6" />}
-             label="Rifle Rounds"
-             subtitle="Total Fired"
-             value={stats?.totalRifleRounds || 0}
-             link="/records"
-             hideOnMobile={true}
-           />
-           <StatCard
-             icon={<Activity className="w-6 h-6" />}
-             label="Shotgun Rounds"
-             subtitle="Total Fired"
-             value={stats?.totalShotgunRounds || 0}
-             link="/records"
-             hideOnMobile={true}
            />
          </div>
          )}
