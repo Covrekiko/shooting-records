@@ -47,12 +47,37 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
    }, [category]);
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this record?')) return;
+    if (!confirm('Delete this record? Ammunition will be restored.')) return;
     try {
+      const record = records.find(r => r.id === id);
+      if (!record) return;
+
+      // Restore ammunition
+      if (record.ammunition_id && record.quantity_used) {
+        const ammo = await base44.entities.Ammunition.get(record.ammunition_id);
+        await base44.entities.Ammunition.update(record.ammunition_id, {
+          quantity_in_stock: (ammo.quantity_in_stock || 0) + record.quantity_used,
+        });
+      } else if (record.rounds_fired && record.ammunition_used) {
+        // For target/clay shooting records, restore by ammunition type
+        const ammoList = await base44.entities.Ammunition.filter({
+          created_by: user?.email,
+          brand: record.ammunition_brand || 'Unknown',
+          caliber: record.caliber,
+        });
+        if (ammoList.length > 0) {
+          const ammo = ammoList[0];
+          await base44.entities.Ammunition.update(ammo.id, {
+            quantity_in_stock: (ammo.quantity_in_stock || 0) + record.rounds_fired,
+          });
+        }
+      }
+
       await base44.entities.SessionRecord.delete(id);
       setRecords(records.filter(r => r.id !== id));
     } catch (error) {
       console.error('Error deleting record:', error);
+      alert('Error deleting record: ' + error.message);
     }
   };
 
