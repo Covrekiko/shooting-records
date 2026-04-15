@@ -105,7 +105,7 @@ export default function Navigation() {
 
       {/* ── Mobile Floating Bottom Nav ── */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-[9000]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}>
-        <div className="mx-4 mb-3 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-700 px-2 py-2 flex justify-around">
+        <div className="mx-4 mb-6 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-700 px-2 py-2 flex justify-around">
           {mainNavItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -128,7 +128,7 @@ export default function Navigation() {
       </div>
 
       {/* Bottom spacer */}
-      <div className="md:hidden h-24" />
+      <div className="md:hidden h-28" />
     </>
   );
 }
