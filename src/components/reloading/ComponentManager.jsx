@@ -130,6 +130,45 @@ export default function ComponentManager() {
     }
   };
 
+  const searchBrandsCatalog = async (query) => {
+    if (!query || query.length < 1) {
+      setCatalogResults([]);
+      return;
+    }
+    try {
+      const results = await base44.entities.ReloadingBulletCatalog.list();
+      const uniqueBrands = [...new Set(results.map(item => item.brand))];
+      const filtered = uniqueBrands
+        .filter(brand => brand?.toLowerCase().includes(query.toLowerCase()))
+        .sort();
+      setCatalogResults(filtered.map(brand => ({ brand })).slice(0, 8));
+    } catch (error) {
+      console.error('Error searching brands:', error);
+      setCatalogResults([]);
+    }
+  };
+
+  const searchBulletModelsCatalog = async (query, selectedBrand) => {
+    if (!query || query.length < 1) {
+      setCatalogResults([]);
+      return;
+    }
+    try {
+      const results = await base44.entities.ReloadingBulletCatalog.list();
+      const filtered = results
+        .filter(item => 
+          item.brand?.toLowerCase() === selectedBrand?.toLowerCase() &&
+          (item.product_name?.toLowerCase().includes(query.toLowerCase()) ||
+           item.short_name?.toLowerCase().includes(query.toLowerCase()))
+        )
+        .sort((a, b) => (a.product_name || '').localeCompare(b.product_name || ''));
+      setCatalogResults(filtered.slice(0, 8));
+    } catch (error) {
+      console.error('Error searching bullet models:', error);
+      setCatalogResults([]);
+    }
+  };
+
   const searchCatalog = async (query, componentType) => {
     if (!query || query.length < 2) {
       setCatalogResults([]);
@@ -139,7 +178,6 @@ export default function ComponentManager() {
       const catalogEntity = {
         primer: 'ReloadingPrimerCatalog',
         powder: 'ReloadingPowderCatalog',
-        bullet: 'ReloadingBulletCatalog',
         brass: 'ReloadingBrassCatalog',
       }[componentType];
 
@@ -147,12 +185,7 @@ export default function ComponentManager() {
        const filtered = results
          .filter(item => {
            const searchLower = query.toLowerCase();
-           if (componentType === 'bullet') {
-             return (item.product_name?.toLowerCase().includes(searchLower) ||
-                     item.brand?.toLowerCase().includes(searchLower) ||
-                     item.short_name?.toLowerCase().includes(searchLower) ||
-                     item.weight_grains?.toString().includes(searchLower));
-           } else if (componentType === 'brass') {
+           if (componentType === 'brass') {
              return item.brand?.toLowerCase().includes(searchLower);
            }
            return (item.product_name?.toLowerCase().includes(searchLower) ||
@@ -293,7 +326,88 @@ export default function ComponentManager() {
             {formData.component_type === 'bullet' && (
              <>
                <div className="relative">
-                 <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Caliber</label>
+                 <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Brand</label>
+                 <div className="relative">
+                   <input
+                     type="text"
+                     value={formData.brand}
+                     onChange={(e) => {
+                       setFormData({ ...formData, brand: e.target.value, bullet_name: '' });
+                       searchBrandsCatalog(e.target.value);
+                       setShowDropdown(true);
+                     }}
+                     onFocus={() => formData.brand.length >= 1 && setShowDropdown(true)}
+                     className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                     placeholder="e.g., Sako, Hornady, Sierra, Nosler"
+                     required
+                   />
+                   {showDropdown && catalogResults.length > 0 && catalogResults[0].brand && (
+                     <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                       {catalogResults.map((item, idx) => (
+                         <button
+                           key={idx}
+                           type="button"
+                           onClick={() => {
+                             setFormData({ ...formData, brand: item.brand, bullet_name: '' });
+                             setShowDropdown(false);
+                             setCatalogResults([]);
+                           }}
+                           className="w-full text-left px-3 py-2 hover:bg-secondary border-b border-border last:border-b-0 text-sm font-medium"
+                         >
+                           {item.brand}
+                         </button>
+                       ))}
+                     </div>
+                   )}
+                 </div>
+               </div>
+
+               <div className="relative">
+                 <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Bullet Name / Model</label>
+                 <div className="relative">
+                   <input
+                     type="text"
+                     value={formData.bullet_name}
+                     onChange={(e) => {
+                       setFormData({ ...formData, bullet_name: e.target.value });
+                       searchBulletModelsCatalog(e.target.value, formData.brand);
+                       setShowDropdown(true);
+                     }}
+                     onFocus={() => formData.bullet_name.length >= 1 && formData.brand && setShowDropdown(true)}
+                     className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                     placeholder="e.g., Gamehead, V-MAX, MatchKing"
+                     required
+                     disabled={!formData.brand}
+                   />
+                   {showDropdown && catalogResults.length > 0 && catalogResults[0].product_name && (
+                     <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                       {catalogResults.map((item, idx) => (
+                         <button
+                           key={idx}
+                           type="button"
+                           onClick={() => {
+                             setFormData({ ...formData, bullet_name: item.product_name });
+                             setShowDropdown(false);
+                             setCatalogResults([]);
+                           }}
+                           className="w-full text-left px-3 py-2 hover:bg-secondary border-b border-border last:border-b-0 text-sm"
+                         >
+                           <div className="font-medium">{item.product_name || item.short_name}</div>
+                           {item.weight_grains && (
+                             <div className="text-xs text-muted-foreground">{item.weight_grains}gr</div>
+                           )}
+                         </button>
+                       ))}
+                     </div>
+                   )}
+                   {!formData.brand && (
+                     <p className="text-xs text-muted-foreground mt-1">Select a brand first</p>
+                   )}
+                 </div>
+               </div>
+
+               <div className="relative">
+                 <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Caliber (optional)</label>
                  <div className="relative">
                    <input
                      type="text"
@@ -306,7 +420,6 @@ export default function ComponentManager() {
                      onFocus={() => setShowCaliberDropdown(formData.caliber.length >= 1)}
                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
                      placeholder="e.g., .308 Winchester, 6.5 Creedmoor"
-                     required
                    />
                    {showCaliberDropdown && caliberResults.length > 0 && (
                      <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
@@ -329,33 +442,9 @@ export default function ComponentManager() {
                  </div>
                </div>
 
-               <div>
-                 <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Brand</label>
-                 <input
-                   type="text"
-                   value={formData.brand}
-                   onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
-                   className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
-                   placeholder="e.g., Hornady, Sierra, Nosler"
-                   required
-                 />
-               </div>
-
-               <div>
-                 <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Bullet Name / Model</label>
-                 <input
-                   type="text"
-                   value={formData.bullet_name}
-                   onChange={(e) => setFormData({ ...formData, bullet_name: e.target.value })}
-                   className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
-                   placeholder="e.g., V-MAX, MatchKing, Partition"
-                   required
-                 />
-               </div>
-
                <div className="grid grid-cols-2 gap-4">
                  <div>
-                   <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Weight</label>
+                   <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Weight (optional)</label>
                    <input
                      type="number"
                      value={formData.weight}
@@ -363,7 +452,6 @@ export default function ComponentManager() {
                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
                      placeholder="e.g., 140"
                      step="0.1"
-                     required
                    />
                  </div>
                  <div>
