@@ -52,25 +52,23 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
       const record = records.find(r => r.id === id);
       if (!record) return;
 
-      // Restore ammunition
-      if (record.ammunition_id && record.quantity_used) {
+      // Restore ammunition based on category
+      if (category === 'target_shooting' && record.rifles_used && Array.isArray(record.rifles_used)) {
+        // Restore each ammunition used in target shooting
+        for (const rifle of record.rifles_used) {
+          if (rifle.ammunition_id && rifle.rounds_fired) {
+            const ammo = await base44.entities.Ammunition.get(rifle.ammunition_id);
+            await base44.entities.Ammunition.update(rifle.ammunition_id, {
+              quantity_in_stock: (ammo.quantity_in_stock || 0) + parseInt(rifle.rounds_fired),
+            });
+          }
+        }
+      } else if ((category === 'clay_shooting' || category === 'deer_management') && record.rounds_fired && record.ammunition_id) {
+        // Restore for clay/deer shooting
         const ammo = await base44.entities.Ammunition.get(record.ammunition_id);
         await base44.entities.Ammunition.update(record.ammunition_id, {
-          quantity_in_stock: (ammo.quantity_in_stock || 0) + record.quantity_used,
+          quantity_in_stock: (ammo.quantity_in_stock || 0) + record.rounds_fired,
         });
-      } else if (record.rounds_fired && record.ammunition_used) {
-        // For target/clay shooting records, restore by ammunition type
-        const ammoList = await base44.entities.Ammunition.filter({
-          created_by: user?.email,
-          brand: record.ammunition_brand || 'Unknown',
-          caliber: record.caliber,
-        });
-        if (ammoList.length > 0) {
-          const ammo = ammoList[0];
-          await base44.entities.Ammunition.update(ammo.id, {
-            quantity_in_stock: (ammo.quantity_in_stock || 0) + record.rounds_fired,
-          });
-        }
       }
 
       await base44.entities.SessionRecord.delete(id);
