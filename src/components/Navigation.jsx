@@ -47,7 +47,11 @@ export default function Navigation() {
                 const active = isActive(item.path);
                 return (
                 <Link key={item.path} to={item.path}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all ${active ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                    active 
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' 
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
+                  }`}>
                     {Icon && <Icon className="w-4 h-4" />}
                     {item.emoji && <span className="text-base leading-none">{item.emoji}</span>}
                     {item.label}
@@ -56,12 +60,20 @@ export default function Navigation() {
               })}
               {user?.role === 'admin' && (
                 <Link to="/admin/users"
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive('/admin/users') ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                    isActive('/admin/users')
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
+                  }`}>
                   <Settings className="w-4 h-4" />Admin
                 </Link>
               )}
               <Link to="/profile"
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive('/profile') ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                  isActive('/profile')
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}>
                 <User className="w-4 h-4" />Profile
               </Link>
             </div>
@@ -138,17 +150,17 @@ export default function Navigation() {
             <div className="mx-3 mb-3 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/70 dark:border-slate-700 px-1 py-1.5 flex justify-around items-center">
               {mainNavItems.map((item) => {
                 const Icon = item.icon;
-                const active = isActive(item.path);
+                const active = location.pathname === item.path;
                 return (
                   <motion.button
                     key={item.path}
                     onClick={() => navigate(item.path)}
                     whileTap={{ scale: 0.85 }}
-                    className="flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-xl transition-all duration-150 min-w-[52px]"
+                    className="flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-xl transition-colors duration-150 min-w-[52px]"
                   >
                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 ${active ? 'bg-slate-900 dark:bg-white' : ''}`}>
                       {Icon && <Icon className={`w-[22px] h-[22px] ${active ? 'text-white dark:text-slate-900' : 'text-slate-500 dark:text-slate-400'}`} />}
-                      {item.emoji && <span className={`text-[20px] leading-none ${active ? 'opacity-100' : 'opacity-50'}`}>{item.emoji}</span>}
+                      {item.emoji && <span className={`text-[20px] leading-none ${active ? 'opacity-100' : 'opacity-60'}`}>{item.emoji}</span>}
                     </div>
                     <span className={`text-[10px] font-semibold leading-none ${active ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>{item.label}</span>
                   </motion.button>
