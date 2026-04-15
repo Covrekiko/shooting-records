@@ -33,8 +33,11 @@ export default function PowderStockCalculator({ component }) {
       const estimatedLoads = Math.floor(stockInGrains / chargeGrains);
       const remainingGrains = stockInGrains % chargeGrains;
       
-      // Convert remaining back to original unit for display
-      const remainingInOriginalUnit = stockInGrains / toGrains[stockUnit];
+      // Convert remaining grains back to original unit for display
+      const remainingInOriginalUnit = remainingGrains / toGrains[stockUnit];
+      
+      // Convert charge to grams for display
+      const chargeInGrams = chargeGrains * 0.06479891;
 
       setResult({
         totalStockGrains: stockInGrains,
@@ -42,6 +45,7 @@ export default function PowderStockCalculator({ component }) {
         remainingGrains,
         remainingDisplay: remainingInOriginalUnit.toFixed(2),
         originalUnit: stockUnit,
+        chargeInGrams: chargeInGrams.toFixed(3),
       });
     } catch (error) {
       console.error('Calculation error:', error);
@@ -103,14 +107,20 @@ export default function PowderStockCalculator({ component }) {
       </div>
 
       {result && (
-        <div className="bg-secondary/30 rounded-lg p-3 space-y-2 border border-border">
+        <div className="bg-secondary/30 rounded-lg p-3 space-y-3 border border-border">
           <div className="text-sm">
             <p className="text-muted-foreground">Estimated Loads Possible</p>
             <p className="text-2xl font-bold text-primary">{result.estimatedLoads}</p>
           </div>
-          <div className="border-t border-border pt-2 text-xs">
-            <p className="text-muted-foreground">Remaining Stock</p>
-            <p className="font-semibold">{result.remainingDisplay} {result.originalUnit} ({result.remainingGrains.toFixed(1)}gr)</p>
+          <div className="border-t border-border pt-2 space-y-1 text-xs">
+            <div>
+              <p className="text-muted-foreground">Powder per Round</p>
+              <p className="font-semibold">{chargePerRound}gr ≈ {result.chargeInGrams}g</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Remaining Stock</p>
+              <p className="font-semibold">{result.remainingDisplay} {result.originalUnit} ({result.remainingGrains.toFixed(1)}gr)</p>
+            </div>
           </div>
         </div>
       )}
