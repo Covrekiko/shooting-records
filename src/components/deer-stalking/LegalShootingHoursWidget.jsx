@@ -79,28 +79,28 @@ export default function LegalShootingHoursWidget() {
   const legalEndTime = formatTime(legalEnd);
 
   return (
-    <button onClick={() => navigate('/sunrise-sunset')} className="w-full text-left hover:opacity-90 transition-opacity relative z-[9999]">
-    <div className="bg-white/15 backdrop-blur-lg rounded-2xl px-3 py-2 border border-white/20 shadow-md hover:shadow-lg transition-shadow" style={{ WebkitBackdropFilter: 'blur(20px)', isolation: 'isolate' }}>
-      <div className="text-xs font-medium text-black/80 mb-1">Legal Shooting</div>
-      <div className="space-y-1">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1">
-            <Sun className="w-3 h-3 text-amber-600" />
-            <span className="text-xs text-black/70">Rise:</span>
-            <span className="text-xs font-semibold text-black">{startTime}</span>
+    <button onClick={() => navigate('/sunrise-sunset')} className="w-full text-left hover:opacity-95 active:scale-95 transition-all relative z-[9999]">
+      <div className="bg-white/20 dark:bg-slate-700/30 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/40 dark:border-slate-600/40 shadow-lg hover:shadow-xl transition-shadow">
+        <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2.5 uppercase tracking-wide">Legal Hours</div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5">
+              <Sun className="w-3.5 h-3.5 text-amber-500 flex-shrink-0" />
+              <span className="text-xs text-slate-700 dark:text-slate-300">Rise:</span>
+              <span className="text-xs font-semibold text-slate-800 dark:text-slate-100">{startTime}</span>
+            </div>
+            <span className="text-xs text-slate-600 dark:text-slate-400 text-right">{legalStartTime}</span>
           </div>
-          <span className="text-xs text-black/60 text-right">Legal: {legalStartTime}</span>
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1">
-            <Sun className="w-3 h-3 text-amber-600 opacity-70" />
-            <span className="text-xs text-black/70">Set:</span>
-            <span className="text-xs font-semibold text-black">{endTime}</span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-1.5">
+              <Sun className="w-3.5 h-3.5 text-amber-500 opacity-60 flex-shrink-0" />
+              <span className="text-xs text-slate-700 dark:text-slate-300">Set:</span>
+              <span className="text-xs font-semibold text-slate-800 dark:text-slate-100">{endTime}</span>
+            </div>
+            <span className="text-xs text-slate-600 dark:text-slate-400 text-right">{legalEndTime}</span>
           </div>
-          <span className="text-xs text-black/60 text-right">Legal: {legalEndTime}</span>
         </div>
       </div>
-    </div>
     </button>
   );
 }

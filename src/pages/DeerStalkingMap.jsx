@@ -502,20 +502,20 @@ export default function DeerStalkingMap() {
       </div>
 
       {/* Floating Map Controls - Top Right */}
-      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-auto items-end">
+      <div className="fixed top-5 right-5 sm:top-6 sm:right-6 z-[9999] flex flex-col gap-3 pointer-events-auto items-end">
         <button
           onClick={() => setUseSatellite(!useSatellite)}
-          className="w-10 h-10 sm:w-12 sm:h-12 bg-white/15 text-slate-900 rounded-full hover:bg-white/25 transition-all backdrop-blur-lg shadow-lg hover:shadow-xl flex items-center justify-center border border-white/30"
+          className="w-11 h-11 sm:w-12 sm:h-12 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-full hover:bg-white/30 dark:hover:bg-slate-700/40 active:scale-95 transition-all backdrop-blur-md shadow-lg hover:shadow-xl flex items-center justify-center border border-white/40 dark:border-slate-600/40"
           title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
         >
-          <Satellite className="w-4 h-4 sm:w-5 sm:h-5" />
+          <Satellite className="w-5 h-5" />
         </button>
 
         <FloatingMapSearch onSearch={handleMapSearch} isGrouped={true} />
       </div>
 
       {/* Legal Shooting Hours Widget + Area Selector - Top Left */}
-      <div className="fixed top-4 left-4 z-[9999] pointer-events-auto space-y-2">
+      <div className="fixed top-5 left-5 sm:top-6 sm:left-6 z-[9999] pointer-events-auto space-y-3">
         <LegalShootingHoursWidget />
         <AreaSelector
           savedAreas={savedAreas}
@@ -528,10 +528,10 @@ export default function DeerStalkingMap() {
       {/* Back to Dashboard */}
       <Link
         to="/"
-        className="fixed top-4 right-20 z-[9999] w-10 h-10 sm:w-12 sm:h-12 bg-white/15 text-slate-900 rounded-full shadow-lg hover:shadow-xl transition-all pointer-events-auto flex items-center justify-center border border-white/30 hover:bg-white/25 backdrop-blur-lg"
+        className="fixed top-5 right-24 sm:top-6 sm:right-28 z-[9999] w-11 h-11 sm:w-12 sm:h-12 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all pointer-events-auto flex items-center justify-center border border-white/40 dark:border-slate-600/40 hover:bg-white/30 dark:hover:bg-slate-700/40 backdrop-blur-md"
         title="Dashboard"
       >
-        <Home className="w-4 h-4 sm:w-5 sm:h-5" />
+        <Home className="w-5 h-5" />
       </Link>
 
       {/* Selection Mode Instruction */}
@@ -558,7 +558,7 @@ export default function DeerStalkingMap() {
       )}
 
       {/* Floating Action Bar - Bottom Right */}
-      <div className="fixed bottom-6 right-6 z-[9999] pointer-events-auto">
+      <div className="fixed bottom-6 sm:bottom-8 right-6 sm:right-8 z-[9999] pointer-events-auto">
         <FloatingActionBar
           onPOI={() => {
             setMapClick(null);

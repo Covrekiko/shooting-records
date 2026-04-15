@@ -23,16 +23,15 @@ export default function FloatingActionBar({
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3 pointer-events-auto select-none">
+    <div className="flex flex-col items-end gap-3 pointer-events-auto select-none">
       {/* End Outing Button */}
       {activeOuting && (
         <button
           onClick={() => handleAction(onEndOuting)}
-          className="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-600 rounded-full shadow-md hover:shadow-lg hover:bg-red-500/30 transition-all animate-pulse cursor-pointer pointer-events-auto active:scale-95 border border-red-500/30"
-          style={{ WebkitBackdropFilter: 'blur(20px)', backdropFilter: 'blur(20px)' }}
+          className="flex items-center gap-2 px-3.5 py-2 bg-red-500/15 dark:bg-red-500/20 text-red-700 dark:text-red-400 rounded-full shadow-lg hover:shadow-xl hover:bg-red-500/25 dark:hover:bg-red-500/30 transition-all animate-pulse cursor-pointer pointer-events-auto active:scale-95 backdrop-blur-md border border-red-400/30 dark:border-red-500/30"
         >
-          <LogOut className="w-5 h-5" />
-          End Outing
+          <LogOut className="w-4.5 h-4.5" />
+          <span className="text-xs sm:text-sm font-semibold">End Outing</span>
         </button>
       )}
 
@@ -41,45 +40,40 @@ export default function FloatingActionBar({
         <>
           <button
             onClick={() => handleAction(onOuting)}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-500/15 text-slate-900 rounded-full shadow-md hover:shadow-lg hover:bg-orange-500/25 transition-all cursor-pointer pointer-events-auto active:scale-95 border border-orange-500/20"
-            style={{ WebkitBackdropFilter: 'blur(20px)', backdropFilter: 'blur(20px)' }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-full shadow-lg hover:shadow-xl hover:bg-white/30 dark:hover:bg-slate-700/40 transition-all cursor-pointer pointer-events-auto active:scale-95 backdrop-blur-md border border-white/40 dark:border-slate-600/40 text-sm font-medium whitespace-nowrap"
           >
-            <Plus className="w-5 h-5" />
-            <span className="text-sm font-medium">New Outing</span>
+            <Plus className="w-4.5 h-4.5 flex-shrink-0" />
+            New Outing
           </button>
           <button
             onClick={() => handleAction(onRecenter)}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-500/15 text-slate-900 rounded-full shadow-md hover:shadow-lg hover:bg-orange-500/25 transition-all cursor-pointer pointer-events-auto active:scale-95 border border-orange-500/20"
-            style={{ WebkitBackdropFilter: 'blur(20px)', backdropFilter: 'blur(20px)' }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-full shadow-lg hover:shadow-xl hover:bg-white/30 dark:hover:bg-slate-700/40 transition-all cursor-pointer pointer-events-auto active:scale-95 backdrop-blur-md border border-white/40 dark:border-slate-600/40 text-sm font-medium whitespace-nowrap"
           >
-            <Crosshair className="w-5 h-5" />
-            <span className="text-sm font-medium">My Location</span>
+            <Crosshair className="w-4.5 h-4.5 flex-shrink-0" />
+            My Location
           </button>
           <button
             onClick={() => handleAction(onPOI)}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-500/15 text-slate-900 rounded-full shadow-md hover:shadow-lg hover:bg-orange-500/25 transition-all cursor-pointer pointer-events-auto active:scale-95 border border-orange-500/20"
-            style={{ WebkitBackdropFilter: 'blur(20px)', backdropFilter: 'blur(20px)' }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-full shadow-lg hover:shadow-xl hover:bg-white/30 dark:hover:bg-slate-700/40 transition-all cursor-pointer pointer-events-auto active:scale-95 backdrop-blur-md border border-white/40 dark:border-slate-600/40 text-sm font-medium whitespace-nowrap"
           >
-            <MapPin className="w-5 h-5" />
-            <span className="text-sm font-medium">Add POI</span>
+            <MapPin className="w-4.5 h-4.5 flex-shrink-0" />
+            Add POI
           </button>
           <button
             onClick={() => handleAction(onHarvest)}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-500/15 text-slate-900 rounded-full shadow-md hover:shadow-lg hover:bg-orange-500/25 transition-all cursor-pointer pointer-events-auto active:scale-95 border border-orange-500/20"
-            style={{ WebkitBackdropFilter: 'blur(20px)', backdropFilter: 'blur(20px)' }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-full shadow-lg hover:shadow-xl hover:bg-white/30 dark:hover:bg-slate-700/40 transition-all cursor-pointer pointer-events-auto active:scale-95 backdrop-blur-md border border-white/40 dark:border-slate-600/40 text-sm font-medium whitespace-nowrap"
           >
             <span className="text-lg">🦌</span>
-            <span className="text-sm font-medium">Add Harvest</span>
+            Add Harvest
           </button>
           <button
             onClick={() => handleAction(onCreateArea)}
-            className="flex items-center gap-2 px-4 py-2 bg-orange-500/15 text-slate-900 rounded-full shadow-md hover:shadow-lg hover:bg-orange-500/25 transition-all cursor-pointer pointer-events-auto active:scale-95 border border-orange-500/20"
-            style={{ WebkitBackdropFilter: 'blur(20px)', backdropFilter: 'blur(20px)' }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-full shadow-lg hover:shadow-xl hover:bg-white/30 dark:hover:bg-slate-700/40 transition-all cursor-pointer pointer-events-auto active:scale-95 backdrop-blur-md border border-white/40 dark:border-slate-600/40 text-sm font-medium whitespace-nowrap"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4.5 h-4.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h10v10H7z" />
             </svg>
-            <span className="text-sm font-medium">Create Area</span>
+            Create Area
           </button>
         </>
       )}
@@ -87,10 +81,9 @@ export default function FloatingActionBar({
       {/* Main FAB */}
       <button
         onClick={handleMainClick}
-        className="w-14 h-14 rounded-full bg-orange-500/25 text-orange-600 flex items-center justify-center shadow-md hover:shadow-lg hover:bg-orange-500/35 transition-all cursor-pointer pointer-events-auto active:scale-95 border border-orange-500/30"
-        style={{ WebkitBackdropFilter: 'blur(20px)', backdropFilter: 'blur(20px)' }}
+        className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-amber-500/20 dark:bg-amber-600/25 text-amber-700 dark:text-amber-400 flex items-center justify-center shadow-xl hover:shadow-2xl hover:bg-amber-500/30 dark:hover:bg-amber-600/35 transition-all cursor-pointer pointer-events-auto active:scale-95 backdrop-blur-md border border-amber-400/40 dark:border-amber-500/40"
       >
-        <Plus className="w-6 h-6" />
+        <Plus className="w-7 h-7 sm:w-8 sm:h-8" />
       </button>
     </div>
   );

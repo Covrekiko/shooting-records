@@ -103,69 +103,68 @@ export default function FloatingMapSearch({ onSearch, onError, isGrouped = false
        {!isOpen ? (
          <button
            onClick={() => setIsOpen(true)}
-           className="w-10 h-10 sm:w-12 sm:h-12 bg-white/15 text-black rounded-full shadow-md hover:shadow-lg hover:bg-white/20 transition-all flex items-center justify-center flex-shrink-0 border border-white/20"
-           style={{ WebkitBackdropFilter: 'blur(20px)', backdropFilter: 'blur(20px)' }}
+           className="w-11 h-11 sm:w-12 sm:h-12 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-full shadow-lg hover:shadow-xl hover:bg-white/30 dark:hover:bg-slate-700/40 active:scale-95 transition-all flex items-center justify-center flex-shrink-0 border border-white/40 dark:border-slate-600/40 backdrop-blur-md"
            title="Search location"
          >
-           <Search className="w-4 h-4 sm:w-5 sm:h-5" />
+           <Search className="w-5 h-5" />
          </button>
        ) : (
-        /* Expanded Search Bar */
-        <form onSubmit={handleSearch} className={isGrouped ? "absolute -bottom-72 -right-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] pointer-events-auto" : "absolute bottom-0 right-0 w-72 sm:w-80 max-w-[calc(100vw-2rem)] pointer-events-auto"}>
-          <div className="bg-card rounded-lg shadow-lg overflow-hidden border border-border animate-in fade-in slide-in-from-bottom-2 duration-200">
-            {/* Search Input */}
-            <div className="flex items-center gap-1.5 px-2 py-2">
-              <Search className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setError('');
-                }}
-                placeholder="Address, postcode..."
-                className="flex-1 bg-transparent text-xs sm:text-sm outline-none"
-                disabled={loading}
-                autoFocus
-              />
-              {query && (
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  className="p-0.5 hover:bg-secondary rounded transition-colors"
-                  disabled={loading}
-                >
-                  <X className="w-3 h-3 text-muted-foreground" />
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={handleClose}
-                className="p-0.5 hover:bg-secondary rounded transition-colors"
-              >
-                <ChevronUp className="w-3 h-3 text-muted-foreground" />
-              </button>
-            </div>
+         /* Expanded Search Bar */
+         <form onSubmit={handleSearch} className={isGrouped ? "absolute -bottom-80 -right-2 w-72 sm:w-80 max-w-[calc(100vw-2rem)] pointer-events-auto" : "absolute bottom-0 right-0 w-72 sm:w-80 max-w-[calc(100vw-2rem)] pointer-events-auto"}>
+           <div className="bg-white/25 dark:bg-slate-700/40 rounded-2xl shadow-xl overflow-hidden border border-white/40 dark:border-slate-600/40 animate-in fade-in slide-in-from-bottom-2 duration-200 backdrop-blur-md">
+             {/* Search Input */}
+             <div className="flex items-center gap-2 px-4 py-3">
+               <Search className="w-4 h-4 text-slate-600 dark:text-slate-400 flex-shrink-0" />
+               <input
+                 type="text"
+                 value={query}
+                 onChange={(e) => {
+                   setQuery(e.target.value);
+                   setError('');
+                 }}
+                 placeholder="Address, postcode..."
+                 className="flex-1 bg-transparent text-sm outline-none placeholder-slate-500 dark:placeholder-slate-400 text-slate-700 dark:text-slate-300"
+                 disabled={loading}
+                 autoFocus
+               />
+               {query && (
+                 <button
+                   type="button"
+                   onClick={handleClear}
+                   className="p-1 hover:bg-white/20 dark:hover:bg-slate-600/30 rounded transition-colors flex-shrink-0"
+                   disabled={loading}
+                 >
+                   <X className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+                 </button>
+               )}
+               <button
+                 type="button"
+                 onClick={handleClose}
+                 className="p-1 hover:bg-white/20 dark:hover:bg-slate-600/30 rounded transition-colors flex-shrink-0"
+               >
+                 <ChevronUp className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+               </button>
+             </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="px-2 py-1.5 bg-destructive/10 text-destructive text-xs flex items-center gap-1.5 border-t border-border">
-                <AlertCircle className="w-2.5 h-2.5 flex-shrink-0" />
-                <span className="text-xs">{error}</span>
-              </div>
-            )}
+             {/* Error Message */}
+             {error && (
+               <div className="px-4 py-2.5 bg-red-500/15 text-red-700 dark:text-red-400 text-xs flex items-center gap-2 border-t border-white/20 dark:border-slate-600/30">
+                 <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                 <span>{error}</span>
+               </div>
+             )}
 
-            {/* Search Button */}
-            <button
-              type="submit"
-              disabled={loading || !query.trim()}
-              className="w-full px-2 py-1.5 bg-primary text-primary-foreground text-xs sm:text-sm font-medium hover:bg-primary/90 disabled:opacity-50 transition-colors border-t border-border"
-            >
-              {loading ? 'Searching...' : 'Search'}
-            </button>
-          </div>
-        </form>
-      )}
+             {/* Search Button */}
+             <button
+               type="submit"
+               disabled={loading || !query.trim()}
+               className="w-full px-4 py-3 bg-amber-500/20 dark:bg-amber-600/25 text-amber-700 dark:text-amber-400 text-sm font-semibold hover:bg-amber-500/30 dark:hover:bg-amber-600/35 disabled:opacity-50 transition-colors border-t border-white/20 dark:border-slate-600/30 active:scale-95"
+             >
+               {loading ? 'Searching...' : 'Search'}
+             </button>
+           </div>
+         </form>
+       )}
     </div>
   );
 }
