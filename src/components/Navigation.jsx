@@ -33,7 +33,7 @@ export default function Navigation() {
     <>
       {/* ── Top Nav ── */}
       {/* Desktop: floating pill nav */}
-      <div className="hidden md:block sticky top-0 z-[9000] bg-[#f5f0ea] dark:bg-slate-900">
+      <div className="hidden md:block sticky top-0 z-[9000] bg-slate-50 dark:bg-[#13161e]">
         <div className="max-w-7xl mx-auto px-4 pt-3 pb-2">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700 px-5 py-3 flex items-center justify-between">
             <Link to="/" className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
@@ -45,8 +45,8 @@ export default function Navigation() {
                 const Icon = item.icon;
                 const active = isActive(item.path);
                 return (
-                  <Link key={item.path} to={item.path}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all ${active ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+                <Link key={item.path} to={item.path}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all ${active ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
                     {Icon && <Icon className="w-4 h-4" />}
                     {item.emoji && <span className="text-base leading-none">{item.emoji}</span>}
                     {item.label}
@@ -55,12 +55,12 @@ export default function Navigation() {
               })}
               {user?.role === 'admin' && (
                 <Link to="/admin/users"
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive('/admin/users') ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive('/admin/users') ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
                   <Settings className="w-4 h-4" />Admin
                 </Link>
               )}
               <Link to="/profile"
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive('/profile') ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive('/profile') ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
                 <User className="w-4 h-4" />Profile
               </Link>
             </div>
@@ -69,7 +69,7 @@ export default function Navigation() {
       </div>
 
       {/* Mobile: floating pill header */}
-      <div className="md:hidden sticky top-0 z-[9000] bg-[#f5f0ea] dark:bg-slate-900">
+      <div className="md:hidden sticky top-0 z-[9000] bg-slate-50 dark:bg-[#13161e]">
         <div className="mx-3 mt-2 mb-1.5 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700 px-4 py-2.5 flex items-center justify-between">
           <Link to="/" className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-7 h-7 rounded-lg object-cover" />
@@ -100,7 +100,7 @@ export default function Navigation() {
                 const Icon = item.icon;
                 return (
                   <Link key={item.path} to={item.path} onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all active:scale-95 ${isActive(item.path) ? 'bg-primary/10 text-primary' : 'text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+                    className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all active:scale-95 ${isActive(item.path) ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
                     {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
                     <span className="flex-1">{item.label}</span>
                     <ChevronRight className="w-4 h-4 text-slate-300" />
@@ -125,11 +125,11 @@ export default function Navigation() {
                 whileTap={{ scale: 0.85 }}
                 className="flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-xl transition-all duration-150 min-w-[52px]"
               >
-                <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 ${active ? 'bg-primary/12' : ''}`}>
-                  {Icon && <Icon className={`w-[22px] h-[22px] ${active ? 'text-primary' : 'text-slate-500 dark:text-slate-400'}`} />}
-                  {item.emoji && <span className={`text-[20px] leading-none ${active ? 'opacity-100' : 'opacity-60'}`}>{item.emoji}</span>}
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 ${active ? 'bg-slate-900 dark:bg-white' : ''}`}>
+                  {Icon && <Icon className={`w-[22px] h-[22px] ${active ? 'text-white dark:text-slate-900' : 'text-slate-500 dark:text-slate-400'}`} />}
+                  {item.emoji && <span className={`text-[20px] leading-none ${active ? 'opacity-100' : 'opacity-50'}`}>{item.emoji}</span>}
                 </div>
-                <span className={`text-[10px] font-semibold leading-none ${active ? 'text-primary' : 'text-slate-500 dark:text-slate-400'}`}>{item.label}</span>
+                <span className={`text-[10px] font-semibold leading-none ${active ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>{item.label}</span>
               </motion.button>
             );
           })}

@@ -138,7 +138,7 @@ export default function TargetShooting() {
 
   if (loading) {
     return (
-      <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
+      <div className="bg-slate-50 dark:bg-slate-900 min-h-screen">
         <Navigation />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -148,7 +148,7 @@ export default function TargetShooting() {
   }
 
   return (
-    <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
+    <div className="bg-slate-50 dark:bg-slate-900 min-h-screen">
       <Navigation />
       {nearbyClub && (
         <CheckinBanner location={nearbyClub.name} distance={nearbyClub.distance} onDismiss={() => setNearbyClub(null)} onCheckin={() => setShowCheckin(true)} />

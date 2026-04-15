@@ -99,7 +99,7 @@ export default function Dashboard() {
   }
 
   return (
-     <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen flex flex-col">
+     <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen flex flex-col">
        <Navigation />
        {(pulling || refreshing) && (
          <div className="flex justify-center py-1">
@@ -379,7 +379,7 @@ function StatCard({ icon, label, subtitle, value, link, hideOnMobile }) {
     const content = (
       <div className="flex items-center gap-3">
         {/* Icon container */}
-        <div className="w-10 h-10 rounded-xl bg-[#f0e6d6] dark:bg-slate-700 flex items-center justify-center flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 text-lg [&_svg]:text-slate-700 dark:[&_svg]:text-slate-200">
+        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 text-lg [&_svg]:text-slate-600 dark:[&_svg]:text-slate-300">
           {icon}
         </div>
         {/* Text */}
