@@ -116,11 +116,26 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
 
       await base44.entities.SessionRecord.delete(id);
       setRecords(records.filter(r => r.id !== id));
-    } catch (error) {
+
+      // Force reload records from database to ensure restored stock is visible
+      console.log('✅ Record deleted & stock restored. Reloading inventory from database...');
+      setTimeout(async () => {
+        try {
+          const currentUser = await base44.auth.me();
+          const updatedRecords = await base44.entities.SessionRecord.filter({
+            created_by: currentUser.email,
+            category,
+          });
+          setRecords(updatedRecords);
+        } catch (err) {
+          console.error('Failed to reload records:', err);
+        }
+      }, 300);
+      } catch (error) {
       console.error('Error deleting record:', error);
       alert('Error deleting record: ' + error.message);
-    }
-  };
+      }
+      };
 
   if (loading) {
     return <div className="text-center py-4"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div></div>;
