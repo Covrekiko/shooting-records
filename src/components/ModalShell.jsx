@@ -35,7 +35,7 @@ export default function ModalShell({ title, onClose, footer, children, maxWidth 
       {/* Footer */}
       {footer && (
         <div
-          className="flex-shrink-0 px-5 py-4 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800"
+          className="flex-shrink-0 px-5 py-4 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 safe-area-bottom"
           style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
         >
           {footer}

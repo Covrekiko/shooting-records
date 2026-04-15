@@ -7,10 +7,16 @@ import { base44 } from '@/api/base44Client';
 export default function Profile() {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
 
   const isActive = (path) => location.pathname === path;
 
   const handleLogout = async () => {
+    if (!user) return;
     setLoading(true);
     try {
       await base44.auth.logout();
@@ -21,7 +27,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
+    <div className="bg-slate-50 dark:bg-slate-900 min-h-screen">
       <Navigation />
       <main className="max-w-7xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <h1 className="text-xl font-bold mb-4 hidden md:block text-slate-900 dark:text-slate-100">Profile</h1>
