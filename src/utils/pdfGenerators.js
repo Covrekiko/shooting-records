@@ -5,26 +5,37 @@ export const generateReloadingBatchPDF = (session, components) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  let yPos = 20;
+  let yPos = 15;
 
   // Header
-  doc.setFontSize(20);
-  doc.text('Reloading Batch Report', 20, yPos);
-  yPos += 10;
+  doc.setFontSize(22);
+  doc.setFont(undefined, 'bold');
+  doc.setTextColor(0);
+  doc.text('Reloading Batch Report', pageWidth / 2, yPos, { align: 'center' });
+  yPos += 9;
 
   // Date generated
   doc.setFontSize(10);
-  doc.setTextColor(100);
-  doc.text(`Generated: ${format(new Date(), 'MMM d, yyyy HH:mm')}`, 20, yPos);
+  doc.setFont(undefined, 'normal');
+  doc.setTextColor(120);
+  doc.text(`Generated: ${format(new Date(), 'MMM d, yyyy HH:mm')}`, pageWidth / 2, yPos, { align: 'center' });
+  yPos += 10;
+
+  // Separator line
+  doc.setLineWidth(0.3);
+  doc.setDrawColor(180);
+  doc.line(15, yPos, pageWidth - 15, yPos);
   yPos += 8;
 
   // Batch info section
   doc.setTextColor(0);
   doc.setFontSize(12);
-  doc.text('Batch Information', 20, yPos);
-  yPos += 6;
+  doc.setFont(undefined, 'bold');
+  doc.text('Batch Information', 15, yPos);
+  yPos += 7;
 
   doc.setFontSize(10);
+  doc.setFont(undefined, 'normal');
   const batchInfo = [
     ['Batch Number:', session.batch_number || '-'],
     ['Caliber:', session.caliber || '-'],
@@ -33,68 +44,99 @@ export const generateReloadingBatchPDF = (session, components) => {
   ];
 
   batchInfo.forEach(([label, value]) => {
-    doc.text(label, 25, yPos);
-    doc.text(String(value), 70, yPos);
+    doc.setFont(undefined, 'bold');
+    doc.text(label, 20, yPos);
+    doc.setFont(undefined, 'normal');
+    doc.text(String(value), 55, yPos);
     yPos += 5;
   });
 
-  yPos += 3;
+  yPos += 5;
 
-  // Components section
+  // Components section - Table layout
   doc.setFontSize(12);
-  doc.text('Components Used', 20, yPos);
+  doc.setFont(undefined, 'bold');
+  doc.text('Components Used', 15, yPos);
+  yPos += 7;
+
+  // Table headers
+  doc.setFontSize(9);
+  doc.setFont(undefined, 'bold');
+  doc.setFillColor(240, 240, 240);
+  doc.rect(15, yPos - 4, pageWidth - 30, 5, 'F');
+  doc.text('Component', 18, yPos);
+  doc.text('Name', 50, yPos);
+  doc.text('Quantity', 100, yPos);
   yPos += 6;
 
+  // Table rows
+  doc.setFont(undefined, 'normal');
   doc.setFontSize(10);
   if (session.components && Array.isArray(session.components)) {
     session.components.forEach((comp) => {
-      doc.text(`• ${comp.type || 'Unknown'}:`, 25, yPos);
-      yPos += 4;
-      doc.setFontSize(9);
-      doc.setTextColor(100);
-      doc.text(`  Name: ${comp.name || '-'}`, 30, yPos);
-      yPos += 3;
-      doc.text(`  Quantity: ${comp.quantity_used || '-'}`, 30, yPos);
-      yPos += 3;
-      if (comp.unit) {
-        doc.text(`  Unit: ${comp.unit}`, 30, yPos);
-        yPos += 3;
+      const type = (comp.type || 'Unknown').charAt(0).toUpperCase() + (comp.type || 'Unknown').slice(1);
+      const name = comp.name || '-';
+      
+      // Handle powder unit conversion
+      let quantityStr = comp.quantity_used || '-';
+      if (comp.type === 'powder' && comp.unit !== 'kg') {
+        // If powder and not already converted, it's already in grains
+        if (comp.quantity_used) {
+          const grains = comp.quantity_used;
+          const grams = (grains / 15.4323).toFixed(1);
+          quantityStr = `${grains}gr (${grams}g)`;
+        }
+      } else if (comp.type === 'powder' && comp.unit === 'kg') {
+        // Convert from kg back to grains (shouldn't happen but safety check)
+        const grains = Math.round(comp.quantity_used * 15432.3);
+        quantityStr = `${grains}gr`;
       }
-      doc.setTextColor(0);
-      doc.setFontSize(10);
-      yPos += 2;
+      
+      doc.text(type, 18, yPos);
+      doc.text(name, 50, yPos);
+      doc.text(quantityStr, 100, yPos);
+      yPos += 5;
     });
   }
 
-  yPos += 3;
+  yPos += 4;
+
+  // Separator line
+  doc.setLineWidth(0.3);
+  doc.setDrawColor(180);
+  doc.line(15, yPos, pageWidth - 15, yPos);
+  yPos += 8;
 
   // Cost section
   doc.setFontSize(12);
-  doc.text('Cost Information', 20, yPos);
-  yPos += 6;
+  doc.setFont(undefined, 'bold');
+  doc.text('Cost Summary', 15, yPos);
+  yPos += 7;
 
   doc.setFontSize(10);
-  const costInfo = [
-    ['Cost per Round:', `£${(session.cost_per_round || 0).toFixed(4)}`],
-    ['Total Batch Cost:', `£${(session.total_cost || 0).toFixed(2)}`],
-  ];
+  doc.setFont(undefined, 'normal');
+  const costPerRound = (session.cost_per_round || 0).toFixed(2);
+  const totalCost = (session.total_cost || 0).toFixed(2);
 
-  costInfo.forEach(([label, value]) => {
-    doc.text(label, 25, yPos);
-    doc.setFont(undefined, 'bold');
-    doc.text(String(value), 70, yPos);
-    doc.setFont(undefined, 'normal');
-    yPos += 5;
-  });
+  doc.setFont(undefined, 'bold');
+  doc.text('Cost per Round:', 20, yPos);
+  doc.text(`£${costPerRound}`, 70, yPos);
+  yPos += 6;
+
+  doc.text('Total Batch Cost:', 20, yPos);
+  doc.text(`£${totalCost}`, 70, yPos);
+  yPos += 6;
 
   if (session.notes) {
     yPos += 5;
+    doc.setFont(undefined, 'bold');
     doc.setFontSize(10);
-    doc.text('Notes:', 20, yPos);
-    yPos += 4;
+    doc.text('Notes:', 15, yPos);
+    yPos += 5;
+    doc.setFont(undefined, 'normal');
     doc.setFontSize(9);
-    const splitNotes = doc.splitTextToSize(session.notes, pageWidth - 40);
-    doc.text(splitNotes, 25, yPos);
+    const splitNotes = doc.splitTextToSize(session.notes, pageWidth - 30);
+    doc.text(splitNotes, 20, yPos);
   }
 
   // Footer
@@ -113,69 +155,92 @@ export const generateAmmunitionSummaryPDF = (rifles, shotguns) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  let yPos = 20;
+  let yPos = 15;
 
   // Header
-  doc.setFontSize(20);
-  doc.text('Ammunition Summary Report', 20, yPos);
-  yPos += 10;
+  doc.setFontSize(22);
+  doc.setFont(undefined, 'bold');
+  doc.setTextColor(0);
+  doc.text('Ammunition Summary Report', pageWidth / 2, yPos, { align: 'center' });
+  yPos += 9;
 
   // Date generated
   doc.setFontSize(10);
-  doc.setTextColor(100);
-  doc.text(`Generated: ${format(new Date(), 'MMM d, yyyy HH:mm')}`, 20, yPos);
+  doc.setFont(undefined, 'normal');
+  doc.setTextColor(120);
+  doc.text(`Generated: ${format(new Date(), 'MMM d, yyyy HH:mm')}`, pageWidth / 2, yPos, { align: 'center' });
+  yPos += 10;
+
+  // Separator line
+  doc.setLineWidth(0.3);
+  doc.setDrawColor(180);
+  doc.line(15, yPos, pageWidth - 15, yPos);
   yPos += 8;
 
   // Rifles section
   doc.setTextColor(0);
   doc.setFontSize(12);
-  doc.text('Rifles', 20, yPos);
-  yPos += 6;
+  doc.setFont(undefined, 'bold');
+  doc.text('Rifles', 15, yPos);
+  yPos += 7;
 
-  doc.setFontSize(9);
+  doc.setFont(undefined, 'normal');
+  doc.setFontSize(10);
   if (rifles.length === 0) {
     doc.setTextColor(100);
-    doc.text('No rifles configured', 25, yPos);
-    yPos += 4;
+    doc.text('No rifles configured', 20, yPos);
+    yPos += 5;
   } else {
     rifles.forEach((rifle) => {
       doc.setTextColor(0);
-      doc.text(`${rifle.name} (${rifle.caliber})`, 25, yPos);
-      yPos += 3;
-      doc.setFontSize(8);
-      doc.setTextColor(100);
-      doc.text(`Total rounds: ${rifle.total_rounds_fired || 0}`, 30, yPos);
-      yPos += 2;
-      doc.text(`Since cleaning: ${rifle.rounds_since_cleaning || 0}`, 30, yPos);
-      yPos += 2;
+      doc.setFont(undefined, 'bold');
+      doc.text(`${rifle.name}`, 20, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.text(`(${rifle.caliber})`, 80, yPos);
+      yPos += 5;
       doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text(`Total rounds: ${rifle.total_rounds_fired || 0}  |  Since cleaning: ${rifle.rounds_since_cleaning || 0}`, 25, yPos);
+      yPos += 4;
+      doc.setFontSize(10);
       yPos += 1;
     });
   }
 
   yPos += 3;
 
+  // Separator line
+  doc.setLineWidth(0.3);
+  doc.setDrawColor(180);
+  doc.line(15, yPos, pageWidth - 15, yPos);
+  yPos += 8;
+
   // Shotguns section
   doc.setTextColor(0);
   doc.setFontSize(12);
-  doc.text('Shotguns', 20, yPos);
-  yPos += 6;
+  doc.setFont(undefined, 'bold');
+  doc.text('Shotguns', 15, yPos);
+  yPos += 7;
 
-  doc.setFontSize(9);
+  doc.setFont(undefined, 'normal');
+  doc.setFontSize(10);
   if (shotguns.length === 0) {
     doc.setTextColor(100);
-    doc.text('No shotguns configured', 25, yPos);
-    yPos += 4;
+    doc.text('No shotguns configured', 20, yPos);
+    yPos += 5;
   } else {
     shotguns.forEach((shotgun) => {
       doc.setTextColor(0);
-      doc.text(`${shotgun.name} (${shotgun.gauge})`, 25, yPos);
-      yPos += 3;
-      doc.setFontSize(8);
-      doc.setTextColor(100);
-      doc.text(`Total cartridges: ${shotgun.total_cartridges_fired || 0}`, 30, yPos);
-      yPos += 2;
+      doc.setFont(undefined, 'bold');
+      doc.text(`${shotgun.name}`, 20, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.text(`(${shotgun.gauge})`, 80, yPos);
+      yPos += 5;
       doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text(`Total cartridges: ${shotgun.total_cartridges_fired || 0}`, 25, yPos);
+      yPos += 4;
+      doc.setFontSize(10);
       yPos += 1;
     });
   }
