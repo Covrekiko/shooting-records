@@ -109,7 +109,7 @@ export default function Dashboard() {
            />
          </div>
        )}
-       <main className="max-w-7xl mx-auto px-4 pt-2 md:pt-16 py-2 md:py-12 mobile-page-padding">
+       <main className="max-w-7xl mx-auto px-4 pt-3 md:pt-16 pb-4 md:py-12 mobile-page-padding">
          <div className="mb-2 md:mb-4 hidden md:block">
            <h1 className="text-2xl md:text-5xl font-semibold text-foreground mb-1">Dashboard</h1>
            <p className="text-sm text-muted-foreground">Welcome back, <span className="font-medium text-foreground">{user?.full_name}</span></p>
@@ -376,25 +376,26 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
 function StatCard({ icon, label, subtitle, value, link, hideOnMobile }) {
     const content = (
       <div className="flex flex-col h-full">
-        <div className="flex items-start gap-3 mb-2">
-          {/* Warm beige icon container */}
-          <div className="w-14 h-14 rounded-2xl bg-[#f5e6d0] flex items-center justify-center flex-shrink-0 [&_svg]:w-6 [&_svg]:h-6 [&_img]:w-6 [&_img]:h-6 text-2xl [&_svg]:text-slate-800">
+        {/* Top row: icon + title + chevron */}
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-[#f5e6d0] dark:bg-slate-700 flex items-center justify-center flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 [&_img]:w-5 [&_img]:h-5 text-xl [&_svg]:text-slate-800 dark:[&_svg]:text-slate-200">
             {icon}
           </div>
-          <div className="flex-1 min-w-0 pt-0.5">
-            <p className="text-base font-bold text-slate-900 dark:text-slate-100 leading-tight">{label}</p>
-            {subtitle && <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{subtitle}</p>}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug">{label}</p>
+            {subtitle && <p className="text-xs text-slate-400 dark:text-slate-500 leading-tight mt-0.5">{subtitle}</p>}
           </div>
-          <span className="text-slate-400 text-lg mt-1">›</span>
+          <span className="text-slate-300 dark:text-slate-600 text-base flex-shrink-0">›</span>
         </div>
+        {/* Value below */}
         {value !== undefined && (
-          <p className="text-3xl font-bold text-slate-900 dark:text-slate-100 mt-1 pl-1">{value}</p>
+          <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mt-3 pl-0.5">{value}</p>
         )}
       </div>
     );
 
     const cardClass = hideOnMobile ? "hidden md:block" : "";
-    const baseClass = "bg-white dark:bg-slate-800 rounded-2xl p-4 md:p-6 border border-slate-200 dark:border-slate-700 shadow-sm active:scale-[0.98] transition-all duration-150" + " " + cardClass;
+    const baseClass = "bg-white dark:bg-slate-800 rounded-2xl p-3.5 border border-slate-200/80 dark:border-slate-700 shadow-sm active:scale-[0.97] transition-transform duration-100" + " " + cardClass;
 
     if (link) {
       return (
