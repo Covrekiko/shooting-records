@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
-import { Activity, Zap, Target, MapPin, BarChart3, Crosshair, BookOpen, Map } from 'lucide-react';
+import { Activity, Zap, Target, MapPin, BarChart3, Crosshair, BookOpen, Map, Settings } from 'lucide-react';
 
 import {
   MonthlyActivityChart,
@@ -175,6 +175,12 @@ export default function Dashboard() {
              subtitle="Rounds Tracked"
              value={stats?.claySessions || 0}
              link="/clay-shooting"
+           />
+           <StatCard
+             icon={<Settings className="w-6 h-6" />}
+             label="Equipment & Areas"
+             subtitle="Manage gear"
+             link="/settings/rifles"
            />
            <StatCard
              icon={<Activity className="w-6 h-6" />}

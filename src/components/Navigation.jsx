@@ -27,6 +27,7 @@ export default function Navigation() {
 
   const moreNavItems = [
     { path: '/records', label: 'Records', icon: BookOpen },
+    { path: '/settings/rifles', label: 'Equipment & Areas', icon: Settings },
     { path: '/users', label: 'Users', icon: User },
   ];
 
