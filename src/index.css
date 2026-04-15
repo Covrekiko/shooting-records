@@ -98,3 +98,12 @@
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Mobile page content — clears both fixed top nav (~56px) and bottom nav (~80px) */
+.mobile-page-padding {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 16px));
+}

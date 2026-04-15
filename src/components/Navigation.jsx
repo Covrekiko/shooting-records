@@ -32,7 +32,7 @@ export default function Navigation() {
   return (
     <>
       {/* Top Nav (desktop) */}
-       <nav className="sticky top-0 z-50 bg-white/12 backdrop-blur-xl border-b border-white/20 shadow-sm" style={{ WebkitBackdropFilter: 'blur(20px)' }}>
+       <nav className="sticky top-0 z-[9000] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/20 shadow-sm" style={{ WebkitBackdropFilter: 'blur(20px)', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
            <Link to="/" className="text-lg font-semibold text-slate-900">
              🎯 Shooting Records
@@ -96,8 +96,8 @@ export default function Navigation() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.2 }}
-              className="md:hidden bg-white/15 backdrop-blur-xl border-t border-white/20 px-3 pb-3 pt-2 space-y-0.5"
-              style={{ WebkitBackdropFilter: 'blur(20px)' }}
+              className="md:hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-white/20 px-3 pb-3 pt-2 space-y-0.5"
+               style={{ WebkitBackdropFilter: 'blur(20px)' }}
             >
               {/* Header */}
               <div className="px-3 py-2 pb-3">
@@ -172,7 +172,7 @@ export default function Navigation() {
       </nav>
 
       {/* Mobile Bottom Nav - iOS glass style */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/15 backdrop-blur-xl border-t border-white/20 shadow-lg" style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)', WebkitBackdropFilter: 'blur(20px)' }}>
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[9000] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-white/20 shadow-lg" style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)', WebkitBackdropFilter: 'blur(20px)' }}>
         <div className="flex justify-center gap-1 px-3 py-3">
           {mainNavItems.map((item) => {
             const Icon = item.icon;
@@ -196,7 +196,7 @@ export default function Navigation() {
       </nav>
 
       {/* Bottom padding spacer for mobile so content isn't hidden behind bottom nav */}
-      <div className="md:hidden" style={{ height: 'calc(80px + env(safe-area-inset-bottom, 16px))' }} />
+      <div className="md:hidden h-20 safe-area-bottom" />
     </>
   );
 }
