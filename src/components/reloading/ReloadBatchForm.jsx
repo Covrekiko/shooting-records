@@ -63,15 +63,16 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
 
 
-  const convertPowderCharge = (charge, fromUnit, toUnit) => {
-    if (fromUnit === toUnit) return charge;
-    // 1 grain = 0.06479891 grams
-    if (fromUnit === 'grains' && toUnit === 'grams') {
-      return charge * 0.06479891;
-    } else if (fromUnit === 'grams' && toUnit === 'grains') {
-      return charge / 0.06479891;
-    }
-    return charge;
+  const convertToGrams = (value, unit) => {
+    // Convert any powder unit to grams
+    const conversions = {
+      'grams': 1,
+      'kg': 1000,
+      'oz': 28.3495,
+      'lb': 453.592,
+      'grains': 0.06479891,
+    };
+    return value * (conversions[unit] || 1);
   };
 
   const calculateCosts = () => {
@@ -87,15 +88,14 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     const cartridgesLoaded = parseInt(formData.cartridges_loaded);
     const powderChargePerCartridge = parseFloat(formData.powder_charge);
 
-    // Convert powder charge to the stored unit (stored unit is powder.unit)
-    let powderChargeInStoredUnit = powderChargePerCartridge;
-    if (formData.powder_unit !== powder.unit) {
-      powderChargeInStoredUnit = convertPowderCharge(powderChargePerCartridge, formData.powder_unit, powder.unit);
-    }
+    // Calculate powder cost using grams as base unit
+    const chargeInGrams = convertToGrams(powderChargePerCartridge, formData.powder_unit);
+    const powderStockInGrams = convertToGrams(powder.quantity_total, powder.unit);
+    const costPerGram = powder.price_total / powderStockInGrams;
+    const powderCostPerRound = chargeInGrams * costPerGram;
+    const powderCost = powderCostPerRound * cartridgesLoaded;
 
     const primerCost = primer.cost_per_unit * cartridgesLoaded;
-    const powderUsed = powderChargeInStoredUnit * cartridgesLoaded;
-    const powderCost = powder.cost_per_unit * powderUsed;
     const brassCost = formData.brass_is_used ? 0 : brass.cost_per_unit * cartridgesLoaded;
     const bulletCost = bullet.cost_per_unit * cartridgesLoaded;
     const totalCost = primerCost + powderCost + brassCost + bulletCost;
@@ -107,8 +107,8 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       brassCost: parseFloat(brassCost.toFixed(2)),
       bulletCost: parseFloat(bulletCost.toFixed(2)),
       totalCost: parseFloat(totalCost.toFixed(2)),
-      costPerCartridge: parseFloat(costPerCartridge.toFixed(4)),
-      powderUsed: parseFloat(powderUsed.toFixed(2)),
+      costPerCartridge: parseFloat(costPerCartridge.toFixed(2)),
+      powderUsed: parseFloat((chargeInGrams * cartridgesLoaded).toFixed(2)),
       powderDisplayed: parseFloat(powderChargePerCartridge.toFixed(2)),
     };
   };
@@ -420,7 +420,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
             </div>
             <div className="border-t border-border pt-2 mt-2">
               <div className="text-lg font-bold">Total: £{costBreakdown.totalCost.toFixed(2)}</div>
-              <div className="text-xs text-muted-foreground">£{costBreakdown.costPerCartridge.toFixed(4)} per cartridge</div>
+              <div className="text-xs text-muted-foreground">£{costBreakdown.costPerCartridge.toFixed(2)} per cartridge</div>
             </div>
           </div>
         )}
