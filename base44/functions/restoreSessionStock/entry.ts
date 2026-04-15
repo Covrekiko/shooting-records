@@ -38,12 +38,14 @@ Deno.serve(async (req) => {
       console.log(`🟡 [restoreSessionStock] Processing ${session.rifles_used.length} rifles from Target Shooting`);
 
       for (const rifle of session.rifles_used) {
-        if (rifle.ammunition_id && rifle.rounds_fired) {
-          const roundsFired = parseInt(rifle.rounds_fired) || 0;
-          if (roundsFired > 0) {
+        const roundsFired = parseInt(rifle.rounds_fired) || 0;
+        console.log(`🟡 [restoreSessionStock] Rifle entry - ammunition_id: ${rifle.ammunition_id}, rounds: ${roundsFired}, brand: ${rifle.ammunition_brand}`);
+        
+        if (roundsFired > 0) {
+          // Case 1: ammunition_id exists (dropdown selection)
+          if (rifle.ammunition_id) {
             try {
-              console.log(`🟡 [restoreSessionStock] Restoring ammo ${rifle.ammunition_id}: +${roundsFired} rounds`);
-              
+              console.log(`🟡 [restoreSessionStock] Restoring ammo by ID: ${rifle.ammunition_id} +${roundsFired} rounds`);
               const ammo = await base44.entities.Ammunition.get(rifle.ammunition_id);
               const newQuantity = (ammo.quantity_in_stock || 0) + roundsFired;
               
@@ -62,6 +64,39 @@ Deno.serve(async (req) => {
             } catch (error) {
               console.error(`🔴 [restoreSessionStock] Error restoring ammo ${rifle.ammunition_id}:`, error.message);
               throw new Error(`Failed to restore ammunition ${rifle.ammunition_id}: ${error.message}`);
+            }
+          } else if (rifle.ammunition_brand || rifle.caliber) {
+            // Case 2: Manual entry (try to find matching ammo)
+            try {
+              console.log(`🟡 [restoreSessionStock] Restoring manually-entered ammo: ${rifle.ammunition_brand} ${rifle.caliber} +${roundsFired} rounds`);
+              
+              // Try to find matching ammunition by brand and caliber
+              const allAmmo = await base44.entities.Ammunition.list();
+              const matchingAmmo = allAmmo.find(a => 
+                a.brand === rifle.ammunition_brand && 
+                a.caliber === rifle.caliber &&
+                a.bullet_type === rifle.bullet_type
+              );
+              
+              if (matchingAmmo) {
+                const newQuantity = (matchingAmmo.quantity_in_stock || 0) + roundsFired;
+                await base44.entities.Ammunition.update(matchingAmmo.id, {
+                  quantity_in_stock: newQuantity,
+                });
+
+                restorations.push({
+                  ammunition_id: matchingAmmo.id,
+                  type: 'target_shooting_rifle_manual',
+                  quantity_restored: roundsFired,
+                  new_stock: newQuantity,
+                });
+
+                console.log(`🟢 [restoreSessionStock] Manual ammo matched and restored. New stock: ${newQuantity}`);
+              } else {
+                console.log(`⚠️ [restoreSessionStock] No matching ammunition found for manual entry: ${rifle.ammunition_brand} ${rifle.caliber}`);
+              }
+            } catch (error) {
+              console.error(`🔴 [restoreSessionStock] Error finding/restoring manual ammo:`, error.message);
             }
           }
         }

@@ -127,6 +127,10 @@ export default function Records() {
     try {
       console.log(`🟡 [handleDelete] Starting delete for session: ${id}`);
       
+      // Fetch the record first to see what data we have
+      const recordToDelete = await base44.entities.SessionRecord.get(id);
+      console.log('🟡 [handleDelete] Record data:', { category: recordToDelete.category, ammunition_id: recordToDelete.ammunition_id, rounds_fired: recordToDelete.rounds_fired, rifles_used: recordToDelete.rifles_used?.length });
+      
       // Call backend to restore stock
       const restoreResponse = await base44.functions.invoke('restoreSessionStock', { sessionId: id });
       console.log('🟢 [handleDelete] Stock restored:', restoreResponse.data);
