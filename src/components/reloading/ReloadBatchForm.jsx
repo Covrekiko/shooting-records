@@ -19,6 +19,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     primer_id: '',
     powder_id: '',
     powder_charge: '',
+    powder_unit: 'grains',
     brass_id: '',
     bullet_id: '',
     notes: '',
@@ -54,6 +55,17 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     }
   };
 
+  const convertPowderCharge = (charge, fromUnit, toUnit) => {
+    if (fromUnit === toUnit) return charge;
+    // 1 grain = 0.06479891 grams
+    if (fromUnit === 'grains' && toUnit === 'grams') {
+      return charge * 0.06479891;
+    } else if (fromUnit === 'grams' && toUnit === 'grains') {
+      return charge / 0.06479891;
+    }
+    return charge;
+  };
+
   const calculateCosts = () => {
     if (!formData.cartridges_loaded || !formData.primer_id || !formData.powder_id || !formData.brass_id || !formData.bullet_id || !formData.powder_charge) {
       return null;
@@ -67,8 +79,14 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     const cartridgesLoaded = parseInt(formData.cartridges_loaded);
     const powderChargePerCartridge = parseFloat(formData.powder_charge);
 
+    // Convert powder charge to the stored unit (stored unit is powder.unit)
+    let powderChargeInStoredUnit = powderChargePerCartridge;
+    if (formData.powder_unit !== powder.unit) {
+      powderChargeInStoredUnit = convertPowderCharge(powderChargePerCartridge, formData.powder_unit, powder.unit);
+    }
+
     const primerCost = primer.cost_per_unit * cartridgesLoaded;
-    const powderUsed = powderChargePerCartridge * cartridgesLoaded;
+    const powderUsed = powderChargeInStoredUnit * cartridgesLoaded;
     const powderCost = powder.cost_per_unit * powderUsed;
     const brassCost = brass.cost_per_unit * cartridgesLoaded;
     const bulletCost = bullet.cost_per_unit * cartridgesLoaded;
@@ -83,6 +101,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       totalCost: parseFloat(totalCost.toFixed(2)),
       costPerCartridge: parseFloat(costPerCartridge.toFixed(4)),
       powderUsed: parseFloat(powderUsed.toFixed(2)),
+      powderDisplayed: parseFloat(powderChargePerCartridge.toFixed(2)),
     };
   };
 
@@ -254,16 +273,26 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
             </select>
           </div>
           <div>
-            <label className={labelCls}>Powder Charge ({components.powder.find(p => p.id === formData.powder_id)?.unit || 'unit'})</label>
-            <input
-              type="number"
-              value={formData.powder_charge}
-              onChange={(e) => setFormData({ ...formData, powder_charge: e.target.value })}
-              className={inputCls}
-              placeholder="40"
-              step="0.1"
-              required
-            />
+            <label className={labelCls}>Powder Charge</label>
+            <div className="flex gap-2">
+              <input
+                type="number"
+                value={formData.powder_charge}
+                onChange={(e) => setFormData({ ...formData, powder_charge: e.target.value })}
+                className="flex-1 px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                placeholder="40"
+                step="0.1"
+                required
+              />
+              <select
+                value={formData.powder_unit}
+                onChange={(e) => setFormData({ ...formData, powder_unit: e.target.value })}
+                className="px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm font-medium whitespace-nowrap"
+              >
+                <option value="grains">grains</option>
+                <option value="grams">grams</option>
+              </select>
+            </div>
           </div>
         </div>
 
