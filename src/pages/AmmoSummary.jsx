@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { AlertCircle, CheckCircle2, Crosshair, Download } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Crosshair, Download, Droplet } from 'lucide-react';
 import { format } from 'date-fns';
 import { generateAmmunitionSummaryPDF } from '@/utils/pdfGenerators';
 
@@ -189,30 +189,37 @@ export default function AmmoSummary() {
                     </div>
 
                     {rifle.cleaning_reminder_threshold && (
-                      <div className="pt-4 border-t border-border">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-medium text-muted-foreground">Cleaning Progress</span>
-                          <span className="text-xs font-semibold">
-                            {Math.round(
-                              (rifle.rounds_since_cleaning / rifle.cleaning_reminder_threshold) * 100
-                            )}%
-                          </span>
-                        </div>
-                        <div className="h-2 bg-border rounded-full overflow-hidden">
-                          <div
-                            className={`h-full transition-all ${
-                              cleaningStatus === 'needs_cleaning' ? 'bg-amber-600' : 'bg-primary'
-                            }`}
-                            style={{
-                              width: `${Math.min(
-                                (rifle.rounds_since_cleaning / rifle.cleaning_reminder_threshold) * 100,
-                                100
-                              )}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
+                       <div className="pt-4 border-t border-border">
+                         <div className="flex items-center justify-between mb-2">
+                           <span className="text-xs font-medium text-muted-foreground">Cleaning Progress</span>
+                           <span className="text-xs font-semibold">
+                             {Math.round(
+                               (rifle.rounds_since_cleaning / rifle.cleaning_reminder_threshold) * 100
+                             )}%
+                           </span>
+                         </div>
+                         <div className="h-2 bg-border rounded-full overflow-hidden">
+                           <div
+                             className={`h-full transition-all ${
+                               cleaningStatus === 'needs_cleaning' ? 'bg-amber-600' : 'bg-primary'
+                             }`}
+                             style={{
+                               width: `${Math.min(
+                                 (rifle.rounds_since_cleaning / rifle.cleaning_reminder_threshold) * 100,
+                                 100
+                               )}%`,
+                             }}
+                           />
+                         </div>
+                         <button
+                           onClick={() => handleMarkCleaned(rifle.id)}
+                           className="mt-3 w-full px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                         >
+                           <Droplet className="w-4 h-4" />
+                           Mark as Cleaned
+                         </button>
+                       </div>
+                     )}
                   </div>
                 );
               })
