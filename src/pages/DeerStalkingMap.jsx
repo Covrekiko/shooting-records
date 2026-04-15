@@ -356,6 +356,7 @@ export default function DeerStalkingMap() {
           options={{
             mapTypeId: useSatellite ? 'satellite' : 'roadmap',
             disableDefaultUI: true,
+            gestureHandling: 'greedy',
           }}
         >
           {/* User location */}
