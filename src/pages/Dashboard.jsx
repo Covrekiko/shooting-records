@@ -154,6 +154,12 @@ export default function Dashboard() {
              subtitle="Manage gear"
              link="/profile/settings"
            />
+           <StatCard
+             icon={<Zap className="w-6 h-6" />}
+             label="Ammunition"
+             subtitle="Manage usage"
+             link="/ammo-summary"
+           />
          </div>
          ) : (
          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -189,6 +195,12 @@ export default function Dashboard() {
              label="Equipment & Areas"
              subtitle="Manage gear"
              link="/profile/settings"
+           />
+           <StatCard
+             icon={<Zap className="w-6 h-6" />}
+             label="Ammunition"
+             subtitle="Manage usage"
+             link="/ammo-summary"
            />
          </div>
          )}
