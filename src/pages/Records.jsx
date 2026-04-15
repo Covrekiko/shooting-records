@@ -162,7 +162,7 @@ export default function Records() {
   }
 
   return (
-    <div>
+    <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
       <Navigation />
       {(pulling || refreshing) && (
         <div className="flex justify-center pt-3 pb-1">
@@ -172,7 +172,7 @@ export default function Records() {
           />
         </div>
       )}
-      <main className="max-w-6xl mx-auto px-4 pt-4 md:pt-16 py-8 mobile-page-padding">
+      <main className="max-w-6xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4 gap-3">
             <h1 className="text-3xl font-bold">All Records</h1>
@@ -210,7 +210,7 @@ export default function Records() {
           <p className="text-muted-foreground mb-6">View and manage all your shooting records</p>
 
           {/* Filters */}
-          <div className="bg-card border border-border rounded-lg p-6 mb-6">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm mb-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Record Type</label>
@@ -248,7 +248,7 @@ export default function Records() {
         </div>
 
         {filteredRecords.length === 0 ? (
-          <div className="bg-card border border-border rounded-lg p-8 text-center">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-8 text-center shadow-sm">
             <p className="text-muted-foreground">No records found</p>
           </div>
         ) : (
@@ -308,7 +308,7 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4">
+    <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <h3 className="font-semibold text-lg">{getRecordTitle()}</h3>
@@ -414,8 +414,8 @@ function RecordModal({ record, onClose, rifles, shotguns, clubs, locations, user
   const getLocationName = (locationId) => locations[locationId]?.place_name || 'Unknown Location';
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[50001] overflow-y-auto">
-      <div className="bg-card rounded-lg max-w-3xl w-full p-8 my-4">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[50001] overflow-y-auto">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-3xl w-full p-6 my-4 shadow-2xl border border-slate-200/70 dark:border-slate-700">
         {/* Header */}
         <div className="flex items-center justify-between mb-12 border-b border-border pb-8">
           <div>
@@ -911,13 +911,13 @@ function PdfPreviewModal({ records, userInfo, rifles, clubs, shotguns, onClose }
   }, [records, userInfo]);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[50001]">
-      <div className="bg-card rounded-lg w-full max-w-4xl h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b border-border">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[50001]">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl border border-slate-200/70 dark:border-slate-700">
+        <div className="flex items-center justify-between p-4 border-b border-slate-200/70 dark:border-slate-700">
           <h2 className="text-xl font-bold">PDF Preview</h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-secondary rounded"
+            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
           >
             <X className="w-6 h-6" />
           </button>
@@ -935,17 +935,17 @@ function PdfPreviewModal({ records, userInfo, rifles, clubs, shotguns, onClose }
             </div>
           )}
         </div>
-        <div className="p-4 border-t border-border flex justify-end gap-2">
+        <div className="p-4 border-t border-slate-200/70 dark:border-slate-700 flex justify-end gap-2">
           <button
             onClick={() => exportRecordsToPdf(records, null, 'shooting-records.pdf', rifles, clubs, shotguns)}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:opacity-90 flex items-center gap-2 text-sm font-medium"
           >
             <Download className="w-4 h-4" />
             Download
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
+            className="px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 text-sm font-medium transition-colors"
           >
             Close
           </button>

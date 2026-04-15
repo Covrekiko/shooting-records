@@ -55,9 +55,9 @@ export default function Goals() {
   }
 
   return (
-    <div>
+    <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
       <Navigation />
-      <main className="max-w-6xl mx-auto px-4 pt-4 md:pt-16 py-8">
+      <main className="max-w-6xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -77,7 +77,7 @@ export default function Goals() {
 
         {showForm && createPortal(
           <div className="fixed inset-0 z-[50001] bg-black/50 flex items-end sm:items-center justify-center">
-            <div className="bg-card w-full sm:max-w-lg sm:rounded-lg rounded-t-2xl overflow-y-auto max-h-[90dvh]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+            <div className="bg-white dark:bg-slate-800 w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl overflow-y-auto max-h-[90dvh] border border-slate-200/70 dark:border-slate-700 shadow-2xl" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
               <div className="w-10 h-1 bg-border rounded-full mx-auto mt-3 mb-1 sm:hidden" />
               <GoalForm onSuccess={() => { loadGoals(); setShowForm(false); }} onCancel={() => setShowForm(false)} />
             </div>
@@ -86,7 +86,7 @@ export default function Goals() {
         )}
 
         {goals.length === 0 ? (
-          <div className="bg-card border border-border rounded-lg p-12 text-center">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-12 text-center shadow-sm">
             <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
             <p className="text-muted-foreground mb-4">No goals yet. Create your first goal to get started!</p>
           </div>

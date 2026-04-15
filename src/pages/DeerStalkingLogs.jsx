@@ -62,13 +62,13 @@ export default function DeerStalkingLogs() {
   }
 
   return (
-    <div>
+    <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
       <Navigation />
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">My Deer Stalking Logs</h1>
+      <main className="max-w-7xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
+        <h1 className="text-xl font-bold mb-4 text-slate-900 dark:text-slate-100 hidden md:block">My Deer Stalking Logs</h1>
 
         {/* Tabs */}
-        <div className="flex gap-4 mb-6 border-b border-border">
+        <div className="flex gap-1 mb-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700 p-1.5 shadow-sm">
           {[
             { id: 'outings', label: `Outings (${outings.length})` },
             { id: 'markers', label: `Points of Interest (${markers.length})` },
@@ -77,10 +77,10 @@ export default function DeerStalkingLogs() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`pb-3 px-4 font-medium border-b-2 transition-colors ${
+              className={`flex-1 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
                 activeTab === tab.id
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground'
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
               }`}
             >
               {tab.label}
@@ -95,7 +95,7 @@ export default function DeerStalkingLogs() {
               <p className="text-muted-foreground">No outings recorded yet.</p>
             ) : (
               outings.map((outing) => (
-                <div key={outing.id} className="bg-card border border-border rounded-lg p-6">
+                <div key={outing.id} className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-lg font-bold">{outing.location_name}</h3>
@@ -130,7 +130,7 @@ export default function DeerStalkingLogs() {
               <p className="text-muted-foreground">No points of interest recorded yet.</p>
             ) : (
               markers.map((marker) => (
-                <div key={marker.id} className="bg-card border border-border rounded-lg p-6">
+                <div key={marker.id} className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-lg font-bold capitalize">
@@ -179,7 +179,7 @@ export default function DeerStalkingLogs() {
               <p className="text-muted-foreground">No harvest records yet.</p>
             ) : (
               harvests.map((harvest) => (
-                <div key={harvest.id} className="bg-card border border-border rounded-lg p-6">
+                <div key={harvest.id} className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-lg font-bold">{harvest.species}</h3>
@@ -187,7 +187,7 @@ export default function DeerStalkingLogs() {
                         {formatDate(harvest.harvest_date)}
                       </p>
                     </div>
-                    <span className="text-sm font-medium bg-red-100 text-red-700 px-3 py-1 rounded-full capitalize">
+                    <span className="text-sm font-medium bg-primary/10 text-primary px-3 py-1 rounded-full capitalize">
                       {harvest.sex}
                     </span>
                   </div>

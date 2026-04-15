@@ -172,15 +172,15 @@ export default function Reports() {
   const filteredDeer = records.filter((r) => r.recordType === 'deer');
 
   return (
-    <div>
+    <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
       <Navigation />
-      <main className="max-w-7xl mx-auto px-4 pt-4 md:pt-16 py-8">
+      <main className="max-w-7xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Reports & Analytics</h1>
           <p className="text-muted-foreground">View detailed analytics and generate PDF reports of your shooting activities</p>
         </div>
 
-        <div className="bg-card border border-border rounded-lg p-6 space-y-6 mb-8">
+        <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-5 shadow-sm space-y-6 mb-8">
           {/* Report Type Selection */}
           <div>
             <label className="block text-sm font-semibold mb-3">Report Type</label>
@@ -235,30 +235,30 @@ export default function Reports() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <button
                   onClick={() => setSelectedAnalyticsType('target')}
-                  className={`p-3 rounded-lg border transition-colors ${
+                  className={`p-3 rounded-xl border transition-colors text-sm font-medium ${
                     selectedAnalyticsType === 'target'
                       ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-secondary border-border hover:border-primary'
+                      : 'bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600 hover:border-primary'
                   }`}
                 >
                   Target Shooting ({filteredTarget.length})
                 </button>
                 <button
                   onClick={() => setSelectedAnalyticsType('clay')}
-                  className={`p-3 rounded-lg border transition-colors ${
+                  className={`p-3 rounded-xl border transition-colors text-sm font-medium ${
                     selectedAnalyticsType === 'clay'
                       ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-secondary border-border hover:border-primary'
+                      : 'bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600 hover:border-primary'
                   }`}
                 >
                   Clay Shooting ({filteredClay.length})
                 </button>
                 <button
                   onClick={() => setSelectedAnalyticsType('deer')}
-                  className={`p-3 rounded-lg border transition-colors ${
+                  className={`p-3 rounded-xl border transition-colors text-sm font-medium ${
                     selectedAnalyticsType === 'deer'
                       ? 'bg-primary text-primary-foreground border-primary'
-                      : 'bg-secondary border-border hover:border-primary'
+                      : 'bg-slate-100 dark:bg-slate-700 border-slate-200 dark:border-slate-600 hover:border-primary'
                   }`}
                 >
                   Deer Management ({filteredDeer.length})
@@ -378,7 +378,7 @@ export default function Reports() {
         )}
 
         {reportType !== 'analytics' && (
-          <div className="mt-8 bg-secondary/20 border border-border rounded-lg p-4">
+          <div className="mt-8 bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
            <h3 className="font-semibold mb-2">Report Information</h3>
            <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
              {reportType === 'formal' && (
@@ -408,13 +408,13 @@ export default function Reports() {
 
 function PdfPreviewModal({ pdfUrl, onClose }) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-card rounded-lg w-full max-w-4xl h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b border-border">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl border border-slate-200/70 dark:border-slate-700">
+        <div className="flex items-center justify-between p-4 border-b border-slate-200/70 dark:border-slate-700">
           <h2 className="text-xl font-bold">PDF Preview</h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-secondary rounded transition-colors"
+            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
           >
             ✕
           </button>
@@ -422,10 +422,10 @@ function PdfPreviewModal({ pdfUrl, onClose }) {
         <div className="flex-1 overflow-auto">
           <iframe src={pdfUrl} className="w-full h-full border-0" />
         </div>
-        <div className="p-4 border-t border-border flex justify-end">
+        <div className="p-4 border-t border-slate-200/70 dark:border-slate-700 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-colors"
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-colors text-sm font-medium"
           >
             Close
           </button>

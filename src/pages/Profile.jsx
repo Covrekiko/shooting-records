@@ -21,76 +21,76 @@ export default function Profile() {
   };
 
   return (
-    <div>
+    <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
       <Navigation />
-      <main className="max-w-7xl mx-auto px-4 pt-4 md:pt-16 py-8">
-        <h1 className="text-3xl font-bold mb-8">Profile</h1>
+      <main className="max-w-7xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
+        <h1 className="text-xl font-bold mb-4 hidden md:block text-slate-900 dark:text-slate-100">Profile</h1>
 
-        <div className="flex flex-col md:flex-row gap-8">
+        <div className="flex flex-col md:flex-row gap-4">
           {/* Sidebar */}
-          <div className="w-full md:w-48">
-            <div className="space-y-2">
+          <div className="w-full md:w-52">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700 shadow-sm p-2 space-y-1">
               <Link
                 to="/profile"
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/profile')
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-foreground hover:bg-secondary'
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
               >
-                <User className="w-5 h-5" />
+                <User className="w-4 h-4" />
                 My Details
               </Link>
               <Link
                 to="/profile/settings"
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/profile/settings')
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-foreground hover:bg-secondary'
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
               >
-                <Settings className="w-5 h-5" />
+                <Settings className="w-4 h-4" />
                 Settings
               </Link>
               <Link
                 to="/records"
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/profile/records')
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-foreground hover:bg-secondary'
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
               >
-                <FileText className="w-5 h-5" />
+                <FileText className="w-4 h-4" />
                 Records
               </Link>
               <Link
                 to="/reports"
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/reports')
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-foreground hover:bg-secondary'
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
               >
-                <BarChart3 className="w-5 h-5" />
+                <BarChart3 className="w-4 h-4" />
                 Reports
               </Link>
               <Link
                 to="/deer-stalking-logs"
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/deer-stalking-logs')
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-foreground hover:bg-secondary'
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}
               >
-                <Map className="w-5 h-5" />
+                <Map className="w-4 h-4" />
                 Stalking Logs
               </Link>
               <button
                 onClick={handleLogout}
                 disabled={loading}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-4 h-4" />
                 {loading ? 'Logging out...' : 'Logout'}
               </button>
             </div>
@@ -98,11 +98,13 @@ export default function Profile() {
 
           {/* Content */}
           <div className="flex-1">
-            {isActive('/profile/settings') ? (
-              <SettingsPanel />
-            ) : (
-              <PersonalDetailsPanel />
-            )}
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700 shadow-sm p-5">
+              {isActive('/profile/settings') ? (
+                <SettingsPanel />
+              ) : (
+                <PersonalDetailsPanel />
+              )}
+            </div>
           </div>
         </div>
       </main>
@@ -163,7 +165,7 @@ function SettingsPanel() {
 
 function SettingCard({ title, description, link }) {
   return (
-    <Link to={link} className="bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all hover:border-primary">
+    <Link to={link} className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-5 hover:shadow-md transition-all block shadow-sm">
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
       <p className="text-sm text-muted-foreground">{description}</p>
     </Link>
