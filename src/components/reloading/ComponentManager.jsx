@@ -384,9 +384,11 @@ export default function ComponentManager() {
                     onChange={(e) => {
                       setFormData({ ...formData, name: e.target.value });
                       searchCatalog(e.target.value, formData.component_type);
-                      setShowDropdown(true);
+                      if (e.target.value.length >= 2) {
+                        setShowDropdown(true);
+                      }
                     }}
-                    onFocus={() => setShowDropdown(formData.name.length >= 2)}
+                    onFocus={() => formData.name.length >= 2 && setShowDropdown(true)}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
                     placeholder="e.g., CCI 200, Vihtavuori N140"
                     required
