@@ -219,7 +219,20 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
         notes: formData.notes,
       };
 
-      await base44.entities.ReloadingSession.create(reloadSession);
+      const createdSession = await base44.entities.ReloadingSession.create(reloadSession);
+
+      // Create AmmoSpending record to track this reloading session
+      await base44.entities.AmmoSpending.create({
+        ammunition_id: null,
+        brand: 'Reloaded',
+        caliber: formData.caliber,
+        quantity_used: cartridgesLoaded,
+        cost_per_unit: costBreakdown.costPerCartridge,
+        total_cost: costBreakdown.totalCost,
+        date_used: formData.date,
+        session_type: 'reloading',
+        notes: `Reloaded batch ${formData.batch_number}`,
+      });
 
       // Add to ammunition inventory
       const ammoList = await base44.entities.Ammunition.filter({
