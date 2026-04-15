@@ -18,7 +18,6 @@ export default function Navigation() {
   const isDashboard = location.pathname === '/';
 
   const mainNavItems = [
-    { path: '/', label: 'Dashboard', icon: LayoutDashboard },
     { path: '/target-shooting', label: 'Target', icon: Crosshair },
     { path: '/clay-shooting', label: 'Clay', icon: Target },
     { path: '/deer-management', label: 'Deer', icon: null, emoji: '🦌' },
