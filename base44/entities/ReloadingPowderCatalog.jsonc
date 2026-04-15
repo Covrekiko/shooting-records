@@ -1,0 +1,106 @@
+{
+  "name": "ReloadingPowderCatalog",
+  "type": "object",
+  "properties": {
+    "brand": {
+      "type": "string",
+      "description": "Manufacturer brand (e.g., Hodgdon, IMR, Winchester)"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Full official product name"
+    },
+    "short_name": {
+      "type": "string",
+      "description": "Short display name"
+    },
+    "product_family": {
+      "type": "string",
+      "description": "Product family or line"
+    },
+    "powder_type": {
+      "type": "string",
+      "enum": [
+        "Rifle",
+        "Pistol",
+        "Shotgun",
+        "Magnum Rifle",
+        "Magnum Pistol",
+        "Reduced Load Compatible",
+        "Other"
+      ],
+      "description": "Powder type/purpose"
+    },
+    "grain_shape": {
+      "type": "string",
+      "enum": [
+        "Extruded",
+        "Ball",
+        "Spherical",
+        "Flake",
+        "Stick",
+        "Granular",
+        "Other"
+      ],
+      "description": "Powder grain shape"
+    },
+    "burn_rate_category": {
+      "type": "string",
+      "description": "Burn rate category (e.g., Fast, Medium, Slow, Very Slow)"
+    },
+    "relative_burn_rate": {
+      "type": "number",
+      "description": "Relative burn rate number if available"
+    },
+    "intended_use": {
+      "type": "string",
+      "description": "Intended use cases"
+    },
+    "temperature_stability": {
+      "type": "string",
+      "description": "Temperature stability characteristics if available"
+    },
+    "metering_notes": {
+      "type": "string",
+      "description": "Metering and flow characteristics"
+    },
+    "manufacturer_sku": {
+      "type": "string",
+      "description": "Official manufacturer SKU"
+    },
+    "container_sizes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Available container sizes (e.g., 1 lb, 4 lb, 8 lb)"
+    },
+    "official_description": {
+      "type": "string",
+      "description": "Official manufacturer description"
+    },
+    "safety_notes": {
+      "type": "string",
+      "description": "Safety-related notes from manufacturer"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "discontinued",
+        "unknown"
+      ],
+      "default": "active",
+      "description": "Product status"
+    }
+  },
+  "required": [
+    "brand",
+    "product_name",
+    "powder_type"
+  ]
+}

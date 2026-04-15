@@ -1,0 +1,137 @@
+{
+  "name": "ReloadingBulletCatalog",
+  "type": "object",
+  "properties": {
+    "brand": {
+      "type": "string",
+      "description": "Manufacturer brand (e.g., Hornady, Sierra, Nosler)"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Full official product name"
+    },
+    "short_name": {
+      "type": "string",
+      "description": "Short display name"
+    },
+    "product_line": {
+      "type": "string",
+      "description": "Product line or family"
+    },
+    "caliber": {
+      "type": "string",
+      "description": "Caliber designation (e.g., .308 Win, 6.5 Creedmoor, 9mm)"
+    },
+    "diameter": {
+      "type": "number",
+      "description": "Bullet diameter in inches"
+    },
+    "weight_grains": {
+      "type": "number",
+      "description": "Bullet weight in grains"
+    },
+    "bullet_style": {
+      "type": "string",
+      "enum": [
+        "Soft Point",
+        "Hollow Point",
+        "Polymer Tip",
+        "Boat Tail",
+        "Flat Base",
+        "FMJ",
+        "OTM",
+        "VLD",
+        "Round Nose",
+        "Monolithic",
+        "Match",
+        "HPBT",
+        "Ballistic Tip",
+        "InterLock",
+        "Tipped",
+        "Partition",
+        "Other"
+      ],
+      "description": "Bullet style"
+    },
+    "bullet_construction": {
+      "type": "string",
+      "enum": [
+        "Cup and Core",
+        "Bonded",
+        "Monolithic Copper",
+        "Match",
+        "Partition",
+        "Tipped",
+        "Hollow Point Match",
+        "Expanding",
+        "Lead-Free",
+        "Other"
+      ],
+      "description": "Bullet construction type"
+    },
+    "intended_use": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Target",
+          "Hunting",
+          "Match",
+          "Varmint",
+          "Long Range",
+          "Precision",
+          "Defense"
+        ]
+      },
+      "description": "Intended use categories"
+    },
+    "ballistic_coefficient_g1": {
+      "type": "number",
+      "description": "Ballistic coefficient G1 if available"
+    },
+    "ballistic_coefficient_g7": {
+      "type": "number",
+      "description": "Ballistic coefficient G7 if available"
+    },
+    "sectional_density": {
+      "type": "number",
+      "description": "Sectional density if available"
+    },
+    "manufacturer_sku": {
+      "type": "string",
+      "description": "Official manufacturer SKU"
+    },
+    "package_quantity": {
+      "type": "integer",
+      "description": "Number of bullets per box"
+    },
+    "lead_free": {
+      "type": "boolean",
+      "description": "Lead-free composition"
+    },
+    "meplat_diameter": {
+      "type": "string",
+      "description": "Meplat diameter for match bullets if available"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "discontinued",
+        "unknown"
+      ],
+      "default": "active",
+      "description": "Product status"
+    }
+  },
+  "required": [
+    "brand",
+    "product_name",
+    "caliber",
+    "weight_grains"
+  ]
+}

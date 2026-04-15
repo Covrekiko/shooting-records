@@ -1,0 +1,112 @@
+{
+  "name": "ReloadingBrassCatalog",
+  "type": "object",
+  "properties": {
+    "brand": {
+      "type": "string",
+      "description": "Manufacturer brand (e.g., Lapua, Norma, Winchester)"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Full official product name"
+    },
+    "short_name": {
+      "type": "string",
+      "description": "Short display name"
+    },
+    "cartridge_caliber": {
+      "type": "string",
+      "description": "Cartridge/caliber designation"
+    },
+    "parent_case": {
+      "type": "string",
+      "description": "Parent case if applicable"
+    },
+    "primer_pocket_size": {
+      "type": "string",
+      "enum": [
+        "Small Rifle",
+        "Large Rifle",
+        "Small Pistol",
+        "Large Pistol",
+        "Shotshell",
+        "Small Rifle Magnum",
+        "Large Rifle Magnum",
+        "Other"
+      ],
+      "description": "Primer pocket size"
+    },
+    "flash_hole_notes": {
+      "type": "string",
+      "description": "Flash hole characteristics if notable"
+    },
+    "case_length": {
+      "type": "string",
+      "description": "Case length specification"
+    },
+    "neck_diameter": {
+      "type": "string",
+      "description": "Neck diameter if relevant"
+    },
+    "case_weight_notes": {
+      "type": "string",
+      "description": "Weight characteristics if available"
+    },
+    "package_quantity": {
+      "type": "integer",
+      "description": "Number of cases per box"
+    },
+    "material": {
+      "type": "string",
+      "enum": [
+        "Brass",
+        "Nickel-Plated Brass",
+        "Stainless Steel",
+        "Other"
+      ],
+      "description": "Case material"
+    },
+    "case_condition": {
+      "type": "string",
+      "enum": [
+        "New",
+        "Once-Fired",
+        "Unprimed New",
+        "Primed New",
+        "Other"
+      ],
+      "description": "Case condition/status"
+    },
+    "manufacturer_sku": {
+      "type": "string",
+      "description": "Official manufacturer SKU"
+    },
+    "match_grade": {
+      "type": "boolean",
+      "description": "Match grade specifications"
+    },
+    "country_of_origin": {
+      "type": "string",
+      "description": "Country of manufacture"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "discontinued",
+        "unknown"
+      ],
+      "default": "active",
+      "description": "Product status"
+    }
+  },
+  "required": [
+    "brand",
+    "product_name",
+    "cartridge_caliber"
+  ]
+}

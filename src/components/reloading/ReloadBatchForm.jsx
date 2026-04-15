@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { X } from 'lucide-react';
+import CatalogComponentSelector from './CatalogComponentSelector';
+import BottomSheet from '@/components/BottomSheet';
 
 export default function ReloadBatchForm({ onSubmit, onClose }) {
   const [components, setComponents] = useState({});
@@ -9,6 +11,8 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [costBreakdown, setCostBreakdown] = useState(null);
+  const [selectorOpen, setSelectorOpen] = useState(false);
+  const [currentSelectorType, setCurrentSelectorType] = useState(null);
 
   const [formData, setFormData] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
@@ -17,12 +21,16 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     rifle_id: '',
     cartridges_loaded: '',
     primer_id: '',
+    primer_data: null,
     powder_id: '',
+    powder_data: null,
     powder_charge: '',
     powder_unit: 'grains',
     brass_id: '',
+    brass_data: null,
     brass_is_used: false,
     bullet_id: '',
+    bullet_data: null,
     notes: '',
   });
 
@@ -54,6 +62,24 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const openCatalogSelector = (type) => {
+    setCurrentSelectorType(type);
+    setSelectorOpen(true);
+  };
+
+  const handleCatalogSelect = (item) => {
+    if (currentSelectorType === 'primer') {
+      setFormData({ ...formData, primer_id: item.id, primer_data: item });
+    } else if (currentSelectorType === 'powder') {
+      setFormData({ ...formData, powder_id: item.id, powder_data: item });
+    } else if (currentSelectorType === 'bullet') {
+      setFormData({ ...formData, bullet_id: item.id, bullet_data: item });
+    } else if (currentSelectorType === 'brass') {
+      setFormData({ ...formData, brass_id: item.id, brass_data: item });
+    }
+    setSelectorOpen(false);
   };
 
   const convertPowderCharge = (charge, fromUnit, toUnit) => {
@@ -264,18 +290,32 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
         <div>
           <label className={labelCls}>Primer</label>
-          <select value={formData.primer_id} onChange={(e) => setFormData({ ...formData, primer_id: e.target.value })} className={inputCls} required>
-            <option value="">Select primer</option>
-            {components.primer.map(p => <option key={p.id} value={p.id}>{p.name} (£{p.cost_per_unit.toFixed(4)}/ea)</option>)}
-          </select>
+          <button
+            type="button"
+            onClick={() => openCatalogSelector('primer')}
+            className={`${inputCls} text-left flex items-center justify-between hover:bg-secondary/50`}
+          >
+            <span>{formData.primer_data?.product_name || formData.primer_data?.name || 'Select primer...'}</span>
+            <span className="text-xs opacity-60">Browse</span>
+          </button>
+          {formData.primer_data && (
+            <p className="text-xs text-muted-foreground mt-1">{formData.primer_data.brand || ''} • {formData.primer_data.primer_size || ''}</p>
+          )}
         </div>
 
         <div>
           <label className={labelCls}>Powder</label>
-          <select value={formData.powder_id} onChange={(e) => setFormData({ ...formData, powder_id: e.target.value })} className={inputCls} required>
-            <option value="">Select powder</option>
-            {components.powder.map(p => <option key={p.id} value={p.id}>{p.name} (£{p.cost_per_unit.toFixed(4)}/{p.unit})</option>)}
-          </select>
+          <button
+            type="button"
+            onClick={() => openCatalogSelector('powder')}
+            className={`${inputCls} text-left flex items-center justify-between hover:bg-secondary/50`}
+          >
+            <span>{formData.powder_data?.product_name || formData.powder_data?.name || 'Select powder...'}</span>
+            <span className="text-xs opacity-60">Browse</span>
+          </button>
+          {formData.powder_data && (
+            <p className="text-xs text-muted-foreground mt-1">{formData.powder_data.brand || ''} • {formData.powder_data.powder_type || ''}</p>
+          )}
         </div>
 
         <div>
@@ -303,10 +343,17 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
         <div>
           <label className={labelCls}>Brass / Cartridge</label>
-          <select value={formData.brass_id} onChange={(e) => setFormData({ ...formData, brass_id: e.target.value })} className={inputCls} required>
-            <option value="">Select brass</option>
-            {components.brass.map(b => <option key={b.id} value={b.id}>{b.name} (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
-          </select>
+          <button
+            type="button"
+            onClick={() => openCatalogSelector('brass')}
+            className={`${inputCls} text-left flex items-center justify-between hover:bg-secondary/50`}
+          >
+            <span>{formData.brass_data?.product_name || formData.brass_data?.name || 'Select brass...'}</span>
+            <span className="text-xs opacity-60">Browse</span>
+          </button>
+          {formData.brass_data && (
+            <p className="text-xs text-muted-foreground mt-1">{formData.brass_data.brand || ''} • {formData.brass_data.cartridge_caliber || ''}</p>
+          )}
         </div>
 
         <div className="flex items-center gap-3 bg-secondary/30 p-3 rounded-lg">
@@ -324,10 +371,17 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
         <div>
           <label className={labelCls}>Bullet</label>
-          <select value={formData.bullet_id} onChange={(e) => setFormData({ ...formData, bullet_id: e.target.value })} className={inputCls} required>
-            <option value="">Select bullet</option>
-            {components.bullet.map(b => <option key={b.id} value={b.id}>{b.name} (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
-          </select>
+          <button
+            type="button"
+            onClick={() => openCatalogSelector('bullet')}
+            className={`${inputCls} text-left flex items-center justify-between hover:bg-secondary/50`}
+          >
+            <span>{formData.bullet_data?.product_name || formData.bullet_data?.name || 'Select bullet...'}</span>
+            <span className="text-xs opacity-60">Browse</span>
+          </button>
+          {formData.bullet_data && (
+            <p className="text-xs text-muted-foreground mt-1">{formData.bullet_data.brand || ''} • {formData.bullet_data.caliber || ''} • {formData.bullet_data.weight_grains || ''}gr</p>
+          )}
         </div>
 
         <div>
@@ -377,6 +431,23 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           Cancel
         </button>
       </div>
+
+      {/* Catalog Selector Modal */}
+      <BottomSheet isOpen={selectorOpen} onClose={() => setSelectorOpen(false)}>
+        {selectorOpen && (
+          <CatalogComponentSelector
+            componentType={currentSelectorType}
+            onSelect={handleCatalogSelect}
+            onClose={() => setSelectorOpen(false)}
+            selected={
+              currentSelectorType === 'primer' ? formData.primer_data :
+              currentSelectorType === 'powder' ? formData.powder_data :
+              currentSelectorType === 'bullet' ? formData.bullet_data :
+              currentSelectorType === 'brass' ? formData.brass_data : null
+            }
+          />
+        )}
+      </BottomSheet>
     </div>
   );
 }

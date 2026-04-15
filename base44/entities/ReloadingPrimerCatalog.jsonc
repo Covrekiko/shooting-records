@@ -1,0 +1,90 @@
+{
+  "name": "ReloadingPrimerCatalog",
+  "type": "object",
+  "properties": {
+    "brand": {
+      "type": "string",
+      "description": "Manufacturer brand (e.g., CCI, Federal, Winchester)"
+    },
+    "product_name": {
+      "type": "string",
+      "description": "Full official product name"
+    },
+    "short_name": {
+      "type": "string",
+      "description": "Short display name for quick reference"
+    },
+    "product_line": {
+      "type": "string",
+      "description": "Product line or series"
+    },
+    "primer_size": {
+      "type": "string",
+      "enum": [
+        "Small Rifle",
+        "Large Rifle",
+        "Small Pistol",
+        "Large Pistol",
+        "Shotshell",
+        "Small Rifle Magnum",
+        "Large Rifle Magnum",
+        "Small Pistol Magnum",
+        "Large Pistol Magnum",
+        "Benchrest Small Rifle",
+        "Benchrest Large Rifle",
+        "Other"
+      ],
+      "description": "Primer size classification"
+    },
+    "primer_type": {
+      "type": "string",
+      "enum": [
+        "Standard",
+        "Magnum",
+        "Benchrest",
+        "Match",
+        "Shotshell",
+        "Large Rifle",
+        "Small Rifle",
+        "Other"
+      ],
+      "description": "Primer type/purpose"
+    },
+    "application": {
+      "type": "string",
+      "description": "Intended application (rifle, pistol, shotgun, etc.)"
+    },
+    "package_quantity": {
+      "type": "integer",
+      "description": "Number of primers per box/package"
+    },
+    "manufacturer_sku": {
+      "type": "string",
+      "description": "Official manufacturer SKU if available"
+    },
+    "country_of_origin": {
+      "type": "string",
+      "description": "Country of manufacture"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Additional notes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "discontinued",
+        "unknown"
+      ],
+      "default": "active",
+      "description": "Product status"
+    }
+  },
+  "required": [
+    "brand",
+    "product_name",
+    "primer_size",
+    "primer_type"
+  ]
+}
