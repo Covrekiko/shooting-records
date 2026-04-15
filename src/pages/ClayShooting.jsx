@@ -415,39 +415,44 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
             <input type="time" value={data.checkout_time} onChange={(e) => onChange('checkout_time', e.target.value)} className={inputCls} required />
           </div>
           <div>
+            <label className={labelCls}>Ammunition / Cartridge</label>
+            <BottomSheetSelect
+              value={data.ammunition_id || ''}
+              onChange={(val) => {
+                const a = ammunition.find(x => x.id === val);
+                onChange('ammunition_id', val);
+                onChange('shotgun_id', '');
+                if (a) onChange('ammunition_used', `${a.brand} ${a.caliber || ''} ${a.bullet_type || ''}`.trim());
+              }}
+              placeholder="Select cartridge type"
+              options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
+            />
+            {!data.ammunition_id && (
+              <div className="mt-2">
+                <span className="text-xs text-slate-400">Or enter manually:</span>
+                <input type="text" placeholder="e.g. 12 Gauge" value={data.ammunition_used} onChange={(e) => onChange('ammunition_used', e.target.value)} className={`${inputCls} mt-1.5`} />
+              </div>
+            )}
+          </div>
+          <div>
             <label className={labelCls}>Shotgun</label>
-            <BottomSheetSelect value={data.shotgun_id} onChange={(val) => onChange('shotgun_id', val)} placeholder="Select a shotgun" options={shotguns.map(s => ({ value: s.id, label: s.name }))} />
+            {data.ammunition_id ? (
+              <BottomSheetSelect 
+                value={data.shotgun_id} 
+                onChange={(val) => onChange('shotgun_id', val)} 
+                placeholder="Select shotgun" 
+                options={shotguns.filter(s => {
+                  const selectedAmmo = ammunition.find(a => a.id === data.ammunition_id);
+                  return !selectedAmmo || !selectedAmmo.caliber || s.gauge === selectedAmmo.caliber;
+                }).map(s => ({ value: s.id, label: s.name }))} 
+              />
+            ) : (
+              <p className="text-xs text-slate-400">Select cartridge type first</p>
+            )}
           </div>
           <div>
             <label className={labelCls}>Rounds Fired</label>
             <input type="number" min="0" value={data.rounds_fired} onChange={(e) => onChange('rounds_fired', e.target.value)} className={inputCls} required />
-          </div>
-          <div>
-            <label className={labelCls}>Ammunition</label>
-            {data.shotgun_id ? (
-              <BottomSheetSelect
-                value={data.ammunition_id || ''}
-                onChange={(val) => {
-                  const a = ammunition.find(x => x.id === val);
-                  onChange('ammunition_id', val);
-                  if (a) onChange('ammunition_used', `${a.brand} ${a.caliber || ''} ${a.bullet_type || ''}`.trim());
-                }}
-                placeholder="Select saved ammunition"
-                options={ammunition.filter(a => {
-                  const selectedShotgun = shotguns.find(s => s.id === data.shotgun_id);
-                  return !selectedShotgun || !selectedShotgun.gauge || a.caliber === selectedShotgun.gauge;
-                }).map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
-              />
-            ) : (
-              <p className="text-xs text-slate-400">Select a shotgun first</p>
-            )}
-
-            {!data.ammunition_id && (
-              <div className="mt-2">
-                <span className="text-xs text-slate-400">Or enter manually:</span>
-                <input type="text" placeholder="e.g. Federal 12 Gauge" value={data.ammunition_used} onChange={(e) => onChange('ammunition_used', e.target.value)} className={`${inputCls} mt-1.5`} />
-              </div>
-            )}
           </div>
           <div>
             <label className={labelCls}>Notes</label>
