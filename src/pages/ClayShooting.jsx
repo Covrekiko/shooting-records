@@ -404,15 +404,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
    };
 
    const handleClose = () => {
-     const missingFields = [];
-     if (!data.shotgun_id) missingFields.push('Shotgun');
-     if (!data.rounds_fired) missingFields.push('Rounds Fired');
-
-     if (missingFields.length > 0) {
-       setShowAlert(true);
-     } else {
-       onClose();
-     }
+     onClose();
    };
 
    return (
