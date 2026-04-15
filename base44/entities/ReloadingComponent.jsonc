@@ -1,0 +1,55 @@
+{
+  "name": "ReloadingComponent",
+  "type": "object",
+  "properties": {
+    "component_type": {
+      "type": "string",
+      "enum": [
+        "primer",
+        "powder",
+        "brass",
+        "bullet"
+      ],
+      "description": "Type of component"
+    },
+    "name": {
+      "type": "string",
+      "description": "Component name (e.g., 'CCI 200 Primer' or 'Vihtavuori N140')"
+    },
+    "quantity_total": {
+      "type": "number",
+      "description": "Total quantity purchased"
+    },
+    "quantity_remaining": {
+      "type": "number",
+      "description": "Current quantity in stock"
+    },
+    "unit": {
+      "type": "string",
+      "description": "Unit of measurement (e.g., 'pieces', 'grains', 'grams', 'kg', 'oz', 'lb')"
+    },
+    "price_total": {
+      "type": "number",
+      "description": "Total price paid for the batch"
+    },
+    "cost_per_unit": {
+      "type": "number",
+      "description": "Automatically calculated cost per unit"
+    },
+    "date_acquired": {
+      "type": "string",
+      "format": "date",
+      "description": "Date component was acquired"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "component_type",
+    "name",
+    "quantity_total",
+    "unit",
+    "price_total"
+  ]
+}

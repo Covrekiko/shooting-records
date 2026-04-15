@@ -1,0 +1,325 @@
+import { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { format } from 'date-fns';
+import { X } from 'lucide-react';
+
+export default function ReloadBatchForm({ onSubmit, onClose }) {
+  const [components, setComponents] = useState({});
+  const [rifles, setRifles] = useState([]);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [costBreakdown, setCostBreakdown] = useState(null);
+
+  const [formData, setFormData] = useState({
+    date: format(new Date(), 'yyyy-MM-dd'),
+    caliber: '',
+    batch_number: format(new Date(), 'yyyyMMdd-HHmm'),
+    rifle_id: '',
+    cartridges_loaded: '',
+    primer_id: '',
+    powder_id: '',
+    powder_charge: '',
+    brass_id: '',
+    bullet_id: '',
+    notes: '',
+  });
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+
+      const [componentsList, riflesList] = await Promise.all([
+        base44.entities.ReloadingComponent.filter({ created_by: currentUser.email }),
+        base44.entities.Rifle.filter({ created_by: currentUser.email }),
+      ]);
+
+      const grouped = {
+        primer: componentsList.filter(c => c.component_type === 'primer'),
+        powder: componentsList.filter(c => c.component_type === 'powder'),
+        brass: componentsList.filter(c => c.component_type === 'brass'),
+        bullet: componentsList.filter(c => c.component_type === 'bullet'),
+      };
+
+      setComponents(grouped);
+      setRifles(riflesList);
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const calculateCosts = () => {
+    if (!formData.cartridges_loaded || !formData.primer_id || !formData.powder_id || !formData.brass_id || !formData.bullet_id || !formData.powder_charge) {
+      return null;
+    }
+
+    const primer = components.primer.find(c => c.id === formData.primer_id);
+    const powder = components.powder.find(c => c.id === formData.powder_id);
+    const brass = components.brass.find(c => c.id === formData.brass_id);
+    const bullet = components.bullet.find(c => c.id === formData.bullet_id);
+
+    const cartridgesLoaded = parseInt(formData.cartridges_loaded);
+    const powderChargePerCartridge = parseFloat(formData.powder_charge);
+
+    const primerCost = primer.cost_per_unit * cartridgesLoaded;
+    const powderUsed = powderChargePerCartridge * cartridgesLoaded;
+    const powderCost = powder.cost_per_unit * powderUsed;
+    const brassCost = brass.cost_per_unit * cartridgesLoaded;
+    const bulletCost = bullet.cost_per_unit * cartridgesLoaded;
+    const totalCost = primerCost + powderCost + brassCost + bulletCost;
+    const costPerCartridge = totalCost / cartridgesLoaded;
+
+    return {
+      primerCost: parseFloat(primerCost.toFixed(2)),
+      powderCost: parseFloat(powderCost.toFixed(2)),
+      brassCost: parseFloat(brassCost.toFixed(2)),
+      bulletCost: parseFloat(bulletCost.toFixed(2)),
+      totalCost: parseFloat(totalCost.toFixed(2)),
+      costPerCartridge: parseFloat(costPerCartridge.toFixed(4)),
+      powderUsed: parseFloat(powderUsed.toFixed(2)),
+    };
+  };
+
+  useEffect(() => {
+    setCostBreakdown(calculateCosts());
+  }, [formData.cartridges_loaded, formData.primer_id, formData.powder_id, formData.brass_id, formData.bullet_id, formData.powder_charge]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (!costBreakdown) {
+        alert('Please select all components and enter required quantities');
+        return;
+      }
+
+      const primer = components.primer.find(c => c.id === formData.primer_id);
+      const powder = components.powder.find(c => c.id === formData.powder_id);
+      const brass = components.brass.find(c => c.id === formData.brass_id);
+      const bullet = components.bullet.find(c => c.id === formData.bullet_id);
+
+      const cartridgesLoaded = parseInt(formData.cartridges_loaded);
+      const powderUsed = parseFloat(formData.powder_charge) * cartridgesLoaded;
+
+      // Deduct from component stock
+      await Promise.all([
+        base44.entities.ReloadingComponent.update(formData.primer_id, {
+          quantity_remaining: primer.quantity_remaining - cartridgesLoaded,
+        }),
+        base44.entities.ReloadingComponent.update(formData.powder_id, {
+          quantity_remaining: powder.quantity_remaining - powderUsed,
+        }),
+        base44.entities.ReloadingComponent.update(formData.brass_id, {
+          quantity_remaining: brass.quantity_remaining - cartridgesLoaded,
+        }),
+        base44.entities.ReloadingComponent.update(formData.bullet_id, {
+          quantity_remaining: bullet.quantity_remaining - cartridgesLoaded,
+        }),
+      ]);
+
+      // Create reload session
+      const reloadSession = {
+        date: formData.date,
+        caliber: formData.caliber,
+        batch_number: formData.batch_number,
+        firearm_id: formData.rifle_id || null,
+        rounds_loaded: cartridgesLoaded,
+        total_cost: costBreakdown.totalCost,
+        cost_per_round: costBreakdown.costPerCartridge,
+        components: [
+          { type: 'primer', name: primer.name, quantity_used: cartridgesLoaded, cost: costBreakdown.primerCost },
+          { type: 'powder', name: powder.name, quantity_used: powderUsed, unit: powder.unit, cost: costBreakdown.powderCost },
+          { type: 'brass', name: brass.name, quantity_used: cartridgesLoaded, cost: costBreakdown.brassCost },
+          { type: 'bullet', name: bullet.name, quantity_used: cartridgesLoaded, cost: costBreakdown.bulletCost },
+        ],
+        notes: formData.notes,
+      };
+
+      await base44.entities.ReloadingSession.create(reloadSession);
+
+      // Add to ammunition inventory
+      const ammoList = await base44.entities.Ammunition.filter({
+        created_by: user.email,
+        caliber: formData.caliber,
+      });
+
+      if (ammoList.length > 0) {
+        const ammo = ammoList[0];
+        await base44.entities.Ammunition.update(ammo.id, {
+          quantity_in_stock: (ammo.quantity_in_stock || 0) + cartridgesLoaded,
+        });
+      } else {
+        await base44.entities.Ammunition.create({
+          brand: 'Reloaded',
+          caliber: formData.caliber,
+          quantity_in_stock: cartridgesLoaded,
+          units: 'rounds',
+          cost_per_unit: costBreakdown.costPerCartridge,
+          date_purchased: formData.date,
+        });
+      }
+
+      onSubmit();
+    } catch (error) {
+      console.error('Error creating reload batch:', error);
+      alert('Error creating reload batch: ' + error.message);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-center py-4"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div></div>;
+  }
+
+  const inputCls = "w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground";
+  const labelCls = "text-xs font-bold text-muted-foreground uppercase mb-2 block";
+
+  return (
+    <div className="bg-card border border-border rounded-xl p-4 max-h-[90vh] overflow-y-auto space-y-4">
+      <div className="flex items-center justify-between sticky top-0 bg-card z-10 pb-3 border-b border-border">
+        <h3 className="font-bold text-lg">New Reload Batch</h3>
+        <button onClick={onClose} className="p-1 hover:bg-secondary rounded">
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelCls}>Date</label>
+            <input
+              type="date"
+              value={formData.date}
+              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+              className={inputCls}
+              required
+            />
+          </div>
+          <div>
+            <label className={labelCls}>Caliber</label>
+            <input
+              type="text"
+              value={formData.caliber}
+              onChange={(e) => setFormData({ ...formData, caliber: e.target.value })}
+              placeholder=".308 Win"
+              className={inputCls}
+              required
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className={labelCls}>Batch Number</label>
+          <input type="text" value={formData.batch_number} onChange={(e) => setFormData({ ...formData, batch_number: e.target.value })} className={inputCls} required />
+        </div>
+
+        <div>
+          <label className={labelCls}>Rifle (optional)</label>
+          <select value={formData.rifle_id} onChange={(e) => setFormData({ ...formData, rifle_id: e.target.value })} className={inputCls}>
+            <option value="">None</option>
+            {rifles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label className={labelCls}>Cartridges to Load</label>
+          <input
+            type="number"
+            value={formData.cartridges_loaded}
+            onChange={(e) => setFormData({ ...formData, cartridges_loaded: e.target.value })}
+            className={inputCls}
+            placeholder="100"
+            required
+          />
+        </div>
+
+        <div>
+          <label className={labelCls}>Primer</label>
+          <select value={formData.primer_id} onChange={(e) => setFormData({ ...formData, primer_id: e.target.value })} className={inputCls} required>
+            <option value="">Select primer</option>
+            {components.primer.map(p => <option key={p.id} value={p.id}>{p.name} (£{p.cost_per_unit.toFixed(4)}/ea)</option>)}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelCls}>Powder</label>
+            <select value={formData.powder_id} onChange={(e) => setFormData({ ...formData, powder_id: e.target.value })} className={inputCls} required>
+              <option value="">Select powder</option>
+              {components.powder.map(p => <option key={p.id} value={p.id}>{p.name} (£{p.cost_per_unit.toFixed(4)}/{p.unit})</option>)}
+            </select>
+          </div>
+          <div>
+            <label className={labelCls}>Powder Charge ({components.powder.find(p => p.id === formData.powder_id)?.unit || 'unit'})</label>
+            <input
+              type="number"
+              value={formData.powder_charge}
+              onChange={(e) => setFormData({ ...formData, powder_charge: e.target.value })}
+              className={inputCls}
+              placeholder="40"
+              step="0.1"
+              required
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className={labelCls}>Brass / Cartridge</label>
+          <select value={formData.brass_id} onChange={(e) => setFormData({ ...formData, brass_id: e.target.value })} className={inputCls} required>
+            <option value="">Select brass</option>
+            {components.brass.map(b => <option key={b.id} value={b.id}>{b.name} (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label className={labelCls}>Bullet</label>
+          <select value={formData.bullet_id} onChange={(e) => setFormData({ ...formData, bullet_id: e.target.value })} className={inputCls} required>
+            <option value="">Select bullet</option>
+            {components.bullet.map(b => <option key={b.id} value={b.id}>{b.name} (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label className={labelCls}>Notes</label>
+          <textarea
+            value={formData.notes}
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            className={inputCls}
+            placeholder="Batch notes"
+            rows="2"
+          />
+        </div>
+
+        {/* Cost Breakdown */}
+        {costBreakdown && (
+          <div className="bg-secondary/30 rounded-lg p-4 space-y-2 border border-border">
+            <h4 className="font-bold mb-3">Cost Breakdown</h4>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>Primers: <span className="font-semibold">£{costBreakdown.primerCost.toFixed(2)}</span></div>
+              <div>Powder: <span className="font-semibold">£{costBreakdown.powderCost.toFixed(2)}</span></div>
+              <div>Brass: <span className="font-semibold">£{costBreakdown.brassCost.toFixed(2)}</span></div>
+              <div>Bullets: <span className="font-semibold">£{costBreakdown.bulletCost.toFixed(2)}</span></div>
+            </div>
+            <div className="border-t border-border pt-2 mt-2">
+              <div className="text-lg font-bold">Total: £{costBreakdown.totalCost.toFixed(2)}</div>
+              <div className="text-xs text-muted-foreground">£{costBreakdown.costPerCartridge.toFixed(4)} per cartridge</div>
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-3 pt-4">
+          <button type="submit" className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90">
+            Create Batch
+          </button>
+          <button type="button" onClick={onClose} className="flex-1 px-4 py-3 bg-secondary text-secondary-foreground rounded-lg font-semibold hover:opacity-90">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}

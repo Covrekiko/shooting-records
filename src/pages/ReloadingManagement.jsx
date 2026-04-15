@@ -7,6 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import ReloadingSessionForm from '@/components/reloading/ReloadingSessionForm';
 import ReloadingInventoryWidget from '@/components/reloading/ReloadingInventoryWidget';
+import ComponentManager from '@/components/reloading/ComponentManager';
+import ReloadBatchForm from '@/components/reloading/ReloadBatchForm';
 
 export default function ReloadingManagement() {
   const navigate = useNavigate();
@@ -15,6 +17,7 @@ export default function ReloadingManagement() {
   const [showForm, setShowForm] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
   const [activeTab, setActiveTab] = useState('history');
+  const [showBatchForm, setShowBatchForm] = useState(false);
 
   useEffect(() => {
     loadSessions();
@@ -130,14 +133,11 @@ export default function ReloadingManagement() {
             <p className="text-muted-foreground">Track and manage your reloading sessions</p>
           </div>
           <button
-            onClick={() => {
-              setEditingSession(null);
-              setShowForm(true);
-            }}
+            onClick={() => setShowBatchForm(true)}
             className="px-6 py-3 bg-primary text-primary-foreground rounded-2xl hover:opacity-90 flex items-center gap-2 font-semibold whitespace-nowrap"
           >
             <Plus className="w-5 h-5" />
-            <span className="hidden sm:inline">Start Session</span>
+            <span className="hidden sm:inline">New Batch</span>
             <span className="sm:hidden">New</span>
           </button>
         </div>
@@ -175,6 +175,16 @@ export default function ReloadingManagement() {
             Session History
           </button>
           <button
+            onClick={() => setActiveTab('components')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'components'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Components
+          </button>
+          <button
             onClick={() => setActiveTab('inventory')}
             className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'inventory'
@@ -182,7 +192,7 @@ export default function ReloadingManagement() {
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            Component Inventory
+            Old Inventory
           </button>
         </div>
 
@@ -233,10 +243,29 @@ export default function ReloadingManagement() {
           )
         )}
 
-        {/* Inventory Tab */}
+        {/* Components Tab */}
+        {activeTab === 'components' && <ComponentManager />}
+
+        {/* Old Inventory Tab */}
         {activeTab === 'inventory' && <ReloadingInventoryWidget />}
 
-        {/* Form Modal */}
+        {/* Reload Batch Form Modal */}
+        {showBatchForm && createPortal(
+          <div className="fixed inset-0 bg-black/50 z-[50000] flex items-end sm:items-center justify-center p-4 sm:p-0">
+            <div className="bg-card rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+              <ReloadBatchForm
+                onSubmit={() => {
+                  setShowBatchForm(false);
+                  loadSessions();
+                }}
+                onClose={() => setShowBatchForm(false)}
+              />
+            </div>
+          </div>,
+          document.body
+        )}
+
+        {/* Old Session Form Modal */}
         {showForm && createPortal(
           <div className="fixed inset-0 bg-black/50 z-[50000] flex items-end sm:items-center justify-center p-4 sm:p-0">
             <div className="bg-card rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto">
