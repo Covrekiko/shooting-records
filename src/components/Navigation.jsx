@@ -68,7 +68,15 @@ export default function Navigation() {
                   <Settings className="w-4 h-4" />Admin
                 </Link>
               )}
-              </div>
+              <Link to="/profile"
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                  location.pathname === '/profile'
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}>
+                <User className="w-4 h-4" />Profile
+              </Link>
+            </div>
           </div>
         </div>
       </div>
