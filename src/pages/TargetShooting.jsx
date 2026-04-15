@@ -52,8 +52,28 @@ export default function TargetShooting() {
         setAmmunition(ammoList);
         if (activeSession.length > 0) {
           const session = activeSession[0];
-          setActiveSession(session);
-          setGpsTrack(session.gps_track || []);
+          // Validate session health - detect orphaned sessions from app restarts
+          const createdDate = new Date(session.created_date);
+          const sessionAgeMinutes = (Date.now() - createdDate.getTime()) / 60000;
+          
+          if (sessionAgeMinutes > 60) {
+            // Session is >1 hour old and still active - likely orphaned
+            console.warn('⚠️ Orphaned session detected (age:', sessionAgeMinutes, 'minutes) - marking as abandoned');
+            await base44.entities.SessionRecord.update(session.id, {
+              status: 'completed',
+              notes: (session.notes || '') + '\n[Auto-closed: session orphaned after app restart]'
+            });
+            setActiveSession(null);
+            setGpsTrack([]);
+          } else {
+            setActiveSession(session);
+            setGpsTrack(session.gps_track || []);
+            // Resume tracking if session is still fresh and tracking isn't already running
+            if (!trackingService.isTracking()) {
+              trackingService.startTracking(session.id, 'target');
+              console.log('🟢 Resumed tracking for active session after app restart');
+            }
+          }
         }
       } catch (error) {
         console.error('Error loading data:', error);

@@ -11,6 +11,33 @@ let trackingState = {
 const trackingListeners = new Set();
 
 export const trackingService = {
+  // Validate session health (check if tracking was lost due to app crash/close)
+  async validateSessionHealth(sessionId) {
+    try {
+      // Fetch session from DB to check its state
+      const sessions = await base44.entities.SessionRecord.filter({ id: sessionId });
+      if (sessions.length === 0) {
+        console.warn('⚠️ Session not found:', sessionId);
+        return null;
+      }
+      
+      const session = sessions[0];
+      const createdDate = new Date(session.created_date);
+      const sessionAgeMinutes = (Date.now() - createdDate.getTime()) / 60000;
+      
+      // If session is >1 hour old and still active, mark as abandoned
+      if (session.status === 'active' && sessionAgeMinutes > 60) {
+        console.warn('⚠️ Orphaned session detected - age:', sessionAgeMinutes, 'minutes');
+        return { ...session, orphaned: true };
+      }
+      
+      return { ...session, orphaned: false };
+    } catch (error) {
+      console.error('❌ Error validating session health:', error);
+      return null;
+    }
+  },
+
   // Start GPS tracking for a session
   startTracking(sessionId, sessionType) {
     console.log('🟢 TRACKING INIT - sessionId:', sessionId, 'type:', sessionType);

@@ -49,7 +49,28 @@ export default function ClayShooting() {
         setClubs(clubsList);
         setShotguns(shotgunsList);
         setAmmunition(ammoList);
-        if (activeSessions.length > 0) setActiveSession(activeSessions[0]);
+        if (activeSessions.length > 0) {
+          const session = activeSessions[0];
+          // Validate session health - detect orphaned sessions from app restarts
+          const createdDate = new Date(session.created_date);
+          const sessionAgeMinutes = (Date.now() - createdDate.getTime()) / 60000;
+          
+          if (sessionAgeMinutes > 60) {
+            // Session is >1 hour old and still active - likely orphaned
+            console.warn('⚠️ Orphaned session detected (age:', sessionAgeMinutes, 'minutes) - marking as abandoned');
+            await base44.entities.SessionRecord.update(session.id, {
+              status: 'completed',
+              notes: (session.notes || '') + '\n[Auto-closed: session orphaned after app restart]'
+            });
+          } else {
+            setActiveSession(session);
+            // Resume tracking if session is still fresh and tracking isn't already running
+            if (!trackingService.isTracking()) {
+              trackingService.startTracking(session.id, 'clay');
+              console.log('🟢 Resumed tracking for active session after app restart');
+            }
+          }
+        }
       } catch (error) {
         console.error('Error loading data:', error);
       } finally {

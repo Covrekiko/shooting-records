@@ -26,7 +26,38 @@ export function OutingProvider({ children }) {
         created_by: currentUser.email,
         active: true,
       });
-      setActiveOuting(outings.length > 0 ? outings[0] : null);
+      
+      if (outings.length > 0) {
+        const outing = outings[0];
+        // Check for orphaned outings (>1 hour old)
+        const createdDate = new Date(outing.created_date);
+        const outingAgeMinutes = (Date.now() - createdDate.getTime()) / 60000;
+        
+        if (outingAgeMinutes > 60) {
+          console.warn('⚠️ Orphaned outing detected (age:', outingAgeMinutes, 'minutes) - closing automatically');
+          // Mark outing and linked session as completed
+          await base44.entities.DeerOuting.update(outing.id, {
+            active: false,
+            end_time: new Date().toISOString(),
+          });
+          // Close linked session record
+          const sessions = await base44.entities.SessionRecord.filter({
+            created_by: currentUser.email,
+            outing_id: outing.id,
+          });
+          if (sessions.length > 0) {
+            await base44.entities.SessionRecord.update(sessions[0].id, {
+              status: 'completed',
+              notes: (sessions[0].notes || '') + '\n[Auto-closed: outing orphaned after app restart]'
+            });
+          }
+          setActiveOuting(null);
+        } else {
+          setActiveOuting(outing);
+        }
+      } else {
+        setActiveOuting(null);
+      }
     } catch (error) {
       console.error('Error loading active outing:', error);
     } finally {
