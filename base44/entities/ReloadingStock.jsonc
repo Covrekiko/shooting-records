@@ -1,0 +1,43 @@
+{
+  "name": "ReloadingStock",
+  "type": "object",
+  "properties": {
+    "component_id": {
+      "type": "string",
+      "description": "Reference to ReloadingComponent ID"
+    },
+    "component_type": {
+      "type": "string",
+      "enum": [
+        "primer",
+        "powder",
+        "brass",
+        "bullet"
+      ],
+      "description": "Type of component"
+    },
+    "quantity_remaining": {
+      "type": "number",
+      "description": "Current quantity in stock"
+    },
+    "quantity_total": {
+      "type": "number",
+      "description": "Total quantity purchased"
+    },
+    "unit": {
+      "type": "string",
+      "description": "Unit of measurement"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last time stock was updated"
+    }
+  },
+  "required": [
+    "component_id",
+    "component_type",
+    "quantity_remaining",
+    "unit"
+  ]
+}

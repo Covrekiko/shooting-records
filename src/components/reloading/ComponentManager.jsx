@@ -123,11 +123,22 @@ export default function ComponentManager() {
       }[componentType];
 
       const results = await base44.entities[catalogEntity].list();
-      const filtered = results.filter(item =>
-        (item.product_name?.toLowerCase().includes(query.toLowerCase()) ||
-        item.brand?.toLowerCase().includes(query.toLowerCase()) ||
-        item.short_name?.toLowerCase().includes(query.toLowerCase()))
-      );
+      const filtered = results.filter(item => {
+        const searchLower = query.toLowerCase();
+        if (componentType === 'bullet') {
+          return (item.product_name?.toLowerCase().includes(searchLower) ||
+                  item.brand?.toLowerCase().includes(searchLower) ||
+                  item.short_name?.toLowerCase().includes(searchLower) ||
+                  item.weight_grains?.toString().includes(searchLower));
+        } else if (componentType === 'brass') {
+          return (item.brand?.toLowerCase().includes(searchLower) ||
+                  item.product_name?.toLowerCase().includes(searchLower) ||
+                  item.cartridge_caliber?.toLowerCase().includes(searchLower));
+        }
+        return (item.product_name?.toLowerCase().includes(searchLower) ||
+                item.brand?.toLowerCase().includes(searchLower) ||
+                item.short_name?.toLowerCase().includes(searchLower));
+      });
       setCatalogResults(filtered.slice(0, 8));
     } catch (error) {
       console.error('Error searching catalog:', error);
@@ -136,10 +147,25 @@ export default function ComponentManager() {
   };
 
   const handleSelectFromCatalog = (catalogItem) => {
+    const componentType = formData.component_type;
+    let displayName = catalogItem.product_name || catalogItem.short_name || '';
+    let notesText = '';
+    
+    if (componentType === 'bullet') {
+      displayName = `${catalogItem.brand} ${catalogItem.short_name || catalogItem.product_name}`.trim();
+      notesText = `${catalogItem.weight_grains}gr • ${catalogItem.bullet_style}`.trim();
+    } else if (componentType === 'brass') {
+      displayName = catalogItem.brand;
+      notesText = catalogItem.cartridge_caliber || '';
+    } else {
+      displayName = catalogItem.product_name || catalogItem.short_name || '';
+      notesText = `${catalogItem.brand || ''} ${catalogItem.product_line || ''}`.trim();
+    }
+    
     setFormData({
       ...formData,
-      name: catalogItem.product_name || catalogItem.short_name || '',
-      notes: `${catalogItem.brand || ''} ${catalogItem.product_line || ''}`.trim(),
+      name: displayName,
+      notes: notesText,
     });
     setShowDropdown(false);
     setCatalogResults([]);
@@ -201,17 +227,35 @@ export default function ComponentManager() {
                 />
                 {showDropdown && catalogResults.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                    {catalogResults.map((item, idx) => (
+                    {catalogResults.map((item, idx) => {
+                      const isBullet = formData.component_type === 'bullet';
+                      const isBrass = formData.component_type === 'brass';
+                      return (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => handleSelectFromCatalog(item)}
                         className="w-full text-left px-3 py-2 hover:bg-secondary border-b border-border last:border-b-0 text-sm"
                       >
-                        <div className="font-medium">{item.product_name || item.short_name}</div>
-                        <div className="text-xs text-muted-foreground">{item.brand} • {item.product_line || ''}</div>
+                        {isBullet ? (
+                          <>
+                            <div className="font-medium">{item.brand} {item.short_name || item.product_name}</div>
+                            <div className="text-xs text-muted-foreground">{item.weight_grains}gr • {item.bullet_style}</div>
+                          </>
+                        ) : isBrass ? (
+                          <>
+                            <div className="font-medium">{item.brand}</div>
+                            <div className="text-xs text-muted-foreground">{item.cartridge_caliber}</div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="font-medium">{item.product_name || item.short_name}</div>
+                            <div className="text-xs text-muted-foreground">{item.brand} • {item.product_line || ''}</div>
+                          </>
+                        )}
                       </button>
-                    ))}
+                    );
+                    })}
                   </div>
                 )}
               </div>

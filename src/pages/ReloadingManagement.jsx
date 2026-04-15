@@ -9,6 +9,7 @@ import ReloadingSessionForm from '@/components/reloading/ReloadingSessionForm';
 import ReloadingInventoryWidget from '@/components/reloading/ReloadingInventoryWidget';
 import ComponentManager from '@/components/reloading/ComponentManager';
 import ReloadBatchForm from '@/components/reloading/ReloadBatchForm';
+import ReloadingStockInventory from '@/components/reloading/ReloadingStockInventory';
 import { generateReloadingBatchPDF } from '@/utils/pdfGenerators';
 
 export default function ReloadingManagement() {
@@ -165,6 +166,16 @@ export default function ReloadingManagement() {
             Session History
           </button>
           <button
+            onClick={() => setActiveTab('stock')}
+            className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === 'stock'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            Stock Inventory
+          </button>
+          <button
             onClick={() => setActiveTab('components')}
             className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
               activeTab === 'components'
@@ -172,7 +183,7 @@ export default function ReloadingManagement() {
                 : 'border-transparent text-muted-foreground hover:text-foreground'
             }`}
           >
-            Components
+            Manage Components
           </button>
           <button
             onClick={() => setActiveTab('inventory')}
@@ -185,6 +196,11 @@ export default function ReloadingManagement() {
             Old Inventory
           </button>
         </div>
+
+        {/* Stock Inventory */}
+        {activeTab === 'stock' && (
+          <ReloadingStockInventory />
+        )}
 
         {/* Sessions List */}
         {activeTab === 'history' && (
