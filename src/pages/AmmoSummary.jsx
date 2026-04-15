@@ -311,38 +311,40 @@ export default function AmmoSummary() {
                       )}
                     </div>
 
-                    {shotgun.cleaning_reminder_threshold && (
-                      <div className="pt-4 border-t border-border">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-medium text-muted-foreground">Cleaning Progress</span>
-                          <span className="text-xs font-semibold">
-                            {Math.round(
-                              (shotgun.cartridges_since_cleaning / shotgun.cleaning_reminder_threshold) * 100
-                            )}%
-                          </span>
+                    <div className="pt-4 border-t border-border">
+                      {shotgun.cleaning_reminder_threshold && (
+                        <div className="mb-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-medium text-muted-foreground">Cleaning Progress</span>
+                            <span className="text-xs font-semibold">
+                              {Math.round(
+                                (shotgun.cartridges_since_cleaning / shotgun.cleaning_reminder_threshold) * 100
+                              )}%
+                            </span>
+                          </div>
+                          <div className="h-2 bg-border rounded-full overflow-hidden">
+                            <div
+                              className={`h-full transition-all ${
+                                cleaningStatus === 'needs_cleaning' ? 'bg-amber-600' : 'bg-primary'
+                              }`}
+                              style={{
+                                width: `${Math.min(
+                                  (shotgun.cartridges_since_cleaning / shotgun.cleaning_reminder_threshold) * 100,
+                                  100
+                                )}%`,
+                              }}
+                            />
+                          </div>
                         </div>
-                        <div className="h-2 bg-border rounded-full overflow-hidden">
-                          <div
-                            className={`h-full transition-all ${
-                              cleaningStatus === 'needs_cleaning' ? 'bg-amber-600' : 'bg-primary'
-                            }`}
-                            style={{
-                              width: `${Math.min(
-                                (shotgun.cartridges_since_cleaning / shotgun.cleaning_reminder_threshold) * 100,
-                                100
-                              )}%`,
-                            }}
-                          />
-                        </div>
-                        <button
-                          onClick={() => handleShotgunMarkCleaned(shotgun.id)}
-                          className="mt-3 w-full px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
-                        >
-                          <Droplet className="w-4 h-4" />
-                          Mark as Cleaned
-                        </button>
-                      </div>
-                    )}
+                      )}
+                      <button
+                        onClick={() => handleShotgunMarkCleaned(shotgun.id)}
+                        className="w-full px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Droplet className="w-4 h-4" />
+                        Mark as Cleaned
+                      </button>
+                    </div>
                   </div>
                 );
               })
