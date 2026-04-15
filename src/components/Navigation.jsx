@@ -135,43 +135,7 @@ export default function Navigation() {
         </AnimatePresence>
       </div>
 
-      {/* ── Mobile Floating Bottom Nav (Dashboard Only) ── */}
-      <AnimatePresence>
-        {isDashboard && (
-          <motion.div
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="md:hidden fixed bottom-0 left-0 right-0 z-[9000] bg-transparent"
-            style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-          >
-            <div className="mx-3 mb-3 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-lg border border-slate-200/70 dark:border-slate-700 px-1 py-1.5 flex justify-around items-center">
-              {mainNavItems.map((item) => {
-                const Icon = item.icon;
-                const active = location.pathname === item.path;
-                return (
-                  <motion.button
-                    key={item.path}
-                    onClick={() => navigate(item.path)}
-                    whileTap={{ scale: 0.85 }}
-                    className="flex flex-col items-center justify-center gap-0.5 py-1 px-2 rounded-xl transition-colors duration-150 min-w-[52px]"
-                  >
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-150 ${active ? 'bg-slate-900 dark:bg-white' : ''}`}>
-                      {Icon && <Icon className={`w-[22px] h-[22px] ${active ? 'text-white dark:text-slate-900' : 'text-slate-500 dark:text-slate-400'}`} />}
-                      {item.emoji && <span className={`text-[20px] leading-none ${active ? 'opacity-100' : 'opacity-60'}`}>{item.emoji}</span>}
-                    </div>
-                    <span className={`text-[10px] font-semibold leading-none ${active ? 'text-slate-900 dark:text-white' : 'text-slate-400 dark:text-slate-500'}`}>{item.label}</span>
-                  </motion.button>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      {/* Bottom spacer — only on dashboard */}
-      {isDashboard && <div className="md:hidden" style={{ height: 'calc(72px + env(safe-area-inset-bottom, 0px))' }} />}
     </>
   );
 }
