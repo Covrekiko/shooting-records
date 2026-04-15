@@ -211,15 +211,14 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       {/* Form Content */}
       <div className="flex-1 overflow-y-auto p-5 pb-24 space-y-4">
       <form id="reload-batch-form" onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-6">
           <div>
             <label className={labelCls}>Date</label>
             <input
               type="date"
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className={inputCls + " text-sm"}
-              style={{ backgroundSize: '16px' }}
+              className={inputCls}
               required
             />
           </div>
