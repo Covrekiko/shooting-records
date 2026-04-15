@@ -30,6 +30,7 @@ import DeerStalkingMap from './pages/DeerStalkingMap';
 import DeerStalkingLogs from './pages/DeerStalkingLogs';
 import Users from './pages/Users';
 import SunriseSunsetTracker from './pages/SunriseSunsetTracker';
+import AmmoSummary from './pages/AmmoSummary';
 
 // Sync dark mode with system preference
 function ThemeSync() {
@@ -128,6 +129,7 @@ const AuthenticatedApp = () => {
           <Route path="/deer-stalking" element={<DeerStalkingMap />} />
           <Route path="/deer-stalking-logs" element={<DeerStalkingLogs />} />
           <Route path="/sunrise-sunset" element={<SunriseSunsetTracker />} />
+          <Route path="/ammo-summary" element={<AmmoSummary />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </AnimatedRoutes>

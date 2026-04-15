@@ -155,11 +155,25 @@ export default function TargetShooting() {
       const finalTrack = trackingService.getTrack();
       console.log('🟢 Checkout: Collected', finalTrack.length, 'GPS points before stop');
 
-      // Decrement ammo if needed
+      // Update rifle round counts and decrement ammo
       const uniqueAmmoIds = new Set();
       for (const rifle of formData.rifles_used || []) {
-        if (rifle.ammunition_id && rifle.rounds_fired && !uniqueAmmoIds.has(rifle.ammunition_id)) {
-          await decrementAmmoStock(rifle.ammunition_id, parseInt(rifle.rounds_fired));
+        const roundsFired = parseInt(rifle.rounds_fired) || 0;
+        
+        // Update rifle total and cleaning counters
+        if (rifle.rifle_id && roundsFired > 0) {
+          const currentRifle = rifles.find(r => r.id === rifle.rifle_id);
+          if (currentRifle) {
+            await base44.entities.Rifle.update(rifle.rifle_id, {
+              total_rounds_fired: (currentRifle.total_rounds_fired || 0) + roundsFired,
+              rounds_since_cleaning: (currentRifle.rounds_since_cleaning || 0) + roundsFired,
+            });
+          }
+        }
+        
+        // Decrement ammo if needed
+        if (rifle.ammunition_id && roundsFired && !uniqueAmmoIds.has(rifle.ammunition_id)) {
+          await decrementAmmoStock(rifle.ammunition_id, roundsFired);
           uniqueAmmoIds.add(rifle.ammunition_id);
         }
       }

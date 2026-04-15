@@ -13,6 +13,8 @@ import {
 import { RoundsPerMonthChart } from '@/components/RoundsPerMonthChart';
 import { DeerSuccessRateChart } from '@/components/DeerSuccessRateChart';
 import AmmoStockWidget from '@/components/AmmoStockWidget';
+import RifleAmmoTracker from '@/components/RifleAmmoTracker';
+import ShotgunCartridgeTracker from '@/components/ShotgunCartridgeTracker';
 import { Link } from 'react-router-dom';
 
 export default function Dashboard() {
@@ -192,9 +194,31 @@ export default function Dashboard() {
          )}
 
         {/* Widgets */}
-        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <AmmoStockWidget />
-        </div>
+        {user?.role !== 'admin' && (
+          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <AmmoStockWidget />
+            <RifleAmmoTracker />
+            <ShotgunCartridgeTracker />
+          </div>
+        )}
+
+        {/* Ammo Summary Link */}
+        {user?.role !== 'admin' && (
+          <div className="mt-4">
+            <Link
+              to="/ammo-summary"
+              className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow block"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-slate-900 dark:text-white">Ammunition Summary</p>
+                  <p className="text-xs text-muted-foreground mt-1">Track rifle & shotgun usage and cleaning</p>
+                </div>
+                <span className="text-slate-300 dark:text-slate-600 text-xl">›</span>
+              </div>
+            </Link>
+          </div>
+        )}
 
         {/* Stalking Map Section */}
          {user?.role !== 'admin' && (

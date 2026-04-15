@@ -114,6 +114,18 @@ export default function DeerManagement() {
       const finalTrack = trackingService.getTrack();
       console.log('🟢 Checkout: Collected', finalTrack.length, 'GPS points before stop');
 
+      // Update rifle round counts
+      const roundsFired = parseInt(checkoutData.total_count) || 0;
+      if (checkoutData.rifle_id && roundsFired > 0) {
+        const currentRifle = rifles.find(r => r.id === checkoutData.rifle_id);
+        if (currentRifle) {
+          await base44.entities.Rifle.update(checkoutData.rifle_id, {
+            total_rounds_fired: (currentRifle.total_rounds_fired || 0) + roundsFired,
+            rounds_since_cleaning: (currentRifle.rounds_since_cleaning || 0) + roundsFired,
+          });
+        }
+      }
+
       // Decrement ammo if needed
       if (checkoutData.ammunition_id && checkoutData.total_count) {
         await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count));
