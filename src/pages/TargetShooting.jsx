@@ -462,19 +462,27 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
               </div>
               <div>
                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide block mb-1.5">Ammunition</label>
-                <BottomSheetSelect
-                  value={rifle.ammunition_id || ''}
-                  onChange={(val) => {
-                    const a = ammunition.find(x => x.id === val);
-                    setData(prev => {
-                      const updated = [...prev.rifles_used];
-                      updated[index] = { ...updated[index], ammunition_id: val, ammunition_brand: a?.brand || '', caliber: a?.caliber || '', bullet_type: a?.bullet_type || '', grain: a?.grain || '' };
-                      return { ...prev, rifles_used: updated };
-                    });
-                  }}
-                  placeholder="Select saved ammunition"
-                  options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
-                />
+                {rifle.rifle_id ? (
+                  <BottomSheetSelect
+                    value={rifle.ammunition_id || ''}
+                    onChange={(val) => {
+                      const a = ammunition.find(x => x.id === val);
+                      setData(prev => {
+                        const updated = [...prev.rifles_used];
+                        updated[index] = { ...updated[index], ammunition_id: val, ammunition_brand: a?.brand || '', caliber: a?.caliber || '', bullet_type: a?.bullet_type || '', grain: a?.grain || '' };
+                        return { ...prev, rifles_used: updated };
+                      });
+                    }}
+                    placeholder="Select saved ammunition"
+                    options={ammunition.filter(a => {
+                      const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
+                      return !selectedRifle || !selectedRifle.caliber || a.caliber === selectedRifle.caliber;
+                    }).map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
+                  />
+                ) : (
+                  <p className="text-xs text-slate-400">Select a rifle first</p>
+                )}
+
                 {!rifle.ammunition_id && (
                   <div className="mt-2 space-y-2">
                     <span className="text-xs text-slate-400">Or enter manually:</span>

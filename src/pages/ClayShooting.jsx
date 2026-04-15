@@ -424,16 +424,24 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
           </div>
           <div>
             <label className={labelCls}>Ammunition</label>
-            <BottomSheetSelect
-              value={data.ammunition_id || ''}
-              onChange={(val) => {
-                const a = ammunition.find(x => x.id === val);
-                onChange('ammunition_id', val);
-                if (a) onChange('ammunition_used', `${a.brand} ${a.caliber || ''} ${a.bullet_type || ''}`.trim());
-              }}
-              placeholder="Select saved ammunition"
-              options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
-            />
+            {data.shotgun_id ? (
+              <BottomSheetSelect
+                value={data.ammunition_id || ''}
+                onChange={(val) => {
+                  const a = ammunition.find(x => x.id === val);
+                  onChange('ammunition_id', val);
+                  if (a) onChange('ammunition_used', `${a.brand} ${a.caliber || ''} ${a.bullet_type || ''}`.trim());
+                }}
+                placeholder="Select saved ammunition"
+                options={ammunition.filter(a => {
+                  const selectedShotgun = shotguns.find(s => s.id === data.shotgun_id);
+                  return !selectedShotgun || !selectedShotgun.gauge || a.caliber === selectedShotgun.gauge;
+                }).map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
+              />
+            ) : (
+              <p className="text-xs text-slate-400">Select a shotgun first</p>
+            )}
+
             {!data.ammunition_id && (
               <div className="mt-2">
                 <span className="text-xs text-slate-400">Or enter manually:</span>
