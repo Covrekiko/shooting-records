@@ -49,6 +49,10 @@
         "InterLock",
         "Tipped",
         "Partition",
+        "A-Frame",
+        "Scirocco",
+        "Bonded",
+        "Lead-Free",
         "Other"
       ],
       "description": "Bullet style"
@@ -80,7 +84,8 @@
           "Varmint",
           "Long Range",
           "Precision",
-          "Defense"
+          "Defense",
+          "Small Game"
         ]
       },
       "description": "Intended use categories"
@@ -131,7 +136,6 @@
   "required": [
     "brand",
     "product_name",
-    "caliber",
     "weight_grains"
   ]
 }
