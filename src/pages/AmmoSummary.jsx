@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ChevronLeft, AlertCircle, CheckCircle2, Crosshair } from 'lucide-react';
+import { ChevronLeft, AlertCircle, CheckCircle2, Crosshair, RotateCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 
@@ -12,6 +12,11 @@ export default function AmmoSummary() {
 
   useEffect(() => {
     loadData();
+    
+    // Refresh when page comes into focus
+    const handleFocus = () => loadData();
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   const loadData = async () => {
@@ -60,14 +65,26 @@ export default function AmmoSummary() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="sticky top-0 bg-background z-10 pt-4 pb-4 border-b border-border">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate('/')}
+                className="p-2 hover:bg-secondary rounded-lg transition-colors"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <h1 className="text-2xl font-bold">Ammunition Summary</h1>
+            </div>
             <button
-              onClick={() => navigate('/')}
+              onClick={() => {
+                setLoading(true);
+                loadData();
+              }}
               className="p-2 hover:bg-secondary rounded-lg transition-colors"
+              title="Refresh"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <RotateCw className="w-5 h-5" />
             </button>
-            <h1 className="text-2xl font-bold">Ammunition Summary</h1>
           </div>
         </div>
 
