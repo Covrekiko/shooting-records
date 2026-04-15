@@ -95,6 +95,15 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     const powderCostPerRound = chargeInGrams * costPerGram;
     const powderCost = powderCostPerRound * cartridgesLoaded;
 
+    // DEBUG: powder cost
+    console.log('💰 POWDER COST DEBUG:');
+    console.log('Price total (£):', powder.price_total);
+    console.log('Stock total (grams):', powderStockInGrams);
+    console.log('Cost per gram (£):', costPerGram);
+    console.log('Charge per round (grams):', chargeInGrams);
+    console.log('Cost per round (£):', powderCostPerRound);
+    console.log('Cost for batch (£):', powderCost);
+
     const primerCost = primer.cost_per_unit * cartridgesLoaded;
     const brassCost = formData.brass_is_used ? 0 : brass.cost_per_unit * cartridgesLoaded;
     const bulletCost = bullet.cost_per_unit * cartridgesLoaded;
@@ -132,9 +141,13 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
       const cartridgesLoaded = parseInt(formData.cartridges_loaded);
 
-      // Convert charge to grams, multiply by batch quantity, then convert back to powder's stored unit
+      // ===== POWDER DEDUCTION - ALL IN GRAMS =====
       const chargePerRoundInGrams = convertToGrams(parseFloat(formData.powder_charge), formData.powder_unit);
       const totalPowderUsedInGrams = chargePerRoundInGrams * cartridgesLoaded;
+
+      // Convert stored stock to grams, perform deduction, convert back to stored unit
+      const stockInGrams = convertToGrams(powder.quantity_total, powder.unit);
+      const remainingInGrams = convertToGrams(powder.quantity_remaining, powder.unit) - totalPowderUsedInGrams;
       const unitConversions = {
         'grams': 1,
         'kg': 1000,
@@ -143,6 +156,20 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
         'grains': 0.06479891,
       };
       const powderUsed = totalPowderUsedInGrams / (unitConversions[powder.unit] || 1);
+      const powderRemaining = remainingInGrams / (unitConversions[powder.unit] || 1);
+
+      // DEBUG LOGS
+      console.log('🔬 POWDER DEDUCTION DEBUG:');
+      console.log('Stored unit:', powder.unit);
+      console.log('Stored quantity_total:', powder.quantity_total);
+      console.log('Stored quantity_remaining:', powder.quantity_remaining);
+      console.log('Stock in grams:', stockInGrams);
+      console.log('Remaining in grams:', remainingInGrams);
+      console.log('Charge per round (grains):', formData.powder_charge);
+      console.log('Charge per round (grams):', chargePerRoundInGrams);
+      console.log('Total used (grams):', totalPowderUsedInGrams);
+      console.log('Powder used (in stored unit):', powderUsed);
+      console.log('Powder remaining (in stored unit):', powderRemaining);
 
       // Deduct from component stock
       await Promise.all([
@@ -150,7 +177,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           quantity_remaining: primer.quantity_remaining - cartridgesLoaded,
         }),
         base44.entities.ReloadingComponent.update(formData.powder_id, {
-          quantity_remaining: powder.quantity_remaining - powderUsed,
+          quantity_remaining: powderRemaining,
         }),
         base44.entities.ReloadingComponent.update(formData.brass_id, {
           quantity_remaining: brass.quantity_remaining - cartridgesLoaded,
