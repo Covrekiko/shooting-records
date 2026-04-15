@@ -16,8 +16,14 @@ export const trackingService = {
     console.log('🟢 TRACKING INIT - sessionId:', sessionId, 'type:', sessionType);
     console.log('🟢 navigator.geolocation available:', !!navigator.geolocation);
     
+    // Prevent duplicate tracking sessions
+    if (trackingState.isTracking && trackingState.sessionId === sessionId) {
+      console.warn('⚠️ Tracking already active for this session, ignoring duplicate start request');
+      return;
+    }
+    
     if (trackingState.isTracking) {
-      console.warn('⚠️ Tracking already active, stopping previous...');
+      console.warn('⚠️ Tracking already active for different session, stopping previous...');
       this.stopTracking();
     }
 
@@ -51,16 +57,22 @@ export const trackingService = {
       trackingListeners.forEach(listener => listener(trackSnapshot));
     };
 
+    let permissionDenied = false;
+
     const handlePositionError = (error) => {
-      console.error('❌ GPS ERROR - Code:', error?.code, 'Message:', error?.message || error);
-      if (error?.code === 1) {
-        console.error('   → Permission denied. User must allow geolocation access.');
-      } else if (error?.code === 2) {
-        console.error('   → Position unavailable. Check GPS/network.');
-      } else if (error?.code === 3) {
-        console.error('   → Timeout. GPS signal lost or delayed.');
-      }
-    };
+       console.error('❌ GPS ERROR - Code:', error?.code, 'Message:', error?.message || error);
+       if (error?.code === 1) {
+         console.error('   → Permission denied. User must allow geolocation access.');
+         permissionDenied = true;
+         // Stop tracking on permission denial
+         trackingState.isTracking = false;
+         trackingListeners.forEach(listener => listener([]));
+       } else if (error?.code === 2) {
+         console.error('   → Position unavailable. Check GPS/network.');
+       } else if (error?.code === 3) {
+         console.error('   → Timeout. GPS signal lost or delayed.');
+       }
+     };
 
     try {
       console.log('🟢 Calling watchPosition...');

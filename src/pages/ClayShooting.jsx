@@ -79,6 +79,18 @@ export default function ClayShooting() {
   const handleCheckin = async (e) => {
     e.preventDefault();
     try {
+      // Prevent duplicate active sessions
+      if (activeSession) {
+        alert('Already checked in. Please check out first.');
+        return;
+      }
+
+      // Validate required fields
+      if (!checkinData.club_id || !checkinData.date || !checkinData.checkin_time) {
+        alert('All required fields must be filled');
+        return;
+      }
+
       const selectedClub = clubs.find(c => c.id === checkinData.club_id);
       const session = await base44.entities.SessionRecord.create({
         ...checkinData,
@@ -92,6 +104,12 @@ export default function ClayShooting() {
         gps_track: [],
       });
       setActiveSession(session);
+
+      // Validate geolocation support before starting tracking
+      if (!navigator.geolocation) {
+        console.warn('⚠️ Geolocation not available on this device');
+      }
+
       trackingService.startTracking(session.id, 'clay');
       setShowCheckin(false);
       setCheckinData({ date: new Date().toISOString().split('T')[0], club_id: '', checkin_time: new Date().toTimeString().slice(0, 5), notes: '' });
@@ -102,7 +120,10 @@ export default function ClayShooting() {
   };
 
   const handleCheckout = async (formData) => {
-    if (!activeSession) { alert('No active session to check out from'); return; }
+    if (!activeSession) {
+      alert('No active session to check out from');
+      return;
+    }
     try {
       const photoUrls = (formData.photos || []).filter(p => typeof p === 'string' && !p.startsWith('data:'));
       if (formData.ammunition_id && formData.rounds_fired) {

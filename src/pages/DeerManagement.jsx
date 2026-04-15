@@ -77,7 +77,27 @@ export default function DeerManagement() {
   const handleCheckin = async (e) => {
     e.preventDefault();
     try {
+      // Prevent duplicate active outings
+      if (activeOuting) {
+        alert('Already checked in. Please check out first.');
+        return;
+      }
+
+      // Validate required fields
+      if (!checkinData.location_id || !checkinData.place_name || !checkinData.date || !checkinData.start_time) {
+        alert('All fields are required');
+        return;
+      }
+
       const outing = await startOuting(checkinData);
+
+      // Validate geolocation support before starting tracking
+      if (!navigator.geolocation) {
+        alert('⚠️ Geolocation not available on this device. Check-in successful but GPS tracking disabled.');
+        setShowCheckin(false);
+        return;
+      }
+
       trackingService.startTracking(outing.id, 'deer');
       setShowCheckin(false);
       setCheckinData({ date: new Date().toISOString().split('T')[0], location_id: '', place_name: '', start_time: new Date().toTimeString().slice(0, 5) });

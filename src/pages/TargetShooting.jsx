@@ -84,6 +84,18 @@ export default function TargetShooting() {
   const handleCheckin = async (e) => {
     e.preventDefault();
     try {
+      // Prevent duplicate active sessions
+      if (activeSession) {
+        alert('Already checked in. Please check out first.');
+        return;
+      }
+
+      // Validate required fields
+      if (!checkinData.club_id || !checkinData.date || !checkinData.checkin_time) {
+        alert('All required fields must be filled');
+        return;
+      }
+
       const selectedClub = clubs.find(c => c.id === checkinData.club_id);
       const session = await base44.entities.SessionRecord.create({
         ...checkinData,
@@ -97,6 +109,12 @@ export default function TargetShooting() {
         gps_track: [],
       });
       setActiveSession(session);
+
+      // Validate geolocation support before starting tracking
+      if (!navigator.geolocation) {
+        console.warn('⚠️ Geolocation not available on this device');
+      }
+
       trackingService.startTracking(session.id, 'target');
       setGpsTrack([]);
       setShowCheckin(false);
@@ -108,6 +126,10 @@ export default function TargetShooting() {
   };
 
   const handleCheckout = async (formData) => {
+    if (!activeSession) {
+      alert('No active session to check out from');
+      return;
+    }
     try {
       const uniqueAmmoIds = new Set();
       for (const rifle of formData.rifles_used || []) {
@@ -119,6 +141,7 @@ export default function TargetShooting() {
       const photoUrls = (formData.photos || []).map(photo => typeof photo === 'string' ? photo : photo.url);
       const finalTrack = trackingService.stopTracking();
       await base44.entities.SessionRecord.update(activeSession.id, {
+        status: 'completed',
         checkout_time: formData.checkout_time,
         rifles_used: formData.rifles_used,
         notes: formData.notes,
