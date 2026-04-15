@@ -24,6 +24,26 @@
       "type": "integer",
       "default": 0,
       "description": "Total cartridges fired in lifetime"
+    },
+    "cartridges_since_cleaning": {
+      "type": "integer",
+      "default": 0,
+      "description": "Cartridges fired since last cleaning"
+    },
+    "cleaning_reminder_threshold": {
+      "type": "integer",
+      "enum": [
+        50,
+        100,
+        150,
+        200
+      ],
+      "description": "Cartridges threshold for cleaning reminder"
+    },
+    "last_cleaning_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Last cleaning date"
     }
   },
   "required": [

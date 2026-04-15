@@ -39,7 +39,20 @@ export default function AmmoSummary() {
       });
       await loadData();
     } catch (error) {
-      console.error('Error marking cleaned:', error);
+      console.error('Error marking rifle cleaned:', error);
+    }
+  };
+
+  const handleShotgunMarkCleaned = async (shotgunId) => {
+    try {
+      const today = format(new Date(), 'yyyy-MM-dd');
+      await base44.entities.Shotgun.update(shotgunId, {
+        cartridges_since_cleaning: 0,
+        last_cleaning_date: today,
+      });
+      await loadData();
+    } catch (error) {
+      console.error('Error marking shotgun cleaned:', error);
     }
   };
 
@@ -239,24 +252,100 @@ export default function AmmoSummary() {
                 <p className="text-muted-foreground">No shotguns configured</p>
               </div>
             ) : (
-              shotguns.map((shotgun) => (
-                <div
-                  key={shotgun.id}
-                  className="bg-card border border-border rounded-lg p-4"
-                >
-                  <div>
-                    <h3 className="font-semibold text-lg">{shotgun.name}</h3>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {shotgun.make} {shotgun.model} • {shotgun.gauge}
-                    </p>
-                  </div>
+              shotguns.map((shotgun) => {
+                const cleaningStatus =
+                  shotgun.cleaning_reminder_threshold && shotgun.cartridges_since_cleaning >= shotgun.cleaning_reminder_threshold
+                    ? 'needs_cleaning'
+                    : shotgun.last_cleaning_date
+                    ? 'clean'
+                    : 'unknown';
 
-                  <div className="bg-secondary/30 rounded-lg p-4 mt-4">
-                    <p className="text-xs text-muted-foreground mb-1">Total Cartridges Fired</p>
-                    <p className="text-2xl font-bold">{shotgun.total_cartridges_fired || 0}</p>
+                return (
+                  <div
+                    key={shotgun.id}
+                    className="bg-card border border-border rounded-lg p-4"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className="font-semibold text-lg">{shotgun.name}</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {shotgun.make} {shotgun.model} • {shotgun.gauge}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {cleaningStatus === 'needs_cleaning' && (
+                          <div className="flex items-center gap-1 px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                            <AlertCircle className="w-4 h-4 text-amber-600" />
+                            <span className="text-xs font-semibold text-amber-600">Needs Cleaning</span>
+                          </div>
+                        )}
+                        {cleaningStatus === 'clean' && (
+                          <div className="flex items-center gap-1 px-2.5 py-1 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                            <CheckCircle2 className="w-4 h-4 text-green-600" />
+                            <span className="text-xs font-semibold text-green-600">Clean</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                      <div className="bg-secondary/30 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-1">Total Cartridges</p>
+                        <p className="text-xl font-bold">{shotgun.total_cartridges_fired || 0}</p>
+                      </div>
+                      <div className="bg-secondary/30 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-1">Since Cleaning</p>
+                        <p className="text-xl font-bold">{shotgun.cartridges_since_cleaning || 0}</p>
+                      </div>
+                      {shotgun.cleaning_reminder_threshold && (
+                        <div className="bg-secondary/30 rounded-lg p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Target</p>
+                          <p className="text-xl font-bold">{shotgun.cleaning_reminder_threshold}</p>
+                        </div>
+                      )}
+                      {shotgun.last_cleaning_date && (
+                        <div className="bg-secondary/30 rounded-lg p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Last Cleaned</p>
+                          <p className="text-xs font-semibold">{format(new Date(shotgun.last_cleaning_date), 'MMM d')}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {shotgun.cleaning_reminder_threshold && (
+                      <div className="pt-4 border-t border-border">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-medium text-muted-foreground">Cleaning Progress</span>
+                          <span className="text-xs font-semibold">
+                            {Math.round(
+                              (shotgun.cartridges_since_cleaning / shotgun.cleaning_reminder_threshold) * 100
+                            )}%
+                          </span>
+                        </div>
+                        <div className="h-2 bg-border rounded-full overflow-hidden">
+                          <div
+                            className={`h-full transition-all ${
+                              cleaningStatus === 'needs_cleaning' ? 'bg-amber-600' : 'bg-primary'
+                            }`}
+                            style={{
+                              width: `${Math.min(
+                                (shotgun.cartridges_since_cleaning / shotgun.cleaning_reminder_threshold) * 100,
+                                100
+                              )}%`,
+                            }}
+                          />
+                        </div>
+                        <button
+                          onClick={() => handleShotgunMarkCleaned(shotgun.id)}
+                          className="mt-3 w-full px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Droplet className="w-4 h-4" />
+                          Mark as Cleaned
+                        </button>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
           </div>
