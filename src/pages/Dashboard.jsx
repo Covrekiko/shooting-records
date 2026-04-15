@@ -155,7 +155,7 @@ export default function Dashboard() {
              link="/profile/settings"
            />
            <StatCard
-             icon={<span className="text-2xl">🔫</span>}
+             icon={<span className="text-2xl">Ⓡ</span>}
              label="Reloading"
              subtitle="Manage batches"
              link="/reloading"
@@ -209,7 +209,7 @@ export default function Dashboard() {
              link="/profile/settings"
            />
            <StatCard
-             icon={<span className="text-2xl">🔫</span>}
+             icon={<span className="text-2xl">Ⓡ</span>}
              label="Reloading"
              subtitle="Manage batches"
              link="/reloading"
