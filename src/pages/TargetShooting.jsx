@@ -6,11 +6,13 @@ import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import RecordsSection from '@/components/RecordsSection';
-import { Clock, CheckCircle, Plus } from 'lucide-react';
+import { Clock, Plus, Map } from 'lucide-react';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
+import ModalShell from '@/components/ModalShell';
+import { motion } from 'framer-motion';
 
 export default function TargetShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -33,50 +35,25 @@ export default function TargetShooting() {
     notes: '',
   });
 
-  const [checkoutData, setCheckoutData] = useState({
-    checkout_time: new Date().toTimeString().slice(0, 5),
-    rifles_used: [
-      {
-        rifle_id: '',
-        rounds_fired: '',
-        meters_range: '',
-        ammunition_brand: '',
-        caliber: '',
-        bullet_type: '',
-        grain: '',
-      }
-    ],
-    notes: '',
-    photos: [],
-  });
-
   useEffect(() => {
     sessionManager.clearExpiredSessions();
     async function loadData() {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
-
         const [clubsList, riflesList, ammoList, activeSession] = await Promise.all([
           base44.entities.Club.filter({ created_by: currentUser.email }),
           base44.entities.Rifle.filter({ created_by: currentUser.email }),
           base44.entities.Ammunition.filter({ created_by: currentUser.email }),
-          base44.entities.SessionRecord.filter({
-            created_by: currentUser.email,
-            category: 'target_shooting',
-            status: 'active',
-          }),
+          base44.entities.SessionRecord.filter({ created_by: currentUser.email, category: 'target_shooting', status: 'active' }),
         ]);
-
         setClubs(clubsList);
         setRifles(riflesList);
         setAmmunition(ammoList);
         if (activeSession.length > 0) {
           const session = activeSession[0];
           setActiveSession(session);
-          // Initialize GPS track from existing session
           setGpsTrack(session.gps_track || []);
-          console.log('✅ TargetShooting: Loaded active session with', session.gps_track?.length || 0, 'GPS points');
         }
       } catch (error) {
         console.error('Error loading data:', error);
@@ -84,21 +61,12 @@ export default function TargetShooting() {
         setLoading(false);
       }
     }
-
     loadData();
   }, []);
 
-  // Subscribe to live GPS updates
   useEffect(() => {
-    console.log('🟡 TargetShooting: Subscribed to trackingService');
-    const unsubscribe = trackingService.subscribe((track) => {
-      console.log('🟡 TargetShooting: trackingService listener fired with', track.length, 'points');
-      setGpsTrack(track);
-    });
-    return () => {
-      console.log('🟡 TargetShooting: Unsubscribed from trackingService');
-      unsubscribe();
-    };
+    const unsubscribe = trackingService.subscribe((track) => setGpsTrack(track));
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -106,200 +74,144 @@ export default function TargetShooting() {
       clubs.forEach((club) => {
         const match = club.location?.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
         if (match) {
-          const distance = calculateDistance(
-            location.latitude,
-            location.longitude,
-            parseFloat(match[1]),
-            parseFloat(match[2])
-          );
-          if (distance < 0.5) {
-            setNearbyClub({ name: club.name, distance });
-          }
+          const distance = calculateDistance(location.latitude, location.longitude, parseFloat(match[1]), parseFloat(match[2]));
+          if (distance < 0.5) setNearbyClub({ name: club.name, distance });
         }
       });
     }
   }, [location, clubs]);
 
   const handleCheckin = async (e) => {
-     e.preventDefault();
-     console.log('🟢 CHECK IN CLICKED - TargetShooting');
-     console.log('🟢 CHECK IN SAVE STARTED - club:', checkinData.club_id, 'date:', checkinData.date);
-     try {
-       // Find club name for location_name field
-       const selectedClub = clubs.find(c => c.id === checkinData.club_id);
-       const session = await base44.entities.SessionRecord.create({
-         ...checkinData,
-         category: 'target_shooting',
-         status: 'active',
-         location_id: checkinData.club_id,
-         location_name: selectedClub?.name || 'Unknown Club',
-         start_time: checkinData.checkin_time,
-         notes: checkinData.notes || '',
-         photos: [],
-         gps_track: [],
-       });
-       console.log('🟢 CHECK IN SAVE SUCCESS - session id:', session.id, 'club:', selectedClub?.name);
-       setActiveSession(session);
-       trackingService.startTracking(session.id, 'target');
-       setGpsTrack([]);
+    e.preventDefault();
+    try {
+      const selectedClub = clubs.find(c => c.id === checkinData.club_id);
+      const session = await base44.entities.SessionRecord.create({
+        ...checkinData,
+        category: 'target_shooting',
+        status: 'active',
+        location_id: checkinData.club_id,
+        location_name: selectedClub?.name || 'Unknown Club',
+        start_time: checkinData.checkin_time,
+        notes: checkinData.notes || '',
+        photos: [],
+        gps_track: [],
+      });
+      setActiveSession(session);
+      trackingService.startTracking(session.id, 'target');
+      setGpsTrack([]);
+      setShowCheckin(false);
+      setCheckinData({ date: new Date().toISOString().split('T')[0], club_id: '', checkin_time: new Date().toTimeString().slice(0, 5), notes: '' });
+    } catch (error) {
+      console.error('Check-in failed:', error.message);
+      alert('Check-in failed: ' + error.message);
+    }
+  };
 
-       setShowCheckin(false);
-       setCheckinData({
-         date: new Date().toISOString().split('T')[0],
-         club_id: '',
-         checkin_time: new Date().toTimeString().slice(0, 5),
-         notes: '',
-       });
-     } catch (error) {
-       console.error('🟢 CHECK IN SAVE FAILED:', error.message);
-       alert('Check-in failed: ' + error.message);
-     }
-   };
-
-  // handleCheckout receives the final form data directly from the modal
   const handleCheckout = async (formData) => {
-   console.log('🔴 CHECK OUT CLICKED - TargetShooting, sessionId:', activeSession?.id);
-   console.log('🔴 CHECK OUT SAVE STARTED - rifles:', formData.rifles_used?.length, 'photos:', formData.photos?.length);
-   try {
-     // Decrement ammo stock for each rifle used
-     const uniqueAmmoIds = new Set();
-     for (const rifle of formData.rifles_used || []) {
-       if (rifle.ammunition_id && rifle.rounds_fired && !uniqueAmmoIds.has(rifle.ammunition_id)) {
-         await decrementAmmoStock(rifle.ammunition_id, parseInt(rifle.rounds_fired));
-         uniqueAmmoIds.add(rifle.ammunition_id);
-       }
-     }
-     // Extract photo URLs from photo objects
-     const photoUrls = (formData.photos || []).map(photo => typeof photo === 'string' ? photo : photo.url);
-     const finalTrack = trackingService.stopTracking();
-     console.log('🔴 GPS TRACK - saved', finalTrack.length, 'points');
-
-     const updatePayload = {
-       checkout_time: formData.checkout_time,
-       rifles_used: formData.rifles_used,
-       notes: formData.notes,
-       photos: photoUrls,
-       active_checkin: false,
-       gps_track: finalTrack,
-     };
-
-     await base44.entities.SessionRecord.update(activeSession.id, updatePayload);
-     console.log('🔴 CHECK OUT SAVE SUCCESS - Record updated:', activeSession.id);
-
+    try {
+      const uniqueAmmoIds = new Set();
+      for (const rifle of formData.rifles_used || []) {
+        if (rifle.ammunition_id && rifle.rounds_fired && !uniqueAmmoIds.has(rifle.ammunition_id)) {
+          await decrementAmmoStock(rifle.ammunition_id, parseInt(rifle.rounds_fired));
+          uniqueAmmoIds.add(rifle.ammunition_id);
+        }
+      }
+      const photoUrls = (formData.photos || []).map(photo => typeof photo === 'string' ? photo : photo.url);
+      const finalTrack = trackingService.stopTracking();
+      await base44.entities.SessionRecord.update(activeSession.id, {
+        checkout_time: formData.checkout_time,
+        rifles_used: formData.rifles_used,
+        notes: formData.notes,
+        photos: photoUrls,
+        active_checkin: false,
+        gps_track: finalTrack,
+      });
       setActiveSession(null);
       setGpsTrack([]);
       setShowCheckout(false);
-      setCheckoutData({
-        checkout_time: new Date().toTimeString().slice(0, 5),
-        rifles_used: [{ rifle_id: '', rounds_fired: '', meters_range: '', ammunition_brand: '', caliber: '', bullet_type: '', grain: '' }],
-        notes: '',
-        photos: [],
-      });
       setViewingTrack(null);
     } catch (error) {
-      console.error('🔴 CHECK OUT SAVE FAILED:', error.message, error.status, error.response?.data);
+      console.error('Checkout failed:', error.message);
       alert('Checkout failed: ' + error.message);
     }
   };
 
   if (loading) {
     return (
-      <div>
+      <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
         <Navigation />
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
       <Navigation />
       {nearbyClub && (
-        <CheckinBanner
-          location={nearbyClub.name}
-          distance={nearbyClub.distance}
-          onDismiss={() => setNearbyClub(null)}
-          onCheckin={() => setShowCheckin(true)}
-        />
+        <CheckinBanner location={nearbyClub.name} distance={nearbyClub.distance} onDismiss={() => setNearbyClub(null)} onCheckin={() => setShowCheckin(true)} />
       )}
-      <main className="max-w-4xl mx-auto px-4 pt-4 md:pt-16 py-8 mobile-page-padding">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Target Shooting</h1>
-          <p className="text-muted-foreground">Record your rifle shooting sessions</p>
+      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-4 mobile-page-padding">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="hidden md:block">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Target Shooting</h1>
+            <p className="text-xs text-slate-400 mt-0.5">Record your rifle shooting sessions</p>
+          </div>
+          {!activeSession && (
+            <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
+              className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Start New Session</span>
+              <span className="sm:hidden">New Session</span>
+            </motion.button>
+          )}
         </div>
 
-        {activeSession ? (
-          <div className="bg-accent border border-border rounded-lg p-6 mb-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-lg font-semibold flex items-center gap-2">
+        {activeSession && (
+          <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 mb-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Clock className="w-5 h-5 text-primary" />
-                  Active Session
-                </h2>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Check-in: {activeSession.checkin_time}
-                </p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Active Session</p>
+                  <p className="text-xs text-slate-400">Check-in: {activeSession.checkin_time}</p>
+                </div>
               </div>
-              <button
-                onClick={() => setShowCheckout(true)}
-                className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
-              >
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowCheckout(true)}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity">
                 Check Out
-              </button>
+              </motion.button>
             </div>
           </div>
-        ) : (
-          <button
-            onClick={() => setShowCheckin(true)}
-            disabled={!!activeSession}
-            className="w-full md:w-auto px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity flex items-center gap-2 mb-6"
-          >
-            <Plus className="w-5 h-5" />
-            Start New Session
-          </button>
         )}
 
-        {/* Records List */}
-         <div className="mt-12">
-           <h2 className="text-2xl font-bold mb-4">Session Records</h2>
-           <RecordsSection 
-             category="target_shooting"
-             title="Session Records"
-             emptyMessage="No target shooting sessions recorded yet"
-           />
-         </div>
+        <div className="mt-4">
+          <h2 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-3">Session Records</h2>
+          <RecordsSection category="target_shooting" title="Session Records" emptyMessage="No target shooting sessions recorded yet" />
+        </div>
 
-        {/* GPS Track Viewer */}
-        {viewingTrack && (
-          <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />
-        )}
-        </main>
+        {viewingTrack && <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />}
+      </main>
 
-      {/* Modals via portal so fixed positioning works correctly */}
       {createPortal(
         <>
-          {(showCheckin || showCheckout) && <div className="fixed inset-0 z-[50000] bg-black/50" />}
+          {(showCheckin || showCheckout) && <div className="fixed inset-0 z-[50000] bg-black/50" onClick={() => { setShowCheckin(false); setShowCheckout(false); }} />}
           {showCheckin && (
-            <div className="fixed inset-0 z-[50001] flex flex-col justify-end">
-              <CheckinModal
-                data={checkinData}
-                clubs={clubs}
-                onSubmit={handleCheckin}
-                onChange={(field, value) => setCheckinData({ ...checkinData, [field]: value })}
-                onClose={() => setShowCheckin(false)}
-              />
+            <div className="fixed inset-0 z-[50001] flex flex-col justify-end sm:justify-center sm:items-center pointer-events-none">
+              <div className="pointer-events-auto w-full sm:max-w-md">
+                <CheckinModal data={checkinData} clubs={clubs} onSubmit={handleCheckin} onChange={(f, v) => setCheckinData({ ...checkinData, [f]: v })} onClose={() => setShowCheckin(false)} />
+              </div>
             </div>
           )}
           {showCheckout && activeSession && (
-            <div className="fixed inset-0 z-[50001] flex flex-col justify-end">
-              <CheckoutModal
-                rifles={rifles}
-                ammunition={ammunition}
-                onSubmit={handleCheckout}
-                onClose={() => setShowCheckout(false)}
-              />
+            <div className="fixed inset-0 z-[50001] flex flex-col justify-end sm:justify-center sm:items-center pointer-events-none">
+              <div className="pointer-events-auto w-full sm:max-w-md">
+                <CheckoutModal rifles={rifles} ammunition={ammunition} onSubmit={handleCheckout} onClose={() => setShowCheckout(false)} gpsTrack={gpsTrack} onViewTrack={setViewingTrack} />
+              </div>
             </div>
           )}
         </>,
@@ -309,95 +221,65 @@ export default function TargetShooting() {
   );
 }
 
+// ─── Check-in Modal ───────────────────────────────────────────────
 function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
+  const inputCls = "w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/30";
+  const labelCls = "block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5";
+
   return (
-    <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
-        {/* Drag handle for mobile */}
-        <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4 sm:hidden" />
-        <h2 className="text-xl font-bold mb-4">Check In</h2>
-        <form onSubmit={onSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Date</label>
-            <input
-              type="date"
-              value={data.date}
-              onChange={(e) => onChange('date', e.target.value)}
-              className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Club</label>
-            <BottomSheetSelect
-              value={data.club_id}
-              onChange={(val) => onChange('club_id', val)}
-              placeholder="Select a club"
-              options={clubs.map(c => ({ value: c.id, label: c.name }))}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Check-in Time</label>
-            <input
-              type="time"
-              value={data.checkin_time}
-              onChange={(e) => onChange('checkin_time', e.target.value)}
-              className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Notes (optional)</label>
-            <textarea
-              value={data.notes}
-              onChange={(e) => onChange('notes', e.target.value)}
-              className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base"
-              rows="3"
-            />
-          </div>
-          <div className="flex gap-3 pt-2">
-            <button type="submit" className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-base hover:opacity-90">
-              Check In
-            </button>
-            <button type="button" onClick={onClose} className="flex-1 px-4 py-3 border border-border rounded-xl text-base hover:bg-secondary">
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
+    <ModalShell
+      title="Check In"
+      onClose={onClose}
+      footer={
+        <div className="flex gap-3">
+          <motion.button type="submit" form="ts-checkin-form" whileTap={{ scale: 0.97 }}
+            className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
+            Check In
+          </motion.button>
+          <motion.button type="button" onClick={onClose} whileTap={{ scale: 0.97 }}
+            className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+            Cancel
+          </motion.button>
+        </div>
+      }
+    >
+      <form id="ts-checkin-form" onSubmit={onSubmit} className="px-5 py-4 space-y-4">
+        <div>
+          <label className={labelCls}>Date</label>
+          <input type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} className={inputCls} required />
+        </div>
+        <div>
+          <label className={labelCls}>Club</label>
+          <BottomSheetSelect value={data.club_id} onChange={(val) => onChange('club_id', val)} placeholder="Select a club" options={clubs.map(c => ({ value: c.id, label: c.name }))} />
+        </div>
+        <div>
+          <label className={labelCls}>Check-in Time</label>
+          <input type="time" value={data.checkin_time} onChange={(e) => onChange('checkin_time', e.target.value)} className={inputCls} required />
+        </div>
+        <div>
+          <label className={labelCls}>Notes (optional)</label>
+          <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className={inputCls} rows="3" />
+        </div>
+      </form>
+    </ModalShell>
   );
 }
 
+// ─── Photo upload helper ──────────────────────────────────────────
 async function handlePhotoUpload(files, data, onChange) {
   if (!files || files.length === 0) return;
-  
-  const maxFileSize = 5 * 1024 * 1024; // 5MB
+  const maxFileSize = 5 * 1024 * 1024;
   const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-  
   try {
     const newPhotos = [...(data.photos || [])];
     for (const file of files) {
-      // Validate file
-      if (file.size > maxFileSize) {
-        console.error(`File ${file.name} exceeds 5MB limit`);
-        continue;
-      }
-      if (!validTypes.includes(file.type)) {
-        console.error(`File ${file.name} is not a valid image type`);
-        continue;
-      }
-      
+      if (file.size > maxFileSize || !validTypes.includes(file.type)) continue;
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      // Analyze target photo for accuracy
       let photoData = { url: file_url };
       try {
         const result = await base44.functions.invoke('analyzeTargetPhoto', { photo_url: file_url });
-        if (result?.data?.analysis) {
-          photoData.analysis = result.data.analysis;
-        }
-      } catch (analysisError) {
-        console.warn('Photo analysis skipped:', analysisError.message);
-      }
+        if (result?.data?.analysis) photoData.analysis = result.data.analysis;
+      } catch {}
       newPhotos.push(photoData);
     }
     onChange('photos', newPhotos);
@@ -406,7 +288,8 @@ async function handlePhotoUpload(files, data, onChange) {
   }
 }
 
-function CheckoutModal({ rifles, ammunition, onSubmit, onClose }) {
+// ─── Check-out Modal ──────────────────────────────────────────────
+function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onViewTrack }) {
   const [errors, setErrors] = useState({});
   const [data, setData] = useState({
     checkout_time: new Date().toTimeString().slice(0, 5),
@@ -415,28 +298,8 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose }) {
     photos: [],
   });
 
-  const validateAndSubmit = (e) => {
-    e.preventDefault();
-    const newErrors = {};
-
-    data.rifles_used.forEach((rifle, idx) => {
-      const missing = [];
-      if (!rifle.rifle_id) missing.push('Rifle');
-      if (!rifle.rounds_fired) missing.push('Rounds fired');
-      if (!rifle.meters_range) missing.push('Meters range');
-      if (missing.length > 0) {
-        newErrors[`rifle_${idx}`] = `Required: ${missing.join(', ')}`;
-      }
-    });
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    setErrors({});
-    onSubmit(data);
-  };
+  const inputCls = "w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/30";
+  const labelCls = "block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5";
 
   const updateRifleEntry = (index, field, value) => {
     const updated = [...data.rifles_used];
@@ -444,235 +307,141 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose }) {
     setData(prev => ({ ...prev, rifles_used: updated }));
   };
 
-  const addRifleEntry = () => {
-    setData(prev => ({
-      ...prev,
-      rifles_used: [...prev.rifles_used, { rifle_id: '', rounds_fired: '', meters_range: '', ammunition_brand: '', bullet_type: '', grain: '' }]
-    }));
-  };
+  const addRifleEntry = () => setData(prev => ({ ...prev, rifles_used: [...prev.rifles_used, { rifle_id: '', rounds_fired: '', meters_range: '', ammunition_brand: '', bullet_type: '', grain: '' }] }));
+  const removeRifleEntry = (index) => setData(prev => ({ ...prev, rifles_used: prev.rifles_used.filter((_, i) => i !== index) }));
 
-  const removeRifleEntry = (index) => {
-    setData(prev => ({
-      ...prev,
-      rifles_used: prev.rifles_used.filter((_, i) => i !== index)
-    }));
+  const handleSubmit = () => {
+    const newErrors = {};
+    data.rifles_used.forEach((rifle, idx) => {
+      const missing = [];
+      if (!rifle.rifle_id) missing.push('Rifle');
+      if (!rifle.rounds_fired) missing.push('Rounds fired');
+      if (!rifle.meters_range) missing.push('Meters range');
+      if (missing.length > 0) newErrors[`rifle_${idx}`] = `Required: ${missing.join(', ')}`;
+    });
+    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
+    setErrors({});
+    onSubmit(data);
   };
 
   return (
-    <div className="bg-card w-full max-w-md sm:max-w-sm sm:rounded-lg rounded-t-2xl flex flex-col max-h-[85dvh] sm:max-h-[90dvh]" style={{ height: 'calc(100% + env(safe-area-inset-bottom))', maxHeight: 'calc(85dvh + env(safe-area-inset-bottom))' }}>
-        {/* Header */}
-        <div className="flex-shrink-0 p-4 sm:p-5 border-b border-border">
-          <h2 className="text-lg sm:text-xl font-bold">Check Out</h2>
+    <ModalShell
+      title="Check Out"
+      onClose={onClose}
+      footer={
+        <div className="flex gap-3">
+          <motion.button type="button" onClick={handleSubmit} whileTap={{ scale: 0.97 }}
+            className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
+            Check Out
+          </motion.button>
+          <motion.button type="button" onClick={onClose} whileTap={{ scale: 0.97 }}
+            className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+            Cancel
+          </motion.button>
+        </div>
+      }
+    >
+      <div className="px-5 py-4 space-y-4">
+        <div>
+          <label className={labelCls}>Check-out Time</label>
+          <input type="time" value={data.checkout_time} onChange={(e) => setData(prev => ({ ...prev, checkout_time: e.target.value }))} className={inputCls} required />
         </div>
 
-        {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
-        <form onSubmit={validateAndSubmit} className="p-4 sm:p-5 space-y-3.5">
-          <div>
-             <label className="block text-xs sm:text-sm font-medium mb-1.5">Check-out Time</label>
-             <input
-               type="time"
-               value={data.checkout_time}
-               onChange={(e) => setData(prev => ({ ...prev, checkout_time: e.target.value }))}
-               className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background"
-               required
-             />
-           </div>
+        <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className={labelCls}>Firearms Used</span>
+            <motion.button type="button" onClick={addRifleEntry} whileTap={{ scale: 0.95 }}
+              className="text-xs bg-slate-100 dark:bg-slate-700 hover:bg-primary hover:text-primary-foreground px-3 py-1.5 rounded-lg font-medium transition-all">
+              + Add
+            </motion.button>
+          </div>
 
-           <div className="border-t border-border pt-3.5">
-             <div className="flex items-center justify-between mb-2.5">
-               <label className="block text-xs sm:text-sm font-bold">Firearms Used</label>
-              <button
-                type="button"
-                onClick={addRifleEntry}
-                className="text-xs bg-secondary hover:bg-primary hover:text-primary-foreground px-2.5 py-1 rounded transition-colors"
-              >
-                + Add
-              </button>
-            </div>
-
-            {data.rifles_used.map((rifle, index) => (
-              <div key={index} className="bg-secondary/20 p-3 rounded-lg mb-2.5 space-y-2">
-                {errors[`rifle_${index}`] && (
-                  <p className="text-red-600 text-xs font-medium">{errors[`rifle_${index}`]}</p>
+          {data.rifles_used.map((rifle, index) => (
+            <div key={index} className="bg-slate-50 dark:bg-slate-700/50 border border-slate-200/70 dark:border-slate-600 p-3 rounded-xl mb-3 space-y-2.5">
+              {errors[`rifle_${index}`] && <p className="text-red-500 text-xs font-medium">{errors[`rifle_${index}`]}</p>}
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-semibold text-slate-500">Rifle {index + 1}</span>
+                {data.rifles_used.length > 1 && (
+                  <button type="button" onClick={() => removeRifleEntry(index)} className="text-xs text-red-400 hover:text-red-600 font-medium">Remove</button>
                 )}
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-medium text-muted-foreground">Rifle {index + 1}</span>
-                  {data.rifles_used.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeRifleEntry(index)}
-                      className="text-xs text-destructive hover:underline"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
+              </div>
+              <BottomSheetSelect value={rifle.rifle_id} onChange={(val) => updateRifleEntry(index, 'rifle_id', val)} placeholder="Select rifle" options={rifles.map(r => ({ value: r.id, label: r.name }))} />
+              <div className="grid grid-cols-2 gap-2">
+                <input type="number" placeholder="Rounds" value={rifle.rounds_fired} onChange={(e) => updateRifleEntry(index, 'rounds_fired', e.target.value)} className={inputCls} />
+                <input type="number" placeholder="Meters" value={rifle.meters_range} onChange={(e) => updateRifleEntry(index, 'meters_range', e.target.value)} className={inputCls} />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide block mb-1.5">Ammunition</label>
                 <BottomSheetSelect
-                  value={rifle.rifle_id}
-                  onChange={(val) => updateRifleEntry(index, 'rifle_id', val)}
-                  placeholder="Select rifle"
-                  options={rifles.map(r => ({ value: r.id, label: r.name }))}
+                  value={rifle.ammunition_id || ''}
+                  onChange={(val) => {
+                    const a = ammunition.find(x => x.id === val);
+                    setData(prev => {
+                      const updated = [...prev.rifles_used];
+                      updated[index] = { ...updated[index], ammunition_id: val, ammunition_brand: a?.brand || '', caliber: a?.caliber || '', bullet_type: a?.bullet_type || '', grain: a?.grain || '' };
+                      return { ...prev, rifles_used: updated };
+                    });
+                  }}
+                  placeholder="Select saved ammunition"
+                  options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
                 />
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="number"
-                    placeholder="Rounds"
-                    value={rifle.rounds_fired}
-                    onChange={(e) => updateRifleEntry(index, 'rounds_fired', e.target.value)}
-                    className="px-2 py-1 text-sm border border-border rounded-lg bg-background"
-                  />
-                  <input
-                    type="number"
-                    placeholder="Meters"
-                    value={rifle.meters_range}
-                    onChange={(e) => updateRifleEntry(index, 'meters_range', e.target.value)}
-                    className="px-2 py-1 text-sm border border-border rounded-lg bg-background"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground block mb-1">Ammunition</label>
-                  <BottomSheetSelect
-                    value={rifle.ammunition_id || ''}
-                    onChange={(val) => {
-                      const selectedAmmo = ammunition.find(a => a.id === val);
-                      setData(prev => {
-                        const updated = [...prev.rifles_used];
-                        updated[index] = {
-                          ...updated[index],
-                          ammunition_id: val,
-                          ammunition_brand: selectedAmmo?.brand || '',
-                          caliber: selectedAmmo?.caliber || '',
-                          bullet_type: selectedAmmo?.bullet_type || '',
-                          grain: selectedAmmo?.grain || ''
-                        };
-                        return { ...prev, rifles_used: updated };
-                      });
-                    }}
-                    placeholder="Select saved ammunition"
-                    options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
-                  />
-                  {!rifle.ammunition_id && (
-                    <div className="mt-2 space-y-2">
-                      <span className="text-xs text-muted-foreground">Or enter manually:</span>
-                      <input
-                        type="text"
-                        placeholder="Ammunition brand"
-                        value={rifle.ammunition_brand || ''}
-                        onChange={(e) => updateRifleEntry(index, 'ammunition_brand', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Caliber"
-                        value={rifle.caliber || ''}
-                        onChange={(e) => updateRifleEntry(index, 'caliber', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Bullet type"
-                        value={rifle.bullet_type || ''}
-                        onChange={(e) => updateRifleEntry(index, 'bullet_type', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
-                      />
-                      <input
-                        type="text"
-                        placeholder="Grain"
-                        value={rifle.grain || ''}
-                        onChange={(e) => updateRifleEntry(index, 'grain', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border border-border rounded-lg bg-background"
-                      />
-                    </div>
-                  )}
-                </div>
+                {!rifle.ammunition_id && (
+                  <div className="mt-2 space-y-2">
+                    <span className="text-xs text-slate-400">Or enter manually:</span>
+                    <input type="text" placeholder="Brand" value={rifle.ammunition_brand || ''} onChange={(e) => updateRifleEntry(index, 'ammunition_brand', e.target.value)} className={inputCls} />
+                    <input type="text" placeholder="Caliber" value={rifle.caliber || ''} onChange={(e) => updateRifleEntry(index, 'caliber', e.target.value)} className={inputCls} />
+                    <input type="text" placeholder="Bullet type" value={rifle.bullet_type || ''} onChange={(e) => updateRifleEntry(index, 'bullet_type', e.target.value)} className={inputCls} />
+                    <input type="text" placeholder="Grain" value={rifle.grain || ''} onChange={(e) => updateRifleEntry(index, 'grain', e.target.value)} className={inputCls} />
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
+        </div>
 
-          <div>
-            <label className="block text-xs sm:text-sm font-medium mb-1.5">Notes</label>
-            <textarea
-              value={data.notes}
-              onChange={(e) => setData(prev => ({ ...prev, notes: e.target.value }))}
-              className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background"
-              rows="2"
-            />
-          </div>
-          <div>
-            <label className="block text-xs sm:text-sm font-medium mb-1.5">Photos</label>
-            <div className="flex gap-2 mb-2">
-              <label className="flex-1 px-3 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors text-xs">
-                📁 Choose
-                <input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={(e) => handlePhotoUpload(e.target.files, data, (field, value) => setData(prev => ({ ...prev, [field]: value })))}
-                  className="hidden"
-                />
-              </label>
-              <label className="flex-1 px-3 py-2 bg-secondary hover:bg-secondary/80 rounded-lg text-center cursor-pointer font-medium transition-colors text-xs">
-                📷 Capture
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  multiple
-                  onChange={(e) => handlePhotoUpload(e.target.files, data, (field, value) => setData(prev => ({ ...prev, [field]: value })))}
-                  className="hidden"
-                />
-              </label>
-            </div>
-            {data.photos && data.photos.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {data.photos.map((photo, idx) => {
-                  const photoUrl = typeof photo === 'string' ? photo : photo.url;
-                  const analysis = typeof photo === 'object' ? photo.analysis : null;
-                  return (
-                    <div key={idx} className="relative group">
-                      <div className="relative">
-                        <img src={photoUrl} alt="preview" className="h-16 w-16 object-cover rounded" />
-                        {analysis && (
-                          <div className="absolute bottom-0 right-0 bg-primary text-primary-foreground text-xs px-1 rounded-tl">{analysis.accuracy_percentage}%</div>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setData(prev => ({ ...prev, photos: prev.photos.filter((_, i) => i !== idx) }))}
-                        className="absolute top-0 right-0 bg-destructive text-white rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 text-xs"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-            </div>
-            </form>
-            </div>
+        <div>
+          <label className={labelCls}>Notes</label>
+          <textarea value={data.notes} onChange={(e) => setData(prev => ({ ...prev, notes: e.target.value }))} className={inputCls} rows="2" />
+        </div>
 
-            {/* Action Buttons */}
-            <div className="flex-shrink-0 flex gap-2 p-4 sm:p-5 border-t border-border bg-card">
-            <button 
-            type="submit" 
-            onClick={(e) => {
-              const form = e.currentTarget.closest('.bg-card').querySelector('form');
-              if (form) form.dispatchEvent(new Event('submit', { bubbles: true }));
-            }}
-            className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 font-medium text-sm transition-all active:scale-95"
-            >
-            Check Out
-            </button>
-            <button 
-            type="button" 
-            onClick={onClose} 
-            className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary text-sm font-medium transition-all active:scale-95"
-            >
-            Cancel
-            </button>
+        <div>
+          <label className={labelCls}>Photos</label>
+          <div className="flex gap-2 mb-2">
+            <label className="flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl text-center cursor-pointer font-medium text-xs text-slate-600 dark:text-slate-300 transition-colors">
+              📁 Choose
+              <input type="file" accept="image/*" multiple onChange={(e) => handlePhotoUpload(e.target.files, data, (f, v) => setData(prev => ({ ...prev, [f]: v })))} className="hidden" />
+            </label>
+            <label className="flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl text-center cursor-pointer font-medium text-xs text-slate-600 dark:text-slate-300 transition-colors">
+              📷 Camera
+              <input type="file" accept="image/*" capture="environment" multiple onChange={(e) => handlePhotoUpload(e.target.files, data, (f, v) => setData(prev => ({ ...prev, [f]: v })))} className="hidden" />
+            </label>
+          </div>
+          {data.photos && data.photos.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {data.photos.map((photo, idx) => {
+                const photoUrl = typeof photo === 'string' ? photo : photo.url;
+                const analysis = typeof photo === 'object' ? photo.analysis : null;
+                return (
+                  <div key={idx} className="relative group">
+                    <img src={photoUrl} alt="preview" className="h-16 w-16 object-cover rounded-xl border border-slate-200" />
+                    {analysis && <div className="absolute bottom-0 right-0 bg-primary text-primary-foreground text-xs px-1 rounded-tl-lg">{analysis.accuracy_percentage}%</div>}
+                    <button type="button" onClick={() => setData(prev => ({ ...prev, photos: prev.photos.filter((_, i) => i !== idx) }))}
+                      className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs shadow">×</button>
+                  </div>
+                );
+              })}
             </div>
-            </div>
+          )}
+        </div>
+
+        {gpsTrack && gpsTrack.length > 0 && (
+          <motion.button type="button" onClick={() => onViewTrack(gpsTrack)} whileTap={{ scale: 0.97 }}
+            className="w-full px-3 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-primary hover:text-primary-foreground rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            <Map className="w-4 h-4" />
+            View GPS Track
+          </motion.button>
+        )}
+      </div>
+    </ModalShell>
   );
 }

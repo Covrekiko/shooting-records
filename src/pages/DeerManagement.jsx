@@ -10,22 +10,22 @@ import RecordsSection from '@/components/RecordsSection';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal';
 import { trackingService } from '@/lib/trackingService';
+import ModalShell from '@/components/ModalShell';
+import { motion } from 'framer-motion';
 
-let liveGpsTrack = [];  // Shared reference for GPS updates
-
-const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
+let liveGpsTrack = [];
 
 export default function DeerManagement() {
   const { activeOuting, loading: outingLoading, startOuting, endOutingWithData } = useOuting();
   const [areas, setAreas] = useState([]);
-   const [rifles, setRifles] = useState([]);
-   const [ammunition, setAmmunition] = useState([]);
-   const [showCheckin, setShowCheckin] = useState(false);
+  const [rifles, setRifles] = useState([]);
+  const [ammunition, setAmmunition] = useState([]);
+  const [showCheckin, setShowCheckin] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(true);
   const { location } = useGeolocation();
   const [nearbyLocation, setNearbyLocation] = useState(null);
-  const [gpsTrack, setGpsTrack] = useState([]);  // Track live GPS updates
+  const [gpsTrack, setGpsTrack] = useState([]);
 
   const [checkinData, setCheckinData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -38,13 +38,11 @@ export default function DeerManagement() {
     async function loadData() {
       try {
         const currentUser = await base44.auth.me();
-
         const [areasList, riflesList, ammoList] = await Promise.all([
           base44.entities.Area.filter({ created_by: currentUser.email }),
           base44.entities.Rifle.filter({ created_by: currentUser.email }),
           base44.entities.Ammunition.filter({ created_by: currentUser.email }),
         ]);
-
         setAreas(areasList);
         setRifles(riflesList);
         setAmmunition(ammoList);
@@ -54,209 +52,140 @@ export default function DeerManagement() {
         setLoading(false);
       }
     }
-
     loadData();
   }, []);
 
-  // Subscribe to live GPS updates
   useEffect(() => {
-    console.log('🟣 DeerManagement: Subscribed to trackingService');
     const unsubscribe = trackingService.subscribe((track) => {
-      console.log('🟣 DeerManagement: trackingService listener fired with', track.length, 'points');
-      liveGpsTrack = track;  // Keep reference
-      setGpsTrack(track);    // Update state
+      liveGpsTrack = track;
+      setGpsTrack(track);
     });
-    return () => {
-      console.log('🟣 DeerManagement: Unsubscribed from trackingService');
-      unsubscribe();
-    };
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
     if (location && areas.length > 0) {
       areas.forEach((area) => {
         if (area.center_point?.lat && area.center_point?.lng) {
-          const distance = calculateDistance(
-            location.latitude,
-            location.longitude,
-            area.center_point.lat,
-            area.center_point.lng
-          );
-          if (distance < 0.5) {
-            setNearbyLocation({ name: area.name, distance });
-          }
+          const distance = calculateDistance(location.latitude, location.longitude, area.center_point.lat, area.center_point.lng);
+          if (distance < 0.5) setNearbyLocation({ name: area.name, distance });
         }
       });
     }
   }, [location, areas]);
 
   const handleCheckin = async (e) => {
-     e.preventDefault();
-     console.log('🟢 CHECK IN CLICKED - DeerManagement');
-     console.log('🟢 CHECK IN SAVE STARTED - location:', checkinData.place_name, 'date:', checkinData.date);
-     try {
-       const outing = await startOuting(checkinData);
-       console.log('🟢 CHECK IN SAVE SUCCESS - outing id:', outing.id);
-       trackingService.startTracking(outing.id, 'deer');
-
-       setShowCheckin(false);
-       setCheckinData({
-         date: new Date().toISOString().split('T')[0],
-         location_id: '',
-         place_name: '',
-         start_time: new Date().toTimeString().slice(0, 5),
-       });
-     } catch (error) {
-       console.error('🟢 CHECK IN SAVE FAILED:', error.message);
-       alert('Check-in failed: ' + error.message);
-     }
-   };
+    e.preventDefault();
+    try {
+      const outing = await startOuting(checkinData);
+      trackingService.startTracking(outing.id, 'deer');
+      setShowCheckin(false);
+      setCheckinData({ date: new Date().toISOString().split('T')[0], location_id: '', place_name: '', start_time: new Date().toTimeString().slice(0, 5) });
+    } catch (error) {
+      console.error('Check-in failed:', error.message);
+      alert('Check-in failed: ' + error.message);
+    }
+  };
 
   const handleCheckout = async (checkoutData) => {
-     console.log('🔴 CHECK OUT CLICKED - DeerManagement, outingId:', activeOuting?.id);
-     if (!activeOuting) {
-       alert('No active outing to check out from');
-       return;
-     }
-     console.log('🔴 CHECK OUT SAVE STARTED - shot_anything:', checkoutData.shot_anything);
-     try {
-       if (checkoutData.ammunition_id && checkoutData.total_count) {
-         await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count));
-       }
-
-       const submitData = { ...checkoutData, active_checkin: false };
-       if (!checkoutData.shot_anything) {
-         submitData.species_list = [];
-         submitData.total_count = null;
-         submitData.rifle_id = null;
-         submitData.ammunition_used = null;
-       }
-
-       const finalTrack = trackingService.stopTracking();
-       await endOutingWithData(activeOuting.id, submitData, finalTrack);
-       console.log('🔴 CHECK OUT SAVE SUCCESS - Outing finalized:', activeOuting.id);
-       setShowCheckout(false);
-     } catch (error) {
-       console.error('🔴 CHECK OUT SAVE FAILED:', error.message, error.status, error.response?.data);
-       alert('Checkout failed: ' + error.message);
-     }
-   };
+    if (!activeOuting) { alert('No active outing to check out from'); return; }
+    try {
+      if (checkoutData.ammunition_id && checkoutData.total_count) {
+        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count));
+      }
+      const submitData = { ...checkoutData, active_checkin: false };
+      if (!checkoutData.shot_anything) {
+        submitData.species_list = [];
+        submitData.total_count = null;
+        submitData.rifle_id = null;
+        submitData.ammunition_used = null;
+      }
+      const finalTrack = trackingService.stopTracking();
+      await endOutingWithData(activeOuting.id, submitData, finalTrack);
+      setShowCheckout(false);
+    } catch (error) {
+      console.error('Checkout failed:', error.message);
+      alert('Checkout failed: ' + error.message);
+    }
+  };
 
   if (loading || outingLoading) {
     return (
-      <div>
+      <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
         <Navigation />
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     );
   }
 
-  console.log('🎯 DeerManagement RENDER - showCheckin:', showCheckin, 'showCheckout:', showCheckout, 'activeOuting:', activeOuting?.id);
-  
   return (
-    <div>
+    <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
       <Navigation />
       {nearbyLocation && (
-        <CheckinBanner
-          location={nearbyLocation.name}
-          distance={nearbyLocation.distance}
-          onDismiss={() => setNearbyLocation(null)}
-          onCheckin={() => setShowCheckin(true)}
-        />
+        <CheckinBanner location={nearbyLocation.name} distance={nearbyLocation.distance} onDismiss={() => setNearbyLocation(null)} onCheckin={() => setShowCheckin(true)} />
       )}
-      <main className="max-w-4xl mx-auto px-4 pt-4 md:pt-16 py-8 mobile-page-padding">
-        <div className="mb-8">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold mb-2">Deer Management</h1>
-              <p className="text-muted-foreground">Record your deer stalking outings</p>
-            </div>
-            {!activeOuting && (
-              <button
-                onClick={() => setShowCheckin(true)}
-                className="shrink-0 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2 text-sm font-medium mt-1"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Start New Outing</span>
-                <span className="sm:hidden">New Outing</span>
-              </button>
-            )}
-            {activeOuting && (
-              <div className="shrink-0 px-3 py-2 bg-primary/20 text-primary rounded-lg font-medium text-sm mt-1">
-                Active outing
-              </div>
-            )}
+      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-4 mobile-page-padding">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="hidden md:block">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Deer Management</h1>
+            <p className="text-xs text-slate-400 mt-0.5">Record your deer stalking outings</p>
           </div>
+          {!activeOuting && (
+            <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
+              className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Start New Outing</span>
+              <span className="sm:hidden">New Outing</span>
+            </motion.button>
+          )}
         </div>
 
         {activeOuting && (
-          <div className="bg-accent border border-border rounded-lg p-6 mb-6">
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-lg font-semibold flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 mb-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
                   <Clock className="w-5 h-5 text-primary" />
-                  Active Outing
-                </h2>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Location: {activeOuting.location_name}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Started: {new Date(activeOuting.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                </p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Active Outing</p>
+                  <p className="text-xs text-slate-400">{activeOuting.location_name} · {new Date(activeOuting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    console.log('🔴 CHECK-OUT BUTTON CLICKED - setShowCheckout(true) called');
-                    setShowCheckout(true);
-                  }}
-                  className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity"
-                >
-                  Check Out
-                </button>
-              </div>
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowCheckout(true)}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity">
+                Check Out
+              </motion.button>
             </div>
           </div>
-          )}
+        )}
 
-          {/* Records List */}
-          <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-4">Outing Records</h2>
-          <RecordsSection 
-            category="deer_management"
-            title="Outing Records"
-            emptyMessage="No deer management outings recorded yet"
-          />
-          </div>
+        <div className="mt-4">
+          <h2 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-3">Outing Records</h2>
+          <RecordsSection category="deer_management" title="Outing Records" emptyMessage="No deer management outings recorded yet" />
+        </div>
 
-          {/* Modals rendered via Portal */}
         {createPortal(
           <>
-            {(showCheckin || showCheckout) && (
-              <div className="fixed inset-0 z-[50000] bg-black/50" />
-            )}
+            {(showCheckin || showCheckout) && <div className="fixed inset-0 z-[50000] bg-black/50" onClick={() => { setShowCheckin(false); setShowCheckout(false); }} />}
             {showCheckin && (
-              <>
-                {console.log('🔵 CHECK-IN MODAL RENDERING - showCheckin is TRUE')}
-                <div className="fixed inset-0 z-[50001] flex items-end sm:items-center justify-center">
-                    <CheckinModal
+              <div className="fixed inset-0 z-[50001] flex flex-col justify-end sm:justify-center sm:items-center pointer-events-none">
+                <div className="pointer-events-auto w-full sm:max-w-md">
+                  <CheckinModal
                     data={checkinData}
                     areas={areas}
                     onSubmit={handleCheckin}
-                    onChange={(field, value) =>
-                      setCheckinData({ ...checkinData, [field]: value })
-                    }
+                    onChange={(field, value) => setCheckinData({ ...checkinData, [field]: value })}
                     onClose={() => setShowCheckin(false)}
                   />
                 </div>
-              </>
+              </div>
             )}
             {showCheckout && (
-              <>
-                {console.log('🔴 CHECK-OUT MODAL RENDERING - showCheckout is TRUE, activeOuting:', activeOuting?.id)}
-                <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+              <div className="fixed inset-0 z-[50001] flex flex-col justify-end sm:justify-center sm:items-center pointer-events-none">
+                <div className="pointer-events-auto w-full sm:max-w-md">
                   <UnifiedCheckoutModal
                     activeOuting={activeOuting}
                     rifles={rifles}
@@ -265,7 +194,7 @@ export default function DeerManagement() {
                     onClose={() => setShowCheckout(false)}
                   />
                 </div>
-              </>
+              </div>
             )}
           </>,
           document.body
@@ -275,12 +204,14 @@ export default function DeerManagement() {
   );
 }
 
+// ─── Check-in Modal ───────────────────────────────────────────────
 function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
   const selectedArea = areas.find(a => a.id === data.location_id);
+  const inputCls = "w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/30";
+  const labelCls = "block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5";
 
   const handleAreaSelect = (areaId) => {
     onChange('location_id', areaId);
-    // Auto-fill place_name only if it's empty
     if (!data.place_name && areaId) {
       const selected = areas.find(a => a.id === areaId);
       if (selected) onChange('place_name', selected.name);
@@ -288,48 +219,47 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
   };
 
   return (
-    <div className="bg-card w-full sm:max-w-md sm:rounded-lg rounded-t-2xl p-6" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
-      <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4 sm:hidden" />
-      <h2 className="text-xl font-bold mb-4">Check In</h2>
-      <form onSubmit={onSubmit} className="space-y-4">
+    <ModalShell
+      title="Start Outing"
+      onClose={onClose}
+      footer={
+        <div className="flex gap-3">
+          <motion.button type="submit" form="deer-checkin-form" whileTap={{ scale: 0.97 }}
+            className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
+            Check In
+          </motion.button>
+          <motion.button type="button" onClick={onClose} whileTap={{ scale: 0.97 }}
+            className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+            Cancel
+          </motion.button>
+        </div>
+      }
+    >
+      <form id="deer-checkin-form" onSubmit={onSubmit} className="px-5 py-4 space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Date</label>
-          <input type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required />
+          <label className={labelCls}>Date</label>
+          <input type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} className={inputCls} required />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Select Area</label>
-          <select 
-            value={data.location_id || ''} 
-            onChange={(e) => handleAreaSelect(e.target.value)} 
-            className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" 
-            required
-          >
+          <label className={labelCls}>Select Area</label>
+          <select value={data.location_id || ''} onChange={(e) => handleAreaSelect(e.target.value)} className={inputCls} required>
             <option value="">Select your area</option>
-            {areas && areas.length > 0 ? (
-              areas.map((area) => (
-                <option key={area.id} value={area.id}>{area.name || 'Unnamed Area'}</option>
-              ))
-            ) : (
-              <option disabled>No areas available</option>
-            )}
+            {areas && areas.length > 0
+              ? areas.map((area) => <option key={area.id} value={area.id}>{area.name || 'Unnamed Area'}</option>)
+              : <option disabled>No areas available</option>
+            }
           </select>
-          {selectedArea && (
-            <p className="text-xs text-primary mt-2 font-medium">✓ {selectedArea.name} selected</p>
-          )}
+          {selectedArea && <p className="text-xs text-primary mt-1.5 font-semibold">✓ {selectedArea.name} selected</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Place Name</label>
-          <input type="text" value={data.place_name} onChange={(e) => onChange('place_name', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" placeholder={selectedArea ? `Suggested: ${selectedArea.name}` : 'Enter location name'} required />
+          <label className={labelCls}>Place Name</label>
+          <input type="text" value={data.place_name} onChange={(e) => onChange('place_name', e.target.value)} className={inputCls} placeholder={selectedArea ? `Suggested: ${selectedArea.name}` : 'Enter location name'} required />
         </div>
         <div>
-          <label className="block text-sm font-medium mb-1">Check-in Time</label>
-          <input type="time" value={data.start_time} onChange={(e) => onChange('start_time', e.target.value)} className="w-full px-3 py-3 border border-border rounded-lg bg-background text-base" required />
-        </div>
-        <div className="flex gap-3 pt-2">
-          <button type="submit" className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-base hover:opacity-90">Check In</button>
-          <button type="button" onClick={onClose} className="flex-1 px-4 py-3 border border-border rounded-xl text-base hover:bg-secondary">Cancel</button>
+          <label className={labelCls}>Check-in Time</label>
+          <input type="time" value={data.start_time} onChange={(e) => onChange('start_time', e.target.value)} className={inputCls} required />
         </div>
       </form>
-    </div>
+    </ModalShell>
   );
 }
