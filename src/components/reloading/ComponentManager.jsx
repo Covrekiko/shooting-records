@@ -61,8 +61,16 @@ export default function ComponentManager() {
     e.preventDefault();
     try {
       const costPerUnit = parseFloat(formData.price_total) / parseFloat(formData.quantity_total);
+      
+      // For bullets, create a unique identifier combining brand, bullet_name, and caliber
+      let displayName = formData.name;
+      if (formData.component_type === 'bullet') {
+        displayName = `${formData.brand} ${formData.bullet_name} (${formData.caliber})`;
+      }
+
       const data = {
         ...formData,
+        name: displayName,
         quantity_total: parseFloat(formData.quantity_total),
         quantity_remaining: parseFloat(formData.quantity_total),
         price_total: parseFloat(formData.price_total),
@@ -390,12 +398,9 @@ export default function ComponentManager() {
                              setShowDropdown(false);
                              setCatalogResults([]);
                            }}
-                           className="w-full text-left px-3 py-2 hover:bg-secondary border-b border-border last:border-b-0 text-sm"
+                           className="w-full text-left px-3 py-2 hover:bg-secondary border-b border-border last:border-b-0 text-sm font-medium"
                          >
-                           <div className="font-medium">{item.product_name || item.short_name}</div>
-                           {item.weight_grains && (
-                             <div className="text-xs text-muted-foreground">{item.weight_grains}gr</div>
-                           )}
+                           {item.product_name || item.short_name}
                          </button>
                        ))}
                      </div>
@@ -407,7 +412,7 @@ export default function ComponentManager() {
                </div>
 
                <div className="relative">
-                 <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Caliber (optional)</label>
+                 <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Caliber</label>
                  <div className="relative">
                    <input
                      type="text"
@@ -420,6 +425,7 @@ export default function ComponentManager() {
                      onFocus={() => setShowCaliberDropdown(formData.caliber.length >= 1)}
                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
                      placeholder="e.g., .308 Winchester, 6.5 Creedmoor"
+                     required
                    />
                    {showCaliberDropdown && caliberResults.length > 0 && (
                      <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
