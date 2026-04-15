@@ -161,6 +161,12 @@ export default function Dashboard() {
              link="/reloading"
            />
            <StatCard
+             icon={<BookOpen className="w-6 h-6" />}
+             label="Records"
+             subtitle="View all sessions"
+             link="/records"
+           />
+           <StatCard
              icon={<Zap className="w-6 h-6" />}
              label="Ammunition"
              subtitle="Manage usage"
@@ -201,6 +207,18 @@ export default function Dashboard() {
              label="Equipment & Areas"
              subtitle="Manage gear"
              link="/profile/settings"
+           />
+           <StatCard
+             icon={<span className="text-2xl">🔫</span>}
+             label="Reloading"
+             subtitle="Manage batches"
+             link="/reloading"
+           />
+           <StatCard
+             icon={<BookOpen className="w-6 h-6" />}
+             label="Records"
+             subtitle="View all sessions"
+             link="/records"
            />
            <StatCard
              icon={<Zap className="w-6 h-6" />}
