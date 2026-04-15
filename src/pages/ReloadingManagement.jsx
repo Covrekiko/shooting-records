@@ -111,16 +111,7 @@ export default function ReloadingManagement() {
       <Navigation />
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 md:mb-8">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => navigate('/')}
-              className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 rounded-xl border border-border text-sm font-medium hover:bg-secondary transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back</span>
-            </button>
-          </div>
+        <div className="flex items-center justify-end mb-6 md:mb-8">
           <button className="p-2 hover:bg-secondary rounded-lg hidden md:block">
             <Menu className="w-5 h-5" />
           </button>
