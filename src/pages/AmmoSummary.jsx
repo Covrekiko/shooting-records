@@ -42,6 +42,21 @@ export default function AmmoSummary() {
     }
   };
 
+  const handleRemoveRounds = async (rifleId, roundsToRemove) => {
+    try {
+      const rifle = rifles.find(r => r.id === rifleId);
+      if (rifle) {
+        await base44.entities.Rifle.update(rifleId, {
+          rounds_since_cleaning: Math.max(0, (rifle.rounds_since_cleaning || 0) - roundsToRemove),
+          total_rounds_fired: Math.max(0, (rifle.total_rounds_fired || 0) - roundsToRemove),
+        });
+        await loadData();
+      }
+    } catch (error) {
+      console.error('Error removing rounds:', error);
+    }
+  };
+
   const riflesNeedingCleaning = rifles.filter(
     (r) => r.cleaning_reminder_threshold && r.rounds_since_cleaning >= r.cleaning_reminder_threshold
   );
@@ -128,25 +143,35 @@ export default function AmmoSummary() {
                     className="bg-card border border-border rounded-lg p-4"
                   >
                     <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="font-semibold text-lg">{rifle.name}</h3>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {rifle.make} {rifle.model} • {rifle.caliber}
-                        </p>
-                      </div>
-                      {cleaningStatus === 'needs_cleaning' && (
-                        <div className="flex items-center gap-1 px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-                          <AlertCircle className="w-4 h-4 text-amber-600" />
-                          <span className="text-xs font-semibold text-amber-600">Needs Cleaning</span>
-                        </div>
-                      )}
-                      {cleaningStatus === 'clean' && (
-                        <div className="flex items-center gap-1 px-2.5 py-1 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                          <CheckCircle2 className="w-4 h-4 text-green-600" />
-                          <span className="text-xs font-semibold text-green-600">Clean</span>
-                        </div>
-                      )}
-                    </div>
+                       <div>
+                         <h3 className="font-semibold text-lg">{rifle.name}</h3>
+                         <p className="text-xs text-muted-foreground mt-1">
+                           {rifle.make} {rifle.model} • {rifle.caliber}
+                         </p>
+                       </div>
+                       <div className="flex items-center gap-2">
+                         {rifle.caliber === '.308 Win' && (
+                           <button
+                             onClick={() => handleRemoveRounds(rifle.id, 40)}
+                             className="px-2 py-1 text-xs bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg font-medium transition-colors"
+                           >
+                             Remove 40
+                           </button>
+                         )}
+                         {cleaningStatus === 'needs_cleaning' && (
+                           <div className="flex items-center gap-1 px-2.5 py-1 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                             <AlertCircle className="w-4 h-4 text-amber-600" />
+                             <span className="text-xs font-semibold text-amber-600">Needs Cleaning</span>
+                           </div>
+                         )}
+                         {cleaningStatus === 'clean' && (
+                           <div className="flex items-center gap-1 px-2.5 py-1 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                             <CheckCircle2 className="w-4 h-4 text-green-600" />
+                             <span className="text-xs font-semibold text-green-600">Clean</span>
+                           </div>
+                         )}
+                       </div>
+                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                       <div className="bg-secondary/30 rounded-lg p-3">
