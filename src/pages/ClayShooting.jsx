@@ -482,13 +482,19 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
               </div>
             )}
           </div>
-          {gpsTrack && gpsTrack.length > 0 && (
-            <motion.button type="button" onClick={() => onViewTrack(gpsTrack)} whileTap={{ scale: 0.97 }}
-              className="w-full px-3 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
-              <Map className="w-4 h-4" />
-              View GPS Track
-            </motion.button>
-          )}
+          <div className="bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl p-3">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">GPS Track: <span className="font-semibold">{gpsTrack?.length || 0} points recorded</span></p>
+            {gpsTrack && gpsTrack.length > 0 && (
+              <motion.button type="button" onClick={() => onViewTrack(gpsTrack)} whileTap={{ scale: 0.97 }}
+                className="w-full px-3 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+                <Map className="w-4 h-4" />
+                View GPS Track
+              </motion.button>
+            )}
+            {(!gpsTrack || gpsTrack.length === 0) && (
+              <p className="text-xs text-slate-400 italic">No GPS data collected. Check location permissions and try again.</p>
+            )}
+          </div>
         </div>
       </ModalShell>
       {showAlert && createPortal(<div className="fixed inset-0 z-[50000] bg-black/50" />, document.body)}
