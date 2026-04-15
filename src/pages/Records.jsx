@@ -126,7 +126,7 @@ export default function Records() {
     if (!confirm('Delete this record? This will restore all ammunition stock.')) return;
     try {
       console.log(`🟡 [handleDelete] Starting delete for session: ${id}`);
-      
+
       // Fetch the record first to see what data we have
       const recordToDelete = await base44.entities.SessionRecord.get(id);
       console.log('🟡 [handleDelete] Record category:', recordToDelete.category);
@@ -136,12 +136,21 @@ export default function Records() {
       if (recordToDelete.rifles_used?.length > 0) {
         console.log('🟡 [handleDelete] First rifle:', JSON.stringify(recordToDelete.rifles_used[0]));
       }
-      
+
       // Call backend to restore stock
       const restoreResponse = await base44.functions.invoke('restoreSessionStock', { sessionId: id });
       console.log('🟢 [handleDelete] Stock restored. Restorations:', restoreResponse.data?.restorations?.length || 0);
       if (restoreResponse.data?.restorations?.length > 0) {
         console.log('🟢 [handleDelete] Restoration details:', restoreResponse.data.restorations);
+        // Verify restored ammunition in database
+        for (const restoration of restoreResponse.data.restorations) {
+          try {
+            const verifyAmmo = await base44.entities.Ammunition.get(restoration.ammunition_id);
+            console.log(`🟢 [handleDelete] VERIFIED - Ammo ${restoration.ammunition_id} stock is now ${verifyAmmo.quantity_in_stock} (restored +${restoration.quantity_restored})`);
+          } catch (e) {
+            console.warn(`⚠️ [handleDelete] Could not verify ammo ${restoration.ammunition_id}`);
+          }
+        }
       } else {
         console.warn('⚠️ [handleDelete] No ammunition was restored - check if ammunition_id was saved to session');
       }
@@ -149,8 +158,12 @@ export default function Records() {
       // After stock is restored, delete the record
       await base44.entities.SessionRecord.delete(id);
       console.log('🟢 [handleDelete] Session record deleted');
-      
+
+      // Update local state
       setAllRecords(allRecords.filter((r) => r.id !== id));
+
+      // Force reload of all records to ensure UI reflects restored stock
+      setTimeout(() => loadRecords(), 500);
     } catch (error) {
       console.error('🔴 [handleDelete] Error deleting record:', error);
       alert('Error deleting record: ' + error.message);
