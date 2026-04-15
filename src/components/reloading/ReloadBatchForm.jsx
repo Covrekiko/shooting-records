@@ -132,17 +132,17 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
       const cartridgesLoaded = parseInt(formData.cartridges_loaded);
 
-      // Convert charge to grams, multiply by batch quantity, then convert back to powder's unit
+      // Convert charge to grams, multiply by batch quantity, then convert back to powder's stored unit
       const chargePerRoundInGrams = convertToGrams(parseFloat(formData.powder_charge), formData.powder_unit);
       const totalPowderUsedInGrams = chargePerRoundInGrams * cartridgesLoaded;
-      const gramToUnit = {
+      const unitConversions = {
         'grams': 1,
         'kg': 1000,
         'oz': 28.3495,
         'lb': 453.592,
         'grains': 0.06479891,
       };
-      const powderUsed = totalPowderUsedInGrams / gramToUnit[powder.unit];
+      const powderUsed = totalPowderUsedInGrams / (unitConversions[powder.unit] || 1);
 
       // Deduct from component stock
       await Promise.all([
