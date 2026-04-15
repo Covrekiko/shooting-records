@@ -131,7 +131,12 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       const bullet = components.bullet.find(c => c.id === formData.bullet_id);
 
       const cartridgesLoaded = parseInt(formData.cartridges_loaded);
-      const powderUsed = parseFloat(formData.powder_charge) * cartridgesLoaded;
+
+      // Convert powder charge to grams, then calculate total used
+      const chargeInGrams = convertToGrams(parseFloat(formData.powder_charge), formData.powder_unit);
+      const totalPowderUsedInGrams = chargeInGrams * cartridgesLoaded;
+      const powderStockInGrams = convertToGrams(powder.quantity_total, powder.unit);
+      const powderUsed = totalPowderUsedInGrams / powderStockInGrams * powder.quantity_total; // Convert back to stored unit
 
       // Deduct from component stock
       await Promise.all([
