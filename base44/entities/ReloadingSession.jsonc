@@ -1,0 +1,84 @@
+{
+  "name": "ReloadingSession",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of reloading session"
+    },
+    "caliber": {
+      "type": "string",
+      "description": "Ammunition caliber (e.g. .308 Win)"
+    },
+    "firearm_id": {
+      "type": "string",
+      "description": "Optional reference to Rifle or Shotgun"
+    },
+    "batch_number": {
+      "type": "string",
+      "description": "Auto-generated batch identifier"
+    },
+    "rounds_loaded": {
+      "type": "integer",
+      "description": "Number of rounds produced"
+    },
+    "total_cost": {
+      "type": "number",
+      "description": "Total cost of all components"
+    },
+    "cost_per_round": {
+      "type": "number",
+      "description": "Calculated cost per round"
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "brass",
+              "bullet",
+              "powder",
+              "primer",
+              "wad",
+              "shot"
+            ]
+          },
+          "brand": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "quantity_used": {
+            "type": "number"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "cost_per_unit": {
+            "type": "number"
+          },
+          "total_cost": {
+            "type": "number"
+          },
+          "lot_number": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "date",
+    "caliber",
+    "batch_number",
+    "rounds_loaded"
+  ]
+}

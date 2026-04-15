@@ -26,6 +26,7 @@ import Ammunition from './pages/settings/Ammunition';
 import AmmunitionInventory from './pages/settings/AmmunitionInventory';
 import Reports from './pages/Reports';
 import AdminUsers from './pages/admin/Users';
+import ReloadingManagement from './pages/ReloadingManagement';
 import DeerStalkingMap from './pages/DeerStalkingMap';
 import DeerStalkingLogs from './pages/DeerStalkingLogs';
 import Users from './pages/Users';
@@ -130,6 +131,7 @@ const AuthenticatedApp = () => {
           <Route path="/deer-stalking-logs" element={<DeerStalkingLogs />} />
           <Route path="/sunrise-sunset" element={<SunriseSunsetTracker />} />
           <Route path="/ammo-summary" element={<AmmoSummary />} />
+          <Route path="/reloading" element={<ReloadingManagement />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </AnimatedRoutes>

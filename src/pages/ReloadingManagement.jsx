@@ -1,0 +1,196 @@
+import { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import Navigation from '@/components/Navigation';
+import { Plus, Trash2, Edit2, ArrowLeft, Menu } from 'lucide-react';
+import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
+import ReloadingSessionForm from '@/components/reloading/ReloadingSessionForm';
+
+export default function ReloadingManagement() {
+  const navigate = useNavigate();
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingSession, setEditingSession] = useState(null);
+
+  useEffect(() => {
+    loadSessions();
+  }, []);
+
+  const loadSessions = async () => {
+    try {
+      const user = await base44.auth.me();
+      const data = await base44.entities.ReloadingSession.filter({ created_by: user.email });
+      setSessions(data.sort((a, b) => new Date(b.date) - new Date(a.date)));
+    } catch (error) {
+      console.error('Error loading sessions:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Delete this reloading session?')) return;
+    try {
+      await base44.entities.ReloadingSession.delete(id);
+      loadSessions();
+    } catch (error) {
+      console.error('Error deleting session:', error);
+    }
+  };
+
+  const handleSubmit = async (data) => {
+    try {
+      if (editingSession) {
+        await base44.entities.ReloadingSession.update(editingSession.id, data);
+      } else {
+        await base44.entities.ReloadingSession.create(data);
+      }
+      setShowForm(false);
+      setEditingSession(null);
+      loadSessions();
+    } catch (error) {
+      console.error('Error saving session:', error);
+      alert('Error: ' + error.message);
+    }
+  };
+
+  const totalCost = sessions.reduce((sum, s) => sum + (s.total_cost || 0), 0);
+  const totalRounds = sessions.reduce((sum, s) => sum + (s.rounds_loaded || 0), 0);
+
+  if (loading) {
+    return (
+      <div>
+        <Navigation />
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <Navigation />
+      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6 md:mb-8">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/')}
+              className="flex items-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-800 rounded-xl border border-border text-sm font-medium hover:bg-secondary transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back</span>
+            </button>
+          </div>
+          <button className="p-2 hover:bg-secondary rounded-lg hidden md:block">
+            <Menu className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Title Section */}
+        <div className="flex items-start justify-between mb-8">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-1">Reloading Management</h1>
+            <p className="text-muted-foreground">Track and manage your reloading sessions</p>
+          </div>
+          <button
+            onClick={() => {
+              setEditingSession(null);
+              setShowForm(true);
+            }}
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-2xl hover:opacity-90 flex items-center gap-2 font-semibold whitespace-nowrap"
+          >
+            <Plus className="w-5 h-5" />
+            <span className="hidden sm:inline">Start Session</span>
+            <span className="sm:hidden">New</span>
+          </button>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          <div className="bg-card border border-border rounded-lg p-4">
+            <p className="text-xs text-muted-foreground font-semibold uppercase mb-1">Sessions</p>
+            <p className="text-2xl font-bold">{sessions.length}</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-4">
+            <p className="text-xs text-muted-foreground font-semibold uppercase mb-1">Rounds Loaded</p>
+            <p className="text-2xl font-bold">{totalRounds.toLocaleString()}</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-4">
+            <p className="text-xs text-muted-foreground font-semibold uppercase mb-1">Total Cost</p>
+            <p className="text-2xl font-bold text-primary">£{totalCost.toFixed(2)}</p>
+          </div>
+          <div className="bg-card border border-border rounded-lg p-4">
+            <p className="text-xs text-muted-foreground font-semibold uppercase mb-1">Avg Cost/Rnd</p>
+            <p className="text-2xl font-bold">{sessions.length > 0 ? '£' + (totalCost / totalRounds).toFixed(2) : '-'}</p>
+          </div>
+        </div>
+
+        {/* Sessions List */}
+        {sessions.length === 0 ? (
+          <div className="bg-card border border-border rounded-lg p-8 text-center">
+            <p className="text-muted-foreground">No reloading sessions yet</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {sessions.map((session) => (
+              <div key={session.id} className="bg-card border border-border rounded-lg p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg">{session.caliber}</h3>
+                    <p className="text-sm text-muted-foreground">Batch: {session.batch_number}</p>
+                    <div className="mt-2 space-y-1 text-sm">
+                      <p><span className="font-medium">Rounds:</span> {session.rounds_loaded}</p>
+                      <p><span className="font-medium">Cost:</span> £{session.total_cost?.toFixed(2) || '0.00'} (£{session.cost_per_round?.toFixed(2) || '0.00'}/rd)</p>
+                      <p><span className="font-medium">Date:</span> {format(new Date(session.date), 'MMM d, yyyy')}</p>
+                      {session.notes && <p><span className="font-medium">Notes:</span> {session.notes}</p>}
+                    </div>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => {
+                        setEditingSession(session);
+                        setShowForm(true);
+                      }}
+                      className="p-2 bg-secondary hover:bg-primary hover:text-primary-foreground rounded-lg transition-colors"
+                      title="Edit"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(session.id)}
+                      className="p-2 bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded-lg transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Form Modal */}
+        {showForm && createPortal(
+          <div className="fixed inset-0 bg-black/50 z-[50000] flex items-end sm:items-center justify-center p-4 sm:p-0">
+            <div className="bg-card rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+              <ReloadingSessionForm
+                session={editingSession}
+                onSubmit={handleSubmit}
+                onClose={() => {
+                  setShowForm(false);
+                  setEditingSession(null);
+                }}
+              />
+            </div>
+          </div>,
+          document.body
+        )}
+      </main>
+    </div>
+  );
+}

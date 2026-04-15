@@ -1,0 +1,61 @@
+{
+  "name": "ReloadingInventory",
+  "type": "object",
+  "properties": {
+    "component_type": {
+      "type": "string",
+      "enum": [
+        "brass",
+        "bullet",
+        "powder",
+        "primer",
+        "wad",
+        "shot"
+      ],
+      "description": "Type of component"
+    },
+    "brand": {
+      "type": "string",
+      "description": "Component brand"
+    },
+    "name": {
+      "type": "string",
+      "description": "Component name/description"
+    },
+    "caliber": {
+      "type": "string"
+    },
+    "quantity_total": {
+      "type": "number",
+      "description": "Total quantity in stock"
+    },
+    "quantity_used": {
+      "type": "number",
+      "default": 0
+    },
+    "unit": {
+      "type": "string",
+      "description": "Unit of measurement"
+    },
+    "cost_per_unit": {
+      "type": "number"
+    },
+    "low_stock_threshold": {
+      "type": "number",
+      "default": 100
+    },
+    "lot_number": {
+      "type": "string"
+    },
+    "date_acquired": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "component_type",
+    "brand",
+    "quantity_total",
+    "unit"
+  ]
+}

@@ -26,6 +26,7 @@ export default function Navigation() {
 
   const moreNavItems = [
     { path: '/records', label: 'Records', icon: BookOpen },
+    { path: '/reloading', label: 'Reloading', icon: null, emoji: '🔫' },
   ];
 
   return (
