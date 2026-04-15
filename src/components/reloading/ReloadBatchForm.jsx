@@ -13,6 +13,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
   const [costBreakdown, setCostBreakdown] = useState(null);
   const [showAddBrassModal, setShowAddBrassModal] = useState(false);
   const [caliberResults, setCaliberResults] = useState([]);
+  const [validationError, setValidationError] = useState(null);
   const [showCaliberDropdown, setShowCaliberDropdown] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -128,6 +129,15 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setValidationError(null);
+
+    // Validate stock before proceeding
+    const validation = validateStock();
+    if (!validation.valid) {
+      setValidationError(validation.message);
+      return;
+    }
+
     try {
       if (!costBreakdown) {
         alert('Please select all components and enter required quantities');
@@ -147,7 +157,10 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
       // Convert stored stock to grams, perform deduction, convert back to stored unit
       const stockInGrams = convertToGrams(powder.quantity_total, powder.unit);
-      const remainingInGrams = convertToGrams(powder.quantity_remaining, powder.unit) - totalPowderUsedInGrams;
+      let remainingInGrams = convertToGrams(powder.quantity_remaining, powder.unit) - totalPowderUsedInGrams;
+      // Clamp to minimum 0
+      remainingInGrams = Math.max(0, remainingInGrams);
+      
       const unitConversions = {
         'grams': 1,
         'kg': 1000,
@@ -171,19 +184,19 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       console.log('Powder used (in stored unit):', powderUsed);
       console.log('Powder remaining (in stored unit):', powderRemaining);
 
-      // Deduct from component stock
+      // Deduct from component stock (clamp to minimum 0)
       await Promise.all([
         base44.entities.ReloadingComponent.update(formData.primer_id, {
-          quantity_remaining: primer.quantity_remaining - cartridgesLoaded,
+          quantity_remaining: Math.max(0, primer.quantity_remaining - cartridgesLoaded),
         }),
         base44.entities.ReloadingComponent.update(formData.powder_id, {
           quantity_remaining: powderRemaining,
         }),
         base44.entities.ReloadingComponent.update(formData.brass_id, {
-          quantity_remaining: brass.quantity_remaining - cartridgesLoaded,
+          quantity_remaining: formData.brass_is_used ? brass.quantity_remaining : Math.max(0, brass.quantity_remaining - cartridgesLoaded),
         }),
         base44.entities.ReloadingComponent.update(formData.bullet_id, {
-          quantity_remaining: bullet.quantity_remaining - cartridgesLoaded,
+          quantity_remaining: Math.max(0, bullet.quantity_remaining - cartridgesLoaded),
         }),
       ]);
 
@@ -259,6 +272,55 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     setCaliberResults(results);
   };
 
+  const validateStock = () => {
+    const cartridgesLoaded = parseInt(formData.cartridges_loaded) || 0;
+    if (cartridgesLoaded <= 0) {
+      return { valid: false, message: 'Enter cartridges to load' };
+    }
+
+    const primer = components.primer.find(p => p.id === formData.primer_id);
+    const powder = components.powder.find(p => p.id === formData.powder_id);
+    const brass = components.brass.find(b => b.id === formData.brass_id);
+    const bullet = components.bullet.find(b => b.id === formData.bullet_id);
+
+    // Primer validation
+    if (!primer || primer.quantity_remaining < cartridgesLoaded) {
+      return { valid: false, message: 'Primer: not enough in stock' };
+    }
+
+    // Powder validation
+    if (!powder || powder.quantity_remaining <= 0) {
+      return { valid: false, message: 'Powder is not in stock' };
+    }
+
+    const unitConversions = {
+      'grams': 1,
+      'kg': 1000,
+      'oz': 28.3495,
+      'lb': 453.592,
+      'grains': 0.06479891,
+    };
+    const chargePerRoundInGrams = parseFloat(formData.powder_charge) * unitConversions[formData.powder_unit];
+    const totalPowderNeededInGrams = chargePerRoundInGrams * cartridgesLoaded;
+    const powderStockInGrams = powder.quantity_remaining * (unitConversions[powder.unit] || 1);
+
+    if (powderStockInGrams < totalPowderNeededInGrams) {
+      return { valid: false, message: 'Powder: not enough in stock' };
+    }
+
+    // Brass validation
+    if (!brass || (brass.quantity_remaining < cartridgesLoaded && !formData.brass_is_used)) {
+      return { valid: false, message: 'Brass: not enough in stock' };
+    }
+
+    // Bullet validation
+    if (!bullet || bullet.quantity_remaining < cartridgesLoaded) {
+      return { valid: false, message: 'Bullet: not enough in stock' };
+    }
+
+    return { valid: true };
+  };
+
   if (loading) {
     return <div className="text-center py-4"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div></div>;
   }
@@ -278,6 +340,11 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
       {/* Form Content */}
       <div className="flex-1 overflow-y-auto p-5 pb-24 space-y-4">
+      {validationError && (
+       <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-lg p-3 text-sm font-medium">
+         {validationError}
+       </div>
+      )}
       <form id="reload-batch-form" onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-2 gap-12">
           <div>
