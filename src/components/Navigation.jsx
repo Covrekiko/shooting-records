@@ -35,8 +35,9 @@ export default function Navigation() {
       {/* Desktop: standard sticky bar */}
       <nav className="hidden md:block sticky top-0 z-[9000] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/20 shadow-sm" style={{ WebkitBackdropFilter: 'blur(20px)' }}>
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link to="/" className="text-lg font-semibold text-slate-900 dark:text-white">
-            🎯 Shooting Records
+          <Link to="/" className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+            <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-7 h-7 rounded-lg object-cover" />
+            Shooting Records
           </Link>
           <div className="flex gap-6 items-center">
             {[...mainNavItems, ...moreNavItems].map((item) => {
@@ -64,7 +65,8 @@ export default function Navigation() {
       <div className="md:hidden sticky top-0 z-[9000]" style={{ paddingTop: 'env(safe-area-inset-top, 12px)' }}>
         <div className="mx-4 mt-2 mb-1 bg-white dark:bg-slate-800 rounded-2xl shadow-md border border-slate-200/80 dark:border-slate-700 px-4 py-3 flex items-center justify-between">
           <Link to="/" className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            🎯 <span>Shooting Records</span>
+            <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-7 h-7 rounded-lg object-cover" />
+            <span>Shooting Records</span>
           </Link>
           <button
             onClick={() => setOpen(!open)}
