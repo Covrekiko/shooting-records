@@ -109,7 +109,7 @@ export default function Dashboard() {
            />
          </div>
        )}
-       <main className="max-w-7xl mx-auto px-3 pt-3 pb-4 mobile-page-padding">
+       <main className="max-w-7xl mx-auto px-3 pt-1 md:pt-3 pb-4 mobile-page-padding">
          <div className="mb-4 hidden md:flex items-center gap-3">
            <div>
              <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight">Dashboard</h1>
@@ -208,7 +208,7 @@ export default function Dashboard() {
             </div>
             <Link
               to="/deer-stalking"
-              className="bg-card border border-border rounded-xl p-8 hover:shadow-lg transition-shadow block text-center"
+              className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-8 hover:shadow-md transition-shadow block text-center shadow-sm"
             >
               <div className="text-4xl mb-3">🗺️</div>
               <p className="text-lg font-semibold text-foreground mb-2">Open Deer Stalking Map</p>
