@@ -47,28 +47,62 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
    }, [category]);
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this record? Ammunition will be restored.')) return;
+    if (!confirm('Delete this record? Ammunition and rifle counts will be restored.')) return;
     try {
       const record = records.find(r => r.id === id);
       if (!record) return;
 
-      // Restore ammunition based on category
+      // Restore ammunition and rifle/shotgun round counts
       if (category === 'target_shooting' && record.rifles_used && Array.isArray(record.rifles_used)) {
-        // Restore each ammunition used in target shooting
+        // Restore each ammunition and decrement rifle counts
         for (const rifle of record.rifles_used) {
-          if (rifle.ammunition_id && rifle.rounds_fired) {
+          const roundsFired = parseInt(rifle.rounds_fired) || 0;
+          
+          // Restore ammunition
+          if (rifle.ammunition_id && roundsFired > 0) {
             const ammo = await base44.entities.Ammunition.get(rifle.ammunition_id);
             await base44.entities.Ammunition.update(rifle.ammunition_id, {
-              quantity_in_stock: (ammo.quantity_in_stock || 0) + parseInt(rifle.rounds_fired),
+              quantity_in_stock: (ammo.quantity_in_stock || 0) + roundsFired,
+            });
+          }
+          
+          // Decrement rifle round counts
+          if (rifle.rifle_id && roundsFired > 0) {
+            const currentRifle = await base44.entities.Rifle.get(rifle.rifle_id);
+            await base44.entities.Rifle.update(rifle.rifle_id, {
+              total_rounds_fired: Math.max(0, (currentRifle.total_rounds_fired || 0) - roundsFired),
+              rounds_since_cleaning: Math.max(0, (currentRifle.rounds_since_cleaning || 0) - roundsFired),
             });
           }
         }
-      } else if ((category === 'clay_shooting' || category === 'deer_management') && record.rounds_fired && record.ammunition_id) {
-        // Restore for clay/deer shooting
-        const ammo = await base44.entities.Ammunition.get(record.ammunition_id);
-        await base44.entities.Ammunition.update(record.ammunition_id, {
-          quantity_in_stock: (ammo.quantity_in_stock || 0) + record.rounds_fired,
-        });
+      } else if (category === 'clay_shooting' && record.rounds_fired) {
+        // Restore clay shooting ammunition and decrement shotgun count
+        const roundsFired = parseInt(record.rounds_fired) || 0;
+        
+        if (record.ammunition_id && roundsFired > 0) {
+          const ammo = await base44.entities.Ammunition.get(record.ammunition_id);
+          await base44.entities.Ammunition.update(record.ammunition_id, {
+            quantity_in_stock: (ammo.quantity_in_stock || 0) + roundsFired,
+          });
+        }
+        
+        if (record.shotgun_id && roundsFired > 0) {
+          const shotgun = await base44.entities.Shotgun.get(record.shotgun_id);
+          await base44.entities.Shotgun.update(record.shotgun_id, {
+            total_cartridges_fired: Math.max(0, (shotgun.total_cartridges_fired || 0) - roundsFired),
+          });
+        }
+      } else if (category === 'deer_management' && record.total_count) {
+        // Restore deer management rifle counts
+        const shotsFired = parseInt(record.total_count) || 0;
+        
+        if (record.rifle_id && shotsFired > 0) {
+          const rifle = await base44.entities.Rifle.get(record.rifle_id);
+          await base44.entities.Rifle.update(record.rifle_id, {
+            total_rounds_fired: Math.max(0, (rifle.total_rounds_fired || 0) - shotsFired),
+            rounds_since_cleaning: Math.max(0, (rifle.rounds_since_cleaning || 0) - shotsFired),
+          });
+        }
       }
 
       await base44.entities.SessionRecord.delete(id);
