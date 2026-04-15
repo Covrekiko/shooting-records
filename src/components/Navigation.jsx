@@ -32,34 +32,41 @@ export default function Navigation() {
   return (
     <>
       {/* ── Top Nav ── */}
-      {/* Desktop: standard sticky bar */}
-      <nav className="hidden md:block sticky top-0 z-[9000] bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-white/20 shadow-sm" style={{ WebkitBackdropFilter: 'blur(20px)' }}>
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link to="/" className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-            <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-7 h-7 rounded-lg object-cover" />
-            Shooting Records
-          </Link>
-          <div className="flex gap-6 items-center">
-            {[...mainNavItems, ...moreNavItems].map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link key={item.path} to={item.path}
-                  className={`text-sm font-medium transition-colors flex items-center gap-1 ${isActive(item.path) ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}>
-                  {Icon && <Icon className="w-4 h-4" />}
-                  {item.emoji && <span>{item.emoji}</span>}
-                  {item.label}
+      {/* Desktop: floating pill nav */}
+      <div className="hidden md:block sticky top-0 z-[9000] bg-[#f5f0ea] dark:bg-slate-900">
+        <div className="max-w-7xl mx-auto px-4 pt-3 pb-2">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700 px-5 py-3 flex items-center justify-between">
+            <Link to="/" className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+              <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-8 h-8 rounded-xl object-cover" />
+              Shooting Records
+            </Link>
+            <div className="flex gap-1 items-center">
+              {[...mainNavItems, ...moreNavItems].map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.path);
+                return (
+                  <Link key={item.path} to={item.path}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all ${active ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+                    {Icon && <Icon className="w-4 h-4" />}
+                    {item.emoji && <span className="text-base leading-none">{item.emoji}</span>}
+                    {item.label}
+                  </Link>
+                );
+              })}
+              {user?.role === 'admin' && (
+                <Link to="/admin/users"
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive('/admin/users') ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+                  <Settings className="w-4 h-4" />Admin
                 </Link>
-              );
-            })}
-            {user?.role === 'admin' && (
-              <Link to="/admin/users" className={`text-sm font-medium transition-colors flex items-center gap-1 ${isActive('/admin/users') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}>
-                <Settings className="w-4 h-4" />Admin
+              )}
+              <Link to="/profile"
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive('/profile') ? 'bg-primary/10 text-primary' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'}`}>
+                <User className="w-4 h-4" />Profile
               </Link>
-            )}
-            <Link to="/profile" className={`text-sm font-medium transition-colors ${isActive('/profile') ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}>Profile</Link>
+            </div>
           </div>
         </div>
-      </nav>
+      </div>
 
       {/* Mobile: floating pill header */}
       <div className="md:hidden sticky top-0 z-[9000] bg-[#f5f0ea] dark:bg-slate-900">

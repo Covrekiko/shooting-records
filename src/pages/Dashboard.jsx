@@ -109,14 +109,16 @@ export default function Dashboard() {
            />
          </div>
        )}
-       <main className="max-w-7xl mx-auto px-3 pt-0 md:pt-16 pb-4 md:py-12 mobile-page-padding">
-         <div className="mb-4 md:mb-6 hidden md:block">
-           <h1 className="text-2xl md:text-5xl font-semibold text-foreground mb-1">Dashboard</h1>
-           <p className="text-sm text-muted-foreground">Welcome back, <span className="font-medium text-foreground">{user?.full_name}</span></p>
+       <main className="max-w-7xl mx-auto px-3 pt-3 pb-4 mobile-page-padding">
+         <div className="mb-4 hidden md:flex items-center gap-3">
+           <div>
+             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight">Dashboard</h1>
+             <p className="text-xs text-slate-400 mt-0.5">Welcome back, <span className="font-medium text-slate-600 dark:text-slate-300">{user?.full_name}</span></p>
+           </div>
          </div>
 
          {user?.role === 'admin' ? (
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
            <StatCard
              icon={<Map className="w-6 h-6" />}
              label="Stalking Map"
@@ -146,7 +148,7 @@ export default function Dashboard() {
             />
          </div>
          ) : (
-         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3">
           <StatCard
             icon={<Map className="w-6 h-6" />}
             label="Stalking Map"
@@ -194,15 +196,15 @@ export default function Dashboard() {
          )}
 
         {/* Widgets */}
-        <div className="mt-6 md:mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
           <AmmoStockWidget />
         </div>
 
         {/* Stalking Map Section */}
          {user?.role !== 'admin' && (
-           <div className="mt-12 hidden md:block">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold">Deer Stalking Map</h2>
+           <div className="mt-6 hidden md:block">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">Deer Stalking Map</h2>
             </div>
             <Link
               to="/deer-stalking"
@@ -217,14 +219,14 @@ export default function Dashboard() {
 
         {/* Charts Section */}
         {user?.role !== 'admin' && chartData && (
-          <div className="mt-12 space-y-6 hidden md:block">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold">Performance Analytics</h2>
+          <div className="mt-6 space-y-4 hidden md:block">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">Performance Analytics</h2>
               <Link
                 to="/reports"
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
+                className="px-3 py-1.5 bg-primary text-primary-foreground rounded-xl hover:opacity-90 flex items-center gap-2 text-xs font-semibold"
               >
-                <BarChart3 className="w-4 h-4" />
+                <BarChart3 className="w-3.5 h-3.5" />
                 Generate Report
               </Link>
             </div>
@@ -375,7 +377,7 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
 
 function StatCard({ icon, label, subtitle, value, link, hideOnMobile }) {
     const content = (
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-3">
         {/* Icon container */}
         <div className="w-10 h-10 rounded-xl bg-[#f0e6d6] dark:bg-slate-700 flex items-center justify-center flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 text-lg [&_svg]:text-slate-700 dark:[&_svg]:text-slate-200">
           {icon}
@@ -388,12 +390,12 @@ function StatCard({ icon, label, subtitle, value, link, hideOnMobile }) {
             <p className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-0.5 leading-tight">{value}</p>
           )}
         </div>
-        <span className="text-slate-300 dark:text-slate-600 text-sm flex-shrink-0">›</span>
+        <span className="text-slate-300 dark:text-slate-600 text-base flex-shrink-0">›</span>
       </div>
     );
 
     const cardClass = hideOnMobile ? "hidden md:block" : "";
-    const baseClass = `bg-white dark:bg-slate-800 rounded-2xl p-3 border border-slate-200/70 dark:border-slate-700 shadow-sm active:scale-[0.97] transition-transform duration-100 ${cardClass}`;
+    const baseClass = `bg-white dark:bg-slate-800 rounded-2xl p-3.5 border border-slate-200/70 dark:border-slate-700 shadow-sm hover:shadow-md active:scale-[0.97] transition-all duration-100 ${cardClass}`;
 
     if (link) {
       return <Link to={link} className={`${baseClass} block`}>{content}</Link>;
