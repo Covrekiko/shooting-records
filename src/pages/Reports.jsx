@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { Download, TrendingUp } from 'lucide-react';
+import MobilePdfViewer from '@/components/MobilePdfViewer';
 import { format } from 'date-fns';
 import TargetShootingAnalytics from '@/components/analytics/TargetShootingAnalytics';
 import ClayShootingAnalytics from '@/components/analytics/ClayShootingAnalytics';
@@ -374,7 +375,7 @@ export default function Reports() {
 
         {/* Info */}
         {previewPdf && (
-          <PdfPreviewModal pdfUrl={previewPdf} onClose={() => setPreviewPdf(null)} />
+          <MobilePdfViewer pdfUrl={previewPdf} onClose={() => setPreviewPdf(null)} />
         )}
 
         {reportType !== 'analytics' && (
@@ -402,35 +403,6 @@ export default function Reports() {
          </div>
         )}
       </main>
-    </div>
-  );
-}
-
-function PdfPreviewModal({ pdfUrl, onClose }) {
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl border border-slate-200/70 dark:border-slate-700">
-        <div className="flex items-center justify-between p-4 border-b border-slate-200/70 dark:border-slate-700">
-          <h2 className="text-xl font-bold">PDF Preview</h2>
-          <button
-            onClick={onClose}
-            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
-          >
-            ✕
-          </button>
-        </div>
-        <div className="flex-1 overflow-auto">
-          <iframe src={pdfUrl} className="w-full h-full border-0" />
-        </div>
-        <div className="p-4 border-t border-slate-200/70 dark:border-slate-700 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:opacity-90 transition-colors text-sm font-medium"
-          >
-            Close
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
