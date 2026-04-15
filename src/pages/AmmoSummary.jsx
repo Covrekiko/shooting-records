@@ -32,11 +32,28 @@ export default function AmmoSummary() {
 
   const handleMarkCleaned = async (rifleId) => {
     try {
+      const rifle = rifles.find(r => r.id === rifleId);
+      if (!rifle) return;
+      
       const today = format(new Date(), 'yyyy-MM-dd');
+      const roundsSincePrevious = (rifle.total_rounds_fired || 0) - (rifle.rounds_at_last_cleaning || 0);
+      
+      // Update rifle baseline
       await base44.entities.Rifle.update(rifleId, {
-        rounds_since_cleaning: 0,
+        rounds_at_last_cleaning: rifle.total_rounds_fired || 0,
         last_cleaning_date: today,
       });
+      
+      // Create cleaning history entry
+      await base44.entities.CleaningHistory.create({
+        firearm_id: rifleId,
+        firearm_type: 'rifle',
+        firearm_name: rifle.name,
+        cleaning_date: today,
+        total_rounds_at_cleaning: rifle.total_rounds_fired || 0,
+        rounds_since_previous_cleaning: roundsSincePrevious,
+      });
+      
       await loadData();
     } catch (error) {
       console.error('Error marking rifle cleaned:', error);
@@ -45,11 +62,28 @@ export default function AmmoSummary() {
 
   const handleShotgunMarkCleaned = async (shotgunId) => {
     try {
+      const shotgun = shotguns.find(s => s.id === shotgunId);
+      if (!shotgun) return;
+      
       const today = format(new Date(), 'yyyy-MM-dd');
+      const cartridgesSincePrevious = (shotgun.total_cartridges_fired || 0) - (shotgun.cartridges_at_last_cleaning || 0);
+      
+      // Update shotgun baseline
       await base44.entities.Shotgun.update(shotgunId, {
-        cartridges_since_cleaning: 0,
+        cartridges_at_last_cleaning: shotgun.total_cartridges_fired || 0,
         last_cleaning_date: today,
       });
+      
+      // Create cleaning history entry
+      await base44.entities.CleaningHistory.create({
+        firearm_id: shotgunId,
+        firearm_type: 'shotgun',
+        firearm_name: shotgun.name,
+        cleaning_date: today,
+        total_rounds_at_cleaning: shotgun.total_cartridges_fired || 0,
+        rounds_since_previous_cleaning: cartridgesSincePrevious,
+      });
+      
       await loadData();
     } catch (error) {
       console.error('Error marking shotgun cleaned:', error);
@@ -143,9 +177,10 @@ export default function AmmoSummary() {
               </div>
             ) : (
               rifles.map((rifle) => {
+                const roundsSinceCleaning = (rifle.total_rounds_fired || 0) - (rifle.rounds_at_last_cleaning || 0);
                 const cleaningStatus =
-                  rifle.rounds_since_cleaning > 0
-                    ? rifle.cleaning_reminder_threshold && rifle.rounds_since_cleaning >= rifle.cleaning_reminder_threshold
+                  roundsSinceCleaning > 0
+                    ? rifle.cleaning_reminder_threshold && roundsSinceCleaning >= rifle.cleaning_reminder_threshold
                       ? 'needs_cleaning'
                       : 'dirty'
                     : rifle.last_cleaning_date
@@ -181,14 +216,14 @@ export default function AmmoSummary() {
                      </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-                       <div className="bg-secondary/30 rounded-lg p-3">
-                         <p className="text-xs text-muted-foreground mb-1">Total Rounds</p>
-                         <p className="text-xl font-bold">{rifle.total_rounds_fired || 0}</p>
-                       </div>
-                       <div className="bg-secondary/30 rounded-lg p-3">
-                         <p className="text-xs text-muted-foreground mb-1">Since Cleaning</p>
-                         <p className="text-xl font-bold">{rifle.rounds_since_cleaning || 0}</p>
-                       </div>
+                      <div className="bg-secondary/30 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-1">Total Rounds</p>
+                        <p className="text-xl font-bold">{rifle.total_rounds_fired || 0}</p>
+                      </div>
+                      <div className="bg-secondary/30 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-1">Since Cleaning</p>
+                        <p className="text-xl font-bold">{roundsSinceCleaning}</p>
+                      </div>
                        {rifle.cleaning_reminder_threshold && (
                          <div className="bg-secondary/30 rounded-lg p-3">
                            <p className="text-xs text-muted-foreground mb-1">Target</p>
@@ -210,7 +245,7 @@ export default function AmmoSummary() {
                              <span className="text-xs font-medium text-muted-foreground">Cleaning Progress</span>
                              <span className="text-xs font-semibold">
                                {Math.round(
-                                 (rifle.rounds_since_cleaning / rifle.cleaning_reminder_threshold) * 100
+                                 (roundsSinceCleaning / rifle.cleaning_reminder_threshold) * 100
                                )}%
                              </span>
                            </div>
@@ -221,7 +256,7 @@ export default function AmmoSummary() {
                                }`}
                                style={{
                                  width: `${Math.min(
-                                   (rifle.rounds_since_cleaning / rifle.cleaning_reminder_threshold) * 100,
+                                   (roundsSinceCleaning / rifle.cleaning_reminder_threshold) * 100,
                                    100
                                  )}%`,
                                }}
@@ -257,9 +292,10 @@ export default function AmmoSummary() {
               </div>
             ) : (
               shotguns.map((shotgun) => {
+                const cartridgesSinceCleaning = (shotgun.total_cartridges_fired || 0) - (shotgun.cartridges_at_last_cleaning || 0);
                 const cleaningStatus =
-                  shotgun.cartridges_since_cleaning > 0
-                    ? shotgun.cleaning_reminder_threshold && shotgun.cartridges_since_cleaning >= shotgun.cleaning_reminder_threshold
+                  cartridgesSinceCleaning > 0
+                    ? shotgun.cleaning_reminder_threshold && cartridgesSinceCleaning >= shotgun.cleaning_reminder_threshold
                       ? 'needs_cleaning'
                       : 'dirty'
                     : shotgun.last_cleaning_date
@@ -301,7 +337,7 @@ export default function AmmoSummary() {
                       </div>
                       <div className="bg-secondary/30 rounded-lg p-3">
                         <p className="text-xs text-muted-foreground mb-1">Since Cleaning</p>
-                        <p className="text-xl font-bold">{shotgun.cartridges_since_cleaning || 0}</p>
+                        <p className="text-xl font-bold">{cartridgesSinceCleaning}</p>
                       </div>
                       {shotgun.cleaning_reminder_threshold && (
                         <div className="bg-secondary/30 rounded-lg p-3">
@@ -324,7 +360,7 @@ export default function AmmoSummary() {
                             <span className="text-xs font-medium text-muted-foreground">Cleaning Progress</span>
                             <span className="text-xs font-semibold">
                               {Math.round(
-                                (shotgun.cartridges_since_cleaning / shotgun.cleaning_reminder_threshold) * 100
+                                (cartridgesSinceCleaning / shotgun.cleaning_reminder_threshold) * 100
                               )}%
                             </span>
                           </div>
@@ -335,7 +371,7 @@ export default function AmmoSummary() {
                               }`}
                               style={{
                                 width: `${Math.min(
-                                  (shotgun.cartridges_since_cleaning / shotgun.cleaning_reminder_threshold) * 100,
+                                  (cartridgesSinceCleaning / shotgun.cleaning_reminder_threshold) * 100,
                                   100
                                 )}%`,
                               }}

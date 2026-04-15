@@ -25,10 +25,10 @@
       "default": 0,
       "description": "Total cartridges fired in lifetime"
     },
-    "cartridges_since_cleaning": {
+    "cartridges_at_last_cleaning": {
       "type": "integer",
       "default": 0,
-      "description": "Cartridges fired since last cleaning"
+      "description": "Total cartridges at the time of last cleaning"
     },
     "cleaning_reminder_threshold": {
       "type": "integer",

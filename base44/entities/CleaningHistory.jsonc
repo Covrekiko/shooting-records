@@ -1,0 +1,46 @@
+{
+  "name": "CleaningHistory",
+  "type": "object",
+  "properties": {
+    "firearm_id": {
+      "type": "string",
+      "description": "ID of the rifle or shotgun"
+    },
+    "firearm_type": {
+      "type": "string",
+      "enum": [
+        "rifle",
+        "shotgun"
+      ],
+      "description": "Type of firearm"
+    },
+    "firearm_name": {
+      "type": "string",
+      "description": "Name of the firearm"
+    },
+    "cleaning_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of cleaning"
+    },
+    "total_rounds_at_cleaning": {
+      "type": "integer",
+      "description": "Total rounds/cartridges fired at time of cleaning"
+    },
+    "rounds_since_previous_cleaning": {
+      "type": "integer",
+      "description": "Rounds/cartridges fired since last cleaning event"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes about the cleaning"
+    }
+  },
+  "required": [
+    "firearm_id",
+    "firearm_type",
+    "firearm_name",
+    "cleaning_date",
+    "total_rounds_at_cleaning"
+  ]
+}

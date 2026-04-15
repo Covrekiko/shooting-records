@@ -25,10 +25,10 @@
       "default": 0,
       "description": "Total rounds fired in lifetime"
     },
-    "rounds_since_cleaning": {
+    "rounds_at_last_cleaning": {
       "type": "integer",
       "default": 0,
-      "description": "Rounds fired since last cleaning"
+      "description": "Total rounds at the time of last cleaning"
     },
     "cleaning_reminder_threshold": {
       "type": "integer",
