@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { X, Plus } from 'lucide-react';
+import { searchCalibers } from '@/utils/caliberCatalog';
 import AddBrassModal from './AddBrassModal';
 
 export default function ReloadBatchForm({ onSubmit, onClose }) {
@@ -11,6 +12,8 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
   const [loading, setLoading] = useState(true);
   const [costBreakdown, setCostBreakdown] = useState(null);
   const [showAddBrassModal, setShowAddBrassModal] = useState(false);
+  const [caliberResults, setCaliberResults] = useState([]);
+  const [showCaliberDropdown, setShowCaliberDropdown] = useState(false);
 
   const [formData, setFormData] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
@@ -209,6 +212,15 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     }
   };
 
+  const handleCaliberSearch = (query) => {
+    if (!query) {
+      setCaliberResults([]);
+      return;
+    }
+    const results = searchCalibers(query);
+    setCaliberResults(results);
+  };
+
   if (loading) {
     return <div className="text-center py-4"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div></div>;
   }
@@ -240,16 +252,42 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               required
             />
           </div>
-          <div>
+          <div className="relative">
             <label className={labelCls}>Caliber</label>
-            <input
-              type="text"
-              value={formData.caliber}
-              onChange={(e) => setFormData({ ...formData, caliber: e.target.value })}
-              placeholder=".308 Win"
-              className={inputCls}
-              required
-            />
+            <div className="relative">
+              <input
+                type="text"
+                value={formData.caliber}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData({ ...formData, caliber: val });
+                  handleCaliberSearch(val);
+                  setShowCaliberDropdown(true);
+                }}
+                onFocus={() => setShowCaliberDropdown(formData.caliber.length >= 1)}
+                placeholder=".308 Win"
+                className={inputCls}
+                required
+              />
+              {showCaliberDropdown && caliberResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                  {caliberResults.map((caliber, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, caliber });
+                        setShowCaliberDropdown(false);
+                        setCaliberResults([]);
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-secondary border-b border-border last:border-b-0 text-sm"
+                    >
+                      {caliber}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
