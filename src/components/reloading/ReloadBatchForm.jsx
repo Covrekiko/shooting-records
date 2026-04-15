@@ -237,24 +237,26 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <input type="text" value={formData.batch_number} onChange={(e) => setFormData({ ...formData, batch_number: e.target.value })} className={inputCls} required />
         </div>
 
-        <div>
-          <label className={labelCls}>Rifle (optional)</label>
-          <select value={formData.rifle_id} onChange={(e) => setFormData({ ...formData, rifle_id: e.target.value })} className={inputCls}>
-            <option value="">None</option>
-            {rifles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-          </select>
-        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={labelCls}>Rifle (optional)</label>
+            <select value={formData.rifle_id} onChange={(e) => setFormData({ ...formData, rifle_id: e.target.value })} className={inputCls}>
+              <option value="">None</option>
+              {rifles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+            </select>
+          </div>
 
-        <div>
-          <label className={labelCls}>Cartridges to Load</label>
-          <input
-            type="number"
-            value={formData.cartridges_loaded}
-            onChange={(e) => setFormData({ ...formData, cartridges_loaded: e.target.value })}
-            className={inputCls}
-            placeholder="100"
-            required
-          />
+          <div>
+            <label className={labelCls}>Cartridges to Load</label>
+            <input
+              type="number"
+              value={formData.cartridges_loaded}
+              onChange={(e) => setFormData({ ...formData, cartridges_loaded: e.target.value })}
+              className={inputCls}
+              placeholder="100"
+              required
+            />
+          </div>
         </div>
 
         <div>
