@@ -229,12 +229,7 @@ export default function Dashboard() {
          </div>
          )}
 
-        {/* Ammunition Tracking Widget */}
-        {user && (
-          <div className="mt-6">
-            <AmmunitionTrackingWidget />
-          </div>
-        )}
+
 
         {/* Widgets */}
         {user && (
