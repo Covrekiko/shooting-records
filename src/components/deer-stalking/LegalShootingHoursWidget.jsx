@@ -79,8 +79,8 @@ export default function LegalShootingHoursWidget() {
   const legalEndTime = formatTime(legalEnd);
 
   return (
-    <button onClick={() => navigate('/sunrise-sunset')} className="w-full text-left hover:opacity-90 transition-opacity">
-    <div className="bg-white/15 backdrop-blur-lg rounded-2xl px-3 py-2 border border-white/20 shadow-md hover:shadow-lg transition-shadow" style={{ WebkitBackdropFilter: 'blur(20px)' }}>
+    <button onClick={() => navigate('/sunrise-sunset')} className="w-full text-left hover:opacity-90 transition-opacity relative z-[9999]">
+    <div className="bg-white/15 backdrop-blur-lg rounded-2xl px-3 py-2 border border-white/20 shadow-md hover:shadow-lg transition-shadow" style={{ WebkitBackdropFilter: 'blur(20px)', isolation: 'isolate' }}>
       <div className="text-xs font-medium text-black/80 mb-1">Legal Shooting</div>
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-2">
