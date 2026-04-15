@@ -194,7 +194,7 @@ export default function Dashboard() {
          )}
 
         {/* Widgets */}
-        {user?.role !== 'admin' && (
+        {user && user.role !== 'admin' && (
           <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
             <AmmoStockWidget />
             <RifleAmmoTracker />
@@ -203,7 +203,7 @@ export default function Dashboard() {
         )}
 
         {/* Ammo Summary Link */}
-        {user?.role !== 'admin' && (
+        {user && user.role !== 'admin' && (
           <div className="mt-4">
             <Link
               to="/ammo-summary"
