@@ -43,8 +43,8 @@ export default function AmmunitionTrackingWidget() {
       className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow text-left w-full active:scale-95 transition-transform"
     >
       <div className="flex items-start gap-3">
-         <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 [&_svg]:w-6 [&_svg]:h-6 [&_svg]:text-slate-600 dark:[&_svg]:text-slate-300">
-           <Zap className="text-primary" />
+         <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
+           <Zap className="w-5 h-5 text-primary" />
          </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-slate-900 dark:text-white">Ammunition Tracking</p>
