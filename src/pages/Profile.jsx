@@ -3,6 +3,7 @@ import { useLocation, Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight, Trash2, Zap } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { DESIGN } from '@/lib/designConstants';
 
 export default function Profile() {
   const location = useLocation();
@@ -27,7 +28,7 @@ export default function Profile() {
   };
 
   return (
-    <div className="bg-slate-50 dark:bg-slate-900 min-h-screen">
+    <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
       <Navigation />
       <main className="max-w-7xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <h1 className="text-xl font-bold mb-4 hidden md:block text-slate-900 dark:text-slate-100">Profile</h1>

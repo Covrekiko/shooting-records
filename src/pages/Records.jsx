@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom';
 import { Download, Eye, Trash2, X, FileText, Map, Image, ChevronDown, Plus, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { exportRecordsToPdf, getRecordsPdfBlob } from '@/utils/recordsPdfExport';
+import { DESIGN } from '@/lib/designConstants';
 
 export default function Records() {
   const [allRecords, setAllRecords] = useState([]);
@@ -162,7 +163,7 @@ export default function Records() {
   }
 
   return (
-    <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
+    <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
       <Navigation />
       {(pulling || refreshing) && (
         <div className="flex justify-center pt-3 pb-1">

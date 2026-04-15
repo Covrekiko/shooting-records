@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { Activity, Zap, Target, MapPin, BarChart3, Crosshair, BookOpen, Map, Settings } from 'lucide-react';
+import { DESIGN } from '@/lib/designConstants';
 
 import {
   MonthlyActivityChart,
@@ -101,7 +102,7 @@ export default function Dashboard() {
   }
 
   return (
-     <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen flex flex-col">
+     <div className={`${DESIGN.PAGE_BG} min-h-screen flex flex-col`}>
        <Navigation />
        {(pulling || refreshing) && (
          <div className="flex justify-center py-1">

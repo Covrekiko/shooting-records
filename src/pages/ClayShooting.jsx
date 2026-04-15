@@ -14,6 +14,7 @@ import BottomSheetSelect from '@/components/BottomSheetSelect';
 import MissingFieldsAlert from '@/components/MissingFieldsAlert';
 import ModalShell from '@/components/ModalShell';
 import { motion } from 'framer-motion';
+import { DESIGN } from '@/lib/designConstants';
 
 export default function ClayShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -219,7 +220,7 @@ export default function ClayShooting() {
 
   if (loading) {
     return (
-      <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
+      <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
         <Navigation />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -229,7 +230,7 @@ export default function ClayShooting() {
   }
 
   return (
-    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
+    <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
       <Navigation />
       {nearbyClub && (
         <CheckinBanner location={nearbyClub.name} distance={nearbyClub.distance} onDismiss={() => setNearbyClub(null)} onCheckin={() => setShowCheckin(true)} />
@@ -242,7 +243,7 @@ export default function ClayShooting() {
           </div>
           {!activeSession && (
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
-              className="px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity flex items-center gap-2">
+              className={`${DESIGN.BUTTON_PRIMARY} flex items-center gap-2`}>
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Start New Session</span>
               <span className="sm:hidden">New Session</span>
@@ -251,11 +252,11 @@ export default function ClayShooting() {
         </div>
 
         {activeSession && (
-          <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 mb-4 shadow-sm">
+          <div className={`${DESIGN.CARD} p-4 mb-4`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Active Session</p>
@@ -263,7 +264,7 @@ export default function ClayShooting() {
                 </div>
               </div>
               <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowCheckout(true)}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity">
+                className={DESIGN.BUTTON_PRIMARY}>
                 Check Out
               </motion.button>
             </div>
@@ -308,8 +309,8 @@ export default function ClayShooting() {
 // ─── Check-in Modal ───────────────────────────────────────────────
 function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
   const [showAlert, setShowAlert] = useState(false);
-  const inputCls = "w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/30";
-  const labelCls = "block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5";
+  const inputCls = DESIGN.INPUT;
+  const labelCls = DESIGN.LABEL;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -323,15 +324,15 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
         onClose={onClose}
         footer={
           <div className="flex gap-3">
-            <motion.button type="submit" form="clay-checkin-form" whileTap={{ scale: 0.97 }}
-              className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
-              Check In
-            </motion.button>
-            <motion.button type="button" onClick={onClose} whileTap={{ scale: 0.97 }}
-              className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
-              Cancel
-            </motion.button>
-          </div>
+             <motion.button type="submit" form="clay-checkin-form" whileTap={{ scale: 0.97 }}
+               className={`flex-1 ${DESIGN.BUTTON_PRIMARY}`}>
+               Check In
+             </motion.button>
+             <motion.button type="button" onClick={onClose} whileTap={{ scale: 0.97 }}
+               className={`flex-1 ${DESIGN.BUTTON_SECONDARY}`}>
+               Cancel
+             </motion.button>
+           </div>
         }
       >
         <form id="clay-checkin-form" onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
@@ -383,8 +384,8 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
   const [showAlert, setShowAlert] = useState(false);
   const onChange = (field, value) => setData(prev => ({ ...prev, [field]: value }));
 
-  const inputCls = "w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/30";
-  const labelCls = "block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5";
+  const inputCls = DESIGN.INPUT;
+  const labelCls = DESIGN.LABEL;
 
   const handleCheckoutClick = () => {
     if (!data.shotgun_id || !data.rounds_fired) { setShowAlert(true); return; }
@@ -398,15 +399,15 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
         onClose={onClose}
         footer={
           <div className="flex gap-3">
-            <motion.button type="button" onClick={handleCheckoutClick} whileTap={{ scale: 0.97 }}
-              className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
-              Check Out
-            </motion.button>
-            <motion.button type="button" onClick={onClose} whileTap={{ scale: 0.97 }}
-              className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
-              Cancel
-            </motion.button>
-          </div>
+             <motion.button type="button" onClick={handleCheckoutClick} whileTap={{ scale: 0.97 }}
+               className={`flex-1 ${DESIGN.BUTTON_PRIMARY}`}>
+               Check Out
+             </motion.button>
+             <motion.button type="button" onClick={onClose} whileTap={{ scale: 0.97 }}
+               className={`flex-1 ${DESIGN.BUTTON_SECONDARY}`}>
+               Cancel
+             </motion.button>
+           </div>
         }
       >
         <div className="px-5 py-4 space-y-4">
