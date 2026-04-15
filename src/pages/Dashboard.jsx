@@ -201,7 +201,10 @@ export default function Dashboard() {
 
         {/* Widgets */}
         {user && (
-          <div className="mt-4">
+          <div className="mt-6 hidden md:block">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">Ammunition Stock Overview</h2>
+            </div>
             <AmmoStockWidget />
           </div>
         )}
