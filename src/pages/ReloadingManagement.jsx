@@ -123,12 +123,18 @@ export default function ReloadingManagement() {
         let deletedCount = 0;
         for (const record of spendingRecords) {
           console.log('Checking record:', { id: record.id, caliber: record.caliber, date: record.date_used, brand: record.brand });
-          const matchCalibер = record.caliber === session.caliber;
+          
+          // More flexible matching: normalize caliber, check exact date, flexible brand
+          const matchCaliber = record.caliber && session.caliber && 
+            (record.caliber.toLowerCase().trim() === session.caliber.toLowerCase().trim() ||
+             record.caliber.includes(session.caliber) || 
+             session.caliber.includes(record.caliber));
           const matchDate = record.date_used === session.date;
           const matchBrand = record.brand === 'Reloaded' || record.brand === (session.brand || 'Reloaded');
-          console.log('Match results:', { matchCalibер, matchDate, matchBrand });
           
-          if (matchCalibер && matchDate && matchBrand) {
+          console.log('Match results:', { matchCaliber, matchDate, matchBrand });
+          
+          if (matchCaliber && matchDate && matchBrand) {
             console.log('✅ Deleting spending record:', record.id);
             await base44.entities.AmmoSpending.delete(record.id);
             deletedCount++;
