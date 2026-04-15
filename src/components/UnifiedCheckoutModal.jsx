@@ -67,6 +67,10 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
         alert('Please fill in all species and counts');
         return;
       }
+      if (!checkoutData.ammunition_id) {
+        alert('Please select the ammunition used');
+        return;
+      }
     }
     // Auto-calculate total_count from species list
     const totalCount = checkoutData.shot_anything
@@ -210,7 +214,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Ammunition</label>
+              <label className="block text-sm font-medium mb-1">Ammunition *</label>
               <select
                 value={checkoutData.ammunition_id || ''}
                 onChange={(e) => {
@@ -223,22 +227,15 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                     });
                   }
                 }}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white text-slate-900 mb-2"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white text-slate-900"
               >
-                <option value="">Select saved ammunition</option>
+                <option value="">Select saved ammunition (required)</option>
                 {ammunition.map((ammo) => (
                   <option key={ammo.id} value={ammo.id}>
                     {ammo.brand} {ammo.caliber ? `(${ammo.caliber})` : ''} {ammo.bullet_type ? `- ${ammo.bullet_type}` : ''}
                   </option>
                 ))}
               </select>
-              <input
-                type="text"
-                placeholder="e.g. Federal 308 Win"
-                value={checkoutData.ammunition_used}
-                onChange={(e) => setCheckoutData({ ...checkoutData, ammunition_used: e.target.value })}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-white text-slate-900"
-              />
             </div>
           </>
         )}

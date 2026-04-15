@@ -139,7 +139,12 @@ export default function Records() {
       
       // Call backend to restore stock
       const restoreResponse = await base44.functions.invoke('restoreSessionStock', { sessionId: id });
-      console.log('🟢 [handleDelete] Stock restored:', restoreResponse.data);
+      console.log('🟢 [handleDelete] Stock restored. Restorations:', restoreResponse.data?.restorations?.length || 0);
+      if (restoreResponse.data?.restorations?.length > 0) {
+        console.log('🟢 [handleDelete] Restoration details:', restoreResponse.data.restorations);
+      } else {
+        console.warn('⚠️ [handleDelete] No ammunition was restored - check if ammunition_id was saved to session');
+      }
 
       // After stock is restored, delete the record
       await base44.entities.SessionRecord.delete(id);

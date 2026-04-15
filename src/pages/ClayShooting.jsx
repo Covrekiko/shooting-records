@@ -388,7 +388,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
   const labelCls = DESIGN.LABEL;
 
   const handleCheckoutClick = () => {
-    if (!data.shotgun_id || !data.rounds_fired) { setShowAlert(true); return; }
+    if (!data.shotgun_id || !data.rounds_fired || !data.ammunition_id) { setShowAlert(true); return; }
     onSubmit(data);
   };
 
@@ -424,7 +424,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
             <input type="number" min="0" value={data.rounds_fired} onChange={(e) => onChange('rounds_fired', e.target.value)} className={inputCls} required />
           </div>
           <div>
-            <label className={labelCls}>Ammunition</label>
+            <label className={labelCls}>Ammunition *</label>
             {data.shotgun_id ? (
               <BottomSheetSelect
                 value={data.ammunition_id || ''}
@@ -433,7 +433,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
                   onChange('ammunition_id', val);
                   if (a) onChange('ammunition_used', `${a.brand} ${a.caliber || ''} ${a.bullet_type || ''}`.trim());
                 }}
-                placeholder="Select saved ammunition"
+                placeholder="Select saved ammunition (required)"
                 options={ammunition.filter(a => {
                   const selectedShotgun = shotguns.find(s => s.id === data.shotgun_id);
                   return !selectedShotgun || !selectedShotgun.gauge || a.caliber === selectedShotgun.gauge;
@@ -441,13 +441,6 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
               />
             ) : (
               <p className="text-xs text-slate-400">Select a shotgun first</p>
-            )}
-
-            {!data.ammunition_id && (
-              <div className="mt-2">
-                <span className="text-xs text-slate-400">Or enter manually:</span>
-                <input type="text" placeholder="e.g. Federal 12 Gauge" value={data.ammunition_used} onChange={(e) => onChange('ammunition_used', e.target.value)} className={`${inputCls} mt-1.5`} />
-              </div>
             )}
           </div>
           <div>
@@ -488,7 +481,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
         </div>
       </ModalShell>
       {showAlert && createPortal(<div className="fixed inset-0 z-[50000] bg-black/50" />, document.body)}
-      {showAlert && createPortal(<MissingFieldsAlert fields={['Shotgun', 'Rounds Fired']} onClose={() => setShowAlert(false)} />, document.body)}
+      {showAlert && createPortal(<MissingFieldsAlert fields={['Shotgun', 'Rounds Fired', 'Ammunition']} onClose={() => setShowAlert(false)} />, document.body)}
     </>
   );
 }

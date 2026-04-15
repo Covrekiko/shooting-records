@@ -407,6 +407,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
       if (!rifle.rifle_id) missing.push('Rifle');
       if (!rifle.rounds_fired) missing.push('Rounds fired');
       if (!rifle.meters_range) missing.push('Meters range');
+      if (!rifle.ammunition_id) missing.push('Ammunition');
       if (missing.length > 0) newErrors[`rifle_${idx}`] = `Required: ${missing.join(', ')}`;
     });
     if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
@@ -461,7 +462,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                 <input type="number" placeholder="Meters" value={rifle.meters_range} onChange={(e) => updateRifleEntry(index, 'meters_range', e.target.value)} className={inputCls} />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide block mb-1.5">Ammunition</label>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide block mb-1.5">Ammunition *</label>
                 {rifle.rifle_id ? (
                   <BottomSheetSelect
                     value={rifle.ammunition_id || ''}
@@ -473,7 +474,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                         return { ...prev, rifles_used: updated };
                       });
                     }}
-                    placeholder="Select saved ammunition"
+                    placeholder="Select saved ammunition (required)"
                     options={ammunition.filter(a => {
                       const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
                       return !selectedRifle || !selectedRifle.caliber || a.caliber === selectedRifle.caliber;
@@ -481,16 +482,6 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                   />
                 ) : (
                   <p className="text-xs text-slate-400">Select a rifle first</p>
-                )}
-
-                {!rifle.ammunition_id && (
-                  <div className="mt-2 space-y-2">
-                    <span className="text-xs text-slate-400">Or enter manually:</span>
-                    <input type="text" placeholder="Brand" value={rifle.ammunition_brand || ''} onChange={(e) => updateRifleEntry(index, 'ammunition_brand', e.target.value)} className={inputCls} />
-                    <input type="text" placeholder="Caliber" value={rifle.caliber || ''} onChange={(e) => updateRifleEntry(index, 'caliber', e.target.value)} className={inputCls} />
-                    <input type="text" placeholder="Bullet type" value={rifle.bullet_type || ''} onChange={(e) => updateRifleEntry(index, 'bullet_type', e.target.value)} className={inputCls} />
-                    <input type="text" placeholder="Grain" value={rifle.grain || ''} onChange={(e) => updateRifleEntry(index, 'grain', e.target.value)} className={inputCls} />
-                  </div>
                 )}
               </div>
             </div>
