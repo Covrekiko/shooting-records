@@ -108,6 +108,7 @@ export default function AreaSaveForm({ polygon, onSave, onCancel }) {
               onChange={(e) => setFormData({ ...formData, location_address: e.target.value })}
               placeholder="Enter address"
               className="flex-1 px-3 py-2 border border-border rounded-lg bg-background"
+              autoComplete="off"
             />
             <button
               onClick={handleSearchAddress}
@@ -127,6 +128,7 @@ export default function AreaSaveForm({ polygon, onSave, onCancel }) {
             onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
             placeholder="e.g. SW1A 1AA"
             className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+            autoComplete="off"
           />
         </div>
 
