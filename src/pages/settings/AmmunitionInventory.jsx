@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Plus, Trash2, Edit2, AlertCircle } from 'lucide-react';
+import { Plus, Trash2, Edit2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 export default function AmmunitionInventory() {
+  const navigate = useNavigate();
   const [ammo, setAmmo] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -106,9 +108,18 @@ export default function AmmunitionInventory() {
       <Navigation />
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Ammunition Inventory</h1>
-            <p className="text-muted-foreground">Track and manage your ammunition stock</p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 hover:bg-secondary rounded-lg transition-colors"
+              title="Go back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold">Ammunition Inventory</h1>
+              <p className="text-muted-foreground">Track and manage your ammunition stock</p>
+            </div>
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
