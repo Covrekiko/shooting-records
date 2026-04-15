@@ -74,7 +74,7 @@ export default function Navigation() {
                     ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
                 }`}>
-                Profile
+                <User className="w-4 h-4" />Profile
               </Link>
             </div>
           </div>
