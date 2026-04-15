@@ -40,10 +40,56 @@ export default function ReloadingManagement() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this reloading session?')) return;
     try {
+      // Get the session to restore its stock
+      const session = sessions.find(s => s.id === id);
+      if (session && session.components) {
+        const unitConversions = {
+          'grams': 1,
+          'kg': 1000,
+          'oz': 28.3495,
+          'lb': 453.592,
+          'grains': 0.06479891,
+        };
+
+        // Restore each component used in the session
+        for (const comp of session.components) {
+          if (comp.type === 'powder') {
+            // Restore powder: convert used amount to grams, then back to stored unit
+            const usedInGrams = parseFloat(comp.quantity_used) * (unitConversions[comp.unit] || 1);
+            const component = await base44.entities.ReloadingComponent.filter({
+              id: comp.component_id || comp.name,
+              component_type: 'powder',
+            }).then(results => results[0]);
+
+            if (component) {
+              const restoredRemaining = component.quantity_remaining + usedInGrams / (unitConversions[component.unit] || 1);
+              await base44.entities.ReloadingComponent.update(component.id, {
+                quantity_remaining: restoredRemaining,
+              });
+            }
+          } else {
+            // Restore primer, brass, bullet: simple quantity addition
+            const component = await base44.entities.ReloadingComponent.filter({
+              id: comp.component_id || comp.name,
+              component_type: comp.type,
+            }).then(results => results[0]);
+
+            if (component) {
+              const restoredRemaining = component.quantity_remaining + (comp.quantity_used || 0);
+              await base44.entities.ReloadingComponent.update(component.id, {
+                quantity_remaining: restoredRemaining,
+              });
+            }
+          }
+        }
+      }
+
+      // Delete the session
       await base44.entities.ReloadingSession.delete(id);
       loadSessions();
     } catch (error) {
       console.error('Error deleting session:', error);
+      alert('Error deleting session: ' + error.message);
     }
   };
 
