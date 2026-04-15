@@ -144,8 +144,10 @@ export default function AmmoSummary() {
             ) : (
               rifles.map((rifle) => {
                 const cleaningStatus =
-                  rifle.cleaning_reminder_threshold && rifle.rounds_since_cleaning >= rifle.cleaning_reminder_threshold
-                    ? 'needs_cleaning'
+                  rifle.rounds_since_cleaning > 0
+                    ? rifle.cleaning_reminder_threshold && rifle.rounds_since_cleaning >= rifle.cleaning_reminder_threshold
+                      ? 'needs_cleaning'
+                      : 'dirty'
                     : rifle.last_cleaning_date
                     ? 'clean'
                     : 'unknown';
@@ -256,8 +258,10 @@ export default function AmmoSummary() {
             ) : (
               shotguns.map((shotgun) => {
                 const cleaningStatus =
-                  shotgun.cleaning_reminder_threshold && shotgun.cartridges_since_cleaning >= shotgun.cleaning_reminder_threshold
-                    ? 'needs_cleaning'
+                  shotgun.cartridges_since_cleaning > 0
+                    ? shotgun.cleaning_reminder_threshold && shotgun.cartridges_since_cleaning >= shotgun.cleaning_reminder_threshold
+                      ? 'needs_cleaning'
+                      : 'dirty'
                     : shotgun.last_cleaning_date
                     ? 'clean'
                     : 'unknown';
