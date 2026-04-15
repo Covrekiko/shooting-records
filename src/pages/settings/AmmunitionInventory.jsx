@@ -281,7 +281,7 @@ export default function AmmunitionInventory() {
                       )}
                       {item.date_purchased && (
                         <p>
-                          <span className="font-medium">Purchased:</span> {format(new Date(item.date_purchased), 'MMM d, yyyy')}
+                          <span className="font-medium">{item.brand === 'Reloaded' ? 'Reloaded' : 'Purchased'}:</span> {format(new Date(item.date_purchased), 'MMM d, yyyy')}
                         </p>
                       )}
                       {item.notes && (
