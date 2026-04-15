@@ -18,6 +18,10 @@ export default function Ammunition() {
     caliber: '',
     bullet_type: '',
     grain: '',
+    quantity_in_stock: 0,
+    cost_per_unit: 0,
+    date_purchased: '',
+    notes: '',
   });
 
   useEffect(() => {
@@ -43,7 +47,7 @@ export default function Ammunition() {
     try {
       const newAmmo = await base44.entities.Ammunition.create(formData);
       setAmmunition([...ammunition, newAmmo]);
-      setFormData({ brand: '', caliber: '', bullet_type: '', grain: '' });
+      setFormData({ brand: '', caliber: '', bullet_type: '', grain: '', quantity_in_stock: 0, cost_per_unit: 0, date_purchased: '', notes: '' });
       setShowForm(false);
     } catch (error) {
       console.error('Error adding ammunition:', error);
@@ -166,6 +170,50 @@ export default function Ammunition() {
                   value={formData.grain}
                   onChange={(e) => setFormData({ ...formData, grain: e.target.value })}
                   className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Quantity</label>
+                <input
+                  type="number"
+                  value={formData.quantity_in_stock}
+                  onChange={(e) => setFormData({ ...formData, quantity_in_stock: parseInt(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  min="0"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Cost per Round</label>
+                <input
+                  type="number"
+                  value={formData.cost_per_unit}
+                  onChange={(e) => setFormData({ ...formData, cost_per_unit: parseFloat(e.target.value) || 0 })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  step="0.01"
+                  min="0"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Purchase Date</label>
+                <input
+                  type="date"
+                  value={formData.date_purchased}
+                  onChange={(e) => setFormData({ ...formData, date_purchased: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Notes</label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  rows="3"
+                  placeholder="Additional notes"
                 />
               </div>
 
