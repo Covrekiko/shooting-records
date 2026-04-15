@@ -256,27 +256,10 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
         notes: `Reloaded batch ${formData.batch_number}`,
       });
 
-      // Add to ammunition inventory
-      const ammoList = await base44.entities.Ammunition.filter({
-        created_by: user.email,
-        caliber: formData.caliber,
+      // Update ammunition inventory with loaded rounds
+      await base44.entities.Ammunition.update(ammoId, {
+        quantity_in_stock: (existingReloadedAmmo[0]?.quantity_in_stock || cartridgesLoaded) + cartridgesLoaded,
       });
-
-      if (ammoList.length > 0) {
-        const ammo = ammoList[0];
-        await base44.entities.Ammunition.update(ammo.id, {
-          quantity_in_stock: (ammo.quantity_in_stock || 0) + cartridgesLoaded,
-        });
-      } else {
-        await base44.entities.Ammunition.create({
-          brand: 'Reloaded',
-          caliber: formData.caliber,
-          quantity_in_stock: cartridgesLoaded,
-          units: 'rounds',
-          cost_per_unit: costBreakdown.costPerCartridge,
-          date_purchased: formData.date,
-        });
-      }
 
       onSubmit();
     } catch (error) {
