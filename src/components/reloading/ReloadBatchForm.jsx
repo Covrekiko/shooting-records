@@ -221,9 +221,31 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
       const createdSession = await base44.entities.ReloadingSession.create(reloadSession);
 
+      // Find or create Ammunition entry for tracking
+      const existingReloadedAmmo = await base44.entities.Ammunition.filter({
+        created_by: user.email,
+        brand: 'Reloaded',
+        caliber: formData.caliber,
+      });
+
+      let ammoId;
+      if (existingReloadedAmmo.length > 0) {
+        ammoId = existingReloadedAmmo[0].id;
+      } else {
+        const newAmmo = await base44.entities.Ammunition.create({
+          brand: 'Reloaded',
+          caliber: formData.caliber,
+          quantity_in_stock: cartridgesLoaded,
+          units: 'rounds',
+          cost_per_unit: costBreakdown.costPerCartridge,
+          date_purchased: formData.date,
+        });
+        ammoId = newAmmo.id;
+      }
+
       // Create AmmoSpending record to track this reloading session
       await base44.entities.AmmoSpending.create({
-        ammunition_id: null,
+        ammunition_id: ammoId,
         brand: 'Reloaded',
         caliber: formData.caliber,
         quantity_used: cartridgesLoaded,
