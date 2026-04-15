@@ -29,7 +29,7 @@ export default function AmmunitionTrackingWidget() {
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
+      <div className="bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/80 rounded-2xl p-4 shadow-sm">
         <div className="h-20 flex items-center justify-center">
           <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
@@ -40,10 +40,10 @@ export default function AmmunitionTrackingWidget() {
   return (
     <button
       onClick={() => navigate('/ammo-summary')}
-      className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow text-left w-full active:scale-95 transition-transform"
+      className="bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/80 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-slate-200/90 dark:hover:border-slate-600 transition-all duration-100 text-left w-full active:scale-[0.97]"
     >
-      <div className="flex items-start gap-3">
-         <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 [&_svg]:w-6 [&_svg]:h-6 [&_svg]:text-slate-600 dark:[&_svg]:text-slate-300">
+      <div className="flex items-start gap-3.5">
+         <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 [&_svg]:w-6 [&_svg]:h-6 [&_svg]:text-slate-600 dark:[&_svg]:text-slate-300">
            <Zap className="text-primary" />
          </div>
         <div className="flex-1 min-w-0">

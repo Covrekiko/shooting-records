@@ -60,33 +60,33 @@ export default function ReloadingWidget() {
   }
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-6 hover:shadow-lg transition-shadow">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold">Reloading Stats</h3>
-        <Link to="/reloading" className="text-primary hover:opacity-75">
-          <ArrowRight className="w-5 h-5" />
+    <div className="bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/80 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-slate-200/90 dark:hover:border-slate-600 transition-all duration-100">
+      <div className="flex items-center justify-between mb-5">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Reloading Stats</h3>
+        <Link to="/reloading" className="text-primary hover:opacity-80 transition-opacity">
+          <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between pb-3 border-b border-border">
-          <span className="text-muted-foreground">Total Rounds Loaded</span>
-          <span className="text-2xl font-bold">{stats.totalRounds.toLocaleString()}</span>
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/60 dark:border-slate-700">
+          <span className="text-sm text-slate-600 dark:text-slate-400">Total Rounds Loaded</span>
+          <span className="text-lg font-bold text-slate-900 dark:text-white">{stats.totalRounds.toLocaleString()}</span>
         </div>
 
-        <div className="flex items-center justify-between pb-3 border-b border-border">
-          <span className="text-muted-foreground">This Month</span>
-          <span className="text-xl font-bold text-primary">£{stats.monthlyCost.toFixed(2)}</span>
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/60 dark:border-slate-700">
+          <span className="text-sm text-slate-600 dark:text-slate-400">This Month</span>
+          <span className="text-lg font-bold text-primary">£{stats.monthlyCost.toFixed(2)}</span>
         </div>
 
-        <div className="flex items-center justify-between pb-3 border-b border-border">
-          <span className="text-muted-foreground">Avg Cost/Round</span>
-          <span className="font-semibold">£{stats.avgCostPerRound.toFixed(2)}</span>
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/60 dark:border-slate-700">
+          <span className="text-sm text-slate-600 dark:text-slate-400">Avg Cost/Round</span>
+          <span className="font-semibold text-slate-900 dark:text-white">£{stats.avgCostPerRound.toFixed(2)}</span>
         </div>
 
-        <div className="flex items-center justify-between pb-3 border-b border-border">
-          <span className="text-muted-foreground">Most Used Caliber</span>
-          <span className="font-semibold">{stats.mostUsedCaliber}</span>
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/60 dark:border-slate-700">
+          <span className="text-sm text-slate-600 dark:text-slate-400">Most Used Caliber</span>
+          <span className="font-semibold text-slate-900 dark:text-white">{stats.mostUsedCaliber}</span>
         </div>
 
         {stats.lowStockItems > 0 && (

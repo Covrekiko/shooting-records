@@ -111,16 +111,16 @@ export default function Dashboard() {
            />
          </div>
        )}
-       <main className="max-w-7xl mx-auto px-3 pt-1 md:pt-3 pb-4">
-         <div className="mb-4 hidden md:flex items-center gap-3">
-           <div>
-             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight">Dashboard</h1>
-             <p className="text-xs text-slate-400 mt-0.5">Welcome back, <span className="font-medium text-slate-600 dark:text-slate-300">{user?.full_name}</span></p>
-           </div>
-         </div>
+       <main className="max-w-7xl mx-auto px-4 pt-4 md:pt-6 pb-8">
+          <div className="mb-6 hidden md:flex items-center gap-3">
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 leading-tight">Dashboard</h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Welcome back, <span className="font-semibold text-slate-700 dark:text-slate-300">{user?.full_name}</span></p>
+            </div>
+          </div>
 
          {user?.role === 'admin' ? (
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
            <StatCard
              icon={<Map className="w-6 h-6" />}
              label="Stalking Map"
@@ -162,7 +162,7 @@ export default function Dashboard() {
            />
          </div>
          ) : (
-         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
+         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             icon={<Map className="w-6 h-6" />}
             label="Stalking Map"
@@ -207,14 +207,14 @@ export default function Dashboard() {
 
         {/* Ammunition Tracking Widget */}
         {user && (
-          <div className="mt-4">
+          <div className="mt-6">
             <AmmunitionTrackingWidget />
           </div>
         )}
 
         {/* Widgets */}
         {user && (
-          <div className="mt-4 space-y-4">
+          <div className="mt-6 space-y-5">
             <AmmoStockWidget />
             <ReloadingWidget />
           </div>
@@ -222,14 +222,14 @@ export default function Dashboard() {
 
         {/* Stalking Map Section */}
          {user && (
-           <div className="mt-6 hidden md:block">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">Deer Stalking Map</h2>
-            </div>
-            <Link
-              to="/deer-stalking"
-              className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-8 hover:shadow-md transition-shadow block text-center shadow-sm"
-            >
+           <div className="mt-8 hidden md:block">
+            <div className="flex items-center justify-between mb-4">
+               <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Deer Stalking Map</h2>
+             </div>
+             <Link
+               to="/deer-stalking"
+               className="bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/80 rounded-3xl p-8 hover:shadow-lg transition-shadow block text-center shadow-sm hover:border-slate-200/90 dark:hover:border-slate-600"
+             >
               <div className="text-4xl mb-3">🗺️</div>
               <p className="text-lg font-semibold text-foreground mb-2">Open Deer Stalking Map</p>
               <p className="text-sm text-muted-foreground">View boundaries, track outings, and log harvests</p>
@@ -239,9 +239,9 @@ export default function Dashboard() {
 
         {/* Charts Section */}
         {chartData && (
-          <div className="mt-6 space-y-4 hidden md:block">
+          <div className="mt-8 space-y-6 hidden md:block">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">Performance Analytics</h2>
+              <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">Performance Analytics</h2>
               <Link
                 to="/reports"
                 className="px-3 py-1.5 bg-primary text-primary-foreground rounded-xl hover:opacity-90 flex items-center gap-2 text-xs font-semibold"
@@ -396,26 +396,26 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
 }
 
 function StatCard({ icon, label, subtitle, value, link, hideOnMobile }) {
-    const content = (
-      <div className="flex items-center gap-3">
-        {/* Icon container */}
-        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 text-lg [&_svg]:text-slate-600 dark:[&_svg]:text-slate-300">
-          {icon}
-        </div>
-        {/* Text */}
-        <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-semibold text-slate-800 dark:text-slate-100 leading-tight truncate">{label}</p>
-          {subtitle && <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-tight mt-0.5 truncate">{subtitle}</p>}
-          {value !== undefined && (
-            <p className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-0.5 leading-tight">{value}</p>
-          )}
-        </div>
-        <span className="text-slate-300 dark:text-slate-600 text-base flex-shrink-0">›</span>
-      </div>
-    );
+     const content = (
+       <div className="flex items-center gap-3.5">
+         {/* Icon container */}
+         <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 text-lg [&_svg]:text-slate-600 dark:[&_svg]:text-slate-300">
+           {icon}
+         </div>
+         {/* Text */}
+         <div className="flex-1 min-w-0">
+           <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-snug truncate">{label}</p>
+           {subtitle && <p className="text-xs text-slate-500 dark:text-slate-400 leading-tight mt-0.5 truncate">{subtitle}</p>}
+           {value !== undefined && (
+             <p className="text-lg font-bold text-slate-900 dark:text-slate-100 mt-1 leading-tight">{value}</p>
+           )}
+         </div>
+         <span className="text-slate-300 dark:text-slate-600 text-base flex-shrink-0">›</span>
+       </div>
+     );
 
-    const cardClass = hideOnMobile ? "hidden md:block" : "";
-    const baseClass = `bg-white dark:bg-slate-800 rounded-2xl p-3.5 border border-slate-200/70 dark:border-slate-700 shadow-sm hover:shadow-md active:scale-[0.97] transition-all duration-100 ${cardClass}`;
+     const cardClass = hideOnMobile ? "hidden md:block" : "";
+     const baseClass = `bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/80 shadow-sm hover:shadow-md hover:border-slate-200/90 dark:hover:border-slate-600 active:scale-[0.97] transition-all duration-100 ${cardClass}`;
 
     if (link) {
       return <Link to={link} className={`${baseClass} block`}>{content}</Link>;
