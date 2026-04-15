@@ -367,7 +367,7 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
 function StatCard({ icon, label, value, link, hideOnMobile }) {
     const content = (
       <div className="flex flex-col items-start justify-between h-full">
-        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-600 text-white flex items-center justify-center mb-3 flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 [&_img]:w-5 [&_img]:h-5 text-lg shadow-md border border-slate-500/30">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-700 text-white flex items-center justify-center mb-3 flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 [&_img]:w-5 [&_img]:h-5 text-xl shadow-lg border border-slate-600/50">
           {icon}
         </div>
         <div className="flex-1 min-w-0 w-full">
@@ -380,7 +380,7 @@ function StatCard({ icon, label, value, link, hideOnMobile }) {
     );
 
     const cardClass = hideOnMobile ? "hidden md:block" : "";
-    const baseClass = "bg-white/60 dark:bg-slate-800/60 rounded-2xl p-4 md:p-6 border border-slate-200/60 dark:border-slate-700/50 shadow-sm hover:shadow-md hover:bg-white/80 dark:hover:bg-slate-800/80 transition-all duration-200 active:scale-[0.98]" + " " + cardClass;
+    const baseClass = "bg-slate-100 dark:bg-slate-800 rounded-2xl p-4 md:p-6 border border-slate-300 dark:border-slate-600 shadow-sm hover:shadow-md hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 active:scale-[0.98]" + " " + cardClass;
 
     if (link) {
       return (
