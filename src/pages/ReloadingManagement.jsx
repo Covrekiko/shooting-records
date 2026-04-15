@@ -117,9 +117,13 @@ export default function ReloadingManagement() {
         const user = await base44.auth.me();
         const spendingRecords = await base44.entities.AmmoSpending.filter({ created_by: user.email });
         
-        // Delete spending records matching this session's caliber and date
+        // Delete spending records matching this session's caliber, date, and brand
         for (const record of spendingRecords) {
-          if (record.caliber === session.caliber && record.date_used === session.date) {
+          const matchCalibер = record.caliber === session.caliber;
+          const matchDate = record.date_used === session.date;
+          const matchBrand = record.brand === 'Reloaded' || record.brand === (session.brand || 'Reloaded');
+          
+          if (matchCalibер && matchDate && matchBrand) {
             await base44.entities.AmmoSpending.delete(record.id);
           }
         }
