@@ -194,7 +194,7 @@ export default function Dashboard() {
          )}
 
         {/* Widgets */}
-        {user && user.role !== 'admin' && (
+        {user && (
           <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
             <AmmoStockWidget />
             <RifleAmmoTracker />
@@ -203,7 +203,7 @@ export default function Dashboard() {
         )}
 
         {/* Ammo Summary Link */}
-        {user && user.role !== 'admin' && (
+        {user && (
           <div className="mt-4">
             <Link
               to="/ammo-summary"
@@ -221,7 +221,7 @@ export default function Dashboard() {
         )}
 
         {/* Stalking Map Section */}
-         {user?.role !== 'admin' && (
+         {user && (
            <div className="mt-6 hidden md:block">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">Deer Stalking Map</h2>
@@ -238,7 +238,7 @@ export default function Dashboard() {
         )}
 
         {/* Charts Section */}
-        {user?.role !== 'admin' && chartData && (
+        {chartData && (
           <div className="mt-6 space-y-4 hidden md:block">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-bold text-slate-800 dark:text-slate-100">Performance Analytics</h2>
