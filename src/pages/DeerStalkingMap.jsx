@@ -530,31 +530,30 @@ export default function DeerStalkingMap() {
         <Link
           to="/"
           title="Dashboard"
-          className="w-10 h-10 rounded-2xl bg-white shadow-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:scale-95 transition-all"
+          style={{ backgroundColor: '#1e293b', color: '#fff' }}
+          className="w-10 h-10 rounded-2xl shadow-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
         >
-          <Home className="w-4.5 h-4.5" />
+          <Home className="w-4 h-4" />
         </Link>
 
         {/* Satellite toggle */}
         <button
           onClick={() => setUseSatellite(!useSatellite)}
           title={useSatellite ? 'Map view' : 'Satellite view'}
-          className={`w-10 h-10 rounded-2xl shadow-lg border flex items-center justify-center active:scale-95 transition-all ${
-            useSatellite
-              ? 'bg-slate-900 border-slate-700 text-white hover:bg-slate-800'
-              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
-          }`}
+          style={{ backgroundColor: useSatellite ? '#059669' : '#1e293b', color: '#fff' }}
+          className="w-10 h-10 rounded-2xl shadow-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
         >
-          <Satellite className="w-4.5 h-4.5" />
+          <Satellite className="w-4 h-4" />
         </button>
 
         {/* Locate */}
         <button
           onClick={handleRecenter}
           title="My Location"
-          className="w-10 h-10 rounded-2xl bg-white shadow-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:scale-95 transition-all"
+          style={{ backgroundColor: '#1e293b', color: '#fff' }}
+          className="w-10 h-10 rounded-2xl shadow-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
         >
-          <LocateFixed className="w-4.5 h-4.5" />
+          <LocateFixed className="w-4 h-4" />
         </button>
 
         {/* Search */}

@@ -218,11 +218,8 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
           <button
             onClick={handleUndo}
             disabled={points.length === 0 || isClosed}
-            style={{ backgroundColor: 'rgba(0,0,0,0.82)', border: '1px solid rgba(255,255,255,0.12)' }}
-            className="flex items-center gap-1.5 px-4 h-11 text-white rounded-full shadow-lg text-sm font-semibold whitespace-nowrap
-              hover:brightness-125 active:scale-95
-              disabled:opacity-30 disabled:cursor-not-allowed
-              transition-all duration-150"
+            style={{ backgroundColor: '#1e293b', color: '#fff' }}
+            className="flex items-center gap-1.5 px-4 h-11 rounded-full shadow-lg text-sm font-semibold whitespace-nowrap hover:opacity-80 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
           >
             <Undo className="w-[18px] h-[18px] flex-shrink-0" />
             Undo
@@ -233,19 +230,16 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
             <button
               onClick={handleCloseBoundary}
               disabled={points.length < 3}
-              style={{ backgroundColor: 'rgba(0,0,0,0.82)', border: '1px solid rgba(255,255,255,0.12)' }}
-              className="flex items-center gap-1.5 px-4 h-11 text-white rounded-full shadow-lg text-sm font-semibold whitespace-nowrap
-                hover:brightness-125 active:scale-95
-                disabled:opacity-30 disabled:cursor-not-allowed
-                transition-all duration-150"
+              style={{ backgroundColor: '#1e293b', color: '#fff' }}
+              className="flex items-center gap-1.5 px-4 h-11 rounded-full shadow-lg text-sm font-semibold whitespace-nowrap hover:opacity-80 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
             >
               <Lock className="w-[18px] h-[18px] flex-shrink-0" />
               Close
             </button>
           ) : (
             <div
-              style={{ backgroundColor: '#064e3b', border: '1px solid rgba(52,211,153,0.35)' }}
-              className="flex items-center gap-1.5 px-4 h-11 text-emerald-300 rounded-full shadow-lg text-sm font-semibold whitespace-nowrap"
+              style={{ backgroundColor: '#065f46', color: '#6ee7b7' }}
+              className="flex items-center gap-1.5 px-4 h-11 rounded-full shadow-lg text-sm font-semibold whitespace-nowrap"
             >
               <Check className="w-[18px] h-[18px] flex-shrink-0" />
               Closed
@@ -255,10 +249,8 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
           {/* Cancel */}
           <button
             onClick={onCancel}
-            style={{ backgroundColor: 'rgba(0,0,0,0.82)', border: '1px solid rgba(255,255,255,0.12)' }}
-            className="flex items-center gap-1.5 px-4 h-11 text-slate-300 rounded-full shadow-lg text-sm font-semibold whitespace-nowrap
-              hover:text-white hover:brightness-125 active:scale-95
-              transition-all duration-150"
+            style={{ backgroundColor: '#374151', color: '#d1d5db' }}
+            className="flex items-center gap-1.5 px-4 h-11 rounded-full shadow-lg text-sm font-semibold whitespace-nowrap hover:opacity-80 active:scale-95 transition-all duration-150"
           >
             <X className="w-[18px] h-[18px] flex-shrink-0" />
             Cancel
@@ -270,15 +262,15 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
           onClick={handleFinish}
           disabled={points.length < 3}
           style={{
-            backgroundColor: points.length >= 3 ? '#059669' : '#374151',
-            boxShadow: points.length >= 3 ? '0 8px 24px rgba(5,150,105,0.5)' : 'none',
-            border: 'none',
+            backgroundColor: '#059669',
+            color: '#fff',
+            boxShadow: '0 8px 24px rgba(5,150,105,0.5)',
+            padding: '0 28px',
+            height: '52px',
+            fontSize: '16px',
+            fontWeight: 'bold',
           }}
-          className="flex items-center gap-2 px-7 h-13 text-white rounded-full text-base font-bold whitespace-nowrap
-            hover:brightness-110 hover:scale-[1.03]
-            active:scale-[0.97]
-            disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100
-            transition-all duration-150"
+          className="flex items-center gap-2 rounded-full whitespace-nowrap hover:opacity-90 hover:scale-[1.03] active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-150"
         >
           <Check className="w-5 h-5 flex-shrink-0" />
           Save Area

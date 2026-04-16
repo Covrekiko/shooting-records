@@ -37,7 +37,8 @@ export default function FloatingActionBar({
           {!activeOuting && (
             <button
               onClick={() => handleAction(onOuting)}
-              className="flex items-center gap-2 px-3 py-2 bg-slate-900 text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold whitespace-nowrap hover:bg-slate-800"
+              style={{ backgroundColor: '#1e293b', color: '#fff' }}
+              className="flex items-center gap-2 px-3 py-2 rounded-xl shadow-lg active:scale-95 transition-all text-xs font-semibold whitespace-nowrap hover:opacity-90"
             >
               <Plus className="w-3.5 h-3.5 flex-shrink-0" />
               New Outing
@@ -45,21 +46,24 @@ export default function FloatingActionBar({
           )}
           <button
             onClick={() => handleAction(onPOI)}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-900 text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold whitespace-nowrap hover:bg-slate-800"
+            style={{ backgroundColor: '#1e293b', color: '#fff' }}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl shadow-lg active:scale-95 transition-all text-xs font-semibold whitespace-nowrap hover:opacity-90"
           >
             <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
             Add POI
           </button>
           <button
             onClick={() => handleAction(onHarvest)}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-900 text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold whitespace-nowrap hover:bg-slate-800"
+            style={{ backgroundColor: '#1e293b', color: '#fff' }}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl shadow-lg active:scale-95 transition-all text-xs font-semibold whitespace-nowrap hover:opacity-90"
           >
             <span className="text-sm leading-none flex-shrink-0">🦌</span>
             Add Harvest
           </button>
           <button
             onClick={() => handleAction(onCreateArea)}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-900 text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold whitespace-nowrap hover:bg-slate-800"
+            style={{ backgroundColor: '#1e293b', color: '#fff' }}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl shadow-lg active:scale-95 transition-all text-xs font-semibold whitespace-nowrap hover:opacity-90"
           >
             <LayoutGrid className="w-3.5 h-3.5 flex-shrink-0" />
             Create Area
@@ -70,12 +74,8 @@ export default function FloatingActionBar({
       {/* Main FAB */}
       <button
         onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-        className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl active:scale-95 transition-all ${
-          expanded
-            ? 'bg-slate-900 text-white'
-            : 'bg-white border border-slate-200 text-slate-800 hover:bg-slate-100'
-        }`}
-        style={{ transition: 'transform 0.2s, background 0.2s' }}
+        style={{ backgroundColor: expanded ? '#0f172a' : '#1e293b', color: '#fff', transition: 'transform 0.2s, background 0.2s' }}
+        className="w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl active:scale-95 transition-all hover:opacity-90"
       >
         <Plus className="w-6 h-6" style={{ transition: 'transform 0.2s', transform: expanded ? 'rotate(45deg)' : 'rotate(0deg)' }} />
       </button>
