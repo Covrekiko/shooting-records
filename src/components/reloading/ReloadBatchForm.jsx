@@ -599,60 +599,59 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           </div>
         </div>
 
-        <div>
-          <label className={labelCls}>Brass / Cartridge</label>
-          <div className="flex gap-2">
-            <select value={formData.brass_id} onChange={(e) => setFormData({ ...formData, brass_id: e.target.value })} className={`${inputCls} flex-1`} required>
-              <option value="">Select brass</option>
-              {components.brass.map(b => <option key={b.id} value={b.id}>{b.name} - {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
-            </select>
-            <button
-              type="button"
-              onClick={() => setShowAddBrassModal(true)}
-              className="px-3 py-2 bg-secondary text-secondary-foreground rounded-lg hover:opacity-90 flex items-center gap-1 font-medium text-sm whitespace-nowrap"
-              title="Add new brass"
-            >
-              <Plus className="w-4 h-4" />
-              Add
-            </button>
-          </div>
-          {stockWarnings.brass && (
-            <p className="text-xs text-destructive font-semibold mt-1.5">{stockWarnings.brass}</p>
-          )}
-        </div>
-
-        <div className="bg-secondary/30 rounded-lg overflow-hidden">
-          <div className="flex items-center gap-3 p-3">
-            <input
-              type="checkbox"
-              id="brass_used"
-              checked={formData.brass_is_used}
-              onChange={(e) => setFormData({ ...formData, brass_is_used: e.target.checked, used_brass_id: '' })}
-              className="w-4 h-4"
-            />
-            <label htmlFor="brass_used" className="text-sm font-medium cursor-pointer">
-              Using previously fired/used brass (no cost)
-            </label>
-          </div>
-          {formData.brass_is_used && (
-            <div className="px-3 pb-3 border-t border-border/50 pt-3">
-              <label className={labelCls}>Select Your Used Brass</label>
+        {/* Brass section: two separate selects for new vs used */}
+        <div className="space-y-3">
+          <div>
+            <label className={labelCls}>New Brass</label>
+            <div className="flex gap-2">
               <select
-                value={formData.used_brass_id}
-                onChange={(e) => setFormData({ ...formData, used_brass_id: e.target.value, override_brass_limit: false })}
-                className={inputCls}
-                required={formData.brass_is_used}
+                value={formData.brass_is_used ? '' : formData.brass_id}
+                onChange={(e) => setFormData({ ...formData, brass_id: e.target.value, brass_is_used: false, used_brass_id: '' })}
+                className={`${inputCls} flex-1`}
               >
-                <option value="">Choose brass from your inventory...</option>
-                {components.brass.filter(b => b.is_used_brass).map(b => (
-                  <option key={b.id} value={b.id}>
-                    {b.name}{b.caliber ? ` (${b.caliber})` : ''}{b.batch_number ? ` #${b.batch_number}` : ''} — {b.quantity_remaining ?? b.quantity_total} in stock, reloaded {b.times_reloaded || 0}x
-                  </option>
+                <option value="">— Select new brass —</option>
+                {components.brass.filter(b => !b.is_used_brass).map(b => (
+                  <option key={b.id} value={b.id}>{b.name}{b.caliber ? ` (${b.caliber})` : ''} — {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>
                 ))}
               </select>
-              {stockWarnings.brass && formData.brass_is_used && (
-                <p className="text-xs text-destructive font-semibold mt-1.5">{stockWarnings.brass}</p>
-              )}
+              <button
+                type="button"
+                onClick={() => setShowAddBrassModal(true)}
+                className="px-3 py-2 bg-secondary text-secondary-foreground rounded-lg hover:opacity-90 flex items-center gap-1 font-medium text-sm whitespace-nowrap"
+                title="Add new brass"
+              >
+                <Plus className="w-4 h-4" />
+                Add
+              </button>
+            </div>
+            {!formData.brass_is_used && stockWarnings.brass && (
+              <p className="text-xs text-destructive font-semibold mt-1.5">{stockWarnings.brass}</p>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex-1 border-t border-border" />
+            <span>or</span>
+            <div className="flex-1 border-t border-border" />
+          </div>
+
+          <div>
+            <label className={labelCls}>Used Brass (previously fired)</label>
+            <select
+              value={formData.brass_is_used ? formData.used_brass_id : ''}
+              onChange={(e) => setFormData({ ...formData, used_brass_id: e.target.value, brass_is_used: !!e.target.value, brass_id: '', override_brass_limit: false })}
+              className={inputCls}
+            >
+              <option value="">— Select used brass —</option>
+              {components.brass.filter(b => b.is_used_brass).map(b => (
+                <option key={b.id} value={b.id}>
+                  {b.name}{b.caliber ? ` (${b.caliber})` : ''}{b.batch_number ? ` #${b.batch_number}` : ''} — {b.quantity_remaining ?? b.quantity_total} in stock, reloaded {b.times_reloaded || 0}x
+                </option>
+              ))}
+            </select>
+            {formData.brass_is_used && stockWarnings.brass && (
+              <p className="text-xs text-destructive font-semibold mt-1.5">{stockWarnings.brass}</p>
+            )}
               {formData.used_brass_id && (() => {
                 const selectedBrass = components.brass.find(b => b.id === formData.used_brass_id);
                 if (!selectedBrass) return null;
@@ -694,8 +693,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                   </div>
                 );
               })()}
-            </div>
-          )}
+          </div>
         </div>
 
         <div>
