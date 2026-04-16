@@ -241,13 +241,7 @@ export default function ClayShooting() {
             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Clay Shooting</h1>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Shotgun clay sessions</p>
           </div>
-          {!activeSession && (
-            <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
-              className={`${DESIGN.BUTTON_PRIMARY} flex items-center gap-2`}>
-              <Plus className="w-4 h-4" />
-              Start Session
-            </motion.button>
-          )}
+
         </div>
 
         {!activeSession && (
