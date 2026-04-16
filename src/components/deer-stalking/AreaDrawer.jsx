@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { GoogleMap, Marker, Polyline, Polygon } from '@react-google-maps/api';
-import { Undo, X, Check, Lock, Satellite } from 'lucide-react';
+import { Undo, X, Check, Lock, Satellite, LocateFixed } from 'lucide-react';
 import FloatingMapSearch from './FloatingMapSearch';
 
 const mapContainerStyle = {
@@ -50,6 +50,19 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
       mapRef.current.panTo({ lat: result.lat, lng: result.lng });
       mapRef.current.setZoom(15);
     }
+  };
+
+  const handleMyLocation = () => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const loc = { lat: position.coords.latitude, lng: position.coords.longitude };
+        if (mapRef.current) {
+          mapRef.current.panTo(loc);
+          mapRef.current.setZoom(16);
+        }
+      },
+      () => alert('Unable to get your location')
+    );
   };
 
 
@@ -145,14 +158,23 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         )}
       </GoogleMap>
 
-      {/* Satellite Toggle */}
-      <button
-        onClick={() => setUseSatellite(!useSatellite)}
-        className="fixed top-4 right-4 z-[9999] p-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all"
-        title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
-      >
-        <Satellite className="w-5 h-5" />
-      </button>
+      {/* Top Right Controls */}
+      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2">
+        <button
+          onClick={() => setUseSatellite(!useSatellite)}
+          className="w-10 h-10 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all flex items-center justify-center"
+          title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
+        >
+          <Satellite className="w-5 h-5" />
+        </button>
+        <button
+          onClick={handleMyLocation}
+          className="w-10 h-10 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all flex items-center justify-center"
+          title="My Location"
+        >
+          <LocateFixed className="w-5 h-5" />
+        </button>
+      </div>
 
       {/* Floating Controls */}
       <div className="fixed bottom-6 left-6 z-[9999] bg-card rounded-md p-2 shadow-md sm:rounded-lg sm:p-4 sm:gap-2">
