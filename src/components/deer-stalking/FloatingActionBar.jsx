@@ -45,13 +45,7 @@ export default function FloatingActionBar({
             <Plus className="w-4.5 h-4.5 flex-shrink-0" />
             New Outing
           </button>
-          <button
-            onClick={() => handleAction(onRecenter)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-full shadow-lg hover:shadow-xl hover:bg-white/30 dark:hover:bg-slate-700/40 transition-all cursor-pointer pointer-events-auto active:scale-95 backdrop-blur-md border border-white/40 dark:border-slate-600/40 text-sm font-medium whitespace-nowrap"
-          >
-            <Crosshair className="w-4.5 h-4.5 flex-shrink-0" />
-            My Location
-          </button>
+
           <button
             onClick={() => handleAction(onPOI)}
             className="flex items-center gap-2 px-4 py-2.5 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-full shadow-lg hover:shadow-xl hover:bg-white/30 dark:hover:bg-slate-700/40 transition-all cursor-pointer pointer-events-auto active:scale-95 backdrop-blur-md border border-white/40 dark:border-slate-600/40 text-sm font-medium whitespace-nowrap"
