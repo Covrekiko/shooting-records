@@ -29,6 +29,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     powder_unit: 'grains',
     brass_id: '',
     brass_is_used: false,
+    used_brass_id: '',
     bullet_id: '',
     notes: '',
   });
@@ -84,7 +85,8 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
     const primer = components.primer.find(c => c.id === formData.primer_id);
     const powder = components.powder.find(c => c.id === formData.powder_id);
-    const brass = components.brass.find(c => c.id === formData.brass_id);
+    const brassLookupId = formData.brass_is_used ? formData.used_brass_id : formData.brass_id;
+    const brass = components.brass.find(c => c.id === brassLookupId);
     const bullet = components.bullet.find(c => c.id === formData.bullet_id);
 
     const cartridgesLoaded = parseInt(formData.cartridges_loaded);
@@ -126,7 +128,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
   useEffect(() => {
     setCostBreakdown(calculateCosts());
-  }, [formData.cartridges_loaded, formData.primer_id, formData.powder_id, formData.brass_id, formData.brass_is_used, formData.bullet_id, formData.powder_charge, formData.powder_unit, components]);
+  }, [formData.cartridges_loaded, formData.primer_id, formData.powder_id, formData.brass_id, formData.brass_is_used, formData.used_brass_id, formData.bullet_id, formData.powder_charge, formData.powder_unit, components]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -147,7 +149,8 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
       const primer = components.primer.find(c => c.id === formData.primer_id);
       const powder = components.powder.find(c => c.id === formData.powder_id);
-      const brass = components.brass.find(c => c.id === formData.brass_id);
+      const brassLookupId = formData.brass_is_used ? formData.used_brass_id : formData.brass_id;
+      const brass = components.brass.find(c => c.id === brassLookupId);
       const bullet = components.bullet.find(c => c.id === formData.bullet_id);
 
       const cartridgesLoaded = parseInt(formData.cartridges_loaded);
@@ -186,6 +189,10 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       console.log('Powder remaining (in stored unit):', powderRemaining);
 
       // Deduct from component stock (clamp to minimum 0)
+      const brassUpdate = formData.brass_is_used
+        ? { times_reloaded: (brass.times_reloaded || 0) + 1 }
+        : { quantity_remaining: Math.max(0, brass.quantity_remaining - cartridgesLoaded) };
+
       await Promise.all([
         base44.entities.ReloadingComponent.update(formData.primer_id, {
           quantity_remaining: Math.max(0, primer.quantity_remaining - cartridgesLoaded),
@@ -193,9 +200,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
         base44.entities.ReloadingComponent.update(formData.powder_id, {
           quantity_remaining: powderRemaining,
         }),
-        base44.entities.ReloadingComponent.update(formData.brass_id, {
-          quantity_remaining: formData.brass_is_used ? brass.quantity_remaining : Math.max(0, brass.quantity_remaining - cartridgesLoaded),
-        }),
+        base44.entities.ReloadingComponent.update(brassLookupId, brassUpdate),
         base44.entities.ReloadingComponent.update(formData.bullet_id, {
           quantity_remaining: Math.max(0, bullet.quantity_remaining - cartridgesLoaded),
         }),
@@ -213,7 +218,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
         components: [
           { type: 'primer', name: primer.name, quantity_used: cartridgesLoaded, cost: costBreakdown.primerCost },
           { type: 'powder', name: powder.name, quantity_used: powderUsed, unit: powder.unit, cost: costBreakdown.powderCost },
-          { type: 'brass', name: brass.name, quantity_used: cartridgesLoaded, cost: costBreakdown.brassCost },
+          { type: 'brass', name: brass.name, quantity_used: cartridgesLoaded, cost: costBreakdown.brassCost, is_used_brass: formData.brass_is_used },
           { type: 'bullet', name: bullet.name, quantity_used: cartridgesLoaded, cost: costBreakdown.bulletCost },
         ],
         notes: formData.notes,
@@ -337,7 +342,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     }
 
     // Check brass
-    if (formData.brass_id && !formData.brass_is_used) {
+    if (!formData.brass_is_used && formData.brass_id) {
       const brass = components.brass.find(b => b.id === formData.brass_id);
       if (brass && brass.quantity_remaining < cartridgesLoaded) {
         warnings.brass = `Only ${brass.quantity_remaining} in stock`;
@@ -357,7 +362,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
   useEffect(() => {
     setStockWarnings(checkStockWarnings());
-  }, [formData.cartridges_loaded, formData.primer_id, formData.powder_id, formData.brass_id, formData.brass_is_used, formData.bullet_id, formData.powder_charge, formData.powder_unit, components]);
+  }, [formData.cartridges_loaded, formData.primer_id, formData.powder_id, formData.brass_id, formData.brass_is_used, formData.used_brass_id, formData.bullet_id, formData.powder_charge, formData.powder_unit, components]);
 
   const validateStock = () => {
     const cartridgesLoaded = parseInt(formData.cartridges_loaded) || 0;
@@ -367,7 +372,8 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
     const primer = components.primer.find(p => p.id === formData.primer_id);
     const powder = components.powder.find(p => p.id === formData.powder_id);
-    const brass = components.brass.find(b => b.id === formData.brass_id);
+    const brassValidationId = formData.brass_is_used ? formData.used_brass_id : formData.brass_id;
+    const brass = components.brass.find(b => b.id === brassValidationId);
     const bullet = components.bullet.find(b => b.id === formData.bullet_id);
 
     // Primer validation
@@ -396,8 +402,12 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     }
 
     // Brass validation
-    if (!brass || (brass.quantity_remaining < cartridgesLoaded && !formData.brass_is_used)) {
-      return { valid: false, message: `Brass: only ${brass?.quantity_remaining || 0} in stock` };
+    if (formData.brass_is_used) {
+      if (!brass) return { valid: false, message: 'Please select your used brass' };
+    } else {
+      if (!brass || brass.quantity_remaining < cartridgesLoaded) {
+        return { valid: false, message: `Brass: only ${brass?.quantity_remaining || 0} in stock` };
+      }
     }
 
     // Bullet validation
@@ -588,17 +598,45 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           )}
         </div>
 
-        <div className="flex items-center gap-3 bg-secondary/30 p-3 rounded-lg">
-          <input
-            type="checkbox"
-            id="brass_used"
-            checked={formData.brass_is_used}
-            onChange={(e) => setFormData({ ...formData, brass_is_used: e.target.checked })}
-            className="w-4 h-4"
-          />
-          <label htmlFor="brass_used" className="text-sm font-medium cursor-pointer">
-            Using previously fired/used brass (no cost)
-          </label>
+        <div className="bg-secondary/30 rounded-lg overflow-hidden">
+          <div className="flex items-center gap-3 p-3">
+            <input
+              type="checkbox"
+              id="brass_used"
+              checked={formData.brass_is_used}
+              onChange={(e) => setFormData({ ...formData, brass_is_used: e.target.checked, used_brass_id: '' })}
+              className="w-4 h-4"
+            />
+            <label htmlFor="brass_used" className="text-sm font-medium cursor-pointer">
+              Using previously fired/used brass (no cost)
+            </label>
+          </div>
+          {formData.brass_is_used && (
+            <div className="px-3 pb-3 border-t border-border/50 pt-3">
+              <label className={labelCls}>Select Your Used Brass</label>
+              <select
+                value={formData.used_brass_id}
+                onChange={(e) => setFormData({ ...formData, used_brass_id: e.target.value })}
+                className={inputCls}
+                required={formData.brass_is_used}
+              >
+                <option value="">Choose brass from your inventory...</option>
+                {components.brass.map(b => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}{b.caliber ? ` (${b.caliber})` : ''} — reloaded {b.times_reloaded || 0}x
+                  </option>
+                ))}
+              </select>
+              {formData.used_brass_id && (() => {
+                const selectedBrass = components.brass.find(b => b.id === formData.used_brass_id);
+                return selectedBrass ? (
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    This brass has been reloaded <span className="font-bold text-primary">{selectedBrass.times_reloaded || 0}</span> time(s). Reloading this batch will make it <span className="font-bold text-primary">{(selectedBrass.times_reloaded || 0) + 1}</span>.
+                  </p>
+                ) : null;
+              })()}
+            </div>
+          )}
         </div>
 
         <div>

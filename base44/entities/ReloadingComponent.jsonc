@@ -43,6 +43,26 @@
     },
     "notes": {
       "type": "string"
+    },
+    "caliber": {
+      "type": "string"
+    },
+    "brand": {
+      "type": "string"
+    },
+    "bullet_name": {
+      "type": "string"
+    },
+    "weight": {
+      "type": "number"
+    },
+    "weight_unit": {
+      "type": "string"
+    },
+    "times_reloaded": {
+      "type": "integer",
+      "default": 0,
+      "description": "How many times this brass has been reloaded (brass only)"
     }
   },
   "required": [

@@ -700,6 +700,12 @@ export default function ComponentManager() {
                           <p className="text-xs text-muted-foreground mt-1">
                             {displayRemaining}/{displayTotal} {displayUnit}
                           </p>
+                          {comp.component_type === 'brass' && (
+                            <p className="text-xs mt-1">
+                              <span className="font-semibold text-primary">{comp.times_reloaded || 0}x</span>
+                              <span className="text-muted-foreground"> reloaded</span>
+                            </p>
+                          )}
                         </div>
                         <div className="flex gap-2">
                           <button
