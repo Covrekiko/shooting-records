@@ -111,17 +111,17 @@ export default function AmmoSummary() {
   }
 
   return (
-    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
+    <div className="bg-slate-50 dark:bg-[#0f1117] min-h-screen">
       <Navigation />
-      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
-        <div className="mb-8 flex items-start justify-between gap-4">
+      <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
+        <div className="mb-6 flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-1">Armory Status</h1>
-            <p className="text-muted-foreground">Track usage, cleaning, and firearm performance</p>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Armory</h1>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Usage, cleaning & firearm status</p>
           </div>
           <button
             onClick={handleExportPDF}
-            className="px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 whitespace-nowrap"
+            className="px-4 py-2.5 bg-primary text-white rounded-xl hover:opacity-90 flex items-center gap-2 text-sm font-semibold shadow-sm"
           >
             <Download className="w-4 h-4" />
             Export PDF
@@ -166,8 +166,8 @@ export default function AmmoSummary() {
 
           {/* Rifles Section */}
           <div>
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Crosshair className="w-5 h-5 text-primary" />
+          <h2 className="text-xs font-bold mb-3 flex items-center gap-2 text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+            <Crosshair className="w-3.5 h-3.5" />
             Rifles ({rifles.length})
           </h2>
           <div className="grid gap-3">
@@ -281,8 +281,8 @@ export default function AmmoSummary() {
 
           {/* Shotguns Section */}
           <div>
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-primary" />
+          <h2 className="text-xs font-bold mb-3 flex items-center gap-2 text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+            <AlertCircle className="w-3.5 h-3.5" />
             Shotguns ({shotguns.length})
           </h2>
           <div className="grid gap-3">

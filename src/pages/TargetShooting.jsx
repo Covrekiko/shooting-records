@@ -6,7 +6,7 @@ import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import RecordsSection from '@/components/RecordsSection';
-import { Clock, Plus, Map } from 'lucide-react';
+import { Clock, Plus, Map, Crosshair } from 'lucide-react';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
@@ -243,32 +243,49 @@ export default function TargetShooting() {
       {nearbyClub && (
         <CheckinBanner location={nearbyClub.name} distance={nearbyClub.distance} onDismiss={() => setNearbyClub(null)} onCheckin={() => setShowCheckin(true)} />
       )}
-      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-4 mobile-page-padding">
+      <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-4 mobile-page-padding">
         <div className="mb-4 flex items-center justify-between">
           <div className="hidden md:block">
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Target Shooting</h1>
-            <p className="text-xs text-slate-400 mt-0.5">Record your rifle shooting sessions</p>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Target Shooting</h1>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Rifle range sessions</p>
           </div>
           {!activeSession && (
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
               className={`${DESIGN.BUTTON_PRIMARY} flex items-center gap-2`}>
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Start New Session</span>
-              <span className="sm:hidden">New Session</span>
+              Start Session
             </motion.button>
           )}
         </div>
 
+        {!activeSession && (
+          <div className={`${DESIGN.CARD} p-5 mb-4 flex flex-col items-center justify-center text-center gap-3`}>
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center">
+              <Crosshair className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No Active Session</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Start a session to begin tracking</p>
+            </div>
+            <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
+              className={`${DESIGN.BUTTON_PRIMARY} flex items-center gap-2 w-full justify-center`}>
+              <Plus className="w-4 h-4" />
+              Start Session
+            </motion.button>
+          </div>
+        )}
+
         {activeSession && (
-          <div className={`${DESIGN.CARD} p-4 mb-4`}>
+          <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-2xl p-4 mb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-primary" />
-                </div>
+                <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
                 <div>
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Active Session</p>
-                  <p className="text-xs text-slate-400">Check-in: {activeSession.checkin_time}</p>
+                  <p className="text-xs font-bold text-primary uppercase tracking-widest">Active Session</p>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mt-0.5">
+                    {activeSession.location_name || 'Target Range'}
+                  </p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Started {activeSession.checkin_time}</p>
                 </div>
               </div>
               <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowCheckout(true)}
@@ -280,7 +297,7 @@ export default function TargetShooting() {
         )}
 
         <div className="mt-4">
-          <h2 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-3">Session Records</h2>
+          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Sessions</p>
           <RecordsSection category="target_shooting" title="Session Records" emptyMessage="No target shooting sessions recorded yet" />
         </div>
 
@@ -496,12 +513,12 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
         <div>
           <label className={labelCls}>Photos</label>
           <div className="flex gap-2 mb-2">
-            <label className="flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl text-center cursor-pointer font-medium text-xs text-slate-600 dark:text-slate-300 transition-colors">
-              📁 Choose
+            <label className="flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-slate-600 dark:text-slate-300 transition-colors">
+              Choose File
               <input type="file" accept="image/*" multiple onChange={(e) => handlePhotoUpload(e.target.files, data, (f, v) => setData(prev => ({ ...prev, [f]: v })))} className="hidden" />
             </label>
-            <label className="flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-xl text-center cursor-pointer font-medium text-xs text-slate-600 dark:text-slate-300 transition-colors">
-              📷 Camera
+            <label className="flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-slate-600 dark:text-slate-300 transition-colors">
+              Camera
               <input type="file" accept="image/*" capture="environment" multiple onChange={(e) => handlePhotoUpload(e.target.files, data, (f, v) => setData(prev => ({ ...prev, [f]: v })))} className="hidden" />
             </label>
           </div>

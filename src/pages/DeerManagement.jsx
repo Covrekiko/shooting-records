@@ -5,7 +5,7 @@ import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import { useOuting } from '@/context/OutingContext';
-import { Plus, Clock } from 'lucide-react';
+import { Plus, Clock, Layers } from 'lucide-react';
 import RecordsSection from '@/components/RecordsSection';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal';
@@ -173,32 +173,50 @@ export default function DeerManagement() {
       {nearbyLocation && (
         <CheckinBanner location={nearbyLocation.name} distance={nearbyLocation.distance} onDismiss={() => setNearbyLocation(null)} onCheckin={() => setShowCheckin(true)} />
       )}
-      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-4 mobile-page-padding">
+      <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-4 mobile-page-padding">
         <div className="mb-4 flex items-center justify-between">
           <div className="hidden md:block">
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">Deer Management</h1>
-            <p className="text-xs text-slate-400 mt-0.5">Record your deer stalking outings</p>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Deer Management</h1>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Stalking outings & records</p>
           </div>
           {!activeOuting && (
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
               className={`${DESIGN.BUTTON_PRIMARY} flex items-center gap-2`}>
               <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Start New Outing</span>
-              <span className="sm:hidden">New Outing</span>
+              Start Outing
             </motion.button>
           )}
         </div>
 
+        {!activeOuting && (
+          <div className={`${DESIGN.CARD} p-5 mb-4 flex flex-col items-center justify-center text-center gap-3`}>
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center">
+              <Layers className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No Active Outing</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Start an outing to enable GPS tracking</p>
+            </div>
+            <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
+              className={`${DESIGN.BUTTON_PRIMARY} flex items-center gap-2 w-full justify-center`}>
+              <Plus className="w-4 h-4" />
+              Start Outing
+            </motion.button>
+          </div>
+        )}
+
         {activeOuting && (
-          <div className={`${DESIGN.CARD} p-4 mb-4`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-primary" />
-                </div>
+          <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 rounded-2xl p-4 mb-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse mt-1.5 flex-shrink-0" />
                 <div>
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Active Outing</p>
-                  <p className="text-xs text-slate-400">{activeOuting.location_name} · {new Date(activeOuting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                  <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Active Outing</p>
+                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5">{activeOuting.location_name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    Started {new Date(activeOuting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
                 </div>
               </div>
               <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowCheckout(true)}
@@ -210,7 +228,7 @@ export default function DeerManagement() {
         )}
 
         <div className="mt-4">
-          <h2 className="text-base font-bold text-slate-800 dark:text-slate-100 mb-3">Outing Records</h2>
+          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Outings</p>
           <RecordsSection category="deer_management" title="Outing Records" emptyMessage="No deer management outings recorded yet" />
         </div>
 

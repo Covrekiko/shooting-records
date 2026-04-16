@@ -212,9 +212,9 @@ export default function Records() {
         </div>
       )}
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex items-center justify-between mb-4 gap-3">
-            <h1 className="text-3xl font-bold">All Records</h1>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Records</h1>
             <div className="flex gap-2">
               <button
                 onClick={() => setManualRecordModal({ isNew: true })}
@@ -246,7 +246,7 @@ export default function Records() {
               )}
             </div>
           </div>
-          <p className="text-muted-foreground mb-6">View and manage all your shooting records</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">All your shooting activity logs</p>
 
           {/* Filters */}
           <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm mb-6">

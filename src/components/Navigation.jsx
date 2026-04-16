@@ -1,10 +1,13 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, Settings, Target, Crosshair, Map, LayoutDashboard, BookOpen, User, ChevronRight, ArrowLeft, Home } from 'lucide-react';
+import {
+  Menu, X, Settings, Target, Crosshair, Map, LayoutDashboard,
+  BookOpen, User, ChevronRight, ArrowLeft, Home, BarChart3,
+  Shield, Layers, RefreshCw, Sun,
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Page title map for mobile top bar
 const PAGE_TITLES = {
   '/target-shooting': 'Target Shooting',
   '/clay-shooting': 'Clay Shooting',
@@ -23,11 +26,54 @@ const PAGE_TITLES = {
   '/settings/locations': 'Locations',
   '/settings/ammunition': 'Ammunition',
   '/settings/ammunition-inventory': 'Ammo Inventory',
-  '/ammo-summary': 'Armory Status',
+  '/ammo-summary': 'Armory',
   '/sunrise-sunset': 'Shooting Hours',
   '/users': 'Users',
-  '/admin/users': 'Admin: Users',
+  '/admin/users': 'Admin',
 };
+
+const NAV_SECTIONS = [
+  {
+    label: 'Sessions',
+    items: [
+      { path: '/target-shooting', label: 'Target Shooting', icon: Crosshair },
+      { path: '/clay-shooting', label: 'Clay Shooting', icon: Target },
+      { path: '/deer-management', label: 'Deer Management', icon: Layers },
+    ],
+  },
+  {
+    label: 'Field',
+    items: [
+      { path: '/deer-stalking', label: 'Stalking Map', icon: Map },
+      { path: '/deer-stalking-logs', label: 'Stalking Logs', icon: BookOpen },
+      { path: '/sunrise-sunset', label: 'Shooting Hours', icon: Sun },
+    ],
+  },
+  {
+    label: 'Armory',
+    items: [
+      { path: '/ammo-summary', label: 'Armory Status', icon: Shield },
+      { path: '/reloading', label: 'Reloading', icon: RefreshCw },
+    ],
+  },
+  {
+    label: 'Data',
+    items: [
+      { path: '/records', label: 'Records', icon: BookOpen },
+      { path: '/reports', label: 'Reports', icon: BarChart3 },
+    ],
+  },
+];
+
+const DESKTOP_ITEMS = [
+  { path: '/target-shooting', label: 'Target', icon: Crosshair },
+  { path: '/clay-shooting', label: 'Clay', icon: Target },
+  { path: '/deer-management', label: 'Deer', icon: Layers },
+  { path: '/deer-stalking', label: 'Map', icon: Map },
+  { path: '/ammo-summary', label: 'Armory', icon: Shield },
+  { path: '/records', label: 'Records', icon: BookOpen },
+  { path: '/reloading', label: 'Reloading', icon: RefreshCw },
+];
 
 export default function Navigation() {
   const [open, setOpen] = useState(false);
@@ -39,80 +85,56 @@ export default function Navigation() {
     base44.auth.me().then(setUser).catch(() => {});
   }, []);
 
-  // Close dropdown when route changes
-  useEffect(() => {
-    setOpen(false);
-  }, [location.pathname]);
+  useEffect(() => { setOpen(false); }, [location.pathname]);
 
   const isDashboard = location.pathname === '/';
   const pageTitle = PAGE_TITLES[location.pathname] || '';
 
-  const desktopNavItems = [
-    { path: '/target-shooting', label: 'Target', icon: Crosshair },
-    { path: '/clay-shooting', label: 'Clay', icon: Target },
-    { path: '/deer-management', label: 'Deer', icon: null, emoji: '🦌' },
-    { path: '/deer-stalking', label: 'Map', icon: Map },
-    { path: '/records', label: 'Records', icon: BookOpen },
-    { path: '/reloading', label: 'Reloading', icon: null, emoji: 'Ⓡ' },
-  ];
-
-  const mobileMenuItems = [
-    { path: '/target-shooting', label: 'Target Shooting', icon: Crosshair },
-    { path: '/clay-shooting', label: 'Clay Shooting', icon: Target },
-    { path: '/deer-management', label: 'Deer Management', icon: null, emoji: '🦌' },
-    { path: '/deer-stalking', label: 'Stalking Map', icon: Map },
-    { path: '/records', label: 'Records', icon: BookOpen },
-    { path: '/reloading', label: 'Reloading', icon: null, emoji: 'Ⓡ' },
-    { path: '/ammo-summary', label: 'Armory Status', icon: null, emoji: '🔫' },
-    { path: '/goals', label: 'Goals', icon: null, emoji: '🎯' },
-    ...(user?.role === 'admin' ? [{ path: '/admin/users', label: 'Admin', icon: Settings }] : []),
-    { path: '/profile', label: 'Profile', icon: User },
-  ];
+  const isActive = (path) => location.pathname === path;
 
   return (
     <>
       {/* ── DESKTOP NAV ─────────────────────────────────────────────── */}
-      <div className="hidden md:block sticky top-0 z-[9000] bg-slate-50 dark:bg-[#13161e]">
+      <div className="hidden md:block sticky top-0 z-[9000] bg-slate-50 dark:bg-[#0f1117]">
         <div className="max-w-7xl mx-auto px-4 pt-3 pb-2">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700 px-5 py-3 flex items-center justify-between">
-            <Link to="/" className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+          <div className="bg-white dark:bg-slate-800/80 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 px-5 py-3 flex items-center justify-between">
+            <Link to="/" className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
               <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-8 h-8 rounded-xl object-cover" />
-              Shooting Records
+              <span className="tracking-tight">Shooting Records</span>
             </Link>
-            <div className="flex gap-1 items-center">
-              {desktopNavItems.map((item) => {
+            <div className="flex gap-0.5 items-center">
+              {DESKTOP_ITEMS.map((item) => {
                 const Icon = item.icon;
-                const active = location.pathname === item.path;
+                const active = isActive(item.path);
                 return (
                   <Link key={item.path} to={item.path}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 ${
                       active
                         ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/80'
                     }`}>
-                    {Icon && <Icon className="w-4 h-4" />}
-                    {item.emoji && <span className="text-base leading-none">{item.emoji}</span>}
+                    <Icon className="w-3.5 h-3.5" />
                     {item.label}
                   </Link>
                 );
               })}
               {user?.role === 'admin' && (
                 <Link to="/admin/users"
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    location.pathname === '/admin/users'
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 ${
+                    isActive('/admin/users')
                       ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/80'
                   }`}>
-                  <Settings className="w-4 h-4" />Admin
+                  <Settings className="w-3.5 h-3.5" />Admin
                 </Link>
               )}
               <Link to="/profile"
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
-                  location.pathname === '/profile'
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 ${
+                  isActive('/profile')
                     ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/80'
                 }`}>
-                <User className="w-4 h-4" />Profile
+                <User className="w-3.5 h-3.5" />Profile
               </Link>
             </div>
           </div>
@@ -120,30 +142,29 @@ export default function Navigation() {
       </div>
 
       {/* ── MOBILE TOP BAR ──────────────────────────────────────────── */}
-      <div className="md:hidden sticky top-0 z-[9000] bg-slate-50 dark:bg-[#13161e]">
-        <div className="mx-3 mt-2 mb-1.5 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700 px-4 py-2.5 flex items-center justify-between">
+      <div className="md:hidden sticky top-0 z-[9000] bg-slate-50 dark:bg-[#0f1117]">
+        <div className="mx-3 mt-2 mb-1.5 bg-white dark:bg-slate-800/80 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 px-4 py-2.5 flex items-center justify-between">
           {isDashboard ? (
-            <Link to="/" className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Link to="/" className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-7 h-7 rounded-lg object-cover" />
-              <span>Shooting Records</span>
+              <span className="tracking-tight">Shooting Records</span>
             </Link>
           ) : (
             <motion.button
               onClick={() => navigate('/')}
               whileTap={{ scale: 0.9 }}
-              className="flex items-center gap-2 text-slate-900 dark:text-white"
+              className="flex items-center gap-1.5 text-slate-900 dark:text-white"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4 text-slate-400" />
               <span className="text-sm font-semibold">{pageTitle || 'Back'}</span>
             </motion.button>
           )}
 
-          {/* Hamburger — always shown on mobile */}
           <button
             onClick={() => setOpen(!open)}
-            className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center active:scale-90 transition-transform"
+            className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center active:scale-90 transition-transform"
           >
-            {open ? <X className="w-5 h-5 text-slate-700 dark:text-white" /> : <Menu className="w-5 h-5 text-slate-700 dark:text-white" />}
+            {open ? <X className="w-4.5 h-4.5 text-slate-700 dark:text-white" /> : <Menu className="w-4.5 h-4.5 text-slate-700 dark:text-white" />}
           </button>
         </div>
 
@@ -151,47 +172,62 @@ export default function Navigation() {
         <AnimatePresence>
           {open && (
             <motion.div
-              initial={{ opacity: 0, y: -6, scale: 0.98 }}
+              initial={{ opacity: 0, y: -8, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6, scale: 0.98 }}
-              transition={{ duration: 0.18 }}
-              className="mx-3 mb-1 bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200/80 dark:border-slate-700 px-3 py-2"
+              exit={{ opacity: 0, y: -8, scale: 0.97 }}
+              transition={{ duration: 0.15 }}
+              className="mx-3 mb-1 bg-white dark:bg-slate-800/95 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-700/60 overflow-hidden"
             >
-              {mobileMenuItems.map((item) => {
-                const Icon = item.icon;
-                const active = location.pathname === item.path;
-                return (
-                  <Link key={item.path} to={item.path} onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all active:scale-95 ${
-                      active
-                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-                        : 'text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
-                    }`}>
-                    {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
-                    {item.emoji && <span className="text-base leading-none flex-shrink-0">{item.emoji}</span>}
-                    <span className="flex-1">{item.label}</span>
-                    <ChevronRight className="w-4 h-4 text-slate-300 flex-shrink-0" />
+              {NAV_SECTIONS.map((section) => (
+                <div key={section.label} className="px-2 pt-2 pb-1">
+                  <p className="px-3 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{section.label}</p>
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const active = isActive(item.path);
+                    return (
+                      <Link key={item.path} to={item.path} onClick={() => setOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95 mb-0.5 ${
+                          active
+                            ? 'bg-slate-900 text-white dark:bg-primary dark:text-white'
+                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80'
+                        }`}>
+                        <Icon className="w-4 h-4 flex-shrink-0" />
+                        <span className="flex-1">{item.label}</span>
+                        {active && <div className="w-1.5 h-1.5 rounded-full bg-white/60" />}
+                      </Link>
+                    );
+                  })}
+                </div>
+              ))}
+
+              {/* Profile + Admin */}
+              <div className="px-2 pt-1 pb-2 border-t border-slate-100 dark:border-slate-700/60 mt-1">
+                {user?.role === 'admin' && (
+                  <Link to="/admin/users" onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80 mb-0.5">
+                    <Settings className="w-4 h-4" />
+                    <span>Admin</span>
                   </Link>
-                );
-              })}
+                )}
+                <Link to="/profile" onClick={() => setOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    isActive('/profile') ? 'bg-slate-900 text-white' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80'
+                  }`}>
+                  <User className="w-4 h-4" />
+                  <span>Profile</span>
+                </Link>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* ── MOBILE BOTTOM BAR (Dashboard shortcut) ──────────────────── */}
+      {/* ── MOBILE BOTTOM BAR ──────────────────────────────────────── */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-[8000]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 12px)' }}>
-        <div className="mx-3 mb-2.5 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-2xl shadow-md border border-slate-200/70 dark:border-slate-700/70 px-6 py-2.5 flex items-center justify-center">
-          <Link
-            to="/"
-            className={`flex flex-col items-center gap-0.5 px-8 py-0.5 rounded-xl transition-colors ${
-              isDashboard
-                ? 'text-primary'
-                : 'text-slate-400 dark:text-slate-500'
-            }`}
-          >
+        <div className="mx-3 mb-2.5 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-2xl shadow-md border border-slate-200/70 dark:border-slate-700/60 px-6 py-2.5 flex items-center justify-center">
+          <Link to="/" className={`flex flex-col items-center gap-0.5 px-8 py-0.5 rounded-xl transition-colors ${isDashboard ? 'text-primary' : 'text-slate-400 dark:text-slate-500'}`}>
             <Home className={`w-5 h-5 ${isDashboard ? 'text-primary' : 'text-slate-400 dark:text-slate-500'}`} />
-            <span className="text-[11px] font-semibold">Dashboard</span>
+            <span className="text-[10px] font-semibold tracking-wide">Home</span>
           </Link>
         </div>
       </div>

@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import {
   Target, Crosshair, Map, BookOpen, Settings,
-  BarChart3, ChevronRight, Clock, Zap,
+  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers,
 } from 'lucide-react';
 import {
   MonthlyActivityChart,
@@ -119,20 +119,20 @@ function ActiveSessionBanner({ outing }) {
       <motion.div
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-3 px-4 py-3 bg-emerald-500 rounded-2xl shadow-lg"
+        className="flex items-center gap-3 px-4 py-3.5 bg-emerald-600 dark:bg-emerald-700 rounded-2xl shadow-lg"
       >
         <div className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-emerald-100 uppercase tracking-wide">Active Session</p>
-          <p className="text-sm font-bold text-white truncate">{outing.location_name || 'Deer Stalking'}</p>
+          <p className="text-[10px] font-bold text-emerald-200 uppercase tracking-widest">Active Outing</p>
+          <p className="text-sm font-bold text-white truncate mt-0.5">{outing.location_name || 'Deer Stalking'}</p>
         </div>
         {elapsed !== null && (
-          <div className="flex items-center gap-1 text-emerald-100 text-xs font-medium flex-shrink-0">
-            <Clock className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-1 text-emerald-200 text-xs font-semibold flex-shrink-0 bg-black/10 px-2 py-1 rounded-lg">
+            <Clock className="w-3 h-3" />
             {elapsed >= 60 ? `${Math.floor(elapsed / 60)}h ${elapsed % 60}m` : `${elapsed}m`}
           </div>
         )}
-        <ChevronRight className="w-4 h-4 text-emerald-100 flex-shrink-0" />
+        <ChevronRight className="w-4 h-4 text-emerald-300 flex-shrink-0" />
       </motion.div>
     </Link>
   );
@@ -160,12 +160,12 @@ function KpiRow({ stats }) {
 function PrimaryCard({ to, icon, label, sub }) {
   return (
     <Link to={to}>
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 md:p-5 border border-slate-200/70 dark:border-slate-700 shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-3.5">
-        <div className="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 text-slate-700 dark:text-slate-200 [&_svg]:w-5 [&_svg]:h-5">
+      <div className="bg-white dark:bg-slate-800/80 rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/60 shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-4">
+        <div className="w-11 h-11 rounded-xl bg-primary/10 dark:bg-primary/15 flex items-center justify-center flex-shrink-0 text-primary [&_svg]:w-5 [&_svg]:h-5">
           {icon}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 leading-snug">{label}</p>
+          <p className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight">{label}</p>
           {sub && <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">{sub}</p>}
         </div>
         <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 flex-shrink-0" />
@@ -178,23 +178,23 @@ function SecondaryGrid({ user }) {
   const items = [
     { to: '/target-shooting', icon: <Crosshair />, label: 'Target' },
     { to: '/clay-shooting', icon: <Target />, label: 'Clay' },
-    { to: '/deer-management', icon: <span className="text-lg">🦌</span>, label: 'Deer' },
+    { to: '/deer-management', icon: <Layers />, label: 'Deer' },
     { to: '/records', icon: <BookOpen />, label: 'Records' },
-    { to: '/reloading', icon: <span className="text-base font-bold">Ⓡ</span>, label: 'Reloading' },
-    { to: '/settings/rifles', icon: <span className="text-base">🔧</span>, label: 'Equipment' },
+    { to: '/reloading', icon: <RefreshCw />, label: 'Reloading' },
+    { to: '/settings/rifles', icon: <Settings />, label: 'Equipment' },
     { to: '/reports', icon: <BarChart3 />, label: 'Reports' },
-    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <Settings />, label: 'Admin' }] : []),
+    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <Shield />, label: 'Admin' }] : []),
   ];
 
   return (
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
         <Link key={item.to} to={item.to}>
-          <div className="bg-white dark:bg-slate-800 rounded-xl p-2.5 border border-slate-200/70 dark:border-slate-700 shadow-sm active:scale-[0.96] transition-all duration-100 flex flex-col items-center gap-1.5 text-center">
-            <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 [&_svg]:w-4 [&_svg]:h-4">
+          <div className="bg-white dark:bg-slate-800/80 rounded-xl p-2.5 border border-slate-200/60 dark:border-slate-700/60 shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center">
+            <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center text-slate-500 dark:text-slate-400 [&_svg]:w-4 [&_svg]:h-4">
               {item.icon}
             </div>
-            <p className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 leading-tight">{item.label}</p>
+            <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 leading-tight tracking-wide">{item.label}</p>
           </div>
         </Link>
       ))}
@@ -205,16 +205,19 @@ function SecondaryGrid({ user }) {
 function ChartsSection({ chartData }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold text-slate-800 dark:text-slate-100"
+        className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
       >
-        <span className="flex items-center gap-2"><BarChart3 className="w-4 h-4 text-slate-400" />Analytics</span>
-        <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`} />
+        <span className="flex items-center gap-2.5">
+          <BarChart3 className="w-4 h-4 text-primary" />
+          <span className="tracking-tight">Analytics</span>
+        </span>
+        <ChevronRight className={`w-4 h-4 text-slate-300 dark:text-slate-600 transition-transform duration-200 ${open ? 'rotate-90' : ''}`} />
       </button>
       {open && (
-        <div className="px-4 pb-4 space-y-4 border-t border-slate-100 dark:border-slate-700 pt-4">
+        <div className="px-4 pb-4 space-y-4 border-t border-slate-100 dark:border-slate-700/60 pt-4">
           <MonthlyActivityChart data={chartData.monthly} />
           <RoundsPerMonthChart data={chartData.roundsPerMonth} />
           <RoundsPerFirearmChart data={chartData.firearm} />

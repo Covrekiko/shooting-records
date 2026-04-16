@@ -16,7 +16,7 @@ export default function ModalShell({ title, onClose, footer, children, maxWidth 
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: '100%', opacity: 0 }}
       transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-      className={`bg-white dark:bg-slate-800 w-full ${maxWidth} rounded-t-2xl sm:rounded-2xl shadow-2xl border border-slate-200/70 dark:border-slate-700 flex flex-col overflow-hidden`}
+      className={`bg-white dark:bg-slate-800/95 w-full ${maxWidth} rounded-t-2xl sm:rounded-2xl shadow-2xl border border-slate-200/60 dark:border-slate-700/60 flex flex-col overflow-hidden`}
       style={{ maxHeight: 'min(90dvh, 700px)' }}
     >
       {/* Drag handle (mobile only) */}
