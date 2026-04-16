@@ -513,29 +513,8 @@ export default function DeerStalkingMap() {
         </GoogleMap>
       </div>
 
-      {/* Floating Map Controls - Top Right */}
-      <div className="fixed top-5 right-5 sm:top-6 sm:right-6 z-[9999] flex flex-col gap-3 pointer-events-auto items-end">
-        <button
-          onClick={() => setUseSatellite(!useSatellite)}
-          className="w-11 h-11 sm:w-12 sm:h-12 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-full hover:bg-white/30 dark:hover:bg-slate-700/40 active:scale-95 transition-all backdrop-blur-md shadow-lg hover:shadow-xl flex items-center justify-center border border-white/40 dark:border-slate-600/40"
-          title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
-        >
-          <Satellite className="w-5 h-5" />
-        </button>
-
-        <button
-          onClick={handleRecenter}
-          className="w-11 h-11 sm:w-12 sm:h-12 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-full hover:bg-white/30 dark:hover:bg-slate-700/40 active:scale-95 transition-all backdrop-blur-md shadow-lg hover:shadow-xl flex items-center justify-center border border-white/40 dark:border-slate-600/40"
-          title="My Location"
-        >
-          <LocateFixed className="w-5 h-5" />
-        </button>
-
-        <FloatingMapSearch onSearch={handleMapSearch} isGrouped={true} />
-      </div>
-
-      {/* Legal Shooting Hours Widget + Area Selector - Top Left */}
-      <div className="fixed top-5 left-5 sm:top-6 sm:left-6 z-[9999] pointer-events-auto space-y-3">
+      {/* ── TOP LEFT: Legal Hours + Area Selector ── */}
+      <div className="fixed top-4 left-4 z-[9999] pointer-events-auto space-y-2 max-w-[200px]">
         <LegalShootingHoursWidget />
         <AreaSelector
           savedAreas={savedAreas}
@@ -545,40 +524,71 @@ export default function DeerStalkingMap() {
         />
       </div>
 
-      {/* Back to Dashboard */}
-      <Link
-        to="/"
-        className="fixed top-5 right-24 sm:top-6 sm:right-28 z-[9999] w-11 h-11 sm:w-12 sm:h-12 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all pointer-events-auto flex items-center justify-center border border-white/40 dark:border-slate-600/40 hover:bg-white/30 dark:hover:bg-slate-700/40 backdrop-blur-md"
-        title="Dashboard"
-      >
-        <Home className="w-5 h-5" />
-      </Link>
+      {/* ── TOP RIGHT: Home + Satellite + Locate + Search ── */}
+      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-auto items-end">
+        {/* Home */}
+        <Link
+          to="/"
+          title="Dashboard"
+          className="w-10 h-10 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl shadow-lg border border-white/60 dark:border-slate-700/60 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 active:scale-95 transition-all"
+        >
+          <Home className="w-4.5 h-4.5" />
+        </Link>
 
-      {/* Selection Mode Instruction */}
+        {/* Satellite toggle */}
+        <button
+          onClick={() => setUseSatellite(!useSatellite)}
+          title={useSatellite ? 'Map view' : 'Satellite view'}
+          className={`w-10 h-10 rounded-2xl backdrop-blur-xl shadow-lg border flex items-center justify-center active:scale-95 transition-all ${
+            useSatellite
+              ? 'bg-slate-900/80 border-slate-700/60 text-white'
+              : 'bg-white/80 dark:bg-slate-800/80 border-white/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700'
+          }`}
+        >
+          <Satellite className="w-4.5 h-4.5" />
+        </button>
+
+        {/* Locate */}
+        <button
+          onClick={handleRecenter}
+          title="My Location"
+          className="w-10 h-10 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl shadow-lg border border-white/60 dark:border-slate-700/60 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 active:scale-95 transition-all"
+        >
+          <LocateFixed className="w-4.5 h-4.5" />
+        </button>
+
+        {/* Search */}
+        <FloatingMapSearch onSearch={handleMapSearch} isGrouped={true} />
+      </div>
+
+      {/* ── PIN PLACEMENT TOAST ── */}
       {waitingForPin && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[9998] bg-blue-500 text-white px-3 py-2 rounded-lg flex items-center justify-between pointer-events-auto gap-2">
-          <p className="text-sm font-semibold">Tap to place</p>
-          <button
-            onClick={() => setWaitingForPin(null)}
-            className="px-2 py-1 bg-blue-600 hover:bg-blue-700 rounded text-xs font-medium transition-all whitespace-nowrap"
-          >
-            Cancel
-          </button>
+        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[9998] pointer-events-auto">
+          <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-900/90 backdrop-blur-xl text-white rounded-2xl shadow-2xl border border-white/10">
+            <span className="text-sm font-semibold">Tap map to place pin</span>
+            <button
+              onClick={() => setWaitingForPin(null)}
+              className="text-xs font-bold text-slate-400 hover:text-white transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
 
+      {/* ── ERROR TOAST ── */}
       {error && showError && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[9998] bg-red-500 text-white px-2 py-1 rounded text-xs flex items-center gap-1 pointer-events-auto max-w-xs">
-          <AlertCircle className="w-3 h-3 flex-shrink-0" />
-          <span className="truncate">{error}</span>
-          <button onClick={() => setShowError(false)} className="ml-1 hover:opacity-80">
-            ×
-          </button>
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9998] pointer-events-auto">
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-red-500/90 backdrop-blur-xl text-white rounded-2xl shadow-xl text-sm max-w-xs">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span className="truncate">{error}</span>
+            <button onClick={() => setShowError(false)} className="ml-1 text-white/70 hover:text-white font-bold text-base leading-none">×</button>
+          </div>
         </div>
       )}
 
-      {/* Floating Action Bar - Bottom Right */}
-      <div className="fixed bottom-6 sm:bottom-8 right-6 sm:right-8 z-[9999] pointer-events-auto">
+      {/* ── FLOATING ACTION BAR - Bottom Right ── */}
+      <div className="fixed bottom-8 right-5 z-[9999] pointer-events-auto">
         <FloatingActionBar
           onPOI={() => {
             setMapClick(null);
