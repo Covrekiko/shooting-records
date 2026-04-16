@@ -181,7 +181,7 @@ function SecondaryGrid({ user }) {
     { to: '/deer-management', icon: <span className="text-lg">🦌</span>, label: 'Deer' },
     { to: '/records', icon: <BookOpen />, label: 'Records' },
     { to: '/reloading', icon: <RefreshCw />, label: 'Reloading' },
-    { to: '/settings/rifles', icon: <Settings />, label: 'Equipment' },
+    { to: '/settings/rifles', icon: <span className="text-lg">🔧</span>, label: 'Equipment' },
     { to: '/reports', icon: <BarChart3 />, label: 'Reports' },
     ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <Shield />, label: 'Admin' }] : []),
   ];
