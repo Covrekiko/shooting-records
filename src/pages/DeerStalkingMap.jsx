@@ -530,7 +530,7 @@ export default function DeerStalkingMap() {
         <Link
           to="/"
           title="Dashboard"
-          className="w-10 h-10 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl shadow-lg border border-white/60 dark:border-slate-700/60 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 active:scale-95 transition-all"
+          className="w-10 h-10 rounded-2xl bg-white shadow-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:scale-95 transition-all"
         >
           <Home className="w-4.5 h-4.5" />
         </Link>
@@ -539,10 +539,10 @@ export default function DeerStalkingMap() {
         <button
           onClick={() => setUseSatellite(!useSatellite)}
           title={useSatellite ? 'Map view' : 'Satellite view'}
-          className={`w-10 h-10 rounded-2xl backdrop-blur-xl shadow-lg border flex items-center justify-center active:scale-95 transition-all ${
+          className={`w-10 h-10 rounded-2xl shadow-lg border flex items-center justify-center active:scale-95 transition-all ${
             useSatellite
-              ? 'bg-slate-900/80 border-slate-700/60 text-white'
-              : 'bg-white/80 dark:bg-slate-800/80 border-white/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700'
+              ? 'bg-slate-900 border-slate-700 text-white hover:bg-slate-800'
+              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
           }`}
         >
           <Satellite className="w-4.5 h-4.5" />
@@ -552,7 +552,7 @@ export default function DeerStalkingMap() {
         <button
           onClick={handleRecenter}
           title="My Location"
-          className="w-10 h-10 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl shadow-lg border border-white/60 dark:border-slate-700/60 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 active:scale-95 transition-all"
+          className="w-10 h-10 rounded-2xl bg-white shadow-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:scale-95 transition-all"
         >
           <LocateFixed className="w-4.5 h-4.5" />
         </button>
@@ -564,7 +564,7 @@ export default function DeerStalkingMap() {
       {/* ── PIN PLACEMENT TOAST ── */}
       {waitingForPin && (
         <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[9998] pointer-events-auto">
-          <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-900/90 backdrop-blur-xl text-white rounded-2xl shadow-2xl border border-white/10">
+          <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-700">
             <span className="text-sm font-semibold">Tap map to place pin</span>
             <button
               onClick={() => setWaitingForPin(null)}
@@ -579,7 +579,7 @@ export default function DeerStalkingMap() {
       {/* ── ERROR TOAST ── */}
       {error && showError && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9998] pointer-events-auto">
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-red-500/90 backdrop-blur-xl text-white rounded-2xl shadow-xl text-sm max-w-xs">
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-2xl shadow-xl text-sm max-w-xs">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span className="truncate">{error}</span>
             <button onClick={() => setShowError(false)} className="ml-1 text-white/70 hover:text-white font-bold text-base leading-none">×</button>
