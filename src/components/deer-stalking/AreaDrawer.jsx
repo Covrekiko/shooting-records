@@ -201,48 +201,44 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
 
       {/* ── BOTTOM LEFT: Action Controls ── */}
       <div className="fixed bottom-8 left-5 z-[9999] flex flex-col items-start gap-1.5">
-        <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-900/70 backdrop-blur-xl rounded-xl border border-white/10">
-          <span className="text-xs text-slate-400 font-medium">Points:</span>
-          <span className="text-xs text-white font-bold">{points.length}</span>
-        </div>
 
         <button
           onClick={handleUndo}
           disabled={points.length === 0 || isClosed}
-          className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold disabled:opacity-40 whitespace-nowrap"
+          className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold disabled:opacity-30 whitespace-nowrap"
         >
-          <Undo className="w-3.5 h-3.5 opacity-70" />
-          Undo
+          <Undo className="w-3.5 h-3.5 opacity-60" />
+          Undo · {points.length}pts
         </button>
 
         {!isClosed ? (
           <button
             onClick={handleCloseBoundary}
             disabled={points.length < 3}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold disabled:opacity-40 whitespace-nowrap"
+            className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold disabled:opacity-30 whitespace-nowrap"
           >
-            <Lock className="w-3.5 h-3.5 opacity-70" />
+            <Lock className="w-3.5 h-3.5 opacity-60" />
             Close Shape
           </button>
         ) : (
-          <div className="flex items-center gap-2 px-3 py-2 bg-green-500/20 backdrop-blur-xl text-green-400 rounded-xl text-xs font-semibold border border-green-500/30">
+          <div className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-green-400 rounded-xl text-xs font-semibold border border-green-500/40 whitespace-nowrap">
             <Check className="w-3.5 h-3.5" />
-            Shape Closed
+            Closed ✓
           </div>
         )}
 
         <button
           onClick={handleFinish}
           disabled={points.length < 3}
-          className="flex items-center gap-2 px-3 py-2 bg-primary/90 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-bold disabled:opacity-40 whitespace-nowrap"
+          className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-bold disabled:opacity-30 whitespace-nowrap"
         >
-          <Check className="w-3.5 h-3.5" />
+          <Check className="w-3.5 h-3.5 opacity-60" />
           Save Area
         </button>
 
         <button
           onClick={onCancel}
-          className="flex items-center gap-2 px-3 py-2 bg-red-500/80 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold whitespace-nowrap"
+          className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-red-400 rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold whitespace-nowrap"
         >
           <X className="w-3.5 h-3.5" />
           Cancel
