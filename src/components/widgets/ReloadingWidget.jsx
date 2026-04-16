@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ArrowRight, AlertCircle } from 'lucide-react';
+import { ArrowRight, AlertCircle, FlaskConical } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function ReloadingWidget() {
@@ -62,7 +62,12 @@ export default function ReloadingWidget() {
   return (
     <div className="bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/80 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-slate-200/90 dark:hover:border-slate-600 transition-all duration-100">
       <div className="flex items-center justify-between mb-5">
-        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Reloading Stats</h3>
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center">
+            <FlaskConical className="w-4 h-4 text-slate-700 dark:text-slate-200" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Reloading Stats</h3>
+        </div>
         <Link to="/reloading" className="text-primary hover:opacity-80 transition-opacity text-xs font-semibold">
           Manage
         </Link>
