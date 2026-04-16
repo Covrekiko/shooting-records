@@ -90,7 +90,7 @@ export default function Profile() {
                 }`}
               >
                 <Zap className="w-4 h-4" />
-                Ammunition Tracking
+                Armory Status
               </Link>
               <Link
                 to="/deer-stalking-logs"
