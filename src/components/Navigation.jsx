@@ -180,18 +180,18 @@ export default function Navigation() {
       </div>
 
       {/* ── MOBILE BOTTOM BAR (Dashboard shortcut) ──────────────────── */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[8000] safe-area-bottom">
-        <div className="mx-3 mb-2 bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700 px-6 py-3 flex items-center justify-center">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[8000]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 12px)' }}>
+        <div className="mx-3 mb-2.5 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-2xl shadow-md border border-slate-200/70 dark:border-slate-700/70 px-6 py-2.5 flex items-center justify-center">
           <Link
             to="/"
-            className={`flex flex-col items-center gap-1 px-6 py-1 rounded-xl transition-colors ${
+            className={`flex flex-col items-center gap-0.5 px-8 py-0.5 rounded-xl transition-colors ${
               isDashboard
                 ? 'text-primary'
                 : 'text-slate-400 dark:text-slate-500'
             }`}
           >
-            <Home className={`w-5 h-5 ${isDashboard ? 'text-primary' : ''}`} />
-            <span className="text-xs font-medium">Dashboard</span>
+            <Home className={`w-5 h-5 ${isDashboard ? 'text-primary' : 'text-slate-400 dark:text-slate-500'}`} />
+            <span className="text-[11px] font-semibold">Dashboard</span>
           </Link>
         </div>
       </div>
