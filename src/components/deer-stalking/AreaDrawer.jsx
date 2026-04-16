@@ -210,7 +210,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
       </div>
 
       {/* ── BOTTOM CENTER: Controls ── */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-3">
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-3 pointer-events-auto">
 
         {/* Row 1: Secondary buttons */}
         <div className="flex items-center gap-2 flex-wrap justify-center">
