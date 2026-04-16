@@ -175,8 +175,8 @@ export default function Dashboard() {
            />
            <StatCard
              icon={<Zap className="w-6 h-6" />}
-             label="Ammunition"
-             subtitle="Manage usage"
+             label="Armory Status"
+             subtitle="Track usage, cleaning, and firearm performance"
              link="/ammo-summary"
            />
          </div>
@@ -229,8 +229,8 @@ export default function Dashboard() {
            />
            <StatCard
              icon={<Zap className="w-6 h-6" />}
-             label="Ammunition"
-             subtitle="Manage usage"
+             label="Armory Status"
+             subtitle="Track usage, cleaning, and firearm performance"
              link="/ammo-summary"
            />
          </div>
