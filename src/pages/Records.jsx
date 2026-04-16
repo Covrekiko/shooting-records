@@ -346,12 +346,37 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
     }
   };
 
+  // Collect serial numbers for this record
+  const serialNumbers = [];
+  if (record.recordType === 'target' && record.rifles_used?.length) {
+    record.rifles_used.forEach(r => {
+      const rifle = rifles[r.rifle_id];
+      if (rifle?.serial_number) serialNumbers.push({ name: rifle.name, sn: rifle.serial_number });
+    });
+  } else if (record.recordType === 'target' && record.rifle_id) {
+    const rifle = rifles[record.rifle_id];
+    if (rifle?.serial_number) serialNumbers.push({ name: rifle.name, sn: rifle.serial_number });
+  } else if (record.recordType === 'clay' && record.shotgun_id) {
+    const sg = shotguns[record.shotgun_id];
+    if (sg?.serial_number) serialNumbers.push({ name: sg.name, sn: sg.serial_number });
+  } else if (record.recordType === 'deer' && record.rifle_id) {
+    const rifle = rifles[record.rifle_id];
+    if (rifle?.serial_number) serialNumbers.push({ name: rifle.name, sn: rifle.serial_number });
+  }
+
   return (
     <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <h3 className="font-semibold text-lg">{getRecordTitle()}</h3>
           <p className="text-sm text-muted-foreground mb-2">{record.date} • {getBadgeLabel(record.recordType)}</p>
+          {serialNumbers.length > 0 && (
+            <div className="text-sm text-muted-foreground space-y-0.5 mb-2">
+              {serialNumbers.map((s, i) => (
+                <p key={i}><span className="font-medium">S/N:</span> <span className="font-mono">{s.sn}</span> <span className="text-xs">({s.name})</span></p>
+              ))}
+            </div>
+          )}
           {recordUser && (
             <div className="text-sm text-muted-foreground space-y-1">
               <p><span className="font-medium">User:</span> {recordUser.full_name}</p>
