@@ -218,7 +218,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
           <button
             onClick={handleUndo}
             disabled={points.length === 0 || isClosed}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 active:scale-95 disabled:bg-slate-50 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-500 disabled:cursor-not-allowed transition-all"
+            className="flex items-center gap-2 px-3 py-2 bg-white text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-100 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-sm"
           >
             <Undo className="w-4 h-4 flex-shrink-0" />
             Undo
@@ -229,13 +229,13 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
             <button
               onClick={handleCloseBoundary}
               disabled={points.length < 3}
-              className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 active:scale-95 disabled:bg-slate-50 dark:disabled:bg-slate-800 disabled:text-slate-400 dark:disabled:text-slate-500 disabled:cursor-not-allowed transition-all"
+              className="flex items-center gap-2 px-3 py-2 bg-white text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-100 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-sm"
             >
               <Lock className="w-4 h-4 flex-shrink-0" />
               Close
             </button>
           ) : (
-            <div className="flex items-center gap-2 px-3 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium">
+            <div className="flex items-center gap-2 px-3 py-2 bg-white text-emerald-600 rounded-lg text-sm font-medium shadow-sm">
               <Check className="w-4 h-4 flex-shrink-0" />
               Closed
             </div>
@@ -244,7 +244,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
           {/* Cancel */}
           <button
             onClick={onCancel}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 active:scale-95 transition-all"
+            className="flex items-center gap-2 px-3 py-2 bg-white text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-100 active:scale-95 transition-all shadow-sm"
           >
             <X className="w-4 h-4 flex-shrink-0" />
             Cancel
@@ -255,7 +255,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         <button
           onClick={handleFinish}
           disabled={points.length < 3}
-          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 active:scale-95 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:text-slate-500 dark:disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-md"
+          className="flex items-center gap-2 px-4 py-2.5 bg-white text-primary rounded-lg text-sm font-semibold hover:bg-slate-50 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-md border border-primary/20"
         >
           <Check className="w-4 h-4 flex-shrink-0" />
           Save Area
