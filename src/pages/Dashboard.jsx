@@ -311,13 +311,7 @@ export default function Dashboard() {
       <main className="max-w-2xl mx-auto px-3 pt-2 pb-8 mobile-page-padding space-y-3">
 
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-0.5">
-          <div>
-            <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">{today}</p>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 leading-tight">
-              {user?.full_name?.split(' ')[0] ? `Good to see you, ${user.full_name.split(' ')[0]}` : 'Dashboard'}
-            </h1>
-          </div>
+        <div className="flex items-center justify-end px-0.5">
           <Link to="/ammo-summary">
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200/70 dark:border-slate-700 shadow-sm">
               <Zap className="w-3.5 h-3.5 text-primary" />
