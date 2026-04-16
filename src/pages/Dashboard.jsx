@@ -178,7 +178,7 @@ function SecondaryGrid({ user }) {
   const items = [
     { to: '/target-shooting', icon: <Crosshair />, label: 'Target' },
     { to: '/clay-shooting', icon: <Target />, label: 'Clay' },
-    { to: '/deer-management', icon: <Layers />, label: 'Deer' },
+    { to: '/deer-management', icon: <span className="text-lg">🦌</span>, label: 'Deer' },
     { to: '/records', icon: <BookOpen />, label: 'Records' },
     { to: '/reloading', icon: <RefreshCw />, label: 'Reloading' },
     { to: '/settings/rifles', icon: <Settings />, label: 'Equipment' },
