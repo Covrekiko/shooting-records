@@ -70,7 +70,7 @@ export default function FloatingActionBar({
       {/* Main FAB */}
       <button
         onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-        className="w-14 h-14 rounded-xl bg-slate-900 dark:bg-slate-700 text-white flex items-center justify-center shadow-lg hover:bg-slate-800 dark:hover:bg-slate-600 active:scale-95 transition-all"
+        className="w-14 h-14 rounded-full bg-slate-900 dark:bg-slate-800 text-white flex items-center justify-center shadow-lg hover:bg-slate-800 dark:hover:bg-slate-700 active:scale-95 transition-all"
       >
         <Plus className="w-6 h-6" style={{ transition: 'transform 0.2s', transform: expanded ? 'rotate(45deg)' : 'rotate(0deg)' }} />
       </button>
