@@ -116,8 +116,8 @@ export default function AmmoSummary() {
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8">
         <div className="mb-8 flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-1">Ammunition Summary</h1>
-            <p className="text-muted-foreground">Track maintenance and firearm statistics</p>
+            <h1 className="text-3xl md:text-4xl font-bold mb-1">Armory Status</h1>
+            <p className="text-muted-foreground">Track usage, cleaning, and firearm performance</p>
           </div>
           <button
             onClick={handleExportPDF}
