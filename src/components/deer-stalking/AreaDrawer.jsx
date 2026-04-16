@@ -209,53 +209,68 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         </div>
       </div>
 
-      {/* ── BOTTOM LEFT: Controls ── */}
-      <div className="fixed bottom-8 left-5 z-[9999] flex flex-col items-start gap-2">
+      {/* ── BOTTOM CENTER: Controls ── */}
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-2.5">
 
-        {/* Undo + Close — secondary row */}
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleUndo}
-            disabled={points.length === 0 || isClosed}
-            className="flex items-center gap-1.5 px-3 py-2 bg-black/50 backdrop-blur-xl text-white/80 rounded-xl shadow active:scale-95 transition-all text-xs font-medium disabled:opacity-30 whitespace-nowrap border border-white/10"
-          >
-            <Undo className="w-3.5 h-3.5" />
-            Undo
-          </button>
+        {/* Undo — secondary */}
+        <button
+          onClick={handleUndo}
+          disabled={points.length === 0 || isClosed}
+          className="flex items-center gap-2 px-4 h-11 bg-slate-900/85 backdrop-blur-xl text-white rounded-full shadow-xl border border-white/15 text-sm font-semibold whitespace-nowrap
+            hover:bg-slate-800/90 hover:scale-105 hover:shadow-2xl
+            active:scale-95
+            disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xl
+            transition-all duration-150"
+        >
+          <Undo className="w-4 h-4 flex-shrink-0" />
+          Undo
+        </button>
 
-          {!isClosed ? (
-            <button
-              onClick={handleCloseBoundary}
-              disabled={points.length < 3}
-              className="flex items-center gap-1.5 px-3 py-2 bg-black/50 backdrop-blur-xl text-white/80 rounded-xl shadow active:scale-95 transition-all text-xs font-medium disabled:opacity-30 whitespace-nowrap border border-white/10"
-            >
-              <Lock className="w-3.5 h-3.5" />
-              Close
-            </button>
-          ) : (
-            <div className="flex items-center gap-1.5 px-3 py-2 bg-black/50 backdrop-blur-xl text-emerald-400 rounded-xl text-xs font-medium border border-emerald-500/30 whitespace-nowrap">
-              <Check className="w-3.5 h-3.5" />
-              Closed
-            </div>
-          )}
-        </div>
-
-        {/* Save — primary */}
+        {/* Save Area — primary */}
         <button
           onClick={handleFinish}
           disabled={points.length < 3}
-          className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/90 backdrop-blur-xl text-white rounded-xl shadow-lg active:scale-95 transition-all text-xs font-bold disabled:opacity-30 whitespace-nowrap"
+          className="flex items-center gap-2 px-5 h-12 bg-emerald-500 text-white rounded-full shadow-2xl border border-emerald-400/30 text-sm font-bold whitespace-nowrap
+            hover:bg-emerald-400 hover:scale-105 hover:shadow-emerald-500/40 hover:shadow-2xl
+            active:scale-95
+            disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100
+            transition-all duration-150"
+          style={{ boxShadow: points.length >= 3 ? '0 8px 24px rgba(16,185,129,0.4)' : undefined }}
         >
-          <Check className="w-3.5 h-3.5" />
+          <Check className="w-4 h-4 flex-shrink-0" />
           Save Area
         </button>
 
-        {/* Cancel — low emphasis */}
+        {/* Close Boundary / Closed indicator */}
+        {!isClosed ? (
+          <button
+            onClick={handleCloseBoundary}
+            disabled={points.length < 3}
+            className="flex items-center gap-2 px-4 h-11 bg-slate-900/85 backdrop-blur-xl text-white rounded-full shadow-xl border border-white/15 text-sm font-semibold whitespace-nowrap
+              hover:bg-slate-800/90 hover:scale-105 hover:shadow-2xl
+              active:scale-95
+              disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100
+              transition-all duration-150"
+          >
+            <Lock className="w-4 h-4 flex-shrink-0" />
+            Close
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 px-4 h-11 bg-emerald-900/70 backdrop-blur-xl text-emerald-300 rounded-full border border-emerald-500/40 text-sm font-semibold whitespace-nowrap shadow-lg">
+            <Check className="w-4 h-4 flex-shrink-0" />
+            Closed
+          </div>
+        )}
+
+        {/* Cancel — ghost */}
         <button
           onClick={onCancel}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-white/50 hover:text-white/80 transition-colors text-xs font-medium whitespace-nowrap"
+          className="flex items-center gap-2 px-4 h-11 bg-slate-900/85 backdrop-blur-xl text-white/70 rounded-full shadow-xl border border-white/15 text-sm font-semibold whitespace-nowrap
+            hover:text-white hover:bg-slate-800/90 hover:scale-105 hover:shadow-2xl
+            active:scale-95
+            transition-all duration-150"
         >
-          <X className="w-3 h-3" />
+          <X className="w-4 h-4 flex-shrink-0" />
           Cancel
         </button>
       </div>
