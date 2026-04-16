@@ -182,10 +182,10 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         <button
           onClick={() => setUseSatellite(!useSatellite)}
           title={useSatellite ? 'Map view' : 'Satellite view'}
-          className={`w-10 h-10 rounded-2xl backdrop-blur-xl shadow-lg border flex items-center justify-center active:scale-95 transition-all ${
+          className={`w-10 h-10 rounded-2xl shadow-lg border flex items-center justify-center active:scale-95 transition-all ${
             useSatellite
-              ? 'bg-slate-900/80 border-slate-700/60 text-white'
-              : 'bg-white/80 dark:bg-slate-800/80 border-white/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700'
+              ? 'bg-slate-900 border-slate-700 text-white'
+              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
           }`}
         >
           <Satellite className="w-4.5 h-4.5" />
@@ -193,7 +193,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         <button
           onClick={handleMyLocation}
           title="My Location"
-          className="w-10 h-10 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl shadow-lg border border-white/60 dark:border-slate-700/60 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 active:scale-95 transition-all"
+          className="w-10 h-10 rounded-2xl bg-white shadow-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:scale-95 transition-all"
         >
           <LocateFixed className="w-4.5 h-4.5" />
         </button>
@@ -201,7 +201,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
 
       {/* ── TOP CENTER: Instruction pill ── */}
       <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9998] pointer-events-none">
-        <div className="flex items-center gap-2 px-3.5 py-2 bg-slate-900/75 backdrop-blur-xl text-white/90 rounded-full shadow-lg border border-white/10 text-xs font-medium whitespace-nowrap">
+        <div className="flex items-center gap-2 px-3.5 py-2 bg-slate-900 text-white rounded-full shadow-lg border border-slate-700 text-xs font-medium whitespace-nowrap">
           {isClosed
             ? <><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block mr-1" />Boundary closed · tap Save Area</>
             : <><span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block mr-1" />Tap map to place points · {points.length} placed</>
