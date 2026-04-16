@@ -13,6 +13,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
   const [points, setPoints] = useState([]);
   const [isClosed, setIsClosed] = useState(false);
   const [useSatellite, setUseSatellite] = useState(false);
+  const [myLocationPin, setMyLocationPin] = useState(null);
   const mapRef = useRef(null);
 
   const handleMapClick = (e) => {
@@ -56,6 +57,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const loc = { lat: position.coords.latitude, lng: position.coords.longitude };
+        setMyLocationPin(loc);
         if (mapRef.current) {
           mapRef.current.panTo(loc);
           mapRef.current.setZoom(16);
@@ -88,6 +90,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
           mapTypeId: useSatellite ? 'satellite' : 'roadmap',
           disableDefaultUI: true,
           clickableIcons: false,
+          gestureHandling: 'greedy',
         }}
       >
         {/* Saved area boundaries */}
@@ -103,6 +106,22 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
             }}
           />
         ))}
+
+        {/* My Location Pin */}
+        {myLocationPin && (
+          <Marker
+            position={myLocationPin}
+            title="My Location"
+            icon={{
+              path: window.google?.maps?.SymbolPath?.CIRCLE,
+              fillColor: '#3b82f6',
+              fillOpacity: 1,
+              strokeColor: '#ffffff',
+              strokeWeight: 3,
+              scale: 10,
+            }}
+          />
+        )}
 
         {/* Points markers */}
         {points.map((point, idx) => (
