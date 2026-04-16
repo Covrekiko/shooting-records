@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Trash2, Edit2, X, ChevronDown } from 'lucide-react';
+import { Plus, Trash2, Edit2, X, ChevronDown, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { searchCalibers } from '@/utils/caliberCatalog';
 import BrassLifecycleManager from './BrassLifecycleManager';
+import { downloadBrassBatchPdf } from '@/utils/brassPdfExport';
 
 const COMPONENT_TYPES = [
   { value: 'primer', label: 'Primer', units: ['pieces'] },
@@ -696,16 +697,33 @@ export default function ComponentManager() {
                     return (
                     <div key={comp.id} className="bg-card border border-border rounded-lg p-4">
                       <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <h4 className="font-semibold">{comp.name}</h4>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h4 className="font-semibold">{comp.name}</h4>
+                            {comp.component_type === 'brass' && comp.is_used_brass && (
+                              <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">USED</span>
+                            )}
+                          </div>
+                          {comp.component_type === 'brass' && comp.batch_number && (
+                            <p className="text-xs text-muted-foreground mt-0.5 font-mono">#{comp.batch_number}</p>
+                          )}
                           <p className="text-xs text-muted-foreground mt-1">
                             {displayRemaining}/{displayTotal} {displayUnit}
                           </p>
                           {comp.component_type === 'brass' && (
-                            <BrassLifecycleManager brass={comp} onUpdated={loadComponents} />
-                          )}
+                           <BrassLifecycleManager brass={comp} onUpdated={loadComponents} />
+                         )}
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-1 flex-shrink-0">
+                          {comp.component_type === 'brass' && (
+                            <button
+                              onClick={() => downloadBrassBatchPdf(comp)}
+                              className="p-2 hover:bg-secondary rounded transition-colors text-muted-foreground"
+                              title="Download batch report PDF"
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
+                          )}
                           <button
                             onClick={() => handleEdit(comp)}
                             className="p-2 hover:bg-secondary rounded transition-colors"

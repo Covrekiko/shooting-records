@@ -14,11 +14,20 @@
     },
     "name": {
       "type": "string",
-      "description": "Component name (e.g., 'CCI 200 Primer' or 'Vihtavuori N140')"
+      "description": "Component name"
+    },
+    "batch_number": {
+      "type": "string",
+      "description": "Unique batch identifier for this component lot"
+    },
+    "is_used_brass": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this is previously fired/used brass"
     },
     "quantity_total": {
       "type": "number",
-      "description": "Total quantity purchased"
+      "description": "Total quantity purchased/added"
     },
     "quantity_remaining": {
       "type": "number",
@@ -26,7 +35,7 @@
     },
     "unit": {
       "type": "string",
-      "description": "Unit of measurement (e.g., 'pieces', 'grains', 'grams', 'kg', 'oz', 'lb')"
+      "description": "Unit of measurement"
     },
     "price_total": {
       "type": "number",
@@ -66,12 +75,12 @@
     },
     "max_reloads": {
       "type": "integer",
-      "description": "Maximum number of reloads before brass should be retired or trimmed (brass only, 0 = no limit)"
+      "description": "Maximum number of reloads before brass should be retired or trimmed (0 = no limit)"
     },
     "times_fired": {
       "type": "integer",
       "default": 0,
-      "description": "Total rounds fired through this brass (brass only, manually tracked)"
+      "description": "Total rounds fired through this brass (manually tracked)"
     }
   },
   "required": [

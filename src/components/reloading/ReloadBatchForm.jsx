@@ -190,8 +190,12 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       console.log('Powder remaining (in stored unit):', powderRemaining);
 
       // Deduct from component stock (clamp to minimum 0)
+      // Used brass: deduct stock AND increment times_reloaded (same as new brass for stock)
       const brassUpdate = formData.brass_is_used
-        ? { times_reloaded: (brass.times_reloaded || 0) + 1 }
+        ? {
+            quantity_remaining: Math.max(0, (brass.quantity_remaining ?? brass.quantity_total) - cartridgesLoaded),
+            times_reloaded: (brass.times_reloaded || 0) + 1,
+          }
         : { quantity_remaining: Math.max(0, brass.quantity_remaining - cartridgesLoaded) };
 
       await Promise.all([
@@ -342,11 +346,21 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       }
     }
 
-    // Check brass
+    // Check brass (new)
     if (!formData.brass_is_used && formData.brass_id) {
       const brass = components.brass.find(b => b.id === formData.brass_id);
       if (brass && brass.quantity_remaining < cartridgesLoaded) {
         warnings.brass = `Only ${brass.quantity_remaining} in stock`;
+      }
+    }
+    // Check used brass stock
+    if (formData.brass_is_used && formData.used_brass_id) {
+      const brass = components.brass.find(b => b.id === formData.used_brass_id);
+      if (brass) {
+        const remaining = brass.quantity_remaining ?? brass.quantity_total;
+        if (remaining < cartridgesLoaded) {
+          warnings.brass = `Only ${remaining} used brass in stock`;
+        }
       }
     }
 
@@ -405,6 +419,10 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     // Brass validation
     if (formData.brass_is_used) {
       if (!brass) return { valid: false, message: 'Please select your used brass' };
+      const remaining = brass.quantity_remaining ?? brass.quantity_total;
+      if (remaining < cartridgesLoaded) {
+        return { valid: false, message: `Used brass: only ${remaining} in stock` };
+      }
       const maxLimit = brass.max_reloads || 0;
       if (maxLimit > 0 && (brass.times_reloaded || 0) >= maxLimit && !formData.override_brass_limit) {
         return { valid: false, message: `This brass has reached its reload limit (${brass.times_reloaded}/${maxLimit}). Tick "Use anyway" to override.` };
@@ -626,12 +644,15 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                 required={formData.brass_is_used}
               >
                 <option value="">Choose brass from your inventory...</option>
-                {components.brass.map(b => (
+                {components.brass.filter(b => b.is_used_brass).map(b => (
                   <option key={b.id} value={b.id}>
-                    {b.name}{b.caliber ? ` (${b.caliber})` : ''} — reloaded {b.times_reloaded || 0}x
+                    {b.name}{b.caliber ? ` (${b.caliber})` : ''}{b.batch_number ? ` #${b.batch_number}` : ''} — {b.quantity_remaining ?? b.quantity_total} in stock, reloaded {b.times_reloaded || 0}x
                   </option>
                 ))}
               </select>
+              {stockWarnings.brass && formData.brass_is_used && (
+                <p className="text-xs text-destructive font-semibold mt-1.5">{stockWarnings.brass}</p>
+              )}
               {formData.used_brass_id && (() => {
                 const selectedBrass = components.brass.find(b => b.id === formData.used_brass_id);
                 if (!selectedBrass) return null;
