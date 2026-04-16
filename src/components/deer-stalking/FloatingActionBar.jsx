@@ -37,7 +37,7 @@ export default function FloatingActionBar({
           {!activeOuting && (
             <button
               onClick={() => handleAction(onOuting)}
-              className="flex items-center gap-2 px-3 py-2 bg-slate-900 dark:bg-slate-700 text-white rounded-lg text-sm font-medium hover:bg-slate-800 dark:hover:bg-slate-600 active:scale-95 transition-all whitespace-nowrap shadow-sm"
+              className="flex items-center gap-2 px-3 py-2 bg-white text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-50 active:scale-95 transition-all whitespace-nowrap shadow-sm border border-slate-200"
             >
               <Plus className="w-4 h-4 flex-shrink-0" />
               New Outing
@@ -45,21 +45,21 @@ export default function FloatingActionBar({
           )}
           <button
             onClick={() => handleAction(onPOI)}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-900 dark:bg-slate-700 text-white rounded-lg text-sm font-medium hover:bg-slate-800 dark:hover:bg-slate-600 active:scale-95 transition-all whitespace-nowrap shadow-sm"
+            className="flex items-center gap-2 px-3 py-2 bg-white text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-50 active:scale-95 transition-all whitespace-nowrap shadow-sm border border-slate-200"
           >
             <MapPin className="w-4 h-4 flex-shrink-0" />
             Add POI
           </button>
           <button
             onClick={() => handleAction(onHarvest)}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-900 dark:bg-slate-700 text-white rounded-lg text-sm font-medium hover:bg-slate-800 dark:hover:bg-slate-600 active:scale-95 transition-all whitespace-nowrap shadow-sm"
+            className="flex items-center gap-2 px-3 py-2 bg-white text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-50 active:scale-95 transition-all whitespace-nowrap shadow-sm border border-slate-200"
           >
             <span className="text-sm leading-none flex-shrink-0">🦌</span>
             Add Harvest
           </button>
           <button
             onClick={() => handleAction(onCreateArea)}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-900 dark:bg-slate-700 text-white rounded-lg text-sm font-medium hover:bg-slate-800 dark:hover:bg-slate-600 active:scale-95 transition-all whitespace-nowrap shadow-sm"
+            className="flex items-center gap-2 px-3 py-2 bg-white text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-50 active:scale-95 transition-all whitespace-nowrap shadow-sm border border-slate-200"
           >
             <LayoutGrid className="w-4 h-4 flex-shrink-0" />
             Create Area
