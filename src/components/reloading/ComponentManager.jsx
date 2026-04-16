@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { searchCalibers } from '@/utils/caliberCatalog';
 import BrassLifecycleManager from './BrassLifecycleManager';
 import { downloadBrassBatchPdf } from '@/utils/brassPdfExport';
+import AddBrassModal from './AddBrassModal';
 
 const COMPONENT_TYPES = [
   { value: 'primer', label: 'Primer', units: ['pieces'] },
@@ -24,6 +25,7 @@ export default function ComponentManager() {
   const [lockedComponentType, setLockedComponentType] = useState(null);
   const [showCaliberDropdown, setShowCaliberDropdown] = useState(false);
   const [caliberResults, setCaliberResults] = useState([]);
+  const [showAddBrassModal, setShowAddBrassModal] = useState(false);
   const [formData, setFormData] = useState({
     component_type: 'primer',
     name: '',
@@ -279,6 +281,17 @@ export default function ComponentManager() {
     }
   };
 
+  const handleSaveBrass = async (brassData) => {
+    try {
+      await base44.entities.ReloadingComponent.create(brassData);
+      setShowAddBrassModal(false);
+      await loadComponents();
+    } catch (error) {
+      console.error('Error saving brass:', error);
+      alert('Error saving brass: ' + error.message);
+    }
+  };
+
   const handleCaliberSearch = (query) => {
     if (!query) {
       setCaliberResults([]);
@@ -325,6 +338,11 @@ export default function ComponentManager() {
 
   return (
     <div className="space-y-6">
+      <AddBrassModal
+        isOpen={showAddBrassModal}
+        onClose={() => setShowAddBrassModal(false)}
+        onSave={handleSaveBrass}
+      />
       {/* Form */}
       {showForm && (
         <div className="bg-card border border-border rounded-xl p-4 space-y-4">
@@ -661,9 +679,13 @@ export default function ComponentManager() {
                 {!showForm && (
                    <button
                      onClick={() => {
-                       setFormData({ ...formData, component_type: type.value, unit: type.units[0], caliber: '', brand: '', bullet_name: '', weight: '', weight_unit: 'gr' });
-                       setShowForm(true);
-                       setLockedComponentType(type.value);
+                       if (type.value === 'brass') {
+                         setShowAddBrassModal(true);
+                       } else {
+                         setFormData({ ...formData, component_type: type.value, unit: type.units[0], caliber: '', brand: '', bullet_name: '', weight: '', weight_unit: 'gr' });
+                         setShowForm(true);
+                         setLockedComponentType(type.value);
+                       }
                      }}
                      className="px-3 py-1 bg-primary text-primary-foreground rounded-lg text-sm font-medium flex items-center gap-1 hover:opacity-90"
                    >
