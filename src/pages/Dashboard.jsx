@@ -330,10 +330,7 @@ export default function Dashboard() {
         {activeOuting && <ActiveSessionBanner outing={activeOuting} />}
 
         {/* ── Primary Actions ── */}
-        <div className="grid grid-cols-2 gap-2">
-          <PrimaryCard to="/deer-stalking" icon={<Map />} label="Stalking Map" sub="Areas & outings" />
-          <PrimaryCard to="/ammo-summary" icon={<Zap />} label="Armory Status" sub="Firearms & ammo" />
-        </div>
+        <PrimaryCard to="/deer-stalking" icon={<Map />} label="Stalking Map" sub="Areas & outings" />
 
         {/* ── Secondary Grid ── */}
         <SecondaryGrid user={user} />
