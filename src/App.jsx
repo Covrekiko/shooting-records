@@ -10,7 +10,7 @@ import { OutingProvider } from '@/context/OutingContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useEffect } from 'react';
 import ProfileSetup from './pages/ProfileSetup';
-import Dashboard from './pages/Dashboard.jsx';
+import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import TargetShooting from './pages/TargetShooting';
 import ClayShooting from './pages/ClayShooting';
