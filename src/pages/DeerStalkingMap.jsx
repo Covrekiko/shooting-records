@@ -359,8 +359,19 @@ export default function DeerStalkingMap() {
             gestureHandling: 'greedy',
           }}
         >
-          {/* User location */}
-          <Marker position={userLocation} title="My Location" />
+          {/* User location - Google Maps style blue dot */}
+          <Marker
+            position={userLocation}
+            title="My Location"
+            icon={{
+              path: window.google?.maps?.SymbolPath?.CIRCLE,
+              fillColor: '#4285F4',
+              fillOpacity: 1,
+              strokeColor: '#ffffff',
+              strokeWeight: 3,
+              scale: 10,
+            }}
+          />
 
           {/* POI Markers */}
           {markers.map((marker) => (
