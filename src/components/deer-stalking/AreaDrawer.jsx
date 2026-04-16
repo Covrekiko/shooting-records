@@ -210,68 +210,78 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
       </div>
 
       {/* ── BOTTOM CENTER: Controls ── */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-2.5">
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-3">
 
-        {/* Undo — secondary */}
-        <button
-          onClick={handleUndo}
-          disabled={points.length === 0 || isClosed}
-          className="flex items-center gap-2 px-4 h-11 bg-slate-900 text-white rounded-full shadow-xl border border-slate-700 text-sm font-semibold whitespace-nowrap
-            hover:bg-slate-800 hover:scale-105 hover:shadow-2xl
-            active:scale-95
-            disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xl
-            transition-all duration-150"
-        >
-          <Undo className="w-4 h-4 flex-shrink-0" />
-          Undo
-        </button>
+        {/* Row 1: Secondary buttons */}
+        <div className="flex items-center gap-2">
+          {/* Undo */}
+          <button
+            onClick={handleUndo}
+            disabled={points.length === 0 || isClosed}
+            style={{ backgroundColor: 'rgba(0,0,0,0.82)', border: '1px solid rgba(255,255,255,0.12)' }}
+            className="flex items-center gap-1.5 px-4 h-11 text-white rounded-full shadow-lg text-sm font-semibold whitespace-nowrap
+              hover:brightness-125 active:scale-95
+              disabled:opacity-30 disabled:cursor-not-allowed
+              transition-all duration-150"
+          >
+            <Undo className="w-[18px] h-[18px] flex-shrink-0" />
+            Undo
+          </button>
 
-        {/* Save Area — primary */}
+          {/* Close Boundary / Closed */}
+          {!isClosed ? (
+            <button
+              onClick={handleCloseBoundary}
+              disabled={points.length < 3}
+              style={{ backgroundColor: 'rgba(0,0,0,0.82)', border: '1px solid rgba(255,255,255,0.12)' }}
+              className="flex items-center gap-1.5 px-4 h-11 text-white rounded-full shadow-lg text-sm font-semibold whitespace-nowrap
+                hover:brightness-125 active:scale-95
+                disabled:opacity-30 disabled:cursor-not-allowed
+                transition-all duration-150"
+            >
+              <Lock className="w-[18px] h-[18px] flex-shrink-0" />
+              Close
+            </button>
+          ) : (
+            <div
+              style={{ backgroundColor: '#064e3b', border: '1px solid rgba(52,211,153,0.35)' }}
+              className="flex items-center gap-1.5 px-4 h-11 text-emerald-300 rounded-full shadow-lg text-sm font-semibold whitespace-nowrap"
+            >
+              <Check className="w-[18px] h-[18px] flex-shrink-0" />
+              Closed
+            </div>
+          )}
+
+          {/* Cancel */}
+          <button
+            onClick={onCancel}
+            style={{ backgroundColor: 'rgba(0,0,0,0.82)', border: '1px solid rgba(255,255,255,0.12)' }}
+            className="flex items-center gap-1.5 px-4 h-11 text-slate-300 rounded-full shadow-lg text-sm font-semibold whitespace-nowrap
+              hover:text-white hover:brightness-125 active:scale-95
+              transition-all duration-150"
+          >
+            <X className="w-[18px] h-[18px] flex-shrink-0" />
+            Cancel
+          </button>
+        </div>
+
+        {/* Row 2: Primary — Save Area */}
         <button
           onClick={handleFinish}
           disabled={points.length < 3}
-          className="flex items-center gap-2 px-5 h-12 bg-emerald-500 text-white rounded-full shadow-2xl border border-emerald-400/30 text-sm font-bold whitespace-nowrap
-            hover:bg-emerald-400 hover:scale-105 hover:shadow-emerald-500/40 hover:shadow-2xl
-            active:scale-95
-            disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100
+          style={{
+            backgroundColor: points.length >= 3 ? '#059669' : '#374151',
+            boxShadow: points.length >= 3 ? '0 8px 24px rgba(5,150,105,0.5)' : 'none',
+            border: 'none',
+          }}
+          className="flex items-center gap-2 px-7 h-13 text-white rounded-full text-base font-bold whitespace-nowrap
+            hover:brightness-110 hover:scale-[1.03]
+            active:scale-[0.97]
+            disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100
             transition-all duration-150"
-          style={{ boxShadow: points.length >= 3 ? '0 8px 24px rgba(16,185,129,0.4)' : undefined }}
         >
-          <Check className="w-4 h-4 flex-shrink-0" />
+          <Check className="w-5 h-5 flex-shrink-0" />
           Save Area
-        </button>
-
-        {/* Close Boundary / Closed indicator */}
-        {!isClosed ? (
-          <button
-            onClick={handleCloseBoundary}
-            disabled={points.length < 3}
-            className="flex items-center gap-2 px-4 h-11 bg-slate-900 text-white rounded-full shadow-xl border border-slate-700 text-sm font-semibold whitespace-nowrap
-              hover:bg-slate-800 hover:scale-105 hover:shadow-2xl
-              active:scale-95
-              disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100
-              transition-all duration-150"
-          >
-            <Lock className="w-4 h-4 flex-shrink-0" />
-            Close
-          </button>
-        ) : (
-          <div className="flex items-center gap-2 px-4 h-11 bg-emerald-900/70 backdrop-blur-xl text-emerald-300 rounded-full border border-emerald-500/40 text-sm font-semibold whitespace-nowrap shadow-lg">
-            <Check className="w-4 h-4 flex-shrink-0" />
-            Closed
-          </div>
-        )}
-
-        {/* Cancel — ghost */}
-        <button
-          onClick={onCancel}
-          className="flex items-center gap-2 px-4 h-11 bg-slate-900 text-slate-300 rounded-full shadow-xl border border-slate-700 text-sm font-semibold whitespace-nowrap
-            hover:text-white hover:bg-slate-800 hover:scale-105 hover:shadow-2xl
-            active:scale-95
-            transition-all duration-150"
-        >
-          <X className="w-4 h-4 flex-shrink-0" />
-          Cancel
         </button>
       </div>
     </>
