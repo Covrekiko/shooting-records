@@ -33,38 +33,35 @@ export default function FloatingActionBar({
 
       {/* Expanded menu items */}
       {expanded && (
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex flex-col items-end gap-1.5">
           {!activeOuting && (
             <button
               onClick={() => handleAction(onOuting)}
-              className="flex items-center gap-2.5 pl-3.5 pr-4.5 py-2.5 bg-white/85 dark:bg-slate-800/85 backdrop-blur-xl text-slate-800 dark:text-slate-100 rounded-2xl shadow-lg border border-white/60 dark:border-slate-700/60 hover:bg-white dark:hover:bg-slate-700 active:scale-95 transition-all text-sm font-semibold whitespace-nowrap"
+              className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold whitespace-nowrap"
             >
-              <Plus className="w-4 h-4 text-slate-500 dark:text-slate-400 flex-shrink-0" />
+              <Plus className="w-3.5 h-3.5 opacity-70 flex-shrink-0" />
               New Outing
             </button>
           )}
-
           <button
             onClick={() => handleAction(onPOI)}
-            className="flex items-center gap-2.5 pl-3.5 pr-4.5 py-2.5 bg-white/85 dark:bg-slate-800/85 backdrop-blur-xl text-slate-800 dark:text-slate-100 rounded-2xl shadow-lg border border-white/60 dark:border-slate-700/60 hover:bg-white dark:hover:bg-slate-700 active:scale-95 transition-all text-sm font-semibold whitespace-nowrap"
+            className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold whitespace-nowrap"
           >
-            <MapPin className="w-4 h-4 text-slate-500 dark:text-slate-400 flex-shrink-0" />
+            <MapPin className="w-3.5 h-3.5 opacity-70 flex-shrink-0" />
             Add POI
           </button>
-
           <button
             onClick={() => handleAction(onHarvest)}
-            className="flex items-center gap-2.5 pl-3.5 pr-4.5 py-2.5 bg-white/85 dark:bg-slate-800/85 backdrop-blur-xl text-slate-800 dark:text-slate-100 rounded-2xl shadow-lg border border-white/60 dark:border-slate-700/60 hover:bg-white dark:hover:bg-slate-700 active:scale-95 transition-all text-sm font-semibold whitespace-nowrap"
+            className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold whitespace-nowrap"
           >
-            <span className="text-base leading-none flex-shrink-0">🦌</span>
+            <span className="text-sm leading-none flex-shrink-0">🦌</span>
             Add Harvest
           </button>
-
           <button
             onClick={() => handleAction(onCreateArea)}
-            className="flex items-center gap-2.5 pl-3.5 pr-4.5 py-2.5 bg-white/85 dark:bg-slate-800/85 backdrop-blur-xl text-slate-800 dark:text-slate-100 rounded-2xl shadow-lg border border-white/60 dark:border-slate-700/60 hover:bg-white dark:hover:bg-slate-700 active:scale-95 transition-all text-sm font-semibold whitespace-nowrap"
+            className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold whitespace-nowrap"
           >
-            <LayoutGrid className="w-4 h-4 text-slate-500 dark:text-slate-400 flex-shrink-0" />
+            <LayoutGrid className="w-3.5 h-3.5 opacity-70 flex-shrink-0" />
             Create Area
           </button>
         </div>
