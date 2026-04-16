@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Plus, Trash2, Edit2, X, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { searchCalibers } from '@/utils/caliberCatalog';
+import BrassLifecycleManager from './BrassLifecycleManager';
 
 const COMPONENT_TYPES = [
   { value: 'primer', label: 'Primer', units: ['pieces'] },
@@ -701,10 +702,7 @@ export default function ComponentManager() {
                             {displayRemaining}/{displayTotal} {displayUnit}
                           </p>
                           {comp.component_type === 'brass' && (
-                            <p className="text-xs mt-1">
-                              <span className="font-semibold text-primary">{comp.times_reloaded || 0}x</span>
-                              <span className="text-muted-foreground"> reloaded</span>
-                            </p>
+                            <BrassLifecycleManager brass={comp} onUpdated={loadComponents} />
                           )}
                         </div>
                         <div className="flex gap-2">

@@ -30,6 +30,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     brass_id: '',
     brass_is_used: false,
     used_brass_id: '',
+    override_brass_limit: false,
     bullet_id: '',
     notes: '',
   });
@@ -404,6 +405,10 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     // Brass validation
     if (formData.brass_is_used) {
       if (!brass) return { valid: false, message: 'Please select your used brass' };
+      const maxLimit = brass.max_reloads || 0;
+      if (maxLimit > 0 && (brass.times_reloaded || 0) >= maxLimit && !formData.override_brass_limit) {
+        return { valid: false, message: `This brass has reached its reload limit (${brass.times_reloaded}/${maxLimit}). Tick "Use anyway" to override.` };
+      }
     } else {
       if (!brass || brass.quantity_remaining < cartridgesLoaded) {
         return { valid: false, message: `Brass: only ${brass?.quantity_remaining || 0} in stock` };
@@ -616,7 +621,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               <label className={labelCls}>Select Your Used Brass</label>
               <select
                 value={formData.used_brass_id}
-                onChange={(e) => setFormData({ ...formData, used_brass_id: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, used_brass_id: e.target.value, override_brass_limit: false })}
                 className={inputCls}
                 required={formData.brass_is_used}
               >
@@ -629,11 +634,44 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               </select>
               {formData.used_brass_id && (() => {
                 const selectedBrass = components.brass.find(b => b.id === formData.used_brass_id);
-                return selectedBrass ? (
-                  <p className="text-xs text-muted-foreground mt-1.5">
-                    This brass has been reloaded <span className="font-bold text-primary">{selectedBrass.times_reloaded || 0}</span> time(s). Reloading this batch will make it <span className="font-bold text-primary">{(selectedBrass.times_reloaded || 0) + 1}</span>.
-                  </p>
-                ) : null;
+                if (!selectedBrass) return null;
+                const reloaded = selectedBrass.times_reloaded || 0;
+                const maxLimit = selectedBrass.max_reloads || 0;
+                const willBe = reloaded + 1;
+                const atLimit = maxLimit > 0 && reloaded >= maxLimit;
+                const willHitLimit = maxLimit > 0 && willBe >= maxLimit;
+
+                return (
+                  <div className="mt-2 space-y-1.5">
+                    {atLimit ? (
+                      <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-lg p-2.5 text-xs font-semibold flex items-start gap-2">
+                        <span className="text-base leading-none">⚠️</span>
+                        <div>
+                          <p>This brass has reached its reload limit ({reloaded}/{maxLimit}).</p>
+                          <p className="font-normal text-destructive/80 mt-0.5">Consider retiring or trimming it first, then reset the counter in Manage Components.</p>
+                          <label className="flex items-center gap-1.5 mt-2 cursor-pointer font-normal">
+                            <input
+                              type="checkbox"
+                              checked={formData.override_brass_limit}
+                              onChange={(e) => setFormData({ ...formData, override_brass_limit: e.target.checked })}
+                              className="w-3.5 h-3.5"
+                            />
+                            Use anyway (I know what I'm doing)
+                          </label>
+                        </div>
+                      </div>
+                    ) : willHitLimit ? (
+                      <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold">
+                        ⚠️ This batch will bring brass to its limit ({willBe}/{maxLimit}). Consider trimming after this reload.
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        Reloaded <span className="font-bold text-primary">{reloaded}</span>x
+                        {maxLimit > 0 ? ` / limit ${maxLimit}` : ''} → will be <span className="font-bold text-primary">{willBe}</span> after this batch.
+                      </p>
+                    )}
+                  </div>
+                );
               })()}
             </div>
           )}

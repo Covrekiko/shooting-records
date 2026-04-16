@@ -63,6 +63,15 @@
       "type": "integer",
       "default": 0,
       "description": "How many times this brass has been reloaded (brass only)"
+    },
+    "max_reloads": {
+      "type": "integer",
+      "description": "Maximum number of reloads before brass should be retired or trimmed (brass only, 0 = no limit)"
+    },
+    "times_fired": {
+      "type": "integer",
+      "default": 0,
+      "description": "Total rounds fired through this brass (brass only, manually tracked)"
     }
   },
   "required": [
