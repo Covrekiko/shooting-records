@@ -182,10 +182,10 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         <button
           onClick={() => setUseSatellite(!useSatellite)}
           title={useSatellite ? 'Map view' : 'Satellite view'}
-          className={`w-10 h-10 rounded-xl flex items-center justify-center active:scale-95 transition-all backdrop-blur-md ${
+          className={`w-10 h-10 rounded-xl flex items-center justify-center active:scale-95 transition-all ${
             useSatellite
-              ? 'bg-emerald-500/30 dark:bg-emerald-600/30 border border-emerald-400/40 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300 shadow-lg'
-              : 'bg-white/20 dark:bg-slate-700/30 border border-white/40 dark:border-slate-600/40 text-slate-700 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-700/40 shadow-lg'
+              ? 'bg-slate-900 text-white shadow-lg'
+              : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm'
           }`}
         >
           <Satellite className="w-4 h-4" />
@@ -193,7 +193,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         <button
           onClick={handleMyLocation}
           title="My Location"
-          className="w-10 h-10 rounded-xl bg-white/20 dark:bg-slate-700/30 border border-white/40 dark:border-slate-600/40 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-700/40 active:scale-95 transition-all shadow-lg backdrop-blur-md"
+          className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-95 transition-all shadow-sm"
         >
           <LocateFixed className="w-4 h-4" />
         </button>
@@ -218,7 +218,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
           <button
             onClick={handleUndo}
             disabled={points.length === 0 || isClosed}
-            className="flex items-center gap-2 px-3 py-2 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium hover:bg-white/30 dark:hover:bg-slate-700/40 active:scale-95 disabled:bg-white/10 dark:disabled:bg-slate-700/20 disabled:text-slate-500 dark:disabled:text-slate-600 disabled:cursor-not-allowed transition-all shadow-sm border border-white/40 dark:border-slate-600/40 backdrop-blur-md"
+            className="flex items-center gap-2 px-3 py-2 bg-white text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-100 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-sm"
           >
             <Undo className="w-4 h-4 flex-shrink-0" />
             Undo
@@ -229,13 +229,13 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
             <button
               onClick={handleCloseBoundary}
               disabled={points.length < 3}
-              className="flex items-center gap-2 px-3 py-2 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium hover:bg-white/30 dark:hover:bg-slate-700/40 active:scale-95 disabled:bg-white/10 dark:disabled:bg-slate-700/20 disabled:text-slate-500 dark:disabled:text-slate-600 disabled:cursor-not-allowed transition-all shadow-sm border border-white/40 dark:border-slate-600/40 backdrop-blur-md"
+              className="flex items-center gap-2 px-3 py-2 bg-white text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-100 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-sm"
             >
               <Lock className="w-4 h-4 flex-shrink-0" />
               Close
             </button>
           ) : (
-            <div className="flex items-center gap-2 px-3 py-2 bg-emerald-500/30 dark:bg-emerald-600/30 text-emerald-700 dark:text-emerald-300 rounded-lg text-sm font-medium shadow-sm border border-emerald-400/40 dark:border-emerald-500/40 backdrop-blur-md">
+            <div className="flex items-center gap-2 px-3 py-2 bg-white text-emerald-600 rounded-lg text-sm font-medium shadow-sm">
               <Check className="w-4 h-4 flex-shrink-0" />
               Closed
             </div>
@@ -244,7 +244,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
           {/* Cancel */}
           <button
             onClick={onCancel}
-            className="flex items-center gap-2 px-3 py-2 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium hover:bg-white/30 dark:hover:bg-slate-700/40 active:scale-95 transition-all shadow-sm border border-white/40 dark:border-slate-600/40 backdrop-blur-md"
+            className="flex items-center gap-2 px-3 py-2 bg-white text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-100 active:scale-95 transition-all shadow-sm"
           >
             <X className="w-4 h-4 flex-shrink-0" />
             Cancel
@@ -255,7 +255,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         <button
           onClick={handleFinish}
           disabled={points.length < 3}
-          className="flex items-center gap-2 px-4 py-2.5 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-semibold hover:bg-white/30 dark:hover:bg-slate-700/40 active:scale-95 disabled:bg-white/10 dark:disabled:bg-slate-700/20 disabled:text-slate-500 dark:disabled:text-slate-600 disabled:cursor-not-allowed transition-all shadow-md border border-white/40 dark:border-slate-600/40 backdrop-blur-md"
+          className="flex items-center gap-2 px-4 py-2.5 bg-white text-primary rounded-lg text-sm font-semibold hover:bg-slate-50 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-md border border-primary/20"
         >
           <Check className="w-4 h-4 flex-shrink-0" />
           Save Area
