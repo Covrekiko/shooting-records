@@ -99,9 +99,9 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
             key={`saved-area-${area.id}`}
             path={area.polygon_coordinates.map((coord) => ({ lat: coord[0], lng: coord[1] }))}
             options={{
-              strokeColor: '#9333ea',
-              strokeOpacity: 0.6,
-              strokeWeight: 4,
+              strokeColor: '#64748b',
+              strokeOpacity: 0.5,
+              strokeWeight: 3,
               geodesic: true,
             }}
           />
@@ -137,9 +137,9 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
           <Polyline
             path={points.map((p) => ({ lat: p[0], lng: p[1] }))}
             options={{
-              strokeColor: '#3b82f6',
-              strokeOpacity: 1,
-              strokeWeight: 4,
+              strokeColor: '#10b981',
+              strokeOpacity: 0.85,
+              strokeWeight: 3,
               geodesic: true,
             }}
           />
@@ -153,9 +153,9 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
               { lat: points[0][0], lng: points[0][1] },
             ]}
             options={{
-              strokeColor: '#3b82f6',
-              strokeOpacity: 0.5,
-              strokeWeight: 4,
+              strokeColor: '#10b981',
+              strokeOpacity: 0.35,
+              strokeWeight: 2,
               geodesic: true,
             }}
           />
@@ -166,11 +166,11 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
           <Polygon
             paths={points.map((p) => ({ lat: p[0], lng: p[1] }))}
             options={{
-              fillColor: '#3b82f6',
-              fillOpacity: 0.4,
-              strokeColor: '#3b82f6',
-              strokeOpacity: 1,
-              strokeWeight: 5,
+              fillColor: '#10b981',
+              fillOpacity: 0.15,
+              strokeColor: '#10b981',
+              strokeOpacity: 0.9,
+              strokeWeight: 3,
               geodesic: true,
             }}
           />
@@ -199,57 +199,65 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         </button>
       </div>
 
-      {/* ── BOTTOM LEFT: Action Controls ── */}
-      <div className="fixed bottom-8 left-5 z-[9999] flex flex-col items-start gap-1.5">
+      {/* ── TOP CENTER: Instruction pill ── */}
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9998] pointer-events-none">
+        <div className="flex items-center gap-2 px-3.5 py-2 bg-slate-900/75 backdrop-blur-xl text-white/90 rounded-full shadow-lg border border-white/10 text-xs font-medium whitespace-nowrap">
+          {isClosed
+            ? <><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block mr-1" />Boundary closed · tap Save Area</>
+            : <><span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block mr-1" />Tap map to place points · {points.length} placed</>
+          }
+        </div>
+      </div>
 
-        <button
-          onClick={handleUndo}
-          disabled={points.length === 0 || isClosed}
-          className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold disabled:opacity-30 whitespace-nowrap"
-        >
-          <Undo className="w-3.5 h-3.5 opacity-60" />
-          Undo · {points.length}pts
-        </button>
+      {/* ── BOTTOM LEFT: Controls ── */}
+      <div className="fixed bottom-8 left-5 z-[9999] flex flex-col items-start gap-2">
 
-        {!isClosed ? (
+        {/* Undo + Close — secondary row */}
+        <div className="flex items-center gap-2">
           <button
-            onClick={handleCloseBoundary}
-            disabled={points.length < 3}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold disabled:opacity-30 whitespace-nowrap"
+            onClick={handleUndo}
+            disabled={points.length === 0 || isClosed}
+            className="flex items-center gap-1.5 px-3 py-2 bg-black/50 backdrop-blur-xl text-white/80 rounded-xl shadow active:scale-95 transition-all text-xs font-medium disabled:opacity-30 whitespace-nowrap border border-white/10"
           >
-            <Lock className="w-3.5 h-3.5 opacity-60" />
-            Close Shape
+            <Undo className="w-3.5 h-3.5" />
+            Undo
           </button>
-        ) : (
-          <div className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-green-400 rounded-xl text-xs font-semibold border border-green-500/40 whitespace-nowrap">
-            <Check className="w-3.5 h-3.5" />
-            Closed ✓
-          </div>
-        )}
 
+          {!isClosed ? (
+            <button
+              onClick={handleCloseBoundary}
+              disabled={points.length < 3}
+              className="flex items-center gap-1.5 px-3 py-2 bg-black/50 backdrop-blur-xl text-white/80 rounded-xl shadow active:scale-95 transition-all text-xs font-medium disabled:opacity-30 whitespace-nowrap border border-white/10"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              Close
+            </button>
+          ) : (
+            <div className="flex items-center gap-1.5 px-3 py-2 bg-black/50 backdrop-blur-xl text-emerald-400 rounded-xl text-xs font-medium border border-emerald-500/30 whitespace-nowrap">
+              <Check className="w-3.5 h-3.5" />
+              Closed
+            </div>
+          )}
+        </div>
+
+        {/* Save — primary */}
         <button
           onClick={handleFinish}
           disabled={points.length < 3}
-          className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-bold disabled:opacity-30 whitespace-nowrap"
+          className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500/90 backdrop-blur-xl text-white rounded-xl shadow-lg active:scale-95 transition-all text-xs font-bold disabled:opacity-30 whitespace-nowrap"
         >
-          <Check className="w-3.5 h-3.5 opacity-60" />
+          <Check className="w-3.5 h-3.5" />
           Save Area
         </button>
 
+        {/* Cancel — low emphasis */}
         <button
           onClick={onCancel}
-          className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-red-400 rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold whitespace-nowrap"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-white/50 hover:text-white/80 transition-colors text-xs font-medium whitespace-nowrap"
         >
-          <X className="w-3.5 h-3.5" />
+          <X className="w-3 h-3" />
           Cancel
         </button>
-      </div>
-
-      {/* ── TOP CENTER: Instruction toast ── */}
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9998] pointer-events-none">
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-900/90 backdrop-blur-xl text-white rounded-2xl shadow-xl border border-white/10 text-sm font-semibold whitespace-nowrap">
-          {isClosed ? '✓ Boundary closed — tap Save Area' : 'Tap map to add points (3+ needed)'}
-        </div>
       </div>
     </>
   );
