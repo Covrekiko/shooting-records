@@ -216,8 +216,8 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         <button
           onClick={handleUndo}
           disabled={points.length === 0 || isClosed}
-          className="flex items-center gap-2 px-4 h-11 bg-slate-900/85 backdrop-blur-xl text-white rounded-full shadow-xl border border-white/15 text-sm font-semibold whitespace-nowrap
-            hover:bg-slate-800/90 hover:scale-105 hover:shadow-2xl
+          className="flex items-center gap-2 px-4 h-11 bg-slate-900 text-white rounded-full shadow-xl border border-slate-700 text-sm font-semibold whitespace-nowrap
+            hover:bg-slate-800 hover:scale-105 hover:shadow-2xl
             active:scale-95
             disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xl
             transition-all duration-150"
@@ -246,8 +246,8 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
           <button
             onClick={handleCloseBoundary}
             disabled={points.length < 3}
-            className="flex items-center gap-2 px-4 h-11 bg-slate-900/85 backdrop-blur-xl text-white rounded-full shadow-xl border border-white/15 text-sm font-semibold whitespace-nowrap
-              hover:bg-slate-800/90 hover:scale-105 hover:shadow-2xl
+            className="flex items-center gap-2 px-4 h-11 bg-slate-900 text-white rounded-full shadow-xl border border-slate-700 text-sm font-semibold whitespace-nowrap
+              hover:bg-slate-800 hover:scale-105 hover:shadow-2xl
               active:scale-95
               disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100
               transition-all duration-150"
@@ -265,8 +265,8 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         {/* Cancel — ghost */}
         <button
           onClick={onCancel}
-          className="flex items-center gap-2 px-4 h-11 bg-slate-900/85 backdrop-blur-xl text-white/70 rounded-full shadow-xl border border-white/15 text-sm font-semibold whitespace-nowrap
-            hover:text-white hover:bg-slate-800/90 hover:scale-105 hover:shadow-2xl
+          className="flex items-center gap-2 px-4 h-11 bg-slate-900 text-slate-300 rounded-full shadow-xl border border-slate-700 text-sm font-semibold whitespace-nowrap
+            hover:text-white hover:bg-slate-800 hover:scale-105 hover:shadow-2xl
             active:scale-95
             transition-all duration-150"
         >
