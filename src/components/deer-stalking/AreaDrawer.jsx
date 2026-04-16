@@ -182,18 +182,14 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         <button
           onClick={() => setUseSatellite(!useSatellite)}
           title={useSatellite ? 'Map view' : 'Satellite view'}
-          className={`w-10 h-10 rounded-xl flex items-center justify-center active:scale-95 transition-all ${
-            useSatellite
-              ? 'bg-slate-900 text-white shadow-lg'
-              : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm'
-          }`}
+          className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800 active:scale-95 transition-all shadow-md"
         >
           <Satellite className="w-4 h-4" />
         </button>
         <button
           onClick={handleMyLocation}
           title="My Location"
-          className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-95 transition-all shadow-sm"
+          className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center hover:bg-slate-800 active:scale-95 transition-all shadow-md"
         >
           <LocateFixed className="w-4 h-4" />
         </button>
@@ -201,10 +197,10 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
 
       {/* ── TOP CENTER: Instruction pill ── */}
       <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9998] pointer-events-none">
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 dark:bg-slate-800 text-white rounded-xl shadow-md text-sm font-medium whitespace-nowrap">
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-white text-slate-900 rounded-xl shadow-md text-sm font-medium whitespace-nowrap border border-slate-200">
           {isClosed
-            ? <><span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />Boundary closed • Save Area</>
-            : <><span className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" />Place {3 - points.length} more points</>
+            ? <><span className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />Boundary closed • Save Area</>
+            : <><span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />Place {3 - points.length} more points</>
           }
         </div>
       </div>
