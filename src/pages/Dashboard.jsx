@@ -329,26 +329,10 @@ export default function Dashboard() {
         {/* ── Active Session Banner ── */}
         {activeOuting && <ActiveSessionBanner outing={activeOuting} />}
 
-        {/* ── KPI Row ── */}
-        {stats && <KpiRow stats={stats} />}
-
         {/* ── Primary Actions ── */}
-        <div className="space-y-2">
-          <Link to="/deer-management">
-            <div className="bg-slate-900 dark:bg-slate-700 rounded-2xl p-4 flex items-center gap-4 active:scale-[0.98] transition-all duration-100 shadow-md">
-              <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-2xl flex-shrink-0">🦌</div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-white leading-snug">Start Session</p>
-                <p className="text-xs text-slate-400 mt-0.5">Target · Clay · Deer Management</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0" />
-            </div>
-          </Link>
-
-          <div className="grid grid-cols-2 gap-2">
-            <PrimaryCard to="/deer-stalking" icon={<Map />} label="Stalking Map" sub="Areas & outings" />
-            <PrimaryCard to="/ammo-summary" icon={<Zap />} label="Armory Status" sub="Firearms & ammo" />
-          </div>
+        <div className="grid grid-cols-2 gap-2">
+          <PrimaryCard to="/deer-stalking" icon={<Map />} label="Stalking Map" sub="Areas & outings" />
+          <PrimaryCard to="/ammo-summary" icon={<Zap />} label="Armory Status" sub="Firearms & ammo" />
         </div>
 
         {/* ── Secondary Grid ── */}
