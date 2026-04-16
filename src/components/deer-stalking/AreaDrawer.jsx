@@ -177,102 +177,128 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         )}
       </GoogleMap>
 
-      {/* ── TOP RIGHT: Satellite + Locate ── */}
-      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2">
+      {/* ── BOTTOM RIGHT: Satellite + Locate ── */}
+      <div className="fixed bottom-8 right-4 z-[9999] flex flex-col gap-2">
         <button
           onClick={() => setUseSatellite(!useSatellite)}
           title={useSatellite ? 'Map view' : 'Satellite view'}
-          className={`w-10 h-10 rounded-2xl shadow-lg border flex items-center justify-center active:scale-95 transition-all ${
-            useSatellite
-              ? 'bg-slate-900 border-slate-700 text-white'
-              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
-          }`}
+          className="w-11 h-11 rounded-2xl flex items-center justify-center active:scale-90 transition-all"
+          style={{
+            backgroundColor: useSatellite ? '#059669' : 'rgba(15,23,42,0.88)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            color: '#fff',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+          }}
         >
-          <Satellite className="w-4.5 h-4.5" />
+          <Satellite className="w-5 h-5" />
         </button>
         <button
           onClick={handleMyLocation}
           title="My Location"
-          className="w-10 h-10 rounded-2xl bg-white shadow-lg border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:scale-95 transition-all"
+          className="w-11 h-11 rounded-2xl flex items-center justify-center active:scale-90 transition-all"
+          style={{
+            backgroundColor: 'rgba(15,23,42,0.88)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            color: '#fff',
+            boxShadow: '0 4px 14px rgba(0,0,0,0.3)',
+          }}
         >
-          <LocateFixed className="w-4.5 h-4.5" />
+          <LocateFixed className="w-5 h-5" />
         </button>
       </div>
 
-      {/* ── TOP CENTER: Instruction pill ── */}
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9998] pointer-events-none">
-        <div className="flex items-center gap-2 px-3.5 py-2 bg-slate-900 text-white rounded-full shadow-lg border border-slate-700 text-xs font-medium whitespace-nowrap">
+      {/* ── TOP LEFT: Instruction pill ── */}
+      <div className="fixed top-4 left-4 z-[9998] pointer-events-none">
+        <div
+          style={{ backgroundColor: 'rgba(15,23,42,0.88)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}
+          className="flex items-center gap-2 px-3.5 py-2 rounded-2xl shadow-lg text-xs font-semibold text-white whitespace-nowrap"
+        >
           {isClosed
-            ? <><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block mr-1" />Boundary closed · tap Save Area</>
-            : <><span className="w-1.5 h-1.5 rounded-full bg-blue-400 inline-block mr-1" />Tap map to place points · {points.length} placed</>
+            ? <><span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />Boundary closed — tap Save</>
+            : <><span className="w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />{points.length === 0 ? 'Tap map to add points' : `${points.length} point${points.length !== 1 ? 's' : ''} placed`}</>
           }
         </div>
       </div>
 
-      {/* ── BOTTOM CENTER: Controls ── */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-3">
+      {/* ── BOTTOM LEFT: iOS-style toolbar ── */}
+      <div className="fixed bottom-8 left-4 z-[9999] flex flex-col gap-3 items-start">
 
-        {/* Row 1: Secondary buttons */}
-        <div className="flex items-center gap-2">
+        {/* Secondary controls — compact icon row */}
+        <div
+          style={{ backgroundColor: 'rgba(15,23,42,0.92)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)' }}
+          className="flex items-center gap-1 p-1.5 rounded-2xl shadow-xl"
+        >
           {/* Undo */}
           <button
             onClick={handleUndo}
             disabled={points.length === 0 || isClosed}
-            style={{ backgroundColor: '#1e293b', color: '#fff' }}
-            className="flex items-center gap-1.5 px-4 h-11 rounded-full shadow-lg text-sm font-semibold whitespace-nowrap hover:opacity-80 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
+            title="Undo last point"
+            className="w-11 h-11 rounded-xl flex flex-col items-center justify-center gap-0.5 active:scale-90 disabled:opacity-25 disabled:cursor-not-allowed transition-all duration-150"
+            style={{ color: '#fff' }}
           >
-            <Undo className="w-[18px] h-[18px] flex-shrink-0" />
-            Undo
+            <Undo className="w-5 h-5" />
+            <span className="text-[9px] font-medium opacity-70">Undo</span>
           </button>
 
-          {/* Close Boundary / Closed */}
+          {/* Divider */}
+          <div style={{ width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.12)' }} />
+
+          {/* Close Boundary */}
           {!isClosed ? (
             <button
               onClick={handleCloseBoundary}
               disabled={points.length < 3}
-              style={{ backgroundColor: '#1e293b', color: '#fff' }}
-              className="flex items-center gap-1.5 px-4 h-11 rounded-full shadow-lg text-sm font-semibold whitespace-nowrap hover:opacity-80 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
+              title="Close boundary"
+              className="w-11 h-11 rounded-xl flex flex-col items-center justify-center gap-0.5 active:scale-90 disabled:opacity-25 disabled:cursor-not-allowed transition-all duration-150"
+              style={{ color: '#fff' }}
             >
-              <Lock className="w-[18px] h-[18px] flex-shrink-0" />
-              Close
+              <Lock className="w-5 h-5" />
+              <span className="text-[9px] font-medium opacity-70">Close</span>
             </button>
           ) : (
             <div
-              style={{ backgroundColor: '#065f46', color: '#6ee7b7' }}
-              className="flex items-center gap-1.5 px-4 h-11 rounded-full shadow-lg text-sm font-semibold whitespace-nowrap"
+              className="w-11 h-11 rounded-xl flex flex-col items-center justify-center gap-0.5"
+              style={{ color: '#6ee7b7' }}
             >
-              <Check className="w-[18px] h-[18px] flex-shrink-0" />
-              Closed
+              <Check className="w-5 h-5" />
+              <span className="text-[9px] font-medium opacity-80">Closed</span>
             </div>
           )}
+
+          {/* Divider */}
+          <div style={{ width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.12)' }} />
 
           {/* Cancel */}
           <button
             onClick={onCancel}
-            style={{ backgroundColor: '#374151', color: '#d1d5db' }}
-            className="flex items-center gap-1.5 px-4 h-11 rounded-full shadow-lg text-sm font-semibold whitespace-nowrap hover:opacity-80 active:scale-95 transition-all duration-150"
+            title="Cancel"
+            className="w-11 h-11 rounded-xl flex flex-col items-center justify-center gap-0.5 active:scale-90 transition-all duration-150"
+            style={{ color: '#f87171' }}
           >
-            <X className="w-[18px] h-[18px] flex-shrink-0" />
-            Cancel
+            <X className="w-5 h-5" />
+            <span className="text-[9px] font-medium opacity-70">Cancel</span>
           </button>
         </div>
 
-        {/* Row 2: Primary — Save Area */}
+        {/* Primary — Save Area */}
         <button
           onClick={handleFinish}
           disabled={points.length < 3}
+          className="flex items-center gap-2 rounded-2xl active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
           style={{
             backgroundColor: '#059669',
             color: '#fff',
-            boxShadow: '0 8px 24px rgba(5,150,105,0.5)',
-            padding: '0 28px',
-            height: '52px',
-            fontSize: '16px',
-            fontWeight: 'bold',
+            boxShadow: '0 6px 20px rgba(5,150,105,0.55)',
+            padding: '0 20px',
+            height: '48px',
+            fontSize: '15px',
+            fontWeight: '700',
+            letterSpacing: '-0.01em',
           }}
-          className="flex items-center gap-2 rounded-full whitespace-nowrap hover:opacity-90 hover:scale-[1.03] active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-150"
         >
-          <Check className="w-5 h-5 flex-shrink-0" />
+          <Check className="w-4.5 h-4.5 flex-shrink-0" />
           Save Area
         </button>
       </div>
