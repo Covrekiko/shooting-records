@@ -101,9 +101,9 @@ export default function AmmoSummary() {
 
   if (loading) {
     return (
-      <div>
+      <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
         <Navigation />
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center min-h-[60vh]">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>
@@ -111,9 +111,9 @@ export default function AmmoSummary() {
   }
 
   return (
-    <div>
+    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
-      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8">
+      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-8 flex items-start justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold mb-1">Armory Status</h1>
@@ -172,7 +172,7 @@ export default function AmmoSummary() {
           </h2>
           <div className="grid gap-3">
             {rifles.length === 0 ? (
-              <div className="bg-card border border-border rounded-lg p-8 text-center">
+              <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl shadow-sm p-8 text-center">
                 <p className="text-muted-foreground">No rifles configured</p>
               </div>
             ) : (
@@ -190,11 +190,11 @@ export default function AmmoSummary() {
                 return (
                   <div
                     key={rifle.id}
-                    className="bg-card border border-border rounded-lg p-4"
-                  >
-                    <div className="flex items-start justify-between mb-4">
-                       <div>
-                         <h3 className="font-semibold text-lg">{rifle.name}</h3>
+                    className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl shadow-sm p-4"
+                           >
+                             <div className="flex items-start justify-between mb-4">
+                                <div>
+                                  <h3 className="font-semibold text-lg">{rifle.name}</h3>
                          <p className="text-xs text-muted-foreground mt-1">
                            {rifle.make} {rifle.model} • {rifle.caliber}
                          </p>
@@ -287,7 +287,7 @@ export default function AmmoSummary() {
           </h2>
           <div className="grid gap-3">
             {shotguns.length === 0 ? (
-              <div className="bg-card border border-border rounded-lg p-8 text-center">
+              <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl shadow-sm p-8 text-center">
                 <p className="text-muted-foreground">No shotguns configured</p>
               </div>
             ) : (
@@ -305,7 +305,7 @@ export default function AmmoSummary() {
                 return (
                   <div
                     key={shotgun.id}
-                    className="bg-card border border-border rounded-lg p-4"
+                    className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl shadow-sm p-4"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div>

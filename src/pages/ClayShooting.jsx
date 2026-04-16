@@ -56,8 +56,8 @@ export default function ClayShooting() {
           const createdDate = new Date(session.created_date);
           const sessionAgeMinutes = (Date.now() - createdDate.getTime()) / 60000;
           
-          if (sessionAgeMinutes > 60) {
-            // Session is >1 hour old and still active - likely orphaned
+          if (sessionAgeMinutes > 1440) {
+            // Session is >24 hours old and still active - likely orphaned
             console.warn('⚠️ Orphaned session detected (age:', sessionAgeMinutes, 'minutes) - marking as abandoned');
             await base44.entities.SessionRecord.update(session.id, {
               status: 'completed',

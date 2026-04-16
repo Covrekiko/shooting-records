@@ -191,9 +191,9 @@ export default function Records() {
 
   if (loading) {
     return (
-      <div>
+      <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
         <Navigation />
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center min-h-[60vh]">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>
@@ -211,7 +211,7 @@ export default function Records() {
           />
         </div>
       )}
-      <main className="max-w-6xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
+      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4 gap-3">
             <h1 className="text-3xl font-bold">All Records</h1>

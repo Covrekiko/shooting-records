@@ -45,9 +45,9 @@ export default function Goals() {
 
   if (loading) {
     return (
-      <div>
+      <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
         <Navigation />
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center min-h-[60vh]">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>
@@ -55,9 +55,9 @@ export default function Goals() {
   }
 
   return (
-    <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
+    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
-      <main className="max-w-6xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
+      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -68,7 +68,7 @@ export default function Goals() {
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+            className="px-4 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold text-sm hover:opacity-90 flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             New Goal
@@ -183,7 +183,7 @@ function GoalForm({ onSuccess, onCancel }) {
               value={formData.target_value}
               onChange={(e) => setFormData({ ...formData, target_value: e.target.value })}
               placeholder="e.g., 85"
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
               required
             />
           </div>
@@ -209,7 +209,7 @@ function GoalForm({ onSuccess, onCancel }) {
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             placeholder="Add notes about this goal..."
-            className="w-full px-3 py-2 border border-border rounded-lg bg-background resize-none"
+            className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
             rows="2"
           />
         </div>
@@ -218,14 +218,14 @@ function GoalForm({ onSuccess, onCancel }) {
           <button
             type="submit"
             disabled={loading}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50"
+            className="px-4 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold text-sm hover:opacity-90 disabled:opacity-50"
           >
             {loading ? 'Creating...' : 'Create Goal'}
           </button>
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 border border-border rounded-lg hover:bg-secondary"
+            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
           >
             Cancel
           </button>
