@@ -177,78 +177,83 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         )}
       </GoogleMap>
 
-      {/* Top Right Controls */}
+      {/* ── TOP RIGHT: Satellite + Locate ── */}
       <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2">
         <button
           onClick={() => setUseSatellite(!useSatellite)}
-          className="w-10 h-10 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all flex items-center justify-center"
-          title={useSatellite ? 'Switch to map view' : 'Switch to satellite view'}
+          title={useSatellite ? 'Map view' : 'Satellite view'}
+          className={`w-10 h-10 rounded-2xl backdrop-blur-xl shadow-lg border flex items-center justify-center active:scale-95 transition-all ${
+            useSatellite
+              ? 'bg-slate-900/80 border-slate-700/60 text-white'
+              : 'bg-white/80 dark:bg-slate-800/80 border-white/60 dark:border-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700'
+          }`}
         >
-          <Satellite className="w-5 h-5" />
+          <Satellite className="w-4.5 h-4.5" />
         </button>
         <button
           onClick={handleMyLocation}
-          className="w-10 h-10 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-all flex items-center justify-center"
           title="My Location"
+          className="w-10 h-10 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl shadow-lg border border-white/60 dark:border-slate-700/60 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 active:scale-95 transition-all"
         >
-          <LocateFixed className="w-5 h-5" />
+          <LocateFixed className="w-4.5 h-4.5" />
         </button>
       </div>
 
-      {/* Floating Controls */}
-      <div className="fixed bottom-6 left-6 z-[9999] bg-card rounded-md p-2 shadow-md sm:rounded-lg sm:p-4 sm:gap-2">
-        <p className="hidden sm:block text-xs font-semibold text-muted-foreground mb-2">Points: {points.length}</p>
-
-        <div className="grid grid-cols-2 gap-1 sm:flex sm:flex-col sm:gap-2">
-          <button
-            onClick={handleUndo}
-            disabled={points.length === 0 || isClosed}
-            className="flex items-center justify-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-secondary hover:bg-secondary/80 disabled:opacity-50 rounded transition-colors text-xs sm:text-sm"
-          >
-            <Undo className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Undo</span>
-          </button>
-
-          {!isClosed ? (
-            <button
-              onClick={handleCloseBoundary}
-              disabled={points.length < 3}
-              className="flex items-center justify-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-accent hover:bg-accent/90 disabled:opacity-50 rounded text-accent-foreground font-medium transition-colors text-xs sm:text-sm"
-            >
-              <Lock className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span>Close</span>
-            </button>
-          ) : (
-            <div className="flex items-center justify-center px-2 py-1 sm:px-4 sm:py-2 bg-green-500/20 text-green-700 rounded text-xs sm:text-sm font-medium">
-              ✓
-            </div>
-          )}
-
-          <button
-            onClick={handleFinish}
-            disabled={points.length < 3}
-            className="flex items-center justify-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 rounded transition-colors text-xs sm:text-sm"
-          >
-            <Check className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span>Finish</span>
-          </button>
-
-          <button
-            onClick={onCancel}
-            className="flex items-center justify-center gap-1 px-2 py-1 sm:px-4 sm:py-2 bg-destructive/10 text-destructive hover:bg-destructive/20 rounded transition-colors text-xs sm:text-sm"
-          >
-            <X className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span>Cancel</span>
-          </button>
+      {/* ── BOTTOM LEFT: Action Controls ── */}
+      <div className="fixed bottom-8 left-5 z-[9999] flex flex-col items-start gap-1.5">
+        <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-900/70 backdrop-blur-xl rounded-xl border border-white/10">
+          <span className="text-xs text-slate-400 font-medium">Points:</span>
+          <span className="text-xs text-white font-bold">{points.length}</span>
         </div>
+
+        <button
+          onClick={handleUndo}
+          disabled={points.length === 0 || isClosed}
+          className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold disabled:opacity-40 whitespace-nowrap"
+        >
+          <Undo className="w-3.5 h-3.5 opacity-70" />
+          Undo
+        </button>
+
+        {!isClosed ? (
+          <button
+            onClick={handleCloseBoundary}
+            disabled={points.length < 3}
+            className="flex items-center gap-2 px-3 py-2 bg-slate-900/80 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold disabled:opacity-40 whitespace-nowrap"
+          >
+            <Lock className="w-3.5 h-3.5 opacity-70" />
+            Close Shape
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 px-3 py-2 bg-green-500/20 backdrop-blur-xl text-green-400 rounded-xl text-xs font-semibold border border-green-500/30">
+            <Check className="w-3.5 h-3.5" />
+            Shape Closed
+          </div>
+        )}
+
+        <button
+          onClick={handleFinish}
+          disabled={points.length < 3}
+          className="flex items-center gap-2 px-3 py-2 bg-primary/90 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-bold disabled:opacity-40 whitespace-nowrap"
+        >
+          <Check className="w-3.5 h-3.5" />
+          Save Area
+        </button>
+
+        <button
+          onClick={onCancel}
+          className="flex items-center gap-2 px-3 py-2 bg-red-500/80 backdrop-blur-xl text-white rounded-xl shadow-md active:scale-95 transition-all text-xs font-semibold whitespace-nowrap"
+        >
+          <X className="w-3.5 h-3.5" />
+          Cancel
+        </button>
       </div>
 
-      {/* Instructions Badge */}
-      <div className="fixed top-3 left-1/2 -translate-x-1/2 z-[9998] bg-blue-500/90 backdrop-blur-sm text-white px-2.5 py-1 sm:px-3.5 sm:py-2 rounded-md pointer-events-none text-xs sm:text-sm font-medium shadow-sm">
-        <p>Draw Boundary</p>
-        <p className="hidden sm:block text-xs opacity-80 mt-0.5">
-          {isClosed ? 'Boundary closed. Tap Finish to save.' : 'Tap to add points (3+ needed)'}
-        </p>
+      {/* ── TOP CENTER: Instruction toast ── */}
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9998] pointer-events-none">
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-900/90 backdrop-blur-xl text-white rounded-2xl shadow-xl border border-white/10 text-sm font-semibold whitespace-nowrap">
+          {isClosed ? '✓ Boundary closed — tap Save Area' : 'Tap map to add points (3+ needed)'}
+        </div>
       </div>
     </>
   );
