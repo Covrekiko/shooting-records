@@ -530,8 +530,7 @@ export default function DeerStalkingMap() {
         <Link
           to="/"
           title="Dashboard"
-          style={{ backgroundColor: '#1e293b', color: '#fff' }}
-          className="w-10 h-10 rounded-2xl shadow-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
+          className="w-10 h-10 rounded-full bg-white/20 dark:bg-slate-700/30 border border-white/40 dark:border-slate-600/40 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-700/40 active:scale-95 transition-all shadow-lg backdrop-blur-md"
         >
           <Home className="w-4 h-4" />
         </Link>
@@ -540,8 +539,11 @@ export default function DeerStalkingMap() {
         <button
           onClick={() => setUseSatellite(!useSatellite)}
           title={useSatellite ? 'Map view' : 'Satellite view'}
-          style={{ backgroundColor: useSatellite ? '#059669' : '#1e293b', color: '#fff' }}
-          className="w-10 h-10 rounded-2xl shadow-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
+          className={`w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition-all shadow-lg backdrop-blur-md border ${
+            useSatellite
+              ? 'bg-emerald-500/30 dark:bg-emerald-600/30 border-emerald-400/40 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-300'
+              : 'bg-white/20 dark:bg-slate-700/30 border-white/40 dark:border-slate-600/40 text-slate-700 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-700/40'
+          }`}
         >
           <Satellite className="w-4 h-4" />
         </button>
@@ -550,8 +552,7 @@ export default function DeerStalkingMap() {
         <button
           onClick={handleRecenter}
           title="My Location"
-          style={{ backgroundColor: '#1e293b', color: '#fff' }}
-          className="w-10 h-10 rounded-2xl shadow-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
+          className="w-10 h-10 rounded-full bg-white/20 dark:bg-slate-700/30 border border-white/40 dark:border-slate-600/40 flex items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-700/40 active:scale-95 transition-all shadow-lg backdrop-blur-md"
         >
           <LocateFixed className="w-4 h-4" />
         </button>
@@ -563,11 +564,11 @@ export default function DeerStalkingMap() {
       {/* ── PIN PLACEMENT TOAST ── */}
       {waitingForPin && (
         <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[9998] pointer-events-auto">
-          <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-700">
+          <div className="flex items-center gap-3 px-4 py-2.5 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-2xl shadow-lg border border-white/40 dark:border-slate-600/40 backdrop-blur-md">
             <span className="text-sm font-semibold">Tap map to place pin</span>
             <button
               onClick={() => setWaitingForPin(null)}
-              className="text-xs font-bold text-slate-400 hover:text-white transition-colors"
+              className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
             >
               Cancel
             </button>
@@ -578,10 +579,10 @@ export default function DeerStalkingMap() {
       {/* ── ERROR TOAST ── */}
       {error && showError && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9998] pointer-events-auto">
-          <div className="flex items-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-2xl shadow-xl text-sm max-w-xs">
+          <div className="flex items-center gap-2 px-4 py-2.5 bg-red-500/30 dark:bg-red-600/30 text-red-700 dark:text-red-300 rounded-2xl shadow-lg border border-red-400/40 dark:border-red-500/40 text-sm max-w-xs backdrop-blur-md">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span className="truncate">{error}</span>
-            <button onClick={() => setShowError(false)} className="ml-1 text-white/70 hover:text-white font-bold text-base leading-none">×</button>
+            <button onClick={() => setShowError(false)} className="ml-1 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-bold text-base leading-none">×</button>
           </div>
         </div>
       )}
