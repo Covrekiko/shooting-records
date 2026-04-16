@@ -171,6 +171,7 @@ export default function Rifles() {
               <h3 className="font-semibold text-lg">{rifle.name}</h3>
               <p className="text-sm text-muted-foreground">{rifle.make} {rifle.model}</p>
               <p className="text-sm text-muted-foreground">{rifle.caliber}</p>
+              {rifle.serial_number && <p className="text-sm text-muted-foreground font-mono">S/N: {rifle.serial_number}</p>}
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => startEdit(rifle)}
