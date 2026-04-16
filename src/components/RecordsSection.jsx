@@ -47,144 +47,21 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
    }, [category]);
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this record? Ammunition and rifle counts will be restored.')) return;
+    if (!confirm('Delete this record? Ammunition and firearm counts will be restored.')) return;
     try {
-      const record = records.find(r => r.id === id);
-      if (!record) {
-        console.error('❌ Record not found:', id);
-        return;
-      }
+      // Use the backend function to restore all stock reliably
+      await base44.functions.invoke('restoreSessionStock', { sessionId: id });
 
-      console.log('🔍 DELETE AUDIT - Record data:', JSON.stringify(record, null, 2));
-
-      // Restore ammunition and rifle/shotgun round counts
-      if (category === 'target_shooting' && record.rifles_used && Array.isArray(record.rifles_used)) {
-        console.log('🎯 Target shooting restore - rifles_used:', record.rifles_used);
-        for (const rifle of record.rifles_used) {
-          const roundsFired = parseInt(rifle.rounds_fired) || 0;
-          console.log(`  Rifle ${rifle.rifle_id}: ${roundsFired} rounds, ammo_id: ${rifle.ammunition_id}`);
-
-          if (rifle.ammunition_id && roundsFired > 0) {
-            try {
-              const ammo = await base44.entities.Ammunition.get(rifle.ammunition_id);
-              const newStock = (ammo.quantity_in_stock || 0) + roundsFired;
-              console.log(`  ✅ Restoring Ammunition ${rifle.ammunition_id}: ${ammo.quantity_in_stock} + ${roundsFired} = ${newStock}`);
-              await base44.entities.Ammunition.update(rifle.ammunition_id, {
-                quantity_in_stock: newStock,
-              });
-            } catch (e) {
-              console.log(`  ⚠️ Ammunition ${rifle.ammunition_id} not found, checking ReloadingInventory...`);
-              try {
-                const reloadComp = await base44.entities.ReloadingInventory.get(rifle.ammunition_id);
-                const newStock = (reloadComp.quantity_total || 0) + roundsFired;
-                console.log(`  ✅ Restoring ReloadingInventory ${rifle.ammunition_id}: ${reloadComp.quantity_total} + ${roundsFired} = ${newStock}`);
-                await base44.entities.ReloadingInventory.update(rifle.ammunition_id, {
-                  quantity_total: newStock,
-                });
-              } catch (e2) {
-                console.error(`  ❌ Neither Ammunition nor ReloadingInventory found for ID ${rifle.ammunition_id}`);
-              }
-            }
-          }
-
-          if (rifle.rifle_id && roundsFired > 0) {
-            const currentRifle = await base44.entities.Rifle.get(rifle.rifle_id);
-            await base44.entities.Rifle.update(rifle.rifle_id, {
-              total_rounds_fired: Math.max(0, (currentRifle.total_rounds_fired || 0) - roundsFired),
-              rounds_since_cleaning: Math.max(0, (currentRifle.rounds_since_cleaning || 0) - roundsFired),
-            });
-          }
-        }
-      } else if (category === 'clay_shooting' && record.rounds_fired) {
-        const roundsFired = parseInt(record.rounds_fired) || 0;
-        console.log(`🦆 Clay shooting restore - ammo_id: ${record.ammunition_id}, rounds: ${roundsFired}`);
-
-        if (record.ammunition_id && roundsFired > 0) {
-          try {
-            const ammo = await base44.entities.Ammunition.get(record.ammunition_id);
-            const newStock = (ammo.quantity_in_stock || 0) + roundsFired;
-            console.log(`  ✅ Restoring Ammunition ${record.ammunition_id}: ${ammo.quantity_in_stock} + ${roundsFired} = ${newStock}`);
-            await base44.entities.Ammunition.update(record.ammunition_id, {
-              quantity_in_stock: newStock,
-            });
-          } catch (e) {
-            console.log(`  ⚠️ Ammunition ${record.ammunition_id} not found, checking ReloadingInventory...`);
-            try {
-              const reloadComp = await base44.entities.ReloadingInventory.get(record.ammunition_id);
-              const newStock = (reloadComp.quantity_total || 0) + roundsFired;
-              console.log(`  ✅ Restoring ReloadingInventory ${record.ammunition_id}: ${reloadComp.quantity_total} + ${roundsFired} = ${newStock}`);
-              await base44.entities.ReloadingInventory.update(record.ammunition_id, {
-                quantity_total: newStock,
-              });
-            } catch (e2) {
-              console.error(`  ❌ Neither Ammunition nor ReloadingInventory found for ID ${record.ammunition_id}`);
-            }
-          }
-        }
-
-        if (record.shotgun_id && roundsFired > 0) {
-          const shotgun = await base44.entities.Shotgun.get(record.shotgun_id);
-          await base44.entities.Shotgun.update(record.shotgun_id, {
-            total_cartridges_fired: Math.max(0, (shotgun.total_cartridges_fired || 0) - roundsFired),
-          });
-        }
-      } else if (category === 'deer_management' && record.total_count) {
-         const shotsFired = parseInt(record.total_count) || 0;
-         console.log(`🦌 Deer management restore - ammo_id: ${record.ammunition_id}, shots: ${shotsFired}`);
-
-         if (record.ammunition_id && shotsFired > 0) {
-           try {
-             const ammo = await base44.entities.Ammunition.get(record.ammunition_id);
-             const newStock = (ammo.quantity_in_stock || 0) + shotsFired;
-             console.log(`  ✅ Restoring Ammunition ${record.ammunition_id}: ${ammo.quantity_in_stock} + ${shotsFired} = ${newStock}`);
-             await base44.entities.Ammunition.update(record.ammunition_id, {
-               quantity_in_stock: newStock,
-             });
-           } catch (e) {
-             console.log(`  ⚠️ Ammunition ${record.ammunition_id} not found, checking ReloadingInventory...`);
-             try {
-               const reloadComp = await base44.entities.ReloadingInventory.get(record.ammunition_id);
-               const newStock = (reloadComp.quantity_total || 0) + shotsFired;
-               console.log(`  ✅ Restoring ReloadingInventory ${record.ammunition_id}: ${reloadComp.quantity_total} + ${shotsFired} = ${newStock}`);
-               await base44.entities.ReloadingInventory.update(record.ammunition_id, {
-                 quantity_total: newStock,
-               });
-             } catch (e2) {
-               console.error(`  ❌ Neither Ammunition nor ReloadingInventory found for ID ${record.ammunition_id}`);
-             }
-           }
-         }
-
-         if (record.rifle_id && shotsFired > 0) {
-           const rifle = await base44.entities.Rifle.get(record.rifle_id);
-           await base44.entities.Rifle.update(record.rifle_id, {
-             total_rounds_fired: Math.max(0, (rifle.total_rounds_fired || 0) - shotsFired),
-             rounds_since_cleaning: Math.max(0, (rifle.rounds_since_cleaning || 0) - shotsFired),
-           });
-         }
-       } else {
-         console.log('❌ No restore conditions met:', { category, total_count: record.total_count, rifles_used: record.rifles_used, rounds_fired: record.rounds_fired, ammunition_id: record.ammunition_id });
-       }
-
-      console.log('🗑️  Deleting session record:', id);
+      // Delete the record from the database
       await base44.entities.SessionRecord.delete(id);
-      console.log('✅ Session record deleted from database');
-      setRecords(records.filter(r => r.id !== id));
 
-      // Verify restored stock
-      setTimeout(async () => {
-        try {
-          const currentUser = await base44.auth.me();
-          const updatedRecords = await base44.entities.SessionRecord.filter({
-            created_by: currentUser.email,
-            category,
-          });
-          setRecords(updatedRecords);
-          console.log('✅ Records reloaded from database');
-        } catch (err) {
-          console.error('❌ Failed to reload records:', err);
-        }
-      }, 300);
+      // Reload records from database
+      const currentUser = await base44.auth.me();
+      const updatedRecords = await base44.entities.SessionRecord.filter({
+        created_by: currentUser.email,
+        category,
+      });
+      setRecords(updatedRecords);
     } catch (error) {
       console.error('❌ DELETE ERROR:', error);
       alert('Error deleting record: ' + error.message);
