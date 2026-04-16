@@ -34,7 +34,7 @@ export function OutingProvider({ children }) {
         const createdDate = new Date(outing.created_date);
         const outingAgeMinutes = (Date.now() - createdDate.getTime()) / 60000;
         
-        if (outingAgeMinutes > 60) {
+        if (outingAgeMinutes > 24 * 60) {
           console.warn('⚠️ Orphaned outing detected (age:', outingAgeMinutes, 'minutes) - closing automatically');
           // Mark outing and linked session as completed
           await base44.entities.DeerOuting.update(outing.id, {
