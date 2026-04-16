@@ -405,7 +405,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
   const labelCls = DESIGN.LABEL;
 
   const handleCheckoutClick = () => {
-    if (!data.shotgun_id || !data.rounds_fired || !data.ammunition_id) { setShowAlert(true); return; }
+    if (!data.shotgun_id || !data.rounds_fired) { setShowAlert(true); return; }
     onSubmit(data);
   };
 
@@ -441,23 +441,31 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
             <input type="number" min="0" value={data.rounds_fired} onChange={(e) => onChange('rounds_fired', e.target.value)} className={inputCls} required />
           </div>
           <div>
-            <label className={labelCls}>Ammunition *</label>
-            {data.shotgun_id ? (
-              <BottomSheetSelect
-                value={data.ammunition_id || ''}
-                onChange={(val) => {
-                  const a = ammunition.find(x => x.id === val);
-                  onChange('ammunition_id', val);
-                  if (a) onChange('ammunition_used', `${a.brand} ${a.caliber || ''} ${a.bullet_type || ''}`.trim());
-                }}
-                placeholder="Select saved ammunition (required)"
-                options={ammunition.filter(a => {
-                  const selectedShotgun = shotguns.find(s => s.id === data.shotgun_id);
-                  return !selectedShotgun || !selectedShotgun.gauge || a.caliber === selectedShotgun.gauge;
-                }).map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
-              />
-            ) : (
-              <p className="text-xs text-slate-400">Select a shotgun first</p>
+            <label className={labelCls}>Ammunition <span className="text-slate-400 font-normal">(optional)</span></label>
+            <input
+              type="text"
+              value={data.ammunition_used || ''}
+              onChange={(e) => onChange('ammunition_used', e.target.value)}
+              placeholder="e.g. Hull Comp X 28g No.7"
+              className={inputCls}
+            />
+            {ammunition.length > 0 && (
+              <div className="mt-2">
+                <p className="text-[10px] text-slate-400 mb-1">Or pick from saved:</p>
+                <BottomSheetSelect
+                  value={data.ammunition_id || ''}
+                  onChange={(val) => {
+                    const a = ammunition.find(x => x.id === val);
+                    onChange('ammunition_id', val);
+                    if (a) onChange('ammunition_used', `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`.trim());
+                  }}
+                  placeholder="Select saved ammunition"
+                  options={ammunition.filter(a => {
+                    const selectedShotgun = shotguns.find(s => s.id === data.shotgun_id);
+                    return !selectedShotgun || !selectedShotgun.gauge || a.caliber === selectedShotgun.gauge;
+                  }).map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
+                />
+              </div>
             )}
           </div>
           <div>
@@ -498,7 +506,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
         </div>
       </ModalShell>
       {showAlert && createPortal(<div className="fixed inset-0 z-[50000] bg-black/50" />, document.body)}
-      {showAlert && createPortal(<MissingFieldsAlert fields={['Shotgun', 'Rounds Fired', 'Ammunition']} onClose={() => setShowAlert(false)} />, document.body)}
+      {showAlert && createPortal(<MissingFieldsAlert fields={['Shotgun', 'Rounds Fired']} onClose={() => setShowAlert(false)} />, document.body)}
     </>
   );
 }
