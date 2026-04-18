@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Plus, Trash2, Edit2, ArrowLeft, Menu, Download } from 'lucide-react';
+import { Plus, Trash2, Edit2, ArrowLeft, Menu, Download, FlaskConical } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
@@ -225,7 +226,7 @@ export default function ReloadingManagement() {
       <Navigation />
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8">
         {/* Title Section */}
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex items-start justify-between mb-6">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold mb-1">Reloading Management</h1>
             <p className="text-muted-foreground">Track and manage your reloading sessions</p>
@@ -239,6 +240,21 @@ export default function ReloadingManagement() {
             <span className="sm:hidden">New</span>
           </button>
         </div>
+
+        {/* Load Development Banner */}
+        <Link
+          to="/load-development"
+          className="flex items-center justify-between gap-3 bg-primary/10 border border-primary/30 rounded-xl px-5 py-4 mb-8 hover:bg-primary/15 transition-colors group"
+        >
+          <div className="flex items-center gap-3">
+            <FlaskConical className="w-5 h-5 text-primary flex-shrink-0" />
+            <div>
+              <p className="font-semibold text-sm">Load Development</p>
+              <p className="text-xs text-muted-foreground">Create and test load variants with full inventory tracking</p>
+            </div>
+          </div>
+          <span className="text-xs font-semibold text-primary group-hover:underline whitespace-nowrap">Open →</span>
+        </Link>
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
