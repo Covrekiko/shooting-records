@@ -174,8 +174,22 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
 
         <div>
           <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Round Count</label>
-          <input value={form.round_count ?? ''} onChange={e => set('round_count', e.target.value)} type="number" placeholder="20"
-            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          <input
+            value={form.round_count ?? ''}
+            onChange={e => {
+              const val = e.target.value;
+              setForm(f => ({
+                ...f,
+                round_count: val,
+                bullet_quantity_used: val,
+                primer_quantity_used: val,
+                brass_quantity_used: val,
+              }));
+            }}
+            type="number" placeholder="20"
+            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none"
+          />
+          {form.round_count && <p className="text-[10px] text-muted-foreground mt-1">Bullet, primer and brass quantities auto-set to {form.round_count}</p>}
         </div>
 
         {/* Powder */}
