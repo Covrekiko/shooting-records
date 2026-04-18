@@ -181,7 +181,8 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
         {/* Powder */}
         <div className="bg-secondary/30 rounded-xl p-3 space-y-2">
           <p className="text-xs font-bold text-muted-foreground uppercase">Powder</p>
-          <Field label="Select Powder from Stock">
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Select Powder from Stock</label>
             <select value={form.powder_component_id} onChange={e => handleComponentSelect('powder', e.target.value)}
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none">
               <option value="">— Select —</option>
@@ -189,7 +190,7 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
                 <option key={c.id} value={c.id}>{c.name} ({c.quantity_remaining?.toFixed(1)} {c.unit} remaining)</option>
               ))}
             </select>
-          </Field>
+          </div>
           <div>
             <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Powder Name (or type manually)</label>
             <input value={form.powder_name ?? ''} onChange={e => set('powder_name', e.target.value)} placeholder="e.g. Vihtavuori N160"
@@ -205,7 +206,8 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
         {/* Bullet */}
         <div className="bg-secondary/30 rounded-xl p-3 space-y-2">
           <p className="text-xs font-bold text-muted-foreground uppercase">Bullet</p>
-          <Field label="Select Bullet from Stock">
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Select Bullet from Stock</label>
             <select value={form.bullet_component_id} onChange={e => handleComponentSelect('bullet', e.target.value)}
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none">
               <option value="">— Select —</option>
@@ -213,7 +215,7 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
                 <option key={c.id} value={c.id}>{c.name} ({c.quantity_remaining} remaining)</option>
               ))}
             </select>
-          </Field>
+          </div>
           <div>
             <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Bullet Brand / Name</label>
             <input value={form.bullet_brand ?? ''} onChange={e => set('bullet_brand', e.target.value)} placeholder="e.g. Berger 175gr"
