@@ -165,7 +165,7 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
               <Calculator className="w-3 h-3" />Calculate
             </button>
           </div>
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {[1,2,3,4,5].map(n => (
               <Field key={n} label={`V${n}`}>
                 <input value={form[`velocity_${n}`] ?? ''} onChange={e => set(`velocity_${n}`, e.target.value)} type="number" placeholder="2650"
