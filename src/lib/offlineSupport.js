@@ -1,71 +1,55 @@
-// Offline support for critical features like check-in
-const OFFLINE_QUEUE_KEY = 'offlineQueue';
-const OFFLINE_SESSION_KEY = 'offlineSession';
+/**
+ * Backwards-compatible offline support layer.
+ * Now delegates to the new offline-first architecture.
+ */
 
+export { connectivityManager } from './connectivityManager';
+export { syncEngine, triggerSync, cacheUserProfile, getCachedUserProfile } from './syncEngine';
+export { getRepository } from './offlineEntityRepository';
+export { offlineDB } from './offlineDB';
+export { enqueueAction, getPendingQueue, getPendingCount } from './syncQueue';
+
+/**
+ * Pre-cache all critical entity data for a user.
+ * Call this after login / on app load while online.
+ */
+import { base44 } from '@/api/base44Client';
+import { offlineDB, ENTITY_STORE_MAP } from './offlineDB';
+import { connectivityManager } from './connectivityManager';
+
+export async function preCacheUserData(userEmail) {
+  if (!connectivityManager.isOnline()) return;
+  try {
+    const entities = [
+      { name: 'SessionRecord', method: () => base44.entities.SessionRecord.filter({ created_by: userEmail }) },
+      { name: 'Rifle', method: () => base44.entities.Rifle.filter({ created_by: userEmail }) },
+      { name: 'Shotgun', method: () => base44.entities.Shotgun.filter({ created_by: userEmail }) },
+      { name: 'Club', method: () => base44.entities.Club.filter({ created_by: userEmail }) },
+      { name: 'DeerLocation', method: () => base44.entities.DeerLocation.filter({ created_by: userEmail }) },
+      { name: 'Ammunition', method: () => base44.entities.Ammunition.filter({ created_by: userEmail }) },
+      { name: 'Area', method: () => base44.entities.Area.filter({ created_by: userEmail }) },
+      { name: 'MapMarker', method: () => base44.entities.MapMarker.list() },
+      { name: 'Harvest', method: () => base44.entities.Harvest.list() },
+    ];
+
+    await Promise.allSettled(
+      entities.map(async ({ name, method }) => {
+        const storeName = ENTITY_STORE_MAP[name];
+        if (!storeName) return;
+        const records = await method();
+        if (records?.length) await offlineDB.putMany(storeName, records);
+      })
+    );
+
+    await offlineDB.setMeta('lastPreCache', Date.now());
+    console.log('[offline] Pre-cache complete');
+  } catch (e) {
+    console.warn('[offline] Pre-cache failed:', e?.message);
+  }
+}
+
+// Legacy compatibility shim
 export const offlineManager = {
-  // Check if user is online
-  isOnline: () => navigator.onLine,
-
-  // Queue an action for later sync
-  queueAction: (action, data) => {
-    if (!offlineManager.isOnline()) {
-      const queue = JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
-      queue.push({
-        action,
-        data,
-        timestamp: Date.now(),
-        id: `action_${Date.now()}_${Math.random()}`,
-      });
-      localStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
-      return true;
-    }
-    return false;
-  },
-
-  // Get queued actions
-  getQueuedActions: () => {
-    return JSON.parse(localStorage.getItem(OFFLINE_QUEUE_KEY) || '[]');
-  },
-
-  // Sync queued actions (call when online)
-  syncQueuedActions: async (syncFunction) => {
-    const queue = offlineManager.getQueuedActions();
-    if (queue.length === 0) return { synced: 0, failed: 0 };
-
-    let synced = 0;
-    let failed = 0;
-
-    for (const action of queue) {
-      try {
-        await syncFunction(action);
-        synced++;
-      } catch (error) {
-        console.error('Failed to sync action:', action, error);
-        failed++;
-      }
-    }
-
-    // Clear queue only if all synced
-    if (failed === 0) {
-      localStorage.removeItem(OFFLINE_QUEUE_KEY);
-    }
-
-    return { synced, failed };
-  },
-
-  // Save session for offline access
-  saveOfflineSession: (sessionData) => {
-    localStorage.setItem(OFFLINE_SESSION_KEY, JSON.stringify(sessionData));
-  },
-
-  // Get offline session
-  getOfflineSession: () => {
-    return JSON.parse(localStorage.getItem(OFFLINE_SESSION_KEY) || 'null');
-  },
-
-  // Listen for online/offline changes
-  onOnlineStatusChange: (callback) => {
-    window.addEventListener('online', () => callback(true));
-    window.addEventListener('offline', () => callback(false));
-  },
+  isOnline: () => connectivityManager.isOnline(),
+  onOnlineStatusChange: (cb) => connectivityManager.subscribe(cb),
 };

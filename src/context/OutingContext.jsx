@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { trackingService } from '@/lib/trackingService';
+import { offlineDB } from '@/lib/offlineDB';
 
 const OutingContext = createContext();
 
@@ -17,7 +18,9 @@ export function OutingProvider({ children }) {
     try {
       const isAuthenticated = await base44.auth.isAuthenticated();
       if (!isAuthenticated) {
-        setActiveOuting(null);
+        // Try offline fallback
+        const cached = await offlineDB.getById('meta', 'active_outing').catch(() => null);
+        if (cached?.value) setActiveOuting(cached.value);
         setLoading(false);
         return;
       }
@@ -26,6 +29,10 @@ export function OutingProvider({ children }) {
       const outings = await base44.entities.DeerOuting.filter({
         created_by: currentUser.email,
         active: true,
+      }).catch(async () => {
+        // Offline: check local cache
+        const cached = await offlineDB.getById('meta', 'active_outing').catch(() => null);
+        return cached?.value ? [cached.value] : [];
       });
       
       if (outings.length > 0) {
@@ -56,6 +63,8 @@ export function OutingProvider({ children }) {
         } else {
           // Fresh outing - resume tracking if not already running
           setActiveOuting(outing);
+          // Persist active outing locally for offline restore
+          offlineDB.put('meta', { id: 'active_outing', value: outing }).catch(() => {});
           if (navigator.geolocation && !trackingService.isTracking()) {
             console.log('🟢 Resuming GPS tracking for active outing after app restart - ID:', outing.id);
             trackingService.startTracking(outing.id, 'deer');
@@ -110,6 +119,8 @@ export function OutingProvider({ children }) {
        }
 
        setActiveOuting(outing);
+       // Persist locally for offline restore
+       offlineDB.put('meta', { id: 'active_outing', value: outing }).catch(() => {});
        return outing;
      } catch (error) {
        console.error('🔴 Error starting outing:', error);
@@ -124,6 +135,7 @@ export function OutingProvider({ children }) {
         active: false,
       });
       setActiveOuting(null);
+      offlineDB.remove('meta', 'active_outing').catch(() => {});
     } catch (error) {
       console.error('Error ending outing:', error);
       throw error;
@@ -219,6 +231,8 @@ export function OutingProvider({ children }) {
         }
 
         setActiveOuting(null);
+        // Clear local cache of active outing
+        offlineDB.remove('meta', 'active_outing').catch(() => {});
       } catch (error) {
         console.error('🔴 Error ending outing with data:', error.message, error.status, error.response?.data);
         throw error;

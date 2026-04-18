@@ -19,6 +19,7 @@ import { RoundsPerMonthChart } from '@/components/RoundsPerMonthChart';
 import { DeerSuccessRateChart } from '@/components/DeerSuccessRateChart';
 import AmmoStockWidget from '@/components/AmmoStockWidget';
 import ReloadingWidget from '@/components/widgets/ReloadingWidget';
+import { preCacheUserData } from '@/lib/offlineSupport';
 
 // ── data helpers (unchanged logic) ──────────────────────────────────────────
 function getMonthlyData(targetShoots, clayShoots, deerMgmt) {
@@ -243,6 +244,9 @@ export default function Dashboard() {
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+
+      // Pre-cache data for offline use (non-blocking)
+      preCacheUserData(currentUser.email).catch(() => {});
 
       if (currentUser.role === 'admin') {
         const [users, allRecords] = await Promise.all([

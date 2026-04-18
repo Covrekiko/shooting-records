@@ -7,6 +7,8 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { OutingProvider } from '@/context/OutingContext';
+import { OfflineProvider } from '@/context/OfflineContext';
+import OfflineStatusBar from '@/components/OfflineStatusBar';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useEffect } from 'react';
 import ProfileSetup from './pages/ProfileSetup';
@@ -145,12 +147,15 @@ function App() {
     <ErrorBoundary>
       <AuthProvider>
         <QueryClientProvider client={queryClientInstance}>
-          <OutingProvider>
-            <Router>
-              <AuthenticatedApp />
-              <Toaster />
-            </Router>
-          </OutingProvider>
+          <OfflineProvider>
+            <OutingProvider>
+              <Router>
+                <OfflineStatusBar />
+                <AuthenticatedApp />
+                <Toaster />
+              </Router>
+            </OutingProvider>
+          </OfflineProvider>
         </QueryClientProvider>
       </AuthProvider>
     </ErrorBoundary>

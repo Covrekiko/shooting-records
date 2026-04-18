@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
+import { cacheUserProfile, getCachedUserProfile } from '@/lib/syncEngine';
 
 const AuthContext = createContext();
 
@@ -72,7 +73,14 @@ export const AuthProvider = ({ children }) => {
             setIsLoadingAuth(false);
           }
         } else {
-          // Network or other errors - don't set auth error, just loading false
+          // Network or other errors — try offline fallback
+          const cached = await getCachedUserProfile().catch(() => null);
+          if (cached && appParams.token) {
+            // User was previously logged in — allow offline access
+            setUser(cached);
+            setIsAuthenticated(true);
+            setAuthError(null);
+          }
           setIsLoadingAuth(false);
           setIsLoadingPublicSettings(false);
         }
@@ -97,8 +105,24 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       setAuthError(null); // Clear any previous auth errors on success
       setIsLoadingAuth(false);
+      // Cache user profile for offline access
+      cacheUserProfile(currentUser).catch(() => {});
     } catch (error) {
       console.error('User auth check failed:', error);
+
+      // Try to restore from local cache if network error (not auth error)
+      const isNetworkError = !error.status || error.status === 0;
+      if (isNetworkError) {
+        const cached = await getCachedUserProfile().catch(() => null);
+        if (cached) {
+          setUser(cached);
+          setIsAuthenticated(true);
+          setAuthError(null);
+          setIsLoadingAuth(false);
+          return;
+        }
+      }
+
       setIsLoadingAuth(false);
       setIsAuthenticated(false);
       setUser(null);
@@ -134,6 +158,7 @@ export const AuthProvider = ({ children }) => {
   const refreshUser = async () => {
     const currentUser = await base44.auth.me();
     setUser(currentUser);
+    cacheUserProfile(currentUser).catch(() => {});
     return currentUser;
   };
 

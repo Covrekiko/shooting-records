@@ -7,6 +7,7 @@ import {
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useOffline } from '@/context/OfflineContext';
 
 const PAGE_TITLES = {
   '/target-shooting': 'Target Shooting',
@@ -80,6 +81,7 @@ export default function Navigation() {
   const [user, setUser] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const { isOnline, hasPending, isSyncing } = useOffline();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -101,6 +103,13 @@ export default function Navigation() {
             <Link to="/" className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
               <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-8 h-8 rounded-xl object-cover" />
               <span className="tracking-tight">Shooting Records</span>
+              {/* Connectivity dot */}
+              <span
+                title={!isOnline ? 'Offline' : isSyncing ? 'Syncing…' : hasPending ? 'Changes pending' : 'Online'}
+                className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                  !isOnline ? 'bg-slate-400' : isSyncing ? 'bg-blue-400 animate-pulse' : hasPending ? 'bg-amber-400' : 'bg-emerald-400'
+                }`}
+              />
             </Link>
             <div className="flex gap-0.5 items-center">
               {DESKTOP_ITEMS.map((item) => {
@@ -148,6 +157,12 @@ export default function Navigation() {
             <Link to="/" className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-7 h-7 rounded-lg object-cover" />
               <span className="tracking-tight">Shooting Records</span>
+              <span
+                title={!isOnline ? 'Offline' : isSyncing ? 'Syncing…' : hasPending ? 'Changes pending' : 'Online'}
+                className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                  !isOnline ? 'bg-slate-400' : isSyncing ? 'bg-blue-400 animate-pulse' : hasPending ? 'bg-amber-400' : 'bg-emerald-400'
+                }`}
+              />
             </Link>
           ) : (
             <motion.button
