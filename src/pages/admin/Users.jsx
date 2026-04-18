@@ -229,6 +229,13 @@ export default function AdminUsers() {
               </tr>
             </thead>
             <tbody>
+              {users.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-10 text-center text-muted-foreground text-sm">
+                    No users found. Invite someone to get started.
+                  </td>
+                </tr>
+              )}
               {users.map((user) => (
                 <tr key={user.id} className="border-b border-border hover:bg-secondary/30">
                   <td className="px-6 py-4 text-sm font-medium">{user.full_name}</td>
