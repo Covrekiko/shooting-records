@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Menu, X, Settings, Target, Crosshair, Map, LayoutDashboard,
   BookOpen, User, ChevronRight, ArrowLeft, Home, BarChart3,
-  Shield, Layers, RefreshCw, Sun,
+  Shield, Layers, RefreshCw, Sun, FlaskConical,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
@@ -17,6 +17,7 @@ const PAGE_TITLES = {
   '/deer-stalking-logs': 'Stalking Logs',
   '/records': 'Records',
   '/reloading': 'Reloading',
+  '/load-development': 'Load Development',
   '/reports': 'Reports',
   '/goals': 'Goals',
   '/profile': 'Profile',
@@ -55,6 +56,7 @@ const NAV_SECTIONS = [
     items: [
       { path: '/ammo-summary', label: 'Armory Status', icon: Shield },
       { path: '/reloading', label: 'Reloading', icon: RefreshCw },
+      { path: '/load-development', label: 'Load Development', icon: FlaskConical },
     ],
   },
   {

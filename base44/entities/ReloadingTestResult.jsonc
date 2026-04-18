@@ -1,0 +1,78 @@
+{
+  "name": "ReloadingTestResult",
+  "type": "object",
+  "properties": {
+    "test_id": {
+      "type": "string"
+    },
+    "variant_id": {
+      "type": "string"
+    },
+    "tested": {
+      "type": "boolean",
+      "default": false
+    },
+    "test_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "distance_yards": {
+      "type": "number"
+    },
+    "group_size_moa": {
+      "type": "number"
+    },
+    "group_size_mm": {
+      "type": "number"
+    },
+    "velocity_1": {
+      "type": "number"
+    },
+    "velocity_2": {
+      "type": "number"
+    },
+    "velocity_3": {
+      "type": "number"
+    },
+    "velocity_4": {
+      "type": "number"
+    },
+    "velocity_5": {
+      "type": "number"
+    },
+    "avg_velocity": {
+      "type": "number"
+    },
+    "es": {
+      "type": "number",
+      "description": "Extreme Spread"
+    },
+    "sd": {
+      "type": "number",
+      "description": "Standard Deviation"
+    },
+    "pressure_signs_notes": {
+      "type": "string"
+    },
+    "recoil_notes": {
+      "type": "string"
+    },
+    "accuracy_notes": {
+      "type": "string"
+    },
+    "feeding_notes": {
+      "type": "string"
+    },
+    "is_best": {
+      "type": "boolean",
+      "default": false
+    },
+    "final_comments": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "test_id",
+    "variant_id"
+  ]
+}

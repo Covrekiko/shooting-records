@@ -1,0 +1,99 @@
+{
+  "name": "ReloadingTest",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Test name"
+    },
+    "test_type": {
+      "type": "string",
+      "enum": [
+        "Powder Charge Test",
+        "Powder Comparison",
+        "Seating Depth Test",
+        "Primer Test",
+        "Brass Test",
+        "General Load Development"
+      ],
+      "default": "General Load Development"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Loaded",
+        "Tested",
+        "Completed",
+        "Archived"
+      ],
+      "default": "Draft"
+    },
+    "rifle_id": {
+      "type": "string",
+      "description": "Reference to Rifle entity"
+    },
+    "rifle_name": {
+      "type": "string",
+      "description": "Display name"
+    },
+    "caliber": {
+      "type": "string"
+    },
+    "bullet_brand": {
+      "type": "string"
+    },
+    "bullet_model": {
+      "type": "string"
+    },
+    "bullet_weight": {
+      "type": "string"
+    },
+    "bullet_lot": {
+      "type": "string"
+    },
+    "brass_brand": {
+      "type": "string"
+    },
+    "brass_lot": {
+      "type": "string"
+    },
+    "brass_times_fired": {
+      "type": "integer"
+    },
+    "primer_brand": {
+      "type": "string"
+    },
+    "primer_model": {
+      "type": "string"
+    },
+    "primer_lot": {
+      "type": "string"
+    },
+    "powder_name": {
+      "type": "string"
+    },
+    "powder_lot": {
+      "type": "string"
+    },
+    "test_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "range_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "variant_count": {
+      "type": "integer",
+      "default": 0
+    }
+  },
+  "required": [
+    "name",
+    "caliber"
+  ]
+}

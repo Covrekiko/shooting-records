@@ -1,0 +1,95 @@
+{
+  "name": "ReloadingTestVariant",
+  "type": "object",
+  "properties": {
+    "test_id": {
+      "type": "string",
+      "description": "Parent ReloadingTest ID"
+    },
+    "label": {
+      "type": "string",
+      "description": "Variant label e.g. N160 \u2013 40.0gr"
+    },
+    "round_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "powder_name": {
+      "type": "string"
+    },
+    "powder_component_id": {
+      "type": "string"
+    },
+    "powder_charge_grains": {
+      "type": "number"
+    },
+    "bullet_brand": {
+      "type": "string"
+    },
+    "bullet_component_id": {
+      "type": "string"
+    },
+    "bullet_quantity_used": {
+      "type": "integer"
+    },
+    "brass_brand": {
+      "type": "string"
+    },
+    "brass_component_id": {
+      "type": "string"
+    },
+    "brass_quantity_used": {
+      "type": "integer"
+    },
+    "primer_brand": {
+      "type": "string"
+    },
+    "primer_component_id": {
+      "type": "string"
+    },
+    "primer_quantity_used": {
+      "type": "integer"
+    },
+    "seating_depth": {
+      "type": "string"
+    },
+    "coal_oal": {
+      "type": "string",
+      "description": "Cartridge Overall Length"
+    },
+    "cbto": {
+      "type": "string",
+      "description": "Cartridge Base To Ogive"
+    },
+    "bullet_jump": {
+      "type": "string"
+    },
+    "neck_tension": {
+      "type": "string"
+    },
+    "crimp": {
+      "type": "string"
+    },
+    "case_trim_length": {
+      "type": "string"
+    },
+    "case_prep_notes": {
+      "type": "string"
+    },
+    "annealed": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    },
+    "stock_deducted": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "test_id",
+    "label"
+  ]
+}

@@ -1,0 +1,304 @@
+import { useState, useEffect } from 'react';
+import { base44 } from '@/api/base44Client';
+import { X } from 'lucide-react';
+
+export default function VariantFormModal({ test, variant, variantCount, onClose, onSaved }) {
+  const [components, setComponents] = useState({ powder: [], bullet: [], brass: [], primer: [] });
+  const [form, setForm] = useState({
+    label: '',
+    round_count: '',
+    powder_name: '',
+    powder_component_id: '',
+    powder_charge_grains: '',
+    bullet_brand: test.bullet_brand || '',
+    bullet_component_id: '',
+    bullet_quantity_used: '',
+    brass_brand: test.brass_brand || '',
+    brass_component_id: '',
+    brass_quantity_used: '',
+    primer_brand: test.primer_brand || '',
+    primer_component_id: '',
+    primer_quantity_used: '',
+    seating_depth: '',
+    coal_oal: '',
+    cbto: '',
+    bullet_jump: '',
+    neck_tension: '',
+    crimp: '',
+    case_trim_length: '',
+    case_prep_notes: '',
+    annealed: false,
+    notes: '',
+    deduct_stock: false,
+  });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (variant) setForm({ ...form, ...variant, deduct_stock: false });
+    loadComponents();
+  }, []);
+
+  const loadComponents = async () => {
+    const user = await base44.auth.me();
+    const comps = await base44.entities.ReloadingComponent.filter({ created_by: user.email });
+    setComponents({
+      powder: comps.filter(c => c.component_type === 'powder'),
+      bullet: comps.filter(c => c.component_type === 'bullet'),
+      brass: comps.filter(c => c.component_type === 'brass'),
+      primer: comps.filter(c => c.component_type === 'primer'),
+    });
+  };
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleComponentSelect = (type, id) => {
+    const comp = components[type].find(c => c.id === id);
+    set(`${type}_component_id`, id);
+    if (comp) {
+      if (type === 'powder') set('powder_name', comp.name);
+      if (type === 'bullet') set('bullet_brand', comp.brand || comp.name);
+      if (type === 'brass') set('brass_brand', comp.brand || comp.name);
+      if (type === 'primer') set('primer_brand', comp.brand || comp.name);
+    }
+  };
+
+  const autoLabel = () => {
+    const parts = [];
+    if (form.powder_name) parts.push(form.powder_name);
+    if (form.powder_charge_grains) parts.push(`${form.powder_charge_grains}gr`);
+    if (parts.length === 0) parts.push(`Variant ${variantCount + 1}`);
+    set('label', parts.join(' – '));
+  };
+
+  const handleSubmit = async () => {
+    if (!form.label.trim()) return alert('Label is required.');
+    setSaving(true);
+    try {
+      const user = await base44.auth.me();
+      const payload = {
+        test_id: test.id,
+        label: form.label,
+        round_count: parseInt(form.round_count) || 0,
+        powder_name: form.powder_name,
+        powder_component_id: form.powder_component_id,
+        powder_charge_grains: parseFloat(form.powder_charge_grains) || 0,
+        bullet_brand: form.bullet_brand,
+        bullet_component_id: form.bullet_component_id,
+        bullet_quantity_used: parseInt(form.bullet_quantity_used) || 0,
+        brass_brand: form.brass_brand,
+        brass_component_id: form.brass_component_id,
+        brass_quantity_used: parseInt(form.brass_quantity_used) || 0,
+        primer_brand: form.primer_brand,
+        primer_component_id: form.primer_component_id,
+        primer_quantity_used: parseInt(form.primer_quantity_used) || 0,
+        seating_depth: form.seating_depth,
+        coal_oal: form.coal_oal,
+        cbto: form.cbto,
+        bullet_jump: form.bullet_jump,
+        neck_tension: form.neck_tension,
+        crimp: form.crimp,
+        case_trim_length: form.case_trim_length,
+        case_prep_notes: form.case_prep_notes,
+        annealed: form.annealed,
+        notes: form.notes,
+        stock_deducted: variant?.stock_deducted || false,
+      };
+
+      // Deduct stock if requested and not already done
+      if (form.deduct_stock && !variant?.stock_deducted) {
+        const gramsPerGrain = 0.06479891;
+        const roundCount = parseInt(form.round_count) || 0;
+
+        const deductComp = async (componentId, qty, isPowder, chargeGrains) => {
+          if (!componentId || qty <= 0) return;
+          const comp = await base44.entities.ReloadingComponent.filter({ created_by: user.email })
+            .then(list => list.find(c => c.id === componentId));
+          if (!comp) return;
+          if (isPowder) {
+            const usedGrams = chargeGrains * qty * gramsPerGrain;
+            await base44.entities.ReloadingComponent.update(componentId, {
+              quantity_remaining: Math.max(0, comp.quantity_remaining - usedGrams),
+            });
+          } else {
+            await base44.entities.ReloadingComponent.update(componentId, {
+              quantity_remaining: Math.max(0, comp.quantity_remaining - qty),
+            });
+          }
+        };
+
+        await Promise.all([
+          deductComp(form.powder_component_id, roundCount, true, parseFloat(form.powder_charge_grains) || 0),
+          deductComp(form.bullet_component_id, parseInt(form.bullet_quantity_used) || roundCount, false),
+          deductComp(form.primer_component_id, parseInt(form.primer_quantity_used) || roundCount, false),
+          deductComp(form.brass_component_id, parseInt(form.brass_quantity_used) || 0, false),
+        ]);
+
+        payload.stock_deducted = true;
+      }
+
+      if (variant) {
+        await base44.entities.ReloadingTestVariant.update(variant.id, payload);
+      } else {
+        await base44.entities.ReloadingTestVariant.create(payload);
+        // Increment variant count on parent test
+        const currentTest = await base44.entities.ReloadingTest.filter({ id: test.id }).then(r => r[0]).catch(() => null);
+        await base44.entities.ReloadingTest.update(test.id, {
+          variant_count: (currentTest?.variant_count || 0) + 1,
+        });
+      }
+      onSaved();
+    } catch (e) {
+      alert('Error: ' + e.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const Field = ({ label, children }) => (
+    <div>
+      <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">{label}</label>
+      {children}
+    </div>
+  );
+
+  const Input = ({ field, ...props }) => (
+    <input value={form[field] ?? ''} onChange={e => set(field, e.target.value)}
+      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" {...props} />
+  );
+
+  return (
+    <div className="p-5">
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-lg font-bold">{variant ? 'Edit Variant' : 'Add Variant'}</h2>
+        <button onClick={onClose} className="p-2 hover:bg-secondary rounded-lg"><X className="w-4 h-4" /></button>
+      </div>
+
+      <div className="space-y-4">
+        {/* Label */}
+        <div>
+          <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Variant Label *</label>
+          <div className="flex gap-2">
+            <input value={form.label} onChange={e => set('label', e.target.value)} placeholder="e.g. N160 – 41.0gr"
+              className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+            <button onClick={autoLabel} className="px-3 py-2 text-xs bg-secondary rounded-lg font-medium hover:bg-secondary/80">Auto</button>
+          </div>
+        </div>
+
+        <Field label="Round Count"><Input field="round_count" type="number" placeholder="20" /></Field>
+
+        {/* Powder */}
+        <div className="bg-secondary/30 rounded-xl p-3 space-y-2">
+          <p className="text-xs font-bold text-muted-foreground uppercase">Powder</p>
+          <Field label="Select Powder from Stock">
+            <select value={form.powder_component_id} onChange={e => handleComponentSelect('powder', e.target.value)}
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none">
+              <option value="">— Select —</option>
+              {components.powder.map(c => (
+                <option key={c.id} value={c.id}>{c.name} ({c.quantity_remaining?.toFixed(1)} {c.unit} remaining)</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Powder Name (or type manually)"><Input field="powder_name" placeholder="e.g. Vihtavuori N160" /></Field>
+          <Field label="Charge (grains)"><Input field="powder_charge_grains" type="number" step="0.1" placeholder="41.0" /></Field>
+        </div>
+
+        {/* Bullet */}
+        <div className="bg-secondary/30 rounded-xl p-3 space-y-2">
+          <p className="text-xs font-bold text-muted-foreground uppercase">Bullet</p>
+          <Field label="Select Bullet from Stock">
+            <select value={form.bullet_component_id} onChange={e => handleComponentSelect('bullet', e.target.value)}
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none">
+              <option value="">— Select —</option>
+              {components.bullet.map(c => (
+                <option key={c.id} value={c.id}>{c.name} ({c.quantity_remaining} remaining)</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Bullet Brand / Name"><Input field="bullet_brand" placeholder="e.g. Berger 175gr" /></Field>
+          <Field label="Quantity Used"><Input field="bullet_quantity_used" type="number" placeholder="20" /></Field>
+        </div>
+
+        {/* Primer */}
+        <div className="bg-secondary/30 rounded-xl p-3 space-y-2">
+          <p className="text-xs font-bold text-muted-foreground uppercase">Primer</p>
+          <Field label="Select Primer from Stock">
+            <select value={form.primer_component_id} onChange={e => handleComponentSelect('primer', e.target.value)}
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none">
+              <option value="">— Select —</option>
+              {components.primer.map(c => (
+                <option key={c.id} value={c.id}>{c.name} ({c.quantity_remaining} remaining)</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Primer Brand / Model"><Input field="primer_brand" placeholder="e.g. CCI BR2" /></Field>
+          <Field label="Quantity Used"><Input field="primer_quantity_used" type="number" placeholder="20" /></Field>
+        </div>
+
+        {/* Brass */}
+        <div className="bg-secondary/30 rounded-xl p-3 space-y-2">
+          <p className="text-xs font-bold text-muted-foreground uppercase">Brass</p>
+          <Field label="Select Brass from Stock">
+            <select value={form.brass_component_id} onChange={e => handleComponentSelect('brass', e.target.value)}
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none">
+              <option value="">— Select —</option>
+              {components.brass.map(c => (
+                <option key={c.id} value={c.id}>{c.name} ({c.quantity_remaining} remaining)</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Brass Brand"><Input field="brass_brand" placeholder="e.g. Lapua" /></Field>
+          <Field label="Quantity Used"><Input field="brass_quantity_used" type="number" placeholder="20" /></Field>
+        </div>
+
+        {/* Load Data */}
+        <div className="bg-secondary/30 rounded-xl p-3 space-y-2">
+          <p className="text-xs font-bold text-muted-foreground uppercase">Load / Seating Data</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Field label="OAL / COAL"><Input field="coal_oal" placeholder="2.800&quot;" /></Field>
+            <Field label="CBTO"><Input field="cbto" placeholder="1.910&quot;" /></Field>
+            <Field label="Seating Depth"><Input field="seating_depth" placeholder="0.010&quot;" /></Field>
+            <Field label="Bullet Jump"><Input field="bullet_jump" placeholder="0.020&quot;" /></Field>
+            <Field label="Neck Tension"><Input field="neck_tension" placeholder="0.002&quot;" /></Field>
+            <Field label="Case Trim Length"><Input field="case_trim_length" placeholder="2.005&quot;" /></Field>
+          </div>
+          <Field label="Case Prep Notes"><Input field="case_prep_notes" placeholder="Full prep, deburred..." /></Field>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" checked={form.annealed} onChange={e => set('annealed', e.target.checked)}
+              className="w-4 h-4 rounded" />
+            <span className="text-sm">Annealed</span>
+          </label>
+        </div>
+
+        <Field label="Notes">
+          <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2}
+            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none resize-none" />
+        </Field>
+
+        {/* Stock Deduction */}
+        {!variant?.stock_deducted && (
+          <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-3">
+            <label className="flex items-start gap-2.5 cursor-pointer">
+              <input type="checkbox" checked={form.deduct_stock} onChange={e => set('deduct_stock', e.target.checked)}
+                className="w-4 h-4 rounded mt-0.5" />
+              <div>
+                <p className="text-sm font-semibold">Deduct stock from inventory</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Removes components from your ReloadingComponent stock. Can be restored by deleting the variant.</p>
+              </div>
+            </label>
+          </div>
+        )}
+        {variant?.stock_deducted && (
+          <p className="text-xs text-blue-600 bg-blue-50 dark:bg-blue-950/20 rounded-lg px-3 py-2">Stock already deducted for this variant.</p>
+        )}
+
+        <div className="flex gap-3 pt-2">
+          <button onClick={onClose} className="flex-1 py-2.5 border border-border rounded-xl text-sm font-medium hover:bg-secondary">Cancel</button>
+          <button onClick={handleSubmit} disabled={saving}
+            className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold disabled:opacity-50">
+            {saving ? 'Saving…' : variant ? 'Save Changes' : 'Add Variant'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
