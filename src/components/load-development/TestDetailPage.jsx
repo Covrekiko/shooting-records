@@ -373,6 +373,18 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
                               <p>{result.final_comments}</p>
                             </div>
                           )}
+                          {result.photos && result.photos.length > 0 && (
+                            <div className="col-span-2 sm:col-span-4">
+                              <p className="text-muted-foreground mb-1">Range Photos</p>
+                              <div className="flex gap-2 flex-wrap">
+                                {result.photos.map((url, i) => (
+                                  <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                                    <img src={url} alt={`Target ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity" />
+                                  </a>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <p className="text-xs text-muted-foreground italic">No results recorded yet</p>

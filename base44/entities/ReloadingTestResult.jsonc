@@ -69,6 +69,13 @@
     },
     "final_comments": {
       "type": "string"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Photo URLs of range targets and results"
     }
   },
   "required": [

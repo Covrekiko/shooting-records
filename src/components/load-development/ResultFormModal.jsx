@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { X, Calculator } from 'lucide-react';
+import { X, Calculator, Camera, ImagePlus, Trash2 } from 'lucide-react';
 
 export default function ResultFormModal({ test, variant, result, onClose, onSaved }) {
   const [form, setForm] = useState({
@@ -23,14 +23,39 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
     feeding_notes: '',
     is_best: false,
     final_comments: '',
+    photos: [],
   });
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (result) setForm({ ...form, ...result });
   }, [result]);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handlePhotoUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
+    setUploadingPhoto(true);
+    try {
+      const uploaded = await Promise.all(
+        files.map(file => base44.integrations.Core.UploadFile({ file }))
+      );
+      const urls = uploaded.map(r => r.file_url);
+      setForm(f => ({ ...f, photos: [...(f.photos || []), ...urls] }));
+    } catch (err) {
+      alert('Upload failed: ' + err.message);
+    } finally {
+      setUploadingPhoto(false);
+      e.target.value = '';
+    }
+  };
+
+  const removePhoto = (idx) => {
+    setForm(f => ({ ...f, photos: f.photos.filter((_, i) => i !== idx) }));
+  };
 
   const calcVelocityStats = () => {
     const vels = [form.velocity_1, form.velocity_2, form.velocity_3, form.velocity_4, form.velocity_5]
@@ -73,6 +98,7 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
         feeding_notes: form.feeding_notes,
         is_best: form.is_best,
         final_comments: form.final_comments,
+        photos: form.photos || [],
       };
 
       if (result?.id) {
@@ -156,6 +182,56 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none resize-none" />
             </Field>
           ))}
+        </div>
+
+        {/* Target / Range Photos */}
+        <div className="bg-secondary/30 rounded-xl p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-muted-foreground uppercase">Range Photos</p>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingPhoto}
+              className="flex items-center gap-1.5 text-xs text-primary font-semibold hover:underline disabled:opacity-50"
+            >
+              <ImagePlus className="w-3.5 h-3.5" />
+              {uploadingPhoto ? 'Uploading…' : 'Add Photos'}
+            </button>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            capture="environment"
+            className="hidden"
+            onChange={handlePhotoUpload}
+          />
+          {form.photos && form.photos.length > 0 ? (
+            <div className="grid grid-cols-3 gap-2">
+              {form.photos.map((url, idx) => (
+                <div key={idx} className="relative group aspect-square">
+                  <img src={url} alt={`Target ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(idx)}
+                    className="absolute top-1 right-1 p-1 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="w-3 h-3 text-white" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full py-6 border-2 border-dashed border-border rounded-xl flex flex-col items-center gap-2 text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors"
+            >
+              <Camera className="w-6 h-6" />
+              <span className="text-xs">Take a photo or upload from gallery</span>
+            </button>
+          )}
         </div>
 
         <label className="flex items-center gap-2.5 cursor-pointer bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3">
