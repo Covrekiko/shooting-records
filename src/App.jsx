@@ -11,7 +11,6 @@ import { OfflineProvider } from '@/context/OfflineContext';
 import OfflineStatusBar from '@/components/OfflineStatusBar';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { TabHistoryProvider } from '@/context/TabHistoryContext';
-import MobileTabBar from '@/components/MobileTabBar';
 import { useEffect } from 'react';
 import ProfileSetup from './pages/ProfileSetup';
 import Dashboard from './pages/Dashboard';
@@ -112,9 +111,8 @@ const AuthenticatedApp = () => {
   return (
     <>
       <ThemeSync />
-      <MobileTabBar />
       <AnimatedRoutes>
-        <div className="md:pb-0 pb-[calc(64px+env(safe-area-inset-bottom,0px))]">
+        <div>
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/target-shooting" element={<TargetShooting />} />
