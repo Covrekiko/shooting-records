@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Plus, Search, ChevronRight, FlaskConical, Trash2 } from 'lucide-react';
+import { Plus, Search, ChevronRight, FlaskConical, Trash2, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import CreateTestModal from '@/components/load-development/CreateTestModal';
 import TestDetailPage from '@/components/load-development/TestDetailPage';
 
@@ -97,6 +98,10 @@ export default function LoadDevelopment() {
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
+            <Link to="/reloading" className="hidden md:inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mb-2 transition-colors">
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Back to Reloading Management
+            </Link>
             <div className="flex items-center gap-2 mb-1">
               <FlaskConical className="w-5 h-5 text-primary" />
               <h1 className="text-2xl md:text-3xl font-bold">Load Development</h1>
