@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { ArrowLeft, Plus, Download, Star, Trash2, Edit2, ChevronDown, ChevronUp, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Plus, Download, Star, Trash2, Edit2, ChevronDown, ChevronUp, Eye, EyeOff, BookOpen } from 'lucide-react';
+import TestViewModal from './TestViewModal';
 import { format } from 'date-fns';
 import { createPortal } from 'react-dom';
 import VariantFormModal from './VariantFormModal';
@@ -33,6 +34,7 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
   const [saving, setSaving] = useState(false);
   const [expandedVariants, setExpandedVariants] = useState({});
   const [expandedResults, setExpandedResults] = useState({});
+  const [showViewModal, setShowViewModal] = useState(false);
 
   const toggleVariant = (id) => setExpandedVariants(p => ({ ...p, [id]: !p[id] }));
   const toggleResult = (id) => setExpandedResults(p => ({ ...p, [id]: !p[id] }));
@@ -143,6 +145,9 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
             >
               {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
+            <button onClick={() => setShowViewModal(true)} className="p-2 hover:bg-primary/10 text-primary rounded-xl" title="View Summary">
+              <BookOpen className="w-4 h-4" />
+            </button>
             <button onClick={handleExportPDF} className="p-2 hover:bg-primary/10 text-primary rounded-xl" title="Export PDF">
               <Download className="w-4 h-4" />
             </button>
@@ -524,6 +529,17 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
           </div>
         )}
       </main>
+
+      {showViewModal && (
+        <TestViewModal
+          test={test}
+          variants={variants}
+          results={results}
+          onClose={() => setShowViewModal(false)}
+          onEdit={() => { setShowViewModal(false); setActiveTab('overview'); setEditingTest(true); }}
+          onExportPDF={handleExportPDF}
+        />
+      )}
 
       {showVariantForm && createPortal(
         <div className="fixed inset-0 bg-black/50 z-[50000] flex items-end sm:items-center justify-center">

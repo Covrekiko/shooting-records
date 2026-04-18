@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Plus, Search, ChevronRight, FlaskConical, Trash2, ArrowLeft } from 'lucide-react';
+import { Plus, Search, ChevronRight, FlaskConical, Trash2, ArrowLeft, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import CreateTestModal from '@/components/load-development/CreateTestModal';
 import TestDetailPage from '@/components/load-development/TestDetailPage';
+import TestViewModal from '@/components/load-development/TestViewModal';
+import { generateLoadTestPDF } from '@/utils/loadTestPDF';
+import { base44 as b44 } from '@/api/base44Client';
 
 const STATUS_COLORS = {
   Draft: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
@@ -25,6 +28,9 @@ export default function LoadDevelopment() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterCaliber, setFilterCaliber] = useState('');
   const [user, setUser] = useState(null);
+  const [viewTest, setViewTest] = useState(null);
+  const [viewData, setViewData] = useState({ variants: [], results: [] });
+  const [viewLoading, setViewLoading] = useState(false);
 
   useEffect(() => {
     loadTests();
@@ -42,6 +48,20 @@ export default function LoadDevelopment() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const openView = async (e, test) => {
+    e.stopPropagation();
+    setViewTest(test);
+    setViewLoading(true);
+    try {
+      const [variants, results] = await Promise.all([
+        b44.entities.ReloadingTestVariant.filter({ test_id: test.id }),
+        b44.entities.ReloadingTestResult.filter({ test_id: test.id }),
+      ]);
+      setViewData({ variants, results });
+    } catch (err) { console.error(err); }
+    finally { setViewLoading(false); }
   };
 
   const handleCreated = (test) => {
@@ -206,6 +226,13 @@ export default function LoadDevelopment() {
                   </div>
                   <div className="flex items-center gap-1 flex-shrink-0 mt-1">
                     <button
+                      onClick={(e) => openView(e, test)}
+                      className="p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors"
+                      title="View test"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                    <button
                       onClick={(e) => handleDelete(e, test.id)}
                       className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
                       title="Delete test"
@@ -220,6 +247,20 @@ export default function LoadDevelopment() {
           </div>
         )}
       </main>
+
+      {viewTest && !viewLoading && (
+        <TestViewModal
+          test={viewTest}
+          variants={viewData.variants}
+          results={viewData.results}
+          onClose={() => setViewTest(null)}
+          onEdit={() => { setSelectedTest(viewTest); setViewTest(null); }}
+          onExportPDF={() => {
+            const doc = generateLoadTestPDF(viewTest, viewData.variants, viewData.results);
+            doc.save(`load-test-${viewTest.name.replace(/\s+/g, '-')}.pdf`);
+          }}
+        />
+      )}
 
       {showCreate && createPortal(
         <div className="fixed inset-0 bg-black/50 z-[50000] flex items-end sm:items-center justify-center">
