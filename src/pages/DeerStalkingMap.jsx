@@ -530,7 +530,7 @@ export default function DeerStalkingMap() {
         <Link
           to="/"
           title="Dashboard"
-          className="hidden sm:flex w-10 h-10 rounded-full bg-white/20 dark:bg-slate-700/30 border border-white/40 dark:border-slate-600/40 items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-700/40 active:scale-95 transition-all shadow-lg backdrop-blur-md"
+          className="flex w-10 h-10 rounded-full bg-white/20 dark:bg-slate-700/30 border border-white/40 dark:border-slate-600/40 items-center justify-center text-slate-700 dark:text-slate-300 hover:bg-white/30 dark:hover:bg-slate-700/40 active:scale-95 transition-all shadow-lg backdrop-blur-md"
         >
           <Home className="w-4 h-4" />
         </Link>

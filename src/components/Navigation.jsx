@@ -237,15 +237,6 @@ export default function Navigation() {
         </AnimatePresence>
       </div>
 
-      {/* ── MOBILE BOTTOM BAR ──────────────────────────────────────── */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[8000]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 12px)' }}>
-        <div className="mx-3 mb-2.5 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-2xl shadow-md border border-slate-200/70 dark:border-slate-700/60 px-6 py-2.5 flex items-center justify-center">
-          <Link to="/" className={`flex flex-col items-center gap-0.5 px-8 py-0.5 rounded-xl transition-colors ${isDashboard ? 'text-primary' : 'text-slate-400 dark:text-slate-500'}`}>
-            <Home className={`w-5 h-5 ${isDashboard ? 'text-primary' : 'text-slate-400 dark:text-slate-500'}`} />
-            <span className="text-[10px] font-semibold tracking-wide">Home</span>
-          </Link>
-        </div>
-      </div>
     </>
   );
 }
