@@ -154,18 +154,6 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
     }
   };
 
-  const Field = ({ label, children }) => (
-    <div>
-      <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">{label}</label>
-      {children}
-    </div>
-  );
-
-  const Input = ({ field, ...props }) => (
-    <input value={form[field] ?? ''} onChange={e => set(field, e.target.value)}
-      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" {...props} />
-  );
-
   return (
     <div className="p-5">
       <div className="flex items-center justify-between mb-5">
@@ -184,7 +172,11 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
           </div>
         </div>
 
-        <Field label="Round Count"><Input field="round_count" type="number" placeholder="20" /></Field>
+        <div>
+          <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Round Count</label>
+          <input value={form.round_count ?? ''} onChange={e => set('round_count', e.target.value)} type="number" placeholder="20"
+            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+        </div>
 
         {/* Powder */}
         <div className="bg-secondary/30 rounded-xl p-3 space-y-2">
@@ -198,8 +190,16 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
               ))}
             </select>
           </Field>
-          <Field label="Powder Name (or type manually)"><Input field="powder_name" placeholder="e.g. Vihtavuori N160" /></Field>
-          <Field label="Charge (grains)"><Input field="powder_charge_grains" type="number" step="0.1" placeholder="41.0" /></Field>
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Powder Name (or type manually)</label>
+            <input value={form.powder_name ?? ''} onChange={e => set('powder_name', e.target.value)} placeholder="e.g. Vihtavuori N160"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Charge (grains)</label>
+            <input value={form.powder_charge_grains ?? ''} onChange={e => set('powder_charge_grains', e.target.value)} type="number" step="0.1" placeholder="41.0"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </div>
         </div>
 
         {/* Bullet */}
@@ -214,8 +214,16 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
               ))}
             </select>
           </Field>
-          <Field label="Bullet Brand / Name"><Input field="bullet_brand" placeholder="e.g. Berger 175gr" /></Field>
-          <Field label="Quantity Used"><Input field="bullet_quantity_used" type="number" placeholder="20" /></Field>
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Bullet Brand / Name</label>
+            <input value={form.bullet_brand ?? ''} onChange={e => set('bullet_brand', e.target.value)} placeholder="e.g. Berger 175gr"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Quantity Used</label>
+            <input value={form.bullet_quantity_used ?? ''} onChange={e => set('bullet_quantity_used', e.target.value)} type="number" placeholder="20"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </div>
         </div>
 
         {/* Primer */}
@@ -230,8 +238,16 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
               ))}
             </select>
           </Field>
-          <Field label="Primer Brand / Model"><Input field="primer_brand" placeholder="e.g. CCI BR2" /></Field>
-          <Field label="Quantity Used"><Input field="primer_quantity_used" type="number" placeholder="20" /></Field>
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Primer Brand / Model</label>
+            <input value={form.primer_brand ?? ''} onChange={e => set('primer_brand', e.target.value)} placeholder="e.g. CCI BR2"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Quantity Used</label>
+            <input value={form.primer_quantity_used ?? ''} onChange={e => set('primer_quantity_used', e.target.value)} type="number" placeholder="20"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </div>
         </div>
 
         {/* Brass */}
@@ -246,22 +262,42 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
               ))}
             </select>
           </Field>
-          <Field label="Brass Brand"><Input field="brass_brand" placeholder="e.g. Lapua" /></Field>
-          <Field label="Quantity Used"><Input field="brass_quantity_used" type="number" placeholder="20" /></Field>
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Brass Brand</label>
+            <input value={form.brass_brand ?? ''} onChange={e => set('brass_brand', e.target.value)} placeholder="e.g. Lapua"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Quantity Used</label>
+            <input value={form.brass_quantity_used ?? ''} onChange={e => set('brass_quantity_used', e.target.value)} type="number" placeholder="20"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </div>
         </div>
 
         {/* Load Data */}
         <div className="bg-secondary/30 rounded-xl p-3 space-y-2">
           <p className="text-xs font-bold text-muted-foreground uppercase">Load / Seating Data</p>
           <div className="grid grid-cols-2 gap-2">
-            <Field label="OAL / COAL"><Input field="coal_oal" placeholder="2.800&quot;" /></Field>
-            <Field label="CBTO"><Input field="cbto" placeholder="1.910&quot;" /></Field>
-            <Field label="Seating Depth"><Input field="seating_depth" placeholder="0.010&quot;" /></Field>
-            <Field label="Bullet Jump"><Input field="bullet_jump" placeholder="0.020&quot;" /></Field>
-            <Field label="Neck Tension"><Input field="neck_tension" placeholder="0.002&quot;" /></Field>
-            <Field label="Case Trim Length"><Input field="case_trim_length" placeholder="2.005&quot;" /></Field>
+            {[
+              ['OAL / COAL', 'coal_oal', '2.800"'],
+              ['CBTO', 'cbto', '1.910"'],
+              ['Seating Depth', 'seating_depth', '0.010"'],
+              ['Bullet Jump', 'bullet_jump', '0.020"'],
+              ['Neck Tension', 'neck_tension', '0.002"'],
+              ['Case Trim Length', 'case_trim_length', '2.005"'],
+            ].map(([label, field, placeholder]) => (
+              <div key={field}>
+                <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">{label}</label>
+                <input value={form[field] ?? ''} onChange={e => set(field, e.target.value)} placeholder={placeholder}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+              </div>
+            ))}
           </div>
-          <Field label="Case Prep Notes"><Input field="case_prep_notes" placeholder="Full prep, deburred..." /></Field>
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Case Prep Notes</label>
+            <input value={form.case_prep_notes ?? ''} onChange={e => set('case_prep_notes', e.target.value)} placeholder="Full prep, deburred..."
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </div>
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.annealed} onChange={e => set('annealed', e.target.checked)}
               className="w-4 h-4 rounded" />
@@ -269,10 +305,11 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
           </label>
         </div>
 
-        <Field label="Notes">
-          <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={2}
+        <div>
+          <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Notes</label>
+          <textarea value={form.notes ?? ''} onChange={e => set('notes', e.target.value)} rows={2}
             className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none resize-none" />
-        </Field>
+        </div>
 
         {/* Stock Deduction */}
         {!variant?.stock_deducted && (
