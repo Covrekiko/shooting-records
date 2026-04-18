@@ -244,7 +244,7 @@ export default function ReloadingManagement() {
         {/* Load Development Banner */}
         <Link
           to="/load-development"
-          className="flex items-center justify-between gap-3 bg-primary/10 border border-primary/30 rounded-xl px-5 py-4 mb-8 hover:bg-primary/15 transition-colors group"
+          className="flex items-center justify-between gap-3 bg-primary/10 border border-primary/30 rounded-xl px-5 py-4 mb-6 hover:bg-primary/15 transition-colors group"
         >
           <div className="flex items-center gap-3">
             <FlaskConical className="w-5 h-5 text-primary flex-shrink-0" />
