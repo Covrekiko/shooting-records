@@ -10,6 +10,8 @@ import { OutingProvider } from '@/context/OutingContext';
 import { OfflineProvider } from '@/context/OfflineContext';
 import OfflineStatusBar from '@/components/OfflineStatusBar';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { TabHistoryProvider } from '@/context/TabHistoryContext';
+import MobileTabBar from '@/components/MobileTabBar';
 import { useEffect } from 'react';
 import ProfileSetup from './pages/ProfileSetup';
 import Dashboard from './pages/Dashboard';
@@ -110,34 +112,36 @@ const AuthenticatedApp = () => {
   return (
     <>
       <ThemeSync />
+      <MobileTabBar />
       <AnimatedRoutes>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/target-shooting" element={<TargetShooting />} />
-          <Route path="/clay-shooting" element={<ClayShooting />} />
-          <Route path="/deer-management" element={<DeerManagement />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/profile/settings" element={<Profile />} />
-          <Route path="/records" element={<Records />} />
-          <Route path="/goals" element={<Goals />} />
-
-          <Route path="/settings/rifles" element={<Rifles />} />
-          <Route path="/settings/shotguns" element={<Shotguns />} />
-          <Route path="/settings/clubs" element={<Clubs />} />
-          <Route path="/settings/locations" element={<Locations />} />
-          <Route path="/settings/ammunition" element={<Ammunition />} />
-          <Route path="/settings/ammunition-inventory" element={<AmmunitionInventory />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/admin/users" element={<AdminUsers />} />
-          <Route path="/users" element={<Users />} />
-          <Route path="/deer-stalking" element={<DeerStalkingMap />} />
-          <Route path="/deer-stalking-logs" element={<DeerStalkingLogs />} />
-          <Route path="/sunrise-sunset" element={<SunriseSunsetTracker />} />
-          <Route path="/ammo-summary" element={<AmmoSummary />} />
-          <Route path="/reloading" element={<ReloadingManagement />} />
-          <Route path="/load-development" element={<LoadDevelopment />} />
-          <Route path="*" element={<PageNotFound />} />
-        </Routes>
+        <div className="md:pb-0 pb-[calc(64px+env(safe-area-inset-bottom,0px))]">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/target-shooting" element={<TargetShooting />} />
+            <Route path="/clay-shooting" element={<ClayShooting />} />
+            <Route path="/deer-management" element={<DeerManagement />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/settings" element={<Profile />} />
+            <Route path="/records" element={<Records />} />
+            <Route path="/goals" element={<Goals />} />
+            <Route path="/settings/rifles" element={<Rifles />} />
+            <Route path="/settings/shotguns" element={<Shotguns />} />
+            <Route path="/settings/clubs" element={<Clubs />} />
+            <Route path="/settings/locations" element={<Locations />} />
+            <Route path="/settings/ammunition" element={<Ammunition />} />
+            <Route path="/settings/ammunition-inventory" element={<AmmunitionInventory />} />
+            <Route path="/reports" element={<Reports />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/deer-stalking" element={<DeerStalkingMap />} />
+            <Route path="/deer-stalking-logs" element={<DeerStalkingLogs />} />
+            <Route path="/sunrise-sunset" element={<SunriseSunsetTracker />} />
+            <Route path="/ammo-summary" element={<AmmoSummary />} />
+            <Route path="/reloading" element={<ReloadingManagement />} />
+            <Route path="/load-development" element={<LoadDevelopment />} />
+            <Route path="*" element={<PageNotFound />} />
+          </Routes>
+        </div>
       </AnimatedRoutes>
     </>
   );
@@ -152,9 +156,11 @@ function App() {
           <OfflineProvider>
             <OutingProvider>
               <Router>
-                <OfflineStatusBar />
-                <AuthenticatedApp />
-                <Toaster />
+                <TabHistoryProvider>
+                  <OfflineStatusBar />
+                  <AuthenticatedApp />
+                  <Toaster />
+                </TabHistoryProvider>
               </Router>
             </OutingProvider>
           </OfflineProvider>

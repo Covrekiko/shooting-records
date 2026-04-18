@@ -1,13 +1,14 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
-  Menu, X, Settings, Target, Crosshair, Map, LayoutDashboard,
-  BookOpen, User, ChevronRight, ArrowLeft, Home, BarChart3,
+  Menu, X, Settings, Target, Crosshair, Map,
+  BookOpen, User, ArrowLeft, BarChart3,
   Shield, Layers, RefreshCw, Sun, FlaskConical,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOffline } from '@/context/OfflineContext';
+import { getTabForPath, TAB_DEFAULT } from '@/context/TabHistoryContext';
 
 const PAGE_TITLES = {
   '/target-shooting': 'Target Shooting',
@@ -93,8 +94,16 @@ export default function Navigation() {
 
   const isDashboard = location.pathname === '/';
   const pageTitle = PAGE_TITLES[location.pathname] || '';
-
   const isActive = (path) => location.pathname === path;
+
+  const handleBack = () => {
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      const tab = getTabForPath(location.pathname);
+      navigate(tab ? TAB_DEFAULT[tab] : '/');
+    }
+  };
 
   return (
     <>
@@ -168,7 +177,7 @@ export default function Navigation() {
             </Link>
           ) : (
             <motion.button
-              onClick={() => navigate('/')}
+              onClick={handleBack}
               whileTap={{ scale: 0.9 }}
               className="flex items-center gap-1.5 text-slate-900 dark:text-white"
             >

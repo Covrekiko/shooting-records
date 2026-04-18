@@ -105,7 +105,14 @@
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* Mobile page content — clears floating bottom nav */
+/* Mobile page content — clears the bottom tab bar */
 .mobile-page-padding {
-  padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Applied to main content on mobile to clear the fixed tab bar */
+@media (max-width: 767px) {
+  body > #root > * {
+    padding-bottom: 0;
+  }
 }

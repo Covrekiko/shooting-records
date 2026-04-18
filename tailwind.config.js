@@ -85,5 +85,8 @@ module.exports = {
   		}
   	}
   },
+  safelist: [
+    'pb-[calc(64px+env(safe-area-inset-bottom,0px))]',
+  ],
   plugins: [require("tailwindcss-animate")],
 }
