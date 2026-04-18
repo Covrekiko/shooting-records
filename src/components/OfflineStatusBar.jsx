@@ -77,11 +77,10 @@ export default function OfflineStatusBar() {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -4 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        className={`fixed top-0 left-0 right-0 z-[99999] ${bgClass} text-white text-xs font-semibold flex items-center justify-center gap-2 px-4 py-1.5 safe-area-top`}
-        style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 6px)' }}
+        exit={{ opacity: 0, y: -4 }}
+        className={`relative z-[8999] ${bgClass} text-white text-xs font-semibold flex items-center justify-center gap-2 px-4 py-1.5`}
       >
         {content}
       </motion.div>

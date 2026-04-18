@@ -2,6 +2,13 @@ import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { X, Calculator, Camera, ImagePlus, Trash2 } from 'lucide-react';
 
+const Field = ({ label, children }) => (
+  <div>
+    <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">{label}</label>
+    {children}
+  </div>
+);
+
 export default function ResultFormModal({ test, variant, result, onClose, onSaved }) {
   const [form, setForm] = useState({
     tested: true,
@@ -114,17 +121,7 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
     }
   };
 
-  const Field = ({ label, children }) => (
-    <div>
-      <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">{label}</label>
-      {children}
-    </div>
-  );
 
-  const Input = ({ field, ...props }) => (
-    <input value={form[field] ?? ''} onChange={e => set(field, e.target.value)}
-      className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" {...props} />
-  );
 
   return (
     <div className="p-5">
@@ -138,13 +135,25 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
 
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Test Date"><Input field="test_date" type="date" /></Field>
-          <Field label="Distance (yards)"><Input field="distance_yards" type="number" placeholder="100" /></Field>
+          <Field label="Test Date">
+            <input value={form.test_date ?? ''} onChange={e => set('test_date', e.target.value)} type="date"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </Field>
+          <Field label="Distance (yards)">
+            <input value={form.distance_yards ?? ''} onChange={e => set('distance_yards', e.target.value)} type="number" placeholder="100"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </Field>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Group Size (MOA)"><Input field="group_size_moa" type="number" step="0.01" placeholder="0.75" /></Field>
-          <Field label="Group Size (mm)"><Input field="group_size_mm" type="number" step="0.1" placeholder="21" /></Field>
+          <Field label="Group Size (MOA)">
+            <input value={form.group_size_moa ?? ''} onChange={e => set('group_size_moa', e.target.value)} type="number" step="0.01" placeholder="0.75"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </Field>
+          <Field label="Group Size (mm)">
+            <input value={form.group_size_mm ?? ''} onChange={e => set('group_size_mm', e.target.value)} type="number" step="0.1" placeholder="21"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </Field>
         </div>
 
         {/* Velocity */}
@@ -158,13 +167,25 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
           </div>
           <div className="grid grid-cols-5 gap-2">
             {[1,2,3,4,5].map(n => (
-              <Field key={n} label={`V${n}`}><Input field={`velocity_${n}`} type="number" placeholder="2650" /></Field>
+              <Field key={n} label={`V${n}`}>
+                <input value={form[`velocity_${n}`] ?? ''} onChange={e => set(`velocity_${n}`, e.target.value)} type="number" placeholder="2650"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+              </Field>
             ))}
           </div>
           <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border">
-            <Field label="Avg Velocity"><Input field="avg_velocity" type="number" placeholder="auto" /></Field>
-            <Field label="ES"><Input field="es" type="number" placeholder="auto" /></Field>
-            <Field label="SD"><Input field="sd" type="number" step="0.1" placeholder="auto" /></Field>
+            <Field label="Avg Velocity">
+              <input value={form.avg_velocity ?? ''} onChange={e => set('avg_velocity', e.target.value)} type="number" placeholder="auto"
+                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+            </Field>
+            <Field label="ES">
+              <input value={form.es ?? ''} onChange={e => set('es', e.target.value)} type="number" placeholder="auto"
+                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+            </Field>
+            <Field label="SD">
+              <input value={form.sd ?? ''} onChange={e => set('sd', e.target.value)} type="number" step="0.1" placeholder="auto"
+                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+            </Field>
           </div>
         </div>
 
