@@ -231,7 +231,8 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
         {/* Primer */}
         <div className="bg-secondary/30 rounded-xl p-3 space-y-2">
           <p className="text-xs font-bold text-muted-foreground uppercase">Primer</p>
-          <Field label="Select Primer from Stock">
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Select Primer from Stock</label>
             <select value={form.primer_component_id} onChange={e => handleComponentSelect('primer', e.target.value)}
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none">
               <option value="">— Select —</option>
@@ -239,7 +240,7 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
                 <option key={c.id} value={c.id}>{c.name} ({c.quantity_remaining} remaining)</option>
               ))}
             </select>
-          </Field>
+          </div>
           <div>
             <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Primer Brand / Model</label>
             <input value={form.primer_brand ?? ''} onChange={e => set('primer_brand', e.target.value)} placeholder="e.g. CCI BR2"
@@ -255,7 +256,8 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
         {/* Brass */}
         <div className="bg-secondary/30 rounded-xl p-3 space-y-2">
           <p className="text-xs font-bold text-muted-foreground uppercase">Brass</p>
-          <Field label="Select Brass from Stock">
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Select Brass from Stock</label>
             <select value={form.brass_component_id} onChange={e => handleComponentSelect('brass', e.target.value)}
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none">
               <option value="">— Select —</option>
@@ -263,7 +265,7 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
                 <option key={c.id} value={c.id}>{c.name} ({c.quantity_remaining} remaining)</option>
               ))}
             </select>
-          </Field>
+          </div>
           <div>
             <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Brass Brand</label>
             <input value={form.brass_brand ?? ''} onChange={e => set('brass_brand', e.target.value)} placeholder="e.g. Lapua"
