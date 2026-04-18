@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Plus, Search, Filter, ChevronRight, FlaskConical, Star } from 'lucide-react';
+import { Plus, Search, ChevronRight, FlaskConical, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { createPortal } from 'react-dom';
 import CreateTestModal from '@/components/load-development/CreateTestModal';
@@ -47,6 +47,26 @@ export default function LoadDevelopment() {
     setShowCreate(false);
     loadTests();
     setSelectedTest(test);
+  };
+
+  const handleDelete = async (e, testId) => {
+    e.stopPropagation();
+    if (!confirm('Delete this test? This will also delete all variants and results.')) return;
+    try {
+      // Delete related variants and results first
+      const [variants, results] = await Promise.all([
+        base44.entities.ReloadingTestVariant.filter({ test_id: testId }),
+        base44.entities.ReloadingTestResult.filter({ test_id: testId }),
+      ]);
+      await Promise.all([
+        ...variants.map(v => base44.entities.ReloadingTestVariant.delete(v.id)),
+        ...results.map(r => base44.entities.ReloadingTestResult.delete(r.id)),
+      ]);
+      await base44.entities.ReloadingTest.delete(testId);
+      loadTests();
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const caliberOptions = [...new Set(tests.map(t => t.caliber).filter(Boolean))];
@@ -179,7 +199,16 @@ export default function LoadDevelopment() {
                       </div>
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary flex-shrink-0 mt-1" />
+                  <div className="flex items-center gap-1 flex-shrink-0 mt-1">
+                    <button
+                      onClick={(e) => handleDelete(e, test.id)}
+                      className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                      title="Delete test"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
+                  </div>
                 </div>
               </button>
             ))}
