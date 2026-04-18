@@ -124,7 +124,8 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
 
 
   return (
-    <div className="p-5">
+    <div className="flex flex-col h-full">
+    <div className="p-5 flex-1 overflow-y-auto">
       <div className="flex items-center justify-between mb-5">
         <div>
           <h2 className="text-lg font-bold">Test Results</h2>
@@ -263,14 +264,15 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
           </div>
         </label>
 
-        <div className="flex gap-3 pt-2">
-          <button onClick={onClose} className="flex-1 py-2.5 border border-border rounded-xl text-sm font-medium hover:bg-secondary">Cancel</button>
-          <button onClick={handleSubmit} disabled={saving}
-            className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold disabled:opacity-50">
-            {saving ? 'Saving…' : 'Save Results'}
-          </button>
-        </div>
       </div>
+    </div>
+    <div className="flex gap-3 p-5 border-t border-border bg-card">
+      <button onClick={onClose} className="flex-1 py-2.5 border border-border rounded-xl text-sm font-medium hover:bg-secondary">Cancel</button>
+      <button onClick={handleSubmit} disabled={saving}
+        className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold disabled:opacity-50">
+        {saving ? 'Saving…' : 'Save Results'}
+      </button>
+    </div>
     </div>
   );
 }

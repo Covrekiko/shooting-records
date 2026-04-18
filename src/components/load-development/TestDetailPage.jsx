@@ -454,7 +454,7 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
 
       {showResultForm && resultVariant && createPortal(
         <div className="fixed inset-0 bg-black/50 z-[50000] flex items-end sm:items-center justify-center">
-          <div className="bg-card rounded-t-3xl sm:rounded-2xl w-full sm:max-w-xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-card rounded-t-3xl sm:rounded-2xl w-full sm:max-w-xl h-[92vh] sm:max-h-[90vh] overflow-y-auto flex flex-col">
             <ResultFormModal
               test={test}
               variant={resultVariant}
