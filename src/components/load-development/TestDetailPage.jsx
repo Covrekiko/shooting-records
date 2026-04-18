@@ -270,48 +270,72 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
                 {variants.map((v, idx) => {
                   const result = getResultForVariant(v.id);
                   return (
-                    <div key={v.id} className={`bg-card border rounded-xl p-4 ${result?.is_best ? 'border-emerald-400 dark:border-emerald-500' : 'border-border'}`}>
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-xs text-muted-foreground font-medium">#{idx + 1}</span>
-                            <span className="font-semibold text-sm">{v.label}</span>
-                            {result?.is_best && <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />}
-                            {v.stock_deducted && (
-                              <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">Stock Deducted</span>
-                            )}
-                          </div>
-                          <div className="text-xs text-muted-foreground space-y-0.5">
-                            {v.powder_name && <p>Powder: {v.powder_name} {v.powder_charge_grains ? `— ${v.powder_charge_grains}gr` : ''}</p>}
-                            {v.round_count > 0 && <p>Rounds: {v.round_count}</p>}
-                            {v.coal_oal && <p>OAL: {v.coal_oal}</p>}
-                            {v.seating_depth && <p>Seating Depth: {v.seating_depth}</p>}
-                            {v.notes && <p className="mt-1 italic">{v.notes}</p>}
-                          </div>
-                          {result?.tested && (
-                            <div className="mt-2 pt-2 border-t border-border text-xs text-muted-foreground">
-                              <span className="text-emerald-600 font-medium">Tested</span>
-                              {result.avg_velocity && <span> · {result.avg_velocity} fps avg</span>}
-                              {result.group_size_moa && <span> · {result.group_size_moa} MOA</span>}
-                              {result.es && <span> · ES: {result.es}</span>}
-                              {result.sd && <span> · SD: {result.sd}</span>}
-                            </div>
+                    <div key={v.id} className={`bg-card border rounded-xl overflow-hidden ${result?.is_best ? 'border-emerald-400 dark:border-emerald-500' : 'border-border'}`}>
+                      {/* Header row */}
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-secondary/20">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground font-medium">#{idx + 1}</span>
+                          <span className="font-semibold text-sm">{v.label}</span>
+                          {result?.is_best && <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />}
+                          {v.stock_deducted && (
+                            <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-1.5 py-0.5 rounded-full">Stock Deducted</span>
                           )}
                         </div>
                         <div className="flex gap-1">
                           <button onClick={() => { setResultVariant(v); setEditingResult(result || null); setShowResultForm(true); }}
-                            className="p-2 hover:bg-primary/10 text-primary rounded-lg" title="Add/Edit Results">
+                            className="p-1.5 hover:bg-primary/10 text-primary rounded-lg" title="Add/Edit Results">
                             <Star className="w-3.5 h-3.5" />
                           </button>
                           <button onClick={() => { setEditingVariant(v); setShowVariantForm(true); }}
-                            className="p-2 hover:bg-secondary rounded-lg" title="Edit">
+                            className="p-1.5 hover:bg-secondary rounded-lg" title="Edit">
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
                           <button onClick={() => handleDeleteVariant(v)}
-                            className="p-2 hover:bg-destructive/10 text-destructive rounded-lg" title="Delete">
+                            className="p-1.5 hover:bg-destructive/10 text-destructive rounded-lg" title="Delete">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
+                      </div>
+
+                      {/* Details grid */}
+                      <div className="p-4 space-y-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 text-xs">
+                          {[
+                            ['Powder', v.powder_name],
+                            ['Charge', v.powder_charge_grains ? `${v.powder_charge_grains} gr` : null],
+                            ['Rounds', v.round_count > 0 ? v.round_count : null],
+                            ['Bullet', v.bullet_brand],
+                            ['Brass', v.brass_brand],
+                            ['Primer', v.primer_brand],
+                            ['OAL / COAL', v.coal_oal],
+                            ['CBTO', v.cbto],
+                            ['Seating Depth', v.seating_depth],
+                            ['Bullet Jump', v.bullet_jump],
+                            ['Neck Tension', v.neck_tension],
+                            ['Case Trim', v.case_trim_length],
+                          ].filter(([, val]) => val).map(([label, value]) => (
+                            <div key={label}>
+                              <p className="text-muted-foreground">{label}</p>
+                              <p className="font-semibold">{value}</p>
+                            </div>
+                          ))}
+                        </div>
+                        {v.annealed && <p className="text-xs text-blue-600 font-medium">✓ Annealed</p>}
+                        {v.case_prep_notes && <p className="text-xs text-muted-foreground italic">{v.case_prep_notes}</p>}
+                        {v.notes && <p className="text-xs text-muted-foreground italic border-t border-border pt-2">{v.notes}</p>}
+
+                        {/* Result summary */}
+                        {result?.tested && (
+                          <div className="mt-1 pt-2 border-t border-border">
+                            <p className="text-[10px] font-semibold text-muted-foreground uppercase mb-1.5">Result Summary</p>
+                            <div className="flex flex-wrap gap-2 text-xs">
+                              {result.avg_velocity && <span className="bg-secondary rounded-md px-2 py-1 font-medium">{result.avg_velocity} fps</span>}
+                              {result.group_size_moa && <span className="bg-secondary rounded-md px-2 py-1 font-medium">{result.group_size_moa} MOA</span>}
+                              {result.es && <span className="bg-secondary rounded-md px-2 py-1 font-medium">ES: {result.es}</span>}
+                              {result.sd && <span className="bg-secondary rounded-md px-2 py-1 font-medium">SD: {result.sd}</span>}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -332,63 +356,94 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
                 {variants.map((v, idx) => {
                   const result = getResultForVariant(v.id);
                   return (
-                    <div key={v.id} className={`bg-card border rounded-xl p-4 ${result?.is_best ? 'border-emerald-400' : 'border-border'}`}>
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-sm">{v.label}</span>
-                            {result?.is_best && <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />}
-                          </div>
-                          {v.powder_name && <p className="text-xs text-muted-foreground">{v.powder_name} {v.powder_charge_grains ? `${v.powder_charge_grains}gr` : ''}</p>}
+                    <div key={v.id} className={`bg-card border rounded-xl overflow-hidden ${result?.is_best ? 'border-emerald-400 dark:border-emerald-500' : 'border-border'}`}>
+                      {/* Header */}
+                      <div className="flex justify-between items-center px-4 py-3 border-b border-border bg-secondary/20">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground font-medium">#{idx + 1}</span>
+                          <span className="font-semibold text-sm">{v.label}</span>
+                          {result?.is_best && <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />}
                         </div>
                         <button onClick={() => { setResultVariant(v); setEditingResult(result || null); setShowResultForm(true); }}
-                          className="px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-medium hover:bg-primary/20">
-                          {result ? 'Edit Results' : 'Add Results'}
+                          className="px-3 py-1.5 bg-primary/10 text-primary rounded-lg text-xs font-medium hover:bg-primary/20 flex items-center gap-1">
+                          <Edit2 className="w-3 h-3" />
+                          {result?.tested ? 'Edit' : 'Add Results'}
                         </button>
                       </div>
-                      {result?.tested ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 text-xs">
-                          {[
-                            ['Avg Velocity', result.avg_velocity ? `${result.avg_velocity} fps` : null],
-                            ['ES', result.es],
-                            ['SD', result.sd],
-                            ['Group Size', result.group_size_moa ? `${result.group_size_moa} MOA` : (result.group_size_mm ? `${result.group_size_mm}mm` : null)],
-                            ['Distance', result.distance_yards ? `${result.distance_yards} yds` : null],
-                            ['Test Date', result.test_date ? format(new Date(result.test_date), 'MMM d, yyyy') : null],
-                          ].filter(([, v]) => v).map(([label, value]) => (
-                            <div key={label}>
-                              <p className="text-muted-foreground">{label}</p>
-                              <p className="font-semibold">{value}</p>
+
+                      {/* Body */}
+                      <div className="p-4">
+                        {v.powder_name && (
+                          <p className="text-xs text-muted-foreground mb-3">{v.powder_name}{v.powder_charge_grains ? ` · ${v.powder_charge_grains}gr` : ''}</p>
+                        )}
+                        {result?.tested ? (
+                          <div className="space-y-3">
+                            {/* Key stats grid */}
+                            <div className="grid grid-cols-3 gap-2">
+                              {[
+                                ['Avg Vel.', result.avg_velocity ? `${result.avg_velocity} fps` : '—'],
+                                ['ES', result.es ?? '—'],
+                                ['SD', result.sd ?? '—'],
+                                ['Group MOA', result.group_size_moa ?? '—'],
+                                ['Group mm', result.group_size_mm ?? '—'],
+                                ['Distance', result.distance_yards ? `${result.distance_yards} yd` : '—'],
+                              ].map(([label, value]) => (
+                                <div key={label} className="bg-secondary/40 rounded-lg px-2.5 py-2 text-center">
+                                  <p className="text-[9px] font-semibold text-muted-foreground uppercase mb-0.5">{label}</p>
+                                  <p className="text-sm font-bold">{value}</p>
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                          {result.accuracy_notes && (
-                            <div className="col-span-2 sm:col-span-4">
-                              <p className="text-muted-foreground">Accuracy Notes</p>
-                              <p>{result.accuracy_notes}</p>
-                            </div>
-                          )}
-                          {result.final_comments && (
-                            <div className="col-span-2 sm:col-span-4">
-                              <p className="text-muted-foreground">Comments</p>
-                              <p>{result.final_comments}</p>
-                            </div>
-                          )}
-                          {result.photos && result.photos.length > 0 && (
-                            <div className="col-span-2 sm:col-span-4">
-                              <p className="text-muted-foreground mb-1">Range Photos</p>
-                              <div className="flex gap-2 flex-wrap">
-                                {result.photos.map((url, i) => (
-                                  <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                                    <img src={url} alt={`Target ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity" />
-                                  </a>
-                                ))}
+
+                            {/* Individual velocities */}
+                            {[result.velocity_1, result.velocity_2, result.velocity_3, result.velocity_4, result.velocity_5].some(Boolean) && (
+                              <div>
+                                <p className="text-[10px] font-semibold text-muted-foreground uppercase mb-1.5">Chronograph Readings</p>
+                                <div className="flex gap-1.5 flex-wrap">
+                                  {[result.velocity_1, result.velocity_2, result.velocity_3, result.velocity_4, result.velocity_5].map((vel, i) => vel ? (
+                                    <span key={i} className="text-xs bg-secondary rounded-md px-2 py-1 font-medium">V{i+1}: {vel}</span>
+                                  ) : null)}
+                                </div>
                               </div>
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <p className="text-xs text-muted-foreground italic">No results recorded yet</p>
-                      )}
+                            )}
+
+                            {/* Notes */}
+                            {[
+                              ['Pressure Signs', result.pressure_signs_notes],
+                              ['Recoil', result.recoil_notes],
+                              ['Accuracy', result.accuracy_notes],
+                              ['Feeding', result.feeding_notes],
+                              ['Comments', result.final_comments],
+                            ].filter(([, v]) => v).map(([label, value]) => (
+                              <div key={label}>
+                                <p className="text-[10px] font-semibold text-muted-foreground uppercase">{label}</p>
+                                <p className="text-sm mt-0.5">{value}</p>
+                              </div>
+                            ))}
+
+                            {/* Date */}
+                            {result.test_date && (
+                              <p className="text-xs text-muted-foreground">Tested: {format(new Date(result.test_date), 'MMM d, yyyy')}</p>
+                            )}
+
+                            {/* Photos */}
+                            {result.photos?.length > 0 && (
+                              <div>
+                                <p className="text-[10px] font-semibold text-muted-foreground uppercase mb-1.5">Range Photos</p>
+                                <div className="flex gap-2 flex-wrap">
+                                  {result.photos.map((url, i) => (
+                                    <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                                      <img src={url} alt={`Target ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity" />
+                                    </a>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-muted-foreground italic">No results recorded yet — tap "Add Results" to enter data.</p>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
