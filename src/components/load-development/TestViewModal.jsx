@@ -266,11 +266,11 @@ export default function TestViewModal({ test, variants, results, onClose, onEdit
                             ['SD', result.sd ?? '—'],
                             ['Group MOA', result.group_size_moa ?? '—'],
                             ['Group mm', result.group_size_mm ?? '—'],
-                            ['Distance', result.distance_yards ? `${result.distance_yards} yd` : '—'],
+                            ['Distance', result.distance_yards ? `${result.distance_yards}yd / ${Math.round(result.distance_yards * 0.9144)}m` : '—'],
                           ].map(([label, value]) => (
-                            <div key={label} className="bg-secondary/40 rounded-xl px-2.5 py-2.5 text-center">
+                            <div key={label} className="bg-secondary/40 rounded-xl px-2 py-2.5 text-center">
                               <p className="text-[9px] font-bold text-muted-foreground uppercase mb-0.5">{label}</p>
-                              <p className="text-sm font-bold">{value}</p>
+                              <p className="text-xs font-bold leading-tight">{value}</p>
                             </div>
                           ))}
                         </div>
@@ -312,7 +312,7 @@ export default function TestViewModal({ test, variants, results, onClose, onEdit
                         )}
 
                         {result.test_date && (
-                          <p className="text-xs text-muted-foreground border-t border-border pt-2">
+                          <p className="text-xs text-muted-foreground">
                             Tested: {format(new Date(result.test_date), 'MMM d, yyyy')}
                           </p>
                         )}

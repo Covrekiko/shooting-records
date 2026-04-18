@@ -10,6 +10,8 @@ const Field = ({ label, children }) => (
 );
 
 export default function ResultFormModal({ test, variant, result, onClose, onSaved }) {
+  const [distanceUnit, setDistanceUnit] = useState('yards');
+
   const [form, setForm] = useState({
     tested: true,
     test_date: '',
@@ -140,9 +142,29 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
             <input value={form.test_date ?? ''} onChange={e => set('test_date', e.target.value)} type="date"
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
           </Field>
-          <Field label="Distance (yards)">
-            <input value={form.distance_yards ?? ''} onChange={e => set('distance_yards', e.target.value)} type="number" placeholder="100"
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          <Field label={`Distance (${distanceUnit})`}>
+            <div className="flex gap-1">
+              <input
+                value={form.distance_yards ?? ''}
+                onChange={e => {
+                  const val = parseFloat(e.target.value) || '';
+                  if (distanceUnit === 'meters' && val) {
+                    set('distance_yards', Math.round(val * 1.09361));
+                  } else {
+                    set('distance_yards', val);
+                  }
+                }}
+                type="number" placeholder={distanceUnit === 'yards' ? '100' : '91'}
+                className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none min-w-0"
+              />
+              <button
+                type="button"
+                onClick={() => setDistanceUnit(u => u === 'yards' ? 'meters' : 'yards')}
+                className="px-2 py-1 text-[10px] font-bold bg-secondary rounded-lg hover:bg-secondary/80 flex-shrink-0"
+              >
+                {distanceUnit === 'yards' ? 'yd' : 'm'}
+              </button>
+            </div>
           </Field>
         </div>
 
