@@ -49,10 +49,6 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
       ]);
       setVariants(vs);
       setResults(rs);
-      // Expand all variants and results by default
-      const allOpen = vs.reduce((acc, v) => ({ ...acc, [v.id]: true }), {});
-      setExpandedVariants(allOpen);
-      setExpandedResults(allOpen);
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
