@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
+import { getRepository } from '@/lib/offlineSupport';
 import Navigation from '@/components/Navigation';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import GpsPathViewer from '@/components/GpsPathViewer';
@@ -55,12 +56,12 @@ export default function Records() {
       });
       setUsers(userMap);
 
-      // Load rifles, shotguns, clubs, and locations
+      // Load rifles, shotguns, clubs, and locations (offline-aware)
       const [allRifles, allShotguns, allClubs, allLocations] = await Promise.all([
-        base44.entities.Rifle.filter({ created_by: currentUser.email }),
-        base44.entities.Shotgun.filter({ created_by: currentUser.email }),
-        base44.entities.Club.filter({ created_by: currentUser.email }),
-        base44.entities.DeerLocation.filter({ created_by: currentUser.email }),
+        getRepository('Rifle').filter({ created_by: currentUser.email }),
+        getRepository('Shotgun').filter({ created_by: currentUser.email }),
+        getRepository('Club').filter({ created_by: currentUser.email }),
+        getRepository('DeerLocation').filter({ created_by: currentUser.email }),
       ]);
 
       const rifleMap = {};
@@ -84,7 +85,7 @@ export default function Records() {
         query.created_by = currentUser.email;
       }
 
-      const sessionRecords = await base44.entities.SessionRecord.filter(query);
+      const sessionRecords = await getRepository('SessionRecord').filter(query);
 
       // Map category to recordType for compatibility
       const records = sessionRecords.map((r) => {
@@ -129,7 +130,7 @@ export default function Records() {
       console.log(`🟡 [handleDelete] Starting delete for session: ${id}`);
 
       // Fetch the record first to see what data we have
-      const recordToDelete = await base44.entities.SessionRecord.get(id);
+      const recordToDelete = await getRepository('SessionRecord').get(id);
       console.log('🟡 [handleDelete] Record category:', recordToDelete.category);
       console.log('🟡 [handleDelete] ammunition_id:', recordToDelete.ammunition_id);
       console.log('🟡 [handleDelete] rounds_fired:', recordToDelete.rounds_fired);
@@ -178,11 +179,11 @@ export default function Records() {
       
       if (recordId) {
         // Update existing
-        await base44.entities.SessionRecord.update(recordId, recordData);
+        await getRepository('SessionRecord').update(recordId, recordData);
         setAllRecords(allRecords.map(r => r.id === recordId ? { ...r, ...recordData, recordType } : r));
       } else {
         // Create new
-        const newRecord = await base44.entities.SessionRecord.create(recordData);
+        const newRecord = await getRepository('SessionRecord').create(recordData);
         setAllRecords([{ ...newRecord, recordType }, ...allRecords]);
       }
     } catch (error) {

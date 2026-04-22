@@ -19,7 +19,7 @@ import { RoundsPerMonthChart } from '@/components/RoundsPerMonthChart';
 import { DeerSuccessRateChart } from '@/components/DeerSuccessRateChart';
 import AmmoStockWidget from '@/components/AmmoStockWidget';
 import ReloadingWidget from '@/components/widgets/ReloadingWidget';
-import { preCacheUserData } from '@/lib/offlineSupport';
+import { preCacheUserData, getRepository } from '@/lib/offlineSupport';
 
 // ── data helpers (unchanged logic) ──────────────────────────────────────────
 function getMonthlyData(targetShoots, clayShoots, deerMgmt) {
@@ -251,7 +251,7 @@ export default function Dashboard() {
       if (currentUser.role === 'admin') {
         const [users, allRecords] = await Promise.all([
           base44.entities.User.list(),
-          base44.entities.SessionRecord.filter({ created_by: currentUser.email }),
+          getRepository('SessionRecord').filter({ created_by: currentUser.email }),
         ]);
         const targetRecords = allRecords.filter((r) => r.category === 'target_shooting');
         const clayRecords = allRecords.filter((r) => r.category === 'clay_shooting');
@@ -259,11 +259,11 @@ export default function Dashboard() {
         setStats({ totalUsers: users.length, totalRecords: allRecords.length, targetRecords: targetRecords.length, clayRecords: clayRecords.length, deerRecords: deerRecords.length });
       } else {
         const [allRecords, rifles, shotguns, clubs, locations] = await Promise.all([
-          base44.entities.SessionRecord.filter({ created_by: currentUser.email }),
-          base44.entities.Rifle.filter({ created_by: currentUser.email }),
-          base44.entities.Shotgun.filter({ created_by: currentUser.email }),
-          base44.entities.Club.filter({ created_by: currentUser.email }),
-          base44.entities.DeerLocation.filter({ created_by: currentUser.email }),
+          getRepository('SessionRecord').filter({ created_by: currentUser.email }),
+          getRepository('Rifle').filter({ created_by: currentUser.email }),
+          getRepository('Shotgun').filter({ created_by: currentUser.email }),
+          getRepository('Club').filter({ created_by: currentUser.email }),
+          getRepository('DeerLocation').filter({ created_by: currentUser.email }),
         ]);
         const targetShoots = allRecords.filter((r) => r.category === 'target_shooting');
         const clayShoots = allRecords.filter((r) => r.category === 'clay_shooting');

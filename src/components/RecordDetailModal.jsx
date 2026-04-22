@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Clock } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { getRepository } from '@/lib/offlineSupport';
 import { format } from 'date-fns';
 
 const Field = ({ label, value }) => {
@@ -33,8 +33,8 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
   const [rec, setRec] = useState(record);
 
   useEffect(() => {
-    base44.entities.SessionRecord.get(record.id)
-      .then(updated => setRec({ ...updated, recordType: record.recordType }))
+    getRepository('SessionRecord').get(record.id)
+      .then(updated => { if (updated) setRec({ ...updated, recordType: record.recordType }); })
       .catch(() => {});
   }, [record.id]);
 
