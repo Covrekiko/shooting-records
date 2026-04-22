@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Shield, BookOpen, User } from 'lucide-react';
+import { Home, Shield, BookOpen, User, RefreshCw, WifiOff, CloudUpload } from 'lucide-react';
 import { useTabHistory, getTabForPath, TAB_DEFAULT } from '../context/TabHistoryContext';
+import { useOffline } from '../context/OfflineContext';
 
 const TABS = [
   { key: 'home',    label: 'Home',    icon: Home },
@@ -14,6 +15,7 @@ export default function MobileTabBar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { setLastPath, getLastPath } = useTabHistory();
+  const { isOnline, isSyncing, hasPending, syncFailed, pendingCount, manualSync } = useOffline();
 
   // Track path changes into tab history
   useEffect(() => {
@@ -35,11 +37,37 @@ export default function MobileTabBar() {
     navigate(dest);
   };
 
+  // Sync status pill config
+  let syncPill = null;
+  if (!isOnline) {
+    syncPill = { icon: WifiOff, label: 'Offline', bg: 'bg-slate-600', action: null };
+  } else if (isSyncing) {
+    syncPill = { icon: RefreshCw, label: `Syncing…`, bg: 'bg-blue-500', spinning: true, action: null };
+  } else if (syncFailed) {
+    syncPill = { icon: CloudUpload, label: 'Sync failed — tap to retry', bg: 'bg-red-500', action: manualSync };
+  } else if (hasPending) {
+    syncPill = { icon: CloudUpload, label: `${pendingCount} pending`, bg: 'bg-amber-500', action: manualSync };
+  }
+
   return (
     <nav
       className="md:hidden fixed bottom-0 left-0 right-0 z-[9000] bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-700/60"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
+      {/* Sync status strip */}
+      {syncPill && (() => {
+        const PillIcon = syncPill.icon;
+        return (
+          <button
+            onClick={syncPill.action || undefined}
+            disabled={!syncPill.action}
+            className={`w-full flex items-center justify-center gap-1.5 py-1 text-white text-[10px] font-semibold ${syncPill.bg} ${syncPill.action ? 'active:opacity-80' : ''}`}
+          >
+            <PillIcon className={`w-3 h-3 flex-shrink-0 ${syncPill.spinning ? 'animate-spin' : ''}`} />
+            {syncPill.label}
+          </button>
+        );
+      })()}
       <div className="flex items-stretch">
         {TABS.map(({ key, label, icon: Icon }) => {
           const isActive = key === activeTab;
