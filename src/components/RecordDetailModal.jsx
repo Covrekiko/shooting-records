@@ -7,9 +7,9 @@ import { format } from 'date-fns';
 const Field = ({ label, value }) => {
   if (!value && value !== 0) return null;
   return (
-    <div>
+    <div className="min-w-0">
       <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">{label}</p>
-      <p className="text-sm font-medium">{value}</p>
+      <p className="text-sm font-medium break-words" style={{ overflowWrap: 'anywhere' }}>{value}</p>
     </div>
   );
 };
@@ -110,7 +110,7 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
                             <span className="text-xs text-muted-foreground font-medium">Firearm #{idx + 1}</span>
                             <span className="font-semibold text-sm">{r.rounds_fired || 0} rounds</span>
                           </div>
-                          <div className="p-4 grid grid-cols-2 gap-3">
+                          <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <Field label="Rifle" value={getRifleName(r.rifle_id)} />
                             {rifle?.make && <Field label="Make" value={rifle.make} />}
                             {rifle?.model && <Field label="Model" value={rifle.model} />}
@@ -147,7 +147,7 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
               {rec.shotgun_id && getShotgun(rec.shotgun_id) && (
                 <Section title="Shotgun">
                   <Field label="Name" value={getShotgun(rec.shotgun_id)?.name} />
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-3 min-w-0">
                     <Field label="Make" value={getShotgun(rec.shotgun_id)?.make} />
                     <Field label="Model" value={getShotgun(rec.shotgun_id)?.model} />
                     <Field label="Gauge" value={getShotgun(rec.shotgun_id)?.gauge} />
@@ -159,7 +159,7 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
               )}
 
               <Section title="Session Stats">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Field label="Rounds Fired" value={rec.rounds_fired ? `${rec.rounds_fired} rounds` : null} />
                   <Field label="Ammunition" value={rec.ammunition_used} />
                 </div>
@@ -200,7 +200,7 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
                   {rec.rifle_id && getRifle(rec.rifle_id) && (
                     <Section title="Rifle & Ammunition">
                       <Field label="Rifle" value={getRifleName(rec.rifle_id)} />
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-3 gap-3 min-w-0">
                         <Field label="Make" value={getRifle(rec.rifle_id)?.make} />
                         <Field label="Model" value={getRifle(rec.rifle_id)?.model} />
                         <Field label="Caliber" value={getRifle(rec.rifle_id)?.caliber} />
