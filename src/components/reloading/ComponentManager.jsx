@@ -345,19 +345,19 @@ export default function ComponentManager() {
       />
       {/* Form */}
       {showForm && (
-        <div className="bg-card border border-border rounded-xl p-4 space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="bg-card border border-border rounded-2xl overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-4 border-b border-border">
             <h3 className="font-bold text-lg">{editingId ? 'Edit Component' : 'Add Component'}</h3>
-            <button onClick={() => { setShowForm(false); setEditingId(null); setShowDropdown(false); setShowCaliberDropdown(false); setLockedComponentType(null); }} className="p-1 hover:bg-secondary rounded">
+            <button onClick={() => { setShowForm(false); setEditingId(null); setShowDropdown(false); setShowCaliberDropdown(false); setLockedComponentType(null); }} className="w-10 h-10 flex items-center justify-center hover:bg-secondary rounded-xl">
               <X className="w-5 h-5" />
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="p-4 space-y-4">
             <div>
               <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Component Type</label>
               {lockedComponentType ? (
-                <div className="w-full px-3 py-2 border border-border rounded-lg bg-secondary text-foreground font-medium">
+                <div className="w-full px-3 py-3 border border-border rounded-xl bg-secondary text-foreground font-medium text-base">
                   {COMPONENT_TYPES.find(t => t.value === lockedComponentType)?.label}
                 </div>
               ) : (
@@ -367,7 +367,7 @@ export default function ComponentManager() {
                     const type = COMPONENT_TYPES.find(t => t.value === e.target.value);
                     setFormData({ ...formData, component_type: e.target.value, unit: type.units[0] });
                   }}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                  className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-base"
                 >
                   {COMPONENT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                 </select>
@@ -603,14 +603,15 @@ export default function ComponentManager() {
                 </div>
                 )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Quantity</label>
                 <input
                   type="number"
+                  inputMode="decimal"
                   value={formData.quantity_total}
                   onChange={(e) => setFormData({ ...formData, quantity_total: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                  className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-base"
                   placeholder="1000"
                   required
                 />
@@ -620,7 +621,7 @@ export default function ComponentManager() {
                 <select
                   value={formData.unit}
                   onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                  className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-base"
                 >
                   {selectedType?.units.map(u => <option key={u} value={u}>{u}</option>)}
                 </select>
@@ -631,9 +632,10 @@ export default function ComponentManager() {
               <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Total Price (£)</label>
               <input
                 type="number"
+                inputMode="decimal"
                 value={formData.price_total}
                 onChange={(e) => setFormData({ ...formData, price_total: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-base"
                 placeholder="100"
                 step="0.01"
                 required
@@ -661,7 +663,7 @@ export default function ComponentManager() {
               />
             </div>
 
-            <button type="submit" className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90">
+            <button type="submit" className="w-full px-4 py-4 bg-primary text-primary-foreground rounded-xl font-semibold text-base hover:opacity-90 active:scale-95 transition-transform mt-2">
               {editingId ? 'Update Component' : 'Add Component'}
             </button>
           </form>
@@ -737,24 +739,24 @@ export default function ComponentManager() {
                          )}
                         </div>
                         <div className="flex gap-1 flex-shrink-0">
-                          {comp.component_type === 'brass' && (
-                            <button
-                              onClick={() => downloadBrassBatchPdf(comp)}
-                              className="p-2 hover:bg-secondary rounded transition-colors text-muted-foreground"
-                              title="Download batch report PDF"
-                            >
-                              <Download className="w-4 h-4" />
-                            </button>
-                          )}
+                         {comp.component_type === 'brass' && (
+                           <button
+                             onClick={() => downloadBrassBatchPdf(comp)}
+                             className="w-9 h-9 flex items-center justify-center hover:bg-secondary rounded-lg transition-colors text-muted-foreground"
+                             title="Download batch report PDF"
+                           >
+                             <Download className="w-4 h-4" />
+                           </button>
+                         )}
                           <button
                             onClick={() => handleEdit(comp)}
-                            className="p-2 hover:bg-secondary rounded transition-colors"
+                            className="w-9 h-9 flex items-center justify-center hover:bg-secondary rounded-lg transition-colors"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(comp.id)}
-                            className="p-2 hover:bg-destructive/10 text-destructive rounded transition-colors"
+                            className="w-9 h-9 flex items-center justify-center hover:bg-destructive/10 text-destructive rounded-lg transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>

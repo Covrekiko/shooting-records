@@ -224,7 +224,7 @@ export default function ReloadingManagement() {
   return (
     <div>
       <Navigation />
-      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8">
+      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         {/* Title Section */}
         <div className="flex items-start justify-between mb-6">
           <div>
@@ -387,8 +387,9 @@ export default function ReloadingManagement() {
 
         {/* Reload Batch Form Modal */}
         {showBatchForm && createPortal(
-          <div className="fixed inset-0 bg-black/50 z-[50000] flex items-end sm:items-center justify-center p-4 sm:p-0">
-            <div className="bg-card rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/50 z-[50000] flex items-end sm:items-center justify-center">
+            <div className="bg-card rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl flex flex-col"
+              style={{ maxHeight: '92dvh' }}>
               <ReloadBatchForm
                 onSubmit={() => {
                   setShowBatchForm(false);
@@ -403,8 +404,9 @@ export default function ReloadingManagement() {
 
         {/* Old Session Form Modal */}
         {showForm && createPortal(
-          <div className="fixed inset-0 bg-black/50 z-[50000] flex items-end sm:items-center justify-center p-4 sm:p-0">
-            <div className="bg-card rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/50 z-[50000] flex items-end sm:items-center justify-center">
+            <div className="bg-card rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl flex flex-col"
+              style={{ maxHeight: '92dvh' }}>
               <ReloadingSessionForm
                 session={editingSession}
                 onSubmit={handleSubmit}
