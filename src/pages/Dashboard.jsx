@@ -317,15 +317,7 @@ export default function Dashboard() {
 
       <main className="max-w-2xl mx-auto px-3 pt-2 pb-8 mobile-page-padding space-y-3">
 
-        {/* ── Header ── */}
-        <div className="flex items-center justify-end px-0.5">
-          <Link to="/ammo-summary">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200/70 dark:border-slate-700 shadow-sm">
-              <Zap className="w-3.5 h-3.5 text-primary" />
-              <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Armory</span>
-            </div>
-          </Link>
-        </div>
+
 
         {/* ── Active Session Banner ── */}
         {activeOuting && <ActiveSessionBanner outing={activeOuting} />}
