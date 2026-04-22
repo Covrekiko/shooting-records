@@ -7,8 +7,8 @@ import { useOuting } from '@/context/OutingContext';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import {
-  Target, Crosshair, Map, BookOpen, Settings,
-  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers,
+  Target, Crosshair, Map, BookOpen,
+  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck,
 } from 'lucide-react';
 import {
   MonthlyActivityChart,
@@ -180,11 +180,11 @@ function SecondaryGrid({ user }) {
     { to: '/target-shooting', icon: <Crosshair />, label: 'Target' },
     { to: '/clay-shooting', icon: <Target />, label: 'Clay' },
     { to: '/deer-management', icon: <span className="text-lg">🦌</span>, label: 'Deer' },
-    { to: '/records', icon: <BookOpen />, label: 'Records' },
     { to: '/reloading', icon: <RefreshCw />, label: 'Reloading' },
+    { to: '/load-development', icon: <FlaskConical />, label: 'Load Dev' },
     { to: '/settings/rifles', icon: <span className="text-lg">🔧</span>, label: 'Equipment' },
     { to: '/reports', icon: <BarChart3 />, label: 'Reports' },
-    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <Shield />, label: 'Admin' }] : []),
+    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck />, label: 'Admin' }] : []),
   ];
 
   return (

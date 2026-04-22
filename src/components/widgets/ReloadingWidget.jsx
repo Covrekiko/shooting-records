@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ArrowRight, AlertCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { AlertCircle } from 'lucide-react';
 
 export default function ReloadingWidget() {
   const [stats, setStats] = useState({
@@ -68,9 +67,7 @@ export default function ReloadingWidget() {
           </div>
           <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Reloading Stats</h3>
         </div>
-        <Link to="/reloading" className="text-primary hover:opacity-80 transition-opacity text-xs font-semibold">
-          Manage
-        </Link>
+        <span />
       </div>
 
       <div className="space-y-3">
