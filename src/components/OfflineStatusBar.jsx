@@ -11,9 +11,10 @@ import { SYNC_STATE } from '@/lib/syncEngine';
 export default function OfflineStatusBar() {
   const { isOnline, syncState, pendingCount, lastSyncResult, manualSync, isSyncing } = useOffline();
 
-  // Don't show anything when online + idle + no pending
-  if (isOnline && syncState === SYNC_STATE.IDLE && pendingCount === 0) return null;
+  // Don't show when online and nothing actively wrong
+  if (isOnline && syncState === SYNC_STATE.IDLE) return null;
   if (isOnline && syncState === SYNC_STATE.DONE) return null;
+  if (isOnline && pendingCount === 0 && syncState !== SYNC_STATE.FAILED) return null;
 
   let content = null;
   let bgClass = '';
