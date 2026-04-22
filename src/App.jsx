@@ -11,6 +11,7 @@ import { OfflineProvider } from '@/context/OfflineContext';
 import OfflineStatusBar from '@/components/OfflineStatusBar';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { TabHistoryProvider } from '@/context/TabHistoryContext';
+import MobileTabBar from '@/components/MobileTabBar';
 import { useEffect } from 'react';
 import ProfileSetup from './pages/ProfileSetup';
 import Dashboard from './pages/Dashboard';
@@ -157,6 +158,7 @@ function App() {
                 <TabHistoryProvider>
                   <OfflineStatusBar />
                   <AuthenticatedApp />
+                  <MobileTabBar />
                   <Toaster />
                 </TabHistoryProvider>
               </Router>
