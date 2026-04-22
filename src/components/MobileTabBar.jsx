@@ -22,7 +22,7 @@ export default function MobileTabBar() {
   }, [location.pathname]);
 
   // Hide on full-screen pages like the stalking map
-  if (HIDDEN_ON_PATHS.includes(location.pathname)) return null;
+  if (location.pathname === '/deer-stalking') return null;
 
   const activeTab = getTabForPath(location.pathname);
 
