@@ -3,9 +3,12 @@ import { Home, Crosshair, Map, Shield, BookOpen, User } from 'lucide-react';
 import { useTabHistory, getTabForPath, TAB_DEFAULT } from '@/context/TabHistoryContext';
 import { useEffect } from 'react';
 
+// Pages where the bottom tab bar should be hidden
+const HIDDEN_ON_PATHS = ['/deer-stalking'];
+
 const TABS = [
   { key: 'home',     label: 'Home',     icon: Home },
-  { key: 'sessions', label: 'Sessions', icon: Crosshair },
+  { key: 'sessions', label: 'Target', icon: Crosshair },
   { key: 'field',    label: 'Field',    icon: Map },
   { key: 'armory',   label: 'Armory',   icon: Shield },
   { key: 'records',  label: 'Records',  icon: BookOpen },
@@ -22,6 +25,9 @@ export default function MobileTabBar() {
     const tab = getTabForPath(location.pathname);
     if (tab) setLastPath(tab, location.pathname);
   }, [location.pathname]);
+
+  // Hide on full-screen pages like the stalking map
+  if (HIDDEN_ON_PATHS.includes(location.pathname)) return null;
 
   const activeTab = getTabForPath(location.pathname);
 
