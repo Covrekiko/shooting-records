@@ -563,7 +563,7 @@ export default function DeerStalkingMap() {
 
       {/* ── PIN PLACEMENT TOAST ── */}
       {waitingForPin && (
-        <div className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[9998] pointer-events-auto">
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[9998] pointer-events-auto">
           <div className="flex items-center gap-3 px-4 py-2.5 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-2xl shadow-lg border border-white/40 dark:border-slate-600/40 backdrop-blur-md">
             <span className="text-sm font-semibold">Tap map to place pin</span>
             <button
