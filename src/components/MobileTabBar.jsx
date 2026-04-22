@@ -1,7 +1,7 @@
-import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, Shield, BookOpen, User } from 'lucide-react';
-import { useTabHistory, getTabForPath, TAB_DEFAULT } from '@/context/TabHistoryContext';
+import { useTabHistory, getTabForPath, TAB_DEFAULT } from '../context/TabHistoryContext';
 
 const TABS = [
   { key: 'home',    label: 'Home',    icon: Home },
@@ -19,7 +19,7 @@ export default function MobileTabBar() {
   useEffect(() => {
     const tab = getTabForPath(location.pathname);
     if (tab) setLastPath(tab, location.pathname);
-  }, [location.pathname]);
+  }, [location.pathname, setLastPath]);
 
   // Hide on full-screen pages like the stalking map
   if (location.pathname === '/deer-stalking') return null;
@@ -28,11 +28,9 @@ export default function MobileTabBar() {
 
   const handleTabPress = (tabKey) => {
     if (tabKey === activeTab) {
-      // Already on this tab — navigate to tab default (scroll-to-top / reset)
       navigate(TAB_DEFAULT[tabKey]);
       return;
     }
-    // Navigate to last remembered path within that tab
     const dest = getLastPath(tabKey);
     navigate(dest);
   };
@@ -50,17 +48,17 @@ export default function MobileTabBar() {
               key={key}
               onClick={() => handleTabPress(key)}
               className={`flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 transition-colors active:scale-90 transform-gpu ${
-                isActive
-                  ? 'text-primary'
-                  : 'text-slate-400 dark:text-slate-500'
+                isActive ? 'text-primary' : 'text-slate-400 dark:text-slate-500'
               }`}
             >
-              <div className={`relative flex items-center justify-center w-7 h-7 rounded-xl transition-all ${
+              <div className={`flex items-center justify-center w-7 h-7 rounded-xl transition-all ${
                 isActive ? 'bg-primary/10 dark:bg-primary/20' : ''
               }`}>
-                <Icon className={`w-4.5 h-4.5 transition-all ${isActive ? 'w-5 h-5' : ''}`} style={{ width: isActive ? 20 : 18, height: isActive ? 20 : 18 }} />
+                <Icon style={{ width: isActive ? 20 : 18, height: isActive ? 20 : 18 }} />
               </div>
-              <span className={`text-[9px] font-semibold tracking-tight leading-none ${isActive ? 'text-primary' : 'text-slate-400 dark:text-slate-500'}`}>
+              <span className={`text-[9px] font-semibold tracking-tight leading-none ${
+                isActive ? 'text-primary' : 'text-slate-400 dark:text-slate-500'
+              }`}>
                 {label}
               </span>
             </button>
