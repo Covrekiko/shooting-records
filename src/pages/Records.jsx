@@ -368,13 +368,13 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
   return (
     <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <h3 className="font-semibold text-lg">{getRecordTitle()}</h3>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-lg break-words" style={{ overflowWrap: 'anywhere' }}>{getRecordTitle()}</h3>
           <p className="text-sm text-muted-foreground mb-2">{record.date} • {getBadgeLabel(record.recordType)}</p>
           {serialNumbers.length > 0 && (
             <div className="text-sm text-muted-foreground space-y-0.5 mb-2">
               {serialNumbers.map((s, i) => (
-                <p key={i}><span className="font-medium">S/N:</span> <span className="font-mono">{s.sn}</span> <span className="text-xs">({s.name})</span></p>
+                <p key={i} className="break-all"><span className="font-medium">S/N:</span> <span className="font-mono">{s.sn}</span> <span className="text-xs">({s.name})</span></p>
               ))}
             </div>
           )}
