@@ -65,33 +65,44 @@ export default function AreaSaveForm({ polygon, onSave, onCancel, onFlyTo }) {
     }
   };
 
-  const handleUseMyAddress = async () => {
-    setLoadingMyAddress(true);
-    try {
-      const user = await base44.auth.me();
-      const parts = [user.addressLine1, user.addressLine2, user.postcode].filter(Boolean);
-      if (parts.length === 0) {
-        alert('No address found on your profile. Please update your profile first.');
-        return;
-      }
-      const addressStr = parts.join(', ');
-      // Pre-fill fields
-      setFormData((prev) => ({
-        ...prev,
-        location_address: [user.addressLine1, user.addressLine2].filter(Boolean).join(', '),
-        postcode: user.postcode || prev.postcode,
-      }));
-      // Geocode and fly to
-      const result = await geocodeAddress(addressStr);
-      if (result) {
-        setGeocodedCoords({ lat: result.lat, lng: result.lng });
-        if (onFlyTo) onFlyTo(result.lat, result.lng);
-      }
-    } catch (error) {
-      console.error('Error loading profile address:', error);
-    } finally {
-      setLoadingMyAddress(false);
+  const handleUseMyAddress = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser.');
+      return;
     }
+    setLoadingMyAddress(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude: lat, longitude: lng } = position.coords;
+          setGeocodedCoords({ lat, lng });
+          if (onFlyTo) onFlyTo(lat, lng);
+          // Reverse geocode to get a human-readable address
+          const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyByd7U3DJDZ6CqjhGmlllVXz3a56B45Df0';
+          const res = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`);
+          const data = await res.json();
+          if (data.status === 'OK' && data.results.length > 0) {
+            const result = data.results[0];
+            const postcodePart = result.address_components?.find(c => c.types.includes('postal_code'))?.long_name || '';
+            setFormData((prev) => ({
+              ...prev,
+              location_address: result.formatted_address,
+              postcode: postcodePart || prev.postcode,
+            }));
+          }
+        } catch (error) {
+          console.error('Reverse geocode error:', error);
+        } finally {
+          setLoadingMyAddress(false);
+        }
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        alert('Unable to get your current location. Please check your location permissions.');
+        setLoadingMyAddress(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   const handleSubmit = async () => {
@@ -158,7 +169,7 @@ export default function AreaSaveForm({ polygon, onSave, onCancel, onFlyTo }) {
               {loadingMyAddress
                 ? <Loader2 className="w-3 h-3 animate-spin" />
                 : <MapPin className="w-3 h-3" />}
-              Use my address
+              Use current location
             </button>
           </div>
           <div className="flex gap-2">
