@@ -688,6 +688,12 @@ export default function DeerStalkingMap() {
                   setShowAreaForm(false);
                   setDrawnPolygon(null);
                 }}
+                onFlyTo={(lat, lng) => {
+                  if (mapRef.current) {
+                    mapRef.current.panTo({ lat, lng });
+                    mapRef.current.setZoom(15);
+                  }
+                }}
               />
             </div>
           )}
