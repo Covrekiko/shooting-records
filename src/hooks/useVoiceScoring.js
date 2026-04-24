@@ -1,22 +1,20 @@
 import { useState, useRef, useCallback } from 'react';
 
 // Maps spoken words to shot results
+// Voice accepts: hit/heat/dead → 'dead', miss/missed/lost → 'lost', no bird → 'no_bird'
 function parseVoiceResult(transcript) {
   const t = transcript.toLowerCase().trim();
   const words = t.split(/\s+/);
 
-  // Check for "no bird" / "no hit" as two-word phrases first
+  // Check for "no bird" / "no birds" first
   if (t.includes('no bird') || t.includes('no birds') || t === 'bird') {
     return { result: 'no_bird', confidence: 1 };
-  }
-  if (t.includes('no hit') || t.includes('no-hit')) {
-    return { result: 'miss', confidence: 1 };
   }
 
   // Single word commands
   for (const word of words) {
-    if (['hit', 'dead'].includes(word)) return { result: 'hit', confidence: 1 };
-    if (['miss', 'missed', 'lost'].includes(word)) return { result: 'miss', confidence: 1 };
+    if (['hit', 'heat', 'dead'].includes(word)) return { result: 'dead', confidence: 1 };
+    if (['miss', 'missed', 'lost'].includes(word)) return { result: 'lost', confidence: 1 };
     if (['bird'].includes(word)) return { result: 'no_bird', confidence: 0.9 };
   }
 

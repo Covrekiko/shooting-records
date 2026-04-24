@@ -283,8 +283,8 @@ function StandForm({ stand, standNumber, onSave, onCancel, initialShots }) {
 
 // ─── Shot-by-Shot Card ────────────────────────────────────────────
 function ShotByShotCard({ stand, shots, onAddShot, onRemoveShot, onEdit, onDelete }) {
-  const hits = shots.filter(s => s.result === 'hit').length;
-  const misses = shots.filter(s => s.result === 'miss').length;
+  const hits = shots.filter(s => s.result === 'dead').length;
+  const misses = shots.filter(s => s.result === 'lost').length;
   const noBirds = shots.filter(s => s.result === 'no_bird').length;
   const validScored = hits + misses;
   const pct = validScored > 0 ? Math.round((hits / validScored) * 100) : 0;
@@ -303,7 +303,6 @@ function ShotByShotCard({ stand, shots, onAddShot, onRemoveShot, onEdit, onDelet
         <div>
           <span className="font-bold text-base">Stand {stand.stand_number}</span>
           <span className="ml-2 text-xs bg-secondary px-2 py-0.5 rounded-full">{stand.discipline_type}</span>
-          <span className="ml-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">Shot-by-Shot</span>
         </div>
         <div className="flex gap-1">
           <button onClick={() => setExpanded(e => !e)} className="p-2 hover:bg-secondary rounded-lg">
@@ -318,22 +317,22 @@ function ShotByShotCard({ stand, shots, onAddShot, onRemoveShot, onEdit, onDelet
       <div className="grid grid-cols-4 gap-2 mb-3">
         <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-2.5 text-center">
           <p className="text-xl font-black text-emerald-600">{hits}</p>
-          <p className="text-xs text-muted-foreground">Hits</p>
+          <p className="text-xs text-muted-foreground">Dead</p>
         </div>
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-2.5 text-center">
           <p className="text-xl font-black text-red-500">{misses}</p>
-          <p className="text-xs text-muted-foreground">Misses</p>
+          <p className="text-xs text-muted-foreground">Lost</p>
         </div>
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-2.5 text-center">
           <p className="text-xl font-black text-amber-600">{noBirds}</p>
-          <p className="text-xs text-muted-foreground">No Birds</p>
+          <p className="text-xs text-muted-foreground">No Bird</p>
         </div>
         <div className="bg-primary/10 rounded-xl p-2.5 text-center">
           <p className="text-xl font-black text-primary">{pct}%</p>
-          <p className="text-xs text-muted-foreground">Hit %</p>
+          <p className="text-xs text-muted-foreground">Score</p>
         </div>
       </div>
-      <p className="text-xs text-muted-foreground mb-3">Score: {hits}/{validScored} valid clays</p>
+      <p className="text-xs text-muted-foreground mb-3">Score: {hits}/{validScored} valid</p>
 
       {expanded && (
         <>
@@ -351,13 +350,13 @@ function ShotByShotCard({ stand, shots, onAddShot, onRemoveShot, onEdit, onDelet
           )}
 
           <div className="grid grid-cols-4 gap-2">
-            <motion.button whileTap={{ scale: 0.92 }} onClick={() => onAddShot('hit')}
+            <motion.button whileTap={{ scale: 0.92 }} onClick={() => onAddShot('dead')}
               className="py-3 bg-emerald-500 text-white rounded-xl font-bold text-sm col-span-1">
-              ✓ Hit
+              ✓ Dead
             </motion.button>
-            <motion.button whileTap={{ scale: 0.92 }} onClick={() => onAddShot('miss')}
+            <motion.button whileTap={{ scale: 0.92 }} onClick={() => onAddShot('lost')}
               className="py-3 bg-red-500 text-white rounded-xl font-bold text-sm col-span-1">
-              ✗ Miss
+              ✗ Lost
             </motion.button>
             <motion.button whileTap={{ scale: 0.92 }} onClick={() => onAddShot('no_bird')}
               className="py-3 bg-amber-400 text-white rounded-xl font-bold text-xs col-span-1">
@@ -401,31 +400,31 @@ function QuickStandCard({ stand, onHit, onMiss, onNoBird, onUndo, onEdit, onDele
       <div className="grid grid-cols-4 gap-2 mb-2">
         <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3 text-center">
           <p className="text-2xl font-black text-emerald-600">{stand.hits || 0}</p>
-          <p className="text-xs text-muted-foreground">Hits</p>
+          <p className="text-xs text-muted-foreground">Dead</p>
         </div>
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 text-center">
           <p className="text-2xl font-black text-red-500">{stand.misses || 0}</p>
-          <p className="text-xs text-muted-foreground">Misses</p>
+          <p className="text-xs text-muted-foreground">Lost</p>
         </div>
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-center">
           <p className="text-2xl font-black text-amber-600">{noBirds}</p>
-          <p className="text-xs text-muted-foreground">No Birds</p>
+          <p className="text-xs text-muted-foreground">No Bird</p>
         </div>
         <div className="bg-primary/10 rounded-xl p-3 text-center">
           <p className="text-2xl font-black text-primary">{pct}%</p>
-          <p className="text-xs text-muted-foreground">Hit %</p>
+          <p className="text-xs text-muted-foreground">Score</p>
         </div>
       </div>
-      <p className="text-xs text-muted-foreground mb-3">Score: {stand.hits || 0}/{valid} valid clays</p>
+      <p className="text-xs text-muted-foreground mb-3">Score: {stand.hits || 0}/{valid} valid</p>
 
       <div className="grid grid-cols-4 gap-2">
         <motion.button whileTap={{ scale: 0.92 }} onClick={onHit}
           className="py-3.5 bg-emerald-500 text-white rounded-xl font-bold text-sm">
-          ✓ Hit
+          ✓ Dead
         </motion.button>
         <motion.button whileTap={{ scale: 0.92 }} onClick={onMiss}
           className="py-3.5 bg-red-500 text-white rounded-xl font-bold text-sm">
-          ✗ Miss
+          ✗ Lost
         </motion.button>
         <motion.button whileTap={{ scale: 0.92 }} onClick={onNoBird}
           className="py-3.5 bg-amber-400 text-white rounded-xl font-bold text-xs">
@@ -571,10 +570,15 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
 
   const handleAddStand = async (formData) => {
     const { _shotResults, ...cleanData } = formData;
+    // Convert results from form (null) to normalized format
+    const normalizedResults = _shotResults?.map(s => ({
+      ...s,
+      result: s.result === null ? null : s.result
+    }));
     const newStand = await base44.entities.ClayStand.create({ ...cleanData, clay_scorecard_id: scorecard.id });
     let shots = [];
-    if (newStand.scoring_method === 'shot_by_shot' && _shotResults) {
-      shots = await saveShotResults(newStand.id, _shotResults);
+    if (newStand.scoring_method === 'shot_by_shot' && normalizedResults) {
+      shots = await saveShotResults(newStand.id, normalizedResults);
     }
     setShotsMap(prev => ({ ...prev, [newStand.id]: shots }));
     const newStands = [...stands, newStand].sort((a, b) => a.stand_number - b.stand_number);
@@ -608,8 +612,8 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
 
   // ── Shot-by-Shot handlers ──
   const recalcFromShots = (shots) => {
-    const hits = shots.filter(s => s.result === 'hit').length;
-    const misses = shots.filter(s => s.result === 'miss').length;
+    const hits = shots.filter(s => s.result === 'dead').length;
+    const misses = shots.filter(s => s.result === 'lost').length;
     const no_birds = shots.filter(s => s.result === 'no_bird').length;
     const valid_scored_clays = hits + misses;
     const clays_total = valid_scored_clays + no_birds;
@@ -771,6 +775,7 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
                         onRemoveShot={() => handleRemoveShot(stand)}
                         onEdit={() => setEditingStand(stand)}
                         onDelete={() => handleDeleteStand(stand.id)}
+                        isDead={true}
                       />
                     </motion.div>
                   ) : (

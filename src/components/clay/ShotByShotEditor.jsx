@@ -10,10 +10,11 @@ const inp = 'w-full px-3 py-3 border border-border rounded-xl bg-background text
  * 
  * shots = [
  *   { shot_number: 1, result: null, input_method: null },
- *   { shot_number: 2, result: 'hit', input_method: 'voice' },
+ *   { shot_number: 2, result: 'dead', input_method: 'voice' },
  *   ...
  * ]
  * 
+ * Result values: 'dead' | 'lost' | 'no_bird' | null
  * activeShotIndex = index of shot being scored
  * activeShotIndexRef = ref for voice callback to read current index
  */
@@ -101,10 +102,10 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
   });
 
   // ─── CALCULATIONS ─────────────────────────────────────────────────
-  const hits = shots.filter(r => r === 'hit').length;
-  const misses = shots.filter(r => r === 'miss').length;
-  const validScored = hits + misses;
-  const hitPct = validScored > 0 ? Math.round((hits / validScored) * 100) : 0;
+  const dead = shots.filter(r => r === 'dead').length;
+  const lost = shots.filter(r => r === 'lost').length;
+  const validScored = dead + lost;
+  const score = validScored > 0 ? Math.round((dead / validScored) * 100) : 0;
 
   // ─── EVENT HANDLERS ───────────────────────────────────────────────
 
@@ -192,8 +193,8 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
     lastHeard,
     shots: shots.map((r, i) => `${i + 1}:${r || '—'}`).join(' '),
     validScored,
-    hits,
-    misses,
+    dead,
+    lost,
     noBirds,
   };
 
@@ -203,23 +204,23 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
       {/* Live stats */}
       <div className="grid grid-cols-4 gap-2">
         <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-2 text-center">
-          <p className="text-lg font-black text-emerald-600">{hits}</p>
-          <p className="text-[10px] text-muted-foreground">Hits</p>
+          <p className="text-lg font-black text-emerald-600">{dead}</p>
+          <p className="text-[10px] text-muted-foreground">Dead</p>
         </div>
         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-2 text-center">
-          <p className="text-lg font-black text-red-500">{misses}</p>
-          <p className="text-[10px] text-muted-foreground">Misses</p>
+          <p className="text-lg font-black text-red-500">{lost}</p>
+          <p className="text-[10px] text-muted-foreground">Lost</p>
         </div>
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-2 text-center">
           <p className="text-lg font-black text-amber-600">{noBirds}</p>
-          <p className="text-[10px] text-muted-foreground">No Birds</p>
+          <p className="text-[10px] text-muted-foreground">No Bird</p>
         </div>
         <div className="bg-primary/10 rounded-xl p-2 text-center">
-          <p className="text-lg font-black text-primary">{hitPct}%</p>
-          <p className="text-[10px] text-muted-foreground">Hit %</p>
+          <p className="text-lg font-black text-primary">{score}%</p>
+          <p className="text-[10px] text-muted-foreground">Score</p>
         </div>
       </div>
-      <p className="text-xs text-muted-foreground">Score: {hits}/{validScored} valid · {shots.filter(Boolean).length}/{totalShots} recorded</p>
+      <p className="text-xs text-muted-foreground">Score: {dead}/{validScored} · {shots.filter(Boolean).length}/{totalShots} recorded</p>
 
       {/* Voice Scoring Controls */}
       <div className={`rounded-xl border px-4 py-3 transition-colors ${isListening ? 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700' : 'bg-secondary/50 border-border'}`}>
@@ -231,13 +232,13 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
               <Mic className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             )}
             <div>
-              <p className="text-xs font-bold">{isListening ? 'Voice Scoring Active' : 'Voice Scoring'}</p>
+              <p className="text-xs font-bold">{isListening ? 'Voice Active' : 'Voice Scoring'}</p>
               {standComplete && !isListening ? (
                 <p className="text-[10px] text-emerald-600 font-semibold">✓ Stand complete!</p>
               ) : isListening && lastHeard ? (
                 <p className="text-[10px] text-muted-foreground">Heard: "<span className="font-semibold text-foreground">{lastHeard}</span>"</p>
               ) : (
-                <p className="text-[10px] text-muted-foreground">{isListening ? `Targeting: Shot ${activeShotIndex + 1}/${totalShots}` : 'Say: Hit · Miss · No Bird'}</p>
+                <p className="text-[10px] text-muted-foreground">{isListening ? `Targeting: Shot ${activeShotIndex + 1}/${totalShots}` : 'Say: Dead · Lost · No Bird'}</p>
               )}
             </div>
           </div>
@@ -258,7 +259,7 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
           <p className="text-[10px] text-emerald-600 font-bold mt-1">✓ All shots recorded</p>
         )}
         {voiceFlash === 'nb' && (
-          <p className="text-[10px] text-amber-600 font-bold mt-1">🎙 No Bird recorded</p>
+          <p className="text-[10px] text-amber-600 font-bold mt-1">🎙 No Bird</p>
         )}
         {voiceError && <p className="text-[10px] text-destructive mt-1">{voiceError}</p>}
       </div>
@@ -311,7 +312,7 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
                 <span className={`text-xs font-semibold ${isCurrent ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                   Shot {i + 1}
                 </span>
-                {isCurrent && !result && <span className="text-[9px] text-primary font-bold animate-pulse">← target</span>}
+                {isCurrent && !result && <span className="text-[9px] text-primary font-bold animate-pulse">target</span>}
                 {isVoice && result && <span className="text-[9px] text-primary font-bold">🎙</span>}
               </div>
 
@@ -321,30 +322,30 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
                   whileTap={{ scale: 0.93 }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleManualResult(i, 'hit');
+                    handleManualResult(i, 'dead');
                   }}
                   className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all border ${
-                    result === 'hit'
+                    result === 'dead'
                       ? 'bg-emerald-500 text-white border-emerald-600 shadow'
                       : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'
                   }`}
                 >
-                  ✓ Hit
+                  ✓ Dead
                 </motion.button>
                 <motion.button
                   type="button"
                   whileTap={{ scale: 0.93 }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleManualResult(i, 'miss');
+                    handleManualResult(i, 'lost');
                   }}
                   className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all border ${
-                    result === 'miss'
+                    result === 'lost'
                       ? 'bg-red-500 text-white border-red-600 shadow'
                       : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
                   }`}
                 >
-                  ✗ Miss
+                  ✗ Lost
                 </motion.button>
               </div>
             </div>
@@ -360,7 +361,7 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
           onClick={handleUndoLast}
           className="flex-1 py-2.5 bg-secondary text-secondary-foreground rounded-xl text-xs font-semibold hover:bg-secondary/80"
         >
-          ↩ Undo Last
+          ↩ Undo
         </motion.button>
         <motion.button
           type="button"
@@ -368,7 +369,7 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
           onClick={handleResetStand}
           className="flex-1 py-2.5 bg-secondary text-secondary-foreground rounded-xl text-xs font-semibold hover:bg-secondary/80"
         >
-          ✕ Reset All
+          Reset
         </motion.button>
         <motion.button
           type="button"
@@ -385,9 +386,9 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
         <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-3 text-xs font-mono space-y-1">
           <p className="font-bold text-slate-700 dark:text-slate-300 mb-2">Debug Panel</p>
           {Object.entries(debugInfo).map(([key, value]) => (
-            <div key={key} className="flex gap-2">
+            <div key={key} className="flex gap-2 text-xs">
               <span className="text-slate-600 dark:text-slate-400 w-24">{key}:</span>
-              <span className="text-slate-900 dark:text-slate-100">{String(value)}</span>
+              <span className="text-slate-900 dark:text-slate-100 break-all">{String(value)}</span>
             </div>
           ))}
         </div>
