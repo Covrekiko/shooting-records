@@ -1,0 +1,28 @@
+{
+  "name": "ClayShot",
+  "type": "object",
+  "properties": {
+    "clay_stand_id": {
+      "type": "string"
+    },
+    "shot_number": {
+      "type": "integer"
+    },
+    "result": {
+      "type": "string",
+      "enum": [
+        "hit",
+        "miss"
+      ],
+      "default": "miss"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "clay_stand_id",
+    "shot_number",
+    "result"
+  ]
+}

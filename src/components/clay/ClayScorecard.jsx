@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { base44 } from '@/api/base44Client';
-import { X, Plus, Target, Trash2, Pencil, Download, TableProperties, LayoutList } from 'lucide-react';
+import { X, Plus, Target, Trash2, Pencil, Download, TableProperties, LayoutList, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { exportScorecardPDF } from '@/utils/clayScorecardPDF';
 
@@ -20,20 +20,9 @@ function calcStats(stands) {
   return { totalStands, totalClays, totalHits, totalMisses, totalCartridges, hitPct, bestStand, worstStand };
 }
 
-// ─── Add/Edit Stand Form ──────────────────────────────────────────
-function StandForm({ stand, standNumber, onSave, onCancel }) {
-  const [form, setForm] = useState(stand ? { ...stand } : {
-    stand_number: standNumber,
-    discipline_type: 'Sporting',
-    clays_total: 25,
-    shots_used: 25,
-    hits: 0,
-    misses: 25,
-    notes: '',
-  });
-  const [error, setError] = useState('');
+// ─── Quick Total Form ─────────────────────────────────────────────
+function QuickTotalForm({ form, setForm, error }) {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
   const handleHitsChange = (val) => {
     const hits = Math.max(0, Math.min(parseInt(val) || 0, form.clays_total));
     set('hits', hits);
@@ -44,45 +33,12 @@ function StandForm({ stand, standNumber, onSave, onCancel }) {
     const hits = Math.min(form.hits || 0, clays);
     setForm(f => ({ ...f, clays_total: clays, hits, misses: clays - hits, shots_used: Math.max(f.shots_used || 0, clays) }));
   };
-
-  const handleSubmit = () => {
-    if ((form.hits || 0) + (form.misses || 0) !== (form.clays_total || 0)) {
-      setError('Hits + Misses must equal total clays');
-      return;
-    }
-    if (!form.stand_number || form.stand_number < 1) {
-      setError('Stand number must be at least 1');
-      return;
-    }
-    const hitPct = form.clays_total > 0 ? Math.round((form.hits / form.clays_total) * 100) : 0;
-    onSave({ ...form, hit_percentage: hitPct });
-  };
-
   return (
-    <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-      <h3 className="font-bold text-base">{stand ? 'Edit Stand' : 'Add Stand'}</h3>
-      {error && <p className="text-sm text-destructive font-medium">{error}</p>}
-
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Stand Number</label>
-          <input type="number" min="1" value={form.stand_number}
-            onChange={e => set('stand_number', parseInt(e.target.value) || 1)}
-            className={inp} />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Discipline</label>
-          <select value={form.discipline_type} onChange={e => set('discipline_type', e.target.value)} className={inp}>
-            {DISCIPLINES.map(d => <option key={d}>{d}</option>)}
-          </select>
-        </div>
-      </div>
-
+    <>
       <div>
         <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Total Clays</label>
         <input type="number" min="1" value={form.clays_total} onChange={e => handleClaysChange(e.target.value)} className={inp} />
       </div>
-
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Hits</label>
@@ -97,6 +53,76 @@ function StandForm({ stand, standNumber, onSave, onCancel }) {
           <input type="number" min={form.clays_total} value={form.shots_used} onChange={e => set('shots_used', parseInt(e.target.value) || 0)} className={inp} />
         </div>
       </div>
+      {error && <p className="text-sm text-destructive font-medium">{error}</p>}
+    </>
+  );
+}
+
+// ─── Add/Edit Stand Form ──────────────────────────────────────────
+function StandForm({ stand, standNumber, onSave, onCancel }) {
+  const [form, setForm] = useState(stand ? { ...stand } : {
+    stand_number: standNumber,
+    discipline_type: 'Sporting',
+    scoring_method: 'quick_total',
+    clays_total: 25,
+    shots_used: 25,
+    hits: 0,
+    misses: 25,
+    notes: '',
+  });
+  const [error, setError] = useState('');
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleSubmit = () => {
+    if (!form.stand_number || form.stand_number < 1) { setError('Stand number must be at least 1'); return; }
+    if (form.scoring_method === 'quick_total') {
+      if ((form.hits || 0) + (form.misses || 0) !== (form.clays_total || 0)) {
+        setError('Hits + Misses must equal total clays'); return;
+      }
+    }
+    const hitPct = form.clays_total > 0 ? Math.round((form.hits / form.clays_total) * 100) : 0;
+    onSave({ ...form, hit_percentage: hitPct });
+  };
+
+  return (
+    <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+      <h3 className="font-bold text-base">{stand ? 'Edit Stand' : 'Add Stand'}</h3>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Stand Number</label>
+          <input type="number" min="1" value={form.stand_number} onChange={e => set('stand_number', parseInt(e.target.value) || 1)} className={inp} />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Discipline</label>
+          <select value={form.discipline_type} onChange={e => set('discipline_type', e.target.value)} className={inp}>
+            {DISCIPLINES.map(d => <option key={d}>{d}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {/* Scoring method selector */}
+      <div>
+        <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Scoring Method</label>
+        <div className="flex gap-1 bg-secondary rounded-xl p-1">
+          <button type="button" onClick={() => set('scoring_method', 'quick_total')}
+            className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors ${form.scoring_method === 'quick_total' ? 'bg-background shadow text-foreground' : 'text-muted-foreground'}`}>
+            Quick Total Entry
+          </button>
+          <button type="button" onClick={() => set('scoring_method', 'shot_by_shot')}
+            className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors ${form.scoring_method === 'shot_by_shot' ? 'bg-background shadow text-foreground' : 'text-muted-foreground'}`}>
+            Shot-by-Shot
+          </button>
+        </div>
+      </div>
+
+      {form.scoring_method === 'quick_total' ? (
+        <QuickTotalForm form={form} setForm={setForm} error={error} />
+      ) : (
+        <div className="bg-secondary/50 rounded-xl p-3 text-sm text-muted-foreground text-center">
+          Shot-by-shot recording will be available on the stand card after saving.
+        </div>
+      )}
 
       <div>
         <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Notes</label>
@@ -111,8 +137,92 @@ function StandForm({ stand, standNumber, onSave, onCancel }) {
   );
 }
 
-// ─── Stand Card (tap-to-score view) ──────────────────────────────
-function StandCard({ stand, onHit, onMiss, onUndo, onEdit, onDelete }) {
+// ─── Shot-by-Shot Card ────────────────────────────────────────────
+function ShotByShotCard({ stand, shots, onAddShot, onRemoveShot, onEdit, onDelete }) {
+  const hits = shots.filter(s => s.result === 'hit').length;
+  const misses = shots.filter(s => s.result === 'miss').length;
+  const total = shots.length;
+  const pct = total > 0 ? Math.round((hits / total) * 100) : 0;
+  const [expanded, setExpanded] = useState(true);
+
+  return (
+    <div className="bg-card border border-border rounded-2xl p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <span className="font-bold text-base">Stand {stand.stand_number}</span>
+          <span className="ml-2 text-xs bg-secondary px-2 py-0.5 rounded-full">{stand.discipline_type}</span>
+          <span className="ml-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full">Shot-by-Shot</span>
+        </div>
+        <div className="flex gap-1">
+          <button onClick={() => setExpanded(e => !e)} className="p-2 hover:bg-secondary rounded-lg transition-colors">
+            {expanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+          </button>
+          <button onClick={onEdit} className="p-2 hover:bg-secondary rounded-lg transition-colors"><Pencil className="w-4 h-4 text-muted-foreground" /></button>
+          <button onClick={onDelete} className="p-2 hover:bg-destructive/10 rounded-lg transition-colors"><Trash2 className="w-4 h-4 text-destructive/60" /></button>
+        </div>
+      </div>
+
+      {/* Score summary */}
+      <div className="flex items-center gap-2 mb-3">
+        <div className="flex-1 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-2.5 text-center">
+          <p className="text-xl font-black text-emerald-600">{hits}</p>
+          <p className="text-xs text-muted-foreground">Hits</p>
+        </div>
+        <div className="flex-1 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-2.5 text-center">
+          <p className="text-xl font-black text-red-500">{misses}</p>
+          <p className="text-xs text-muted-foreground">Misses</p>
+        </div>
+        <div className="flex-1 bg-secondary rounded-xl p-2.5 text-center">
+          <p className="text-xl font-black">{total}</p>
+          <p className="text-xs text-muted-foreground">Total</p>
+        </div>
+        <div className="flex-1 bg-primary/10 rounded-xl p-2.5 text-center">
+          <p className="text-xl font-black text-primary">{pct}%</p>
+          <p className="text-xs text-muted-foreground">Hit %</p>
+        </div>
+      </div>
+
+      {expanded && (
+        <>
+          {/* Shot sequence display */}
+          {shots.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-3">
+              {shots.map(shot => (
+                <div key={shot.id}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 ${shot.result === 'hit' ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-red-500 text-white border-red-600'}`}
+                  title={`Shot ${shot.shot_number}: ${shot.result}`}>
+                  {shot.shot_number}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Record next shot */}
+          <div className="grid grid-cols-3 gap-2">
+            <motion.button whileTap={{ scale: 0.92 }} onClick={() => onAddShot('hit')}
+              className="py-3.5 bg-emerald-500 text-white rounded-xl font-bold text-sm">
+              ✓ Hit
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.92 }} onClick={() => onAddShot('miss')}
+              className="py-3.5 bg-red-500 text-white rounded-xl font-bold text-sm">
+              ✗ Miss
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.92 }} onClick={onRemoveShot}
+              disabled={shots.length === 0}
+              className="py-3.5 bg-secondary text-secondary-foreground rounded-xl font-bold text-sm disabled:opacity-40">
+              Undo
+            </motion.button>
+          </div>
+        </>
+      )}
+
+      {stand.notes && <p className="text-xs text-muted-foreground mt-2 italic">{stand.notes}</p>}
+    </div>
+  );
+}
+
+// ─── Quick Total Stand Card ───────────────────────────────────────
+function QuickStandCard({ stand, onHit, onMiss, onUndo, onEdit, onDelete }) {
   const pct = stand.clays_total > 0 ? Math.round((stand.hits / stand.clays_total) * 100) : 0;
   return (
     <div className="bg-card border border-border rounded-2xl p-4">
@@ -126,9 +236,7 @@ function StandCard({ stand, onHit, onMiss, onUndo, onEdit, onDelete }) {
           <button onClick={onDelete} className="p-2 hover:bg-destructive/10 rounded-lg transition-colors"><Trash2 className="w-4 h-4 text-destructive/60" /></button>
         </div>
       </div>
-
-      {/* Score display */}
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-2 mb-3">
         <div className="flex-1 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3 text-center">
           <p className="text-2xl font-black text-emerald-600">{stand.hits}</p>
           <p className="text-xs text-muted-foreground">Hits</p>
@@ -146,25 +254,22 @@ function StandCard({ stand, onHit, onMiss, onUndo, onEdit, onDelete }) {
           <p className="text-xs text-muted-foreground">Hit %</p>
         </div>
       </div>
-
-      {/* Quick tap buttons */}
       <div className="grid grid-cols-3 gap-2">
         <motion.button whileTap={{ scale: 0.92 }} onClick={onHit}
           disabled={stand.hits >= stand.clays_total}
-          className="py-3.5 bg-emerald-500 text-white rounded-xl font-bold text-sm active:bg-emerald-600 transition-colors disabled:opacity-40">
+          className="py-3.5 bg-emerald-500 text-white rounded-xl font-bold text-sm disabled:opacity-40">
           ✓ Hit
         </motion.button>
         <motion.button whileTap={{ scale: 0.92 }} onClick={onMiss}
           disabled={stand.misses >= stand.clays_total}
-          className="py-3.5 bg-red-500 text-white rounded-xl font-bold text-sm active:bg-red-600 transition-colors disabled:opacity-40">
+          className="py-3.5 bg-red-500 text-white rounded-xl font-bold text-sm disabled:opacity-40">
           ✗ Miss
         </motion.button>
         <motion.button whileTap={{ scale: 0.92 }} onClick={onUndo}
-          className="py-3.5 bg-secondary text-secondary-foreground rounded-xl font-bold text-sm transition-colors">
+          className="py-3.5 bg-secondary text-secondary-foreground rounded-xl font-bold text-sm">
           Undo
         </motion.button>
       </div>
-
       {stand.shots_used > stand.clays_total && (
         <p className="text-xs text-muted-foreground mt-2">Shots used: {stand.shots_used}</p>
       )}
@@ -175,21 +280,19 @@ function StandCard({ stand, onHit, onMiss, onUndo, onEdit, onDelete }) {
 
 // ─── Scorecard Table View ─────────────────────────────────────────
 function ScorecardTable({ stands, stats, onEdit }) {
-  if (stands.length === 0) {
-    return <p className="text-center text-muted-foreground py-8 text-sm">No stands recorded yet.</p>;
-  }
+  if (stands.length === 0) return <p className="text-center text-muted-foreground py-8 text-sm">No stands recorded yet.</p>;
   return (
     <div className="overflow-x-auto rounded-2xl border border-border">
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-secondary text-left">
-            <th className="px-3 py-2.5 font-bold text-xs uppercase tracking-wide text-muted-foreground w-12">#</th>
-            <th className="px-3 py-2.5 font-bold text-xs uppercase tracking-wide text-muted-foreground">Discipline</th>
+            <th className="px-3 py-2.5 font-bold text-xs uppercase tracking-wide text-muted-foreground">#</th>
+            <th className="px-3 py-2.5 font-bold text-xs uppercase tracking-wide text-muted-foreground">Disc.</th>
+            <th className="px-3 py-2.5 font-bold text-xs uppercase tracking-wide text-muted-foreground">Method</th>
             <th className="px-3 py-2.5 font-bold text-xs uppercase tracking-wide text-muted-foreground text-center">Clays</th>
             <th className="px-3 py-2.5 font-bold text-xs uppercase tracking-wide text-emerald-600 text-center">Hits</th>
             <th className="px-3 py-2.5 font-bold text-xs uppercase tracking-wide text-red-500 text-center">Miss</th>
             <th className="px-3 py-2.5 font-bold text-xs uppercase tracking-wide text-muted-foreground text-center">%</th>
-            <th className="px-3 py-2.5 font-bold text-xs uppercase tracking-wide text-muted-foreground text-center">Shells</th>
             <th className="px-2 py-2.5 w-8"></th>
           </tr>
         </thead>
@@ -201,31 +304,28 @@ function ScorecardTable({ stands, stats, onEdit }) {
             return (
               <tr key={stand.id} className={`border-t border-border ${isBest ? 'bg-emerald-50 dark:bg-emerald-900/10' : isWorst ? 'bg-red-50 dark:bg-red-900/10' : i % 2 === 0 ? 'bg-background' : 'bg-secondary/30'}`}>
                 <td className="px-3 py-2.5 font-bold">
-                  <span>{stand.stand_number}</span>
-                  {isBest && <span className="ml-1 text-xs">🏆</span>}
-                  {isWorst && <span className="ml-1 text-xs">↓</span>}
+                  {stand.stand_number}{isBest && ' 🏆'}{isWorst && ' ↓'}
                 </td>
                 <td className="px-3 py-2.5 text-xs text-muted-foreground">{stand.discipline_type}</td>
+                <td className="px-3 py-2.5 text-xs text-muted-foreground">
+                  {stand.scoring_method === 'shot_by_shot' ? '🎯 S-by-S' : '📋 Quick'}
+                </td>
                 <td className="px-3 py-2.5 text-center font-semibold">{stand.clays_total}</td>
                 <td className="px-3 py-2.5 text-center font-bold text-emerald-600">{stand.hits}</td>
                 <td className="px-3 py-2.5 text-center font-bold text-red-500">{stand.misses}</td>
-                <td className="px-3 py-2.5 text-center font-semibold">
+                <td className="px-3 py-2.5 text-center">
                   <span className={`px-1.5 py-0.5 rounded-md text-xs font-bold ${pct >= 75 ? 'bg-emerald-100 text-emerald-700' : pct >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-600'}`}>
                     {pct}%
                   </span>
                 </td>
-                <td className="px-3 py-2.5 text-center text-muted-foreground">{stand.shots_used}</td>
                 <td className="px-2 py-2.5">
-                  <button onClick={() => onEdit(stand)} className="p-1 hover:bg-secondary rounded-lg transition-colors">
-                    <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-                  </button>
+                  <button onClick={() => onEdit(stand)} className="p-1 hover:bg-secondary rounded-lg"><Pencil className="w-3.5 h-3.5 text-muted-foreground" /></button>
                 </td>
               </tr>
             );
           })}
-          {/* Totals row */}
           <tr className="border-t-2 border-border bg-primary/5 font-bold">
-            <td className="px-3 py-2.5 text-xs uppercase tracking-wide text-muted-foreground" colSpan={2}>Total</td>
+            <td className="px-3 py-2.5 text-xs uppercase tracking-wide text-muted-foreground" colSpan={3}>Total</td>
             <td className="px-3 py-2.5 text-center">{stats.totalClays}</td>
             <td className="px-3 py-2.5 text-center text-emerald-600">{stats.totalHits}</td>
             <td className="px-3 py-2.5 text-center text-red-500">{stats.totalMisses}</td>
@@ -234,7 +334,6 @@ function ScorecardTable({ stands, stats, onEdit }) {
                 {stats.hitPct}%
               </span>
             </td>
-            <td className="px-3 py-2.5 text-center">{stats.totalCartridges}</td>
             <td></td>
           </tr>
         </tbody>
@@ -247,10 +346,12 @@ function ScorecardTable({ stands, stats, onEdit }) {
 export default function ClayScorecard({ session, shotguns, ammunition, onClose }) {
   const [scorecard, setScorecard] = useState(null);
   const [stands, setStands] = useState([]);
+  // shots keyed by stand id
+  const [shotsMap, setShotsMap] = useState({});
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingStand, setEditingStand] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState('tap'); // 'tap' | 'table'
+  const [view, setView] = useState('tap');
   const [lastActions, setLastActions] = useState({});
 
   useEffect(() => { loadScorecard(); }, [session.id]);
@@ -262,7 +363,16 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
     if (!sc) sc = await base44.entities.ClayScorecard.create({ clay_session_id: session.id });
     setScorecard(sc);
     const standsData = await base44.entities.ClayStand.filter({ clay_scorecard_id: sc.id });
-    setStands(standsData.sort((a, b) => a.stand_number - b.stand_number));
+    const sorted = standsData.sort((a, b) => a.stand_number - b.stand_number);
+    setStands(sorted);
+    // load shots for shot-by-shot stands
+    const sbsStands = sorted.filter(s => s.scoring_method === 'shot_by_shot');
+    const map = {};
+    await Promise.all(sbsStands.map(async stand => {
+      const shots = await base44.entities.ClayShot.filter({ clay_stand_id: stand.id });
+      map[stand.id] = shots.sort((a, b) => a.shot_number - b.shot_number);
+    }));
+    setShotsMap(map);
     setLoading(false);
   };
 
@@ -279,7 +389,11 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
   };
 
   const handleAddStand = async (formData) => {
-    const newStand = await base44.entities.ClayStand.create({ ...formData, clay_scorecard_id: scorecard.id });
+    const hitPct = formData.clays_total > 0 ? Math.round((formData.hits / formData.clays_total) * 100) : 0;
+    const newStand = await base44.entities.ClayStand.create({ ...formData, hit_percentage: hitPct, clay_scorecard_id: scorecard.id });
+    if (newStand.scoring_method === 'shot_by_shot') {
+      setShotsMap(prev => ({ ...prev, [newStand.id]: [] }));
+    }
     const newStands = [...stands, newStand].sort((a, b) => a.stand_number - b.stand_number);
     setStands(newStands);
     await saveScorecard(newStands);
@@ -288,8 +402,8 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
 
   const handleEditStand = async (formData) => {
     await base44.entities.ClayStand.update(editingStand.id, formData);
-    const newStands = stands.map(s => s.id === editingStand.id ? { ...s, ...formData } : s)
-      .sort((a, b) => a.stand_number - b.stand_number);
+    const updated = { ...editingStand, ...formData };
+    const newStands = stands.map(s => s.id === editingStand.id ? updated : s).sort((a, b) => a.stand_number - b.stand_number);
     setStands(newStands);
     await saveScorecard(newStands);
     setEditingStand(null);
@@ -300,9 +414,45 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
     await base44.entities.ClayStand.delete(standId);
     const newStands = stands.filter(s => s.id !== standId);
     setStands(newStands);
+    setShotsMap(prev => { const m = { ...prev }; delete m[standId]; return m; });
     await saveScorecard(newStands);
   };
 
+  // ── Shot-by-Shot handlers ──
+  const handleAddShot = async (stand, result) => {
+    const existingShots = shotsMap[stand.id] || [];
+    const shotNumber = existingShots.length + 1;
+    const newShot = await base44.entities.ClayShot.create({ clay_stand_id: stand.id, shot_number: shotNumber, result });
+    const newShots = [...existingShots, newShot];
+    const hits = newShots.filter(s => s.result === 'hit').length;
+    const misses = newShots.filter(s => s.result === 'miss').length;
+    const clays_total = newShots.length;
+    const hit_percentage = Math.round((hits / clays_total) * 100);
+    await base44.entities.ClayStand.update(stand.id, { hits, misses, clays_total, shots_used: clays_total, hit_percentage });
+    setShotsMap(prev => ({ ...prev, [stand.id]: newShots }));
+    const newStands = stands.map(s => s.id === stand.id ? { ...s, hits, misses, clays_total, shots_used: clays_total, hit_percentage } : s);
+    setStands(newStands);
+    await saveScorecard(newStands);
+  };
+
+  const handleRemoveShot = async (stand) => {
+    const existingShots = shotsMap[stand.id] || [];
+    if (existingShots.length === 0) return;
+    const lastShot = existingShots[existingShots.length - 1];
+    await base44.entities.ClayShot.delete(lastShot.id);
+    const newShots = existingShots.slice(0, -1);
+    const hits = newShots.filter(s => s.result === 'hit').length;
+    const misses = newShots.filter(s => s.result === 'miss').length;
+    const clays_total = newShots.length;
+    const hit_percentage = clays_total > 0 ? Math.round((hits / clays_total) * 100) : 0;
+    await base44.entities.ClayStand.update(stand.id, { hits, misses, clays_total, shots_used: clays_total, hit_percentage });
+    setShotsMap(prev => ({ ...prev, [stand.id]: newShots }));
+    const newStands = stands.map(s => s.id === stand.id ? { ...s, hits, misses, clays_total, shots_used: clays_total, hit_percentage } : s);
+    setStands(newStands);
+    await saveScorecard(newStands);
+  };
+
+  // ── Quick Total tap handlers ──
   const handleHit = async (stand) => {
     if (stand.hits >= stand.clays_total) return;
     const updated = { ...stand, hits: stand.hits + 1, misses: stand.misses - 1, hit_percentage: Math.round(((stand.hits + 1) / stand.clays_total) * 100) };
@@ -326,12 +476,9 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
   const handleUndo = async (stand) => {
     const lastAction = lastActions[stand.id];
     if (!lastAction) return;
-    let updated;
-    if (lastAction === 'hit') {
-      updated = { ...stand, hits: stand.hits - 1, misses: stand.misses + 1, hit_percentage: Math.round(((stand.hits - 1) / stand.clays_total) * 100) };
-    } else {
-      updated = { ...stand, misses: stand.misses - 1, hits: stand.hits + 1, hit_percentage: Math.round(((stand.hits + 1) / stand.clays_total) * 100) };
-    }
+    const updated = lastAction === 'hit'
+      ? { ...stand, hits: stand.hits - 1, misses: stand.misses + 1, hit_percentage: Math.round(((stand.hits - 1) / stand.clays_total) * 100) }
+      : { ...stand, misses: stand.misses - 1, hits: stand.hits + 1, hit_percentage: Math.round(((stand.hits + 1) / stand.clays_total) * 100) };
     setLastActions(prev => ({ ...prev, [stand.id]: null }));
     await base44.entities.ClayStand.update(stand.id, { hits: updated.hits, misses: updated.misses, hit_percentage: updated.hit_percentage });
     const newStands = stands.map(s => s.id === stand.id ? updated : s);
@@ -355,8 +502,7 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
               <p className="text-xs text-muted-foreground">{session.location_name} · {session.date}</p>
             </div>
             <div className="flex items-center gap-1">
-              <button
-                onClick={() => exportScorecardPDF(session, stands, stats, shotgun, ammo)}
+              <button onClick={() => exportScorecardPDF(session, stands, stats, shotgun, ammo, shotsMap)}
                 className="p-2 hover:bg-secondary rounded-xl transition-colors" title="Download PDF">
                 <Download className="w-5 h-5" />
               </button>
@@ -365,16 +511,12 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
               </button>
             </div>
           </div>
-
-          {/* View toggle */}
           <div className="flex gap-1 mt-2 bg-secondary rounded-xl p-1">
-            <button
-              onClick={() => setView('tap')}
+            <button onClick={() => setView('tap')}
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${view === 'tap' ? 'bg-background shadow text-foreground' : 'text-muted-foreground'}`}>
               <LayoutList className="w-3.5 h-3.5" /> Tap to Score
             </button>
-            <button
-              onClick={() => setView('table')}
+            <button onClick={() => setView('table')}
               className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${view === 'table' ? 'bg-background shadow text-foreground' : 'text-muted-foreground'}`}>
               <TableProperties className="w-3.5 h-3.5" /> Scorecard
             </button>
@@ -382,7 +524,6 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
         </div>
 
         <div className="px-4 py-4 pb-8 space-y-4 max-w-xl mx-auto">
-          {/* Session info strip */}
           {(shotgun || ammo || session.ammunition_used) && (
             <div className="bg-card border border-border rounded-2xl p-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
               {shotgun && <span><span className="text-muted-foreground">Shotgun:</span> {shotgun.name}</span>}
@@ -405,7 +546,7 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
             {stats.bestStand && stands.length > 1 && (
               <div className="mt-2 flex gap-3 text-xs flex-wrap">
                 <span className="text-emerald-600 font-medium">🏆 Best: Stand {stats.bestStand.stand_number} ({stats.bestStand.hits}/{stats.bestStand.clays_total})</span>
-                {stats.worstStand && stats.worstStand.id !== stats.bestStand.id && (
+                {stats.worstStand?.id !== stats.bestStand?.id && (
                   <span className="text-red-500 font-medium">↓ Worst: Stand {stats.worstStand.stand_number} ({stats.worstStand.hits}/{stats.worstStand.clays_total})</span>
                 )}
               </div>
@@ -427,9 +568,20 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
                 {stands.map(stand => (
                   editingStand?.id === stand.id ? (
                     <StandForm key={stand.id} stand={stand} standNumber={stand.stand_number} onSave={handleEditStand} onCancel={() => setEditingStand(null)} />
+                  ) : stand.scoring_method === 'shot_by_shot' ? (
+                    <motion.div key={stand.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+                      <ShotByShotCard
+                        stand={stand}
+                        shots={shotsMap[stand.id] || []}
+                        onAddShot={(result) => handleAddShot(stand, result)}
+                        onRemoveShot={() => handleRemoveShot(stand)}
+                        onEdit={() => setEditingStand(stand)}
+                        onDelete={() => handleDeleteStand(stand.id)}
+                      />
+                    </motion.div>
                   ) : (
                     <motion.div key={stand.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-                      <StandCard
+                      <QuickStandCard
                         stand={stand}
                         onHit={() => handleHit(stand)}
                         onMiss={() => handleMiss(stand)}

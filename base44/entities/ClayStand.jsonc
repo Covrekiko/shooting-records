@@ -21,6 +21,14 @@
       ],
       "default": "Sporting"
     },
+    "scoring_method": {
+      "type": "string",
+      "enum": [
+        "quick_total",
+        "shot_by_shot"
+      ],
+      "default": "quick_total"
+    },
     "clays_total": {
       "type": "integer",
       "default": 0
