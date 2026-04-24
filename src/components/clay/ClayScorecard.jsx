@@ -79,18 +79,17 @@ function QuickTotalForm({ form, setForm, error }) {
 }
 
 // ─── Shot-by-Shot inline editor (used in StandForm) ──────────────
-function ShotByShotEditor({ totalShots, shots, onChange }) {
-  // shots is an array of results: 'hit' | 'miss' | 'no_bird' | null
+// shots array: 'hit' | 'miss' | null (one per shot slot)
+// noBirds: integer count (separate — no clay launched = no shot)
+function ShotByShotEditor({ totalShots, shots, noBirds, onChange, onNoBirdsChange }) {
   const handleSetResult = (idx, result) => {
     const updated = [...shots];
-    // Toggle off if same
     updated[idx] = updated[idx] === result ? null : result;
     onChange(updated);
   };
 
   const hits = shots.filter(r => r === 'hit').length;
   const misses = shots.filter(r => r === 'miss').length;
-  const noBirds = shots.filter(r => r === 'no_bird').length;
   const validScored = hits + misses;
   const hitPct = validScored > 0 ? Math.round((hits / validScored) * 100) : 0;
 
@@ -117,7 +116,28 @@ function ShotByShotEditor({ totalShots, shots, onChange }) {
       </div>
       <p className="text-xs text-muted-foreground">Score: {hits}/{validScored} valid · {shots.filter(Boolean).length}/{totalShots} recorded</p>
 
-      {/* Per-shot rows */}
+      {/* No Bird counter — separate, since no clay = no shot */}
+      <div className="flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3">
+        <div className="flex-1">
+          <p className="text-xs font-bold text-amber-700 dark:text-amber-400">No Birds</p>
+          <p className="text-[10px] text-muted-foreground">Clay not launched — no shot taken</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <motion.button type="button" whileTap={{ scale: 0.9 }}
+            onClick={() => onNoBirdsChange(Math.max(0, noBirds - 1))}
+            className="w-8 h-8 rounded-lg bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 font-bold text-lg flex items-center justify-center">
+            −
+          </motion.button>
+          <span className="text-lg font-black text-amber-700 dark:text-amber-300 w-6 text-center">{noBirds}</span>
+          <motion.button type="button" whileTap={{ scale: 0.9 }}
+            onClick={() => onNoBirdsChange(noBirds + 1)}
+            className="w-8 h-8 rounded-lg bg-amber-400 text-white font-bold text-lg flex items-center justify-center">
+            +
+          </motion.button>
+        </div>
+      </div>
+
+      {/* Per-shot rows — only Hit / Miss */}
       <div className="space-y-2">
         {Array.from({ length: totalShots }, (_, i) => {
           const result = shots[i] || null;
@@ -127,18 +147,13 @@ function ShotByShotEditor({ totalShots, shots, onChange }) {
               <div className="flex gap-1 flex-1">
                 <motion.button type="button" whileTap={{ scale: 0.93 }}
                   onClick={() => handleSetResult(i, 'hit')}
-                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all border ${result === 'hit' ? 'bg-emerald-500 text-white border-emerald-600 shadow' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'}`}>
+                  className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all border ${result === 'hit' ? 'bg-emerald-500 text-white border-emerald-600 shadow' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'}`}>
                   ✓ Hit
                 </motion.button>
                 <motion.button type="button" whileTap={{ scale: 0.93 }}
                   onClick={() => handleSetResult(i, 'miss')}
-                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all border ${result === 'miss' ? 'bg-red-500 text-white border-red-600 shadow' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'}`}>
+                  className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all border ${result === 'miss' ? 'bg-red-500 text-white border-red-600 shadow' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'}`}>
                   ✗ Miss
-                </motion.button>
-                <motion.button type="button" whileTap={{ scale: 0.93 }}
-                  onClick={() => handleSetResult(i, 'no_bird')}
-                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all border ${result === 'no_bird' ? 'bg-amber-400 text-white border-amber-500 shadow' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'}`}>
-                  No Bird
                 </motion.button>
               </div>
             </div>
@@ -164,16 +179,26 @@ function StandForm({ stand, standNumber, onSave, onCancel, initialShots }) {
     notes: '',
   });
   const [error, setError] = useState('');
-  // For shot-by-shot: total shots to record
-  const [totalShots, setTotalShots] = useState(
-    stand?.clays_total || stand?.shots_used || 10
-  );
-  // shots array: one entry per shot slot, value is result or null
+  // For shot-by-shot: total shots to record (excludes no birds)
+  const [totalShots, setTotalShots] = useState(() => {
+    if (initialShots && initialShots.length > 0) {
+      return initialShots.filter(s => s.result !== 'no_bird').length || 10;
+    }
+    return (stand?.valid_scored_clays || stand?.shots_used) || 10;
+  });
+  // shots array: one entry per shot slot, only 'hit' | 'miss' | null
   const [shotResults, setShotResults] = useState(() => {
     if (initialShots && initialShots.length > 0) {
-      return initialShots.map(s => s.result);
+      return initialShots.filter(s => s.result !== 'no_bird').map(s => s.result);
     }
-    return Array(stand?.clays_total || 10).fill(null);
+    return Array(10).fill(null);
+  });
+  // No birds tracked separately
+  const [noBirds, setNoBirds] = useState(() => {
+    if (initialShots && initialShots.length > 0) {
+      return initialShots.filter(s => s.result === 'no_bird').length;
+    }
+    return stand?.no_birds || 0;
   });
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -212,19 +237,23 @@ function StandForm({ stand, standNumber, onSave, onCancel, initialShots }) {
     if (form.scoring_method === 'shot_by_shot') {
       const hits = shotResults.filter(r => r === 'hit').length;
       const misses = shotResults.filter(r => r === 'miss').length;
-      const no_birds = shotResults.filter(r => r === 'no_bird').length;
       const valid = hits + misses;
       const hitPct = valid > 0 ? Math.round((hits / valid) * 100) : 0;
+      // Build full shot list: hit/miss shots + no_bird entries appended
+      const fullShots = [
+        ...shotResults.map((r, i) => ({ shot_number: i + 1, result: r || 'miss' })),
+        ...Array.from({ length: noBirds }, (_, i) => ({ shot_number: shotResults.length + i + 1, result: 'no_bird' })),
+      ];
       onSave({
         ...form,
         hits,
         misses,
-        no_birds,
+        no_birds: noBirds,
         valid_scored_clays: valid,
-        clays_total: valid + no_birds,
-        shots_used: shotResults.filter(Boolean).length,
+        clays_total: valid + noBirds,
+        shots_used: valid,
         hit_percentage: hitPct,
-        _shotResults: shotResults, // pass results to parent for DB save
+        _shotResults: fullShots,
       });
     } else {
       const valid = (form.hits || 0) + (form.misses || 0);
@@ -272,7 +301,7 @@ function StandForm({ stand, standNumber, onSave, onCancel, initialShots }) {
             <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Total Shots / Clays</label>
             <input type="number" min="1" max="50" value={totalShots} onChange={e => handleTotalShotsChange(e.target.value)} className={inp} />
           </div>
-          <ShotByShotEditor totalShots={totalShots} shots={shotResults} onChange={handleShotResultsChange} />
+          <ShotByShotEditor totalShots={totalShots} shots={shotResults} noBirds={noBirds} onChange={handleShotResultsChange} onNoBirdsChange={setNoBirds} />
           <div className="flex gap-2">
             <button type="button" onClick={handleUndoLast}
               className="flex-1 py-2 bg-secondary text-secondary-foreground rounded-xl text-xs font-semibold">
@@ -576,13 +605,11 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
     // Delete existing shots for this stand
     const existing = await base44.entities.ClayShot.filter({ clay_stand_id: standId });
     await Promise.all(existing.map(s => base44.entities.ClayShot.delete(s.id)));
-    // Create new shots
+    // Create new shots — shotResults is array of {shot_number, result}
     const newShots = [];
-    for (let i = 0; i < shotResults.length; i++) {
-      if (shotResults[i]) {
-        const shot = await base44.entities.ClayShot.create({ clay_stand_id: standId, shot_number: i + 1, result: shotResults[i] });
-        newShots.push(shot);
-      }
+    for (const s of shotResults) {
+      const shot = await base44.entities.ClayShot.create({ clay_stand_id: standId, shot_number: s.shot_number, result: s.result });
+      newShots.push(shot);
     }
     return newShots;
   };
