@@ -217,12 +217,12 @@ export default function SessionDetail({ session, onBack, onEdit, onNewSession })
         <button onClick={() => { setEditGroup(null); setShowPhotoAnalyzer(true); }}
           className="py-4 bg-card border border-border rounded-2xl font-semibold text-sm flex flex-col items-center gap-1.5 hover:border-primary/40 transition-all active:scale-95">
           <span className="text-2xl">📸</span>
-          Analyze Target Photo
+          Analyze Target Photo (Group {groups.length + 1})
         </button>
         <button onClick={() => { setEditGroup(null); setShowManualForm(true); }}
           className="py-4 bg-card border border-border rounded-2xl font-semibold text-sm flex flex-col items-center gap-1.5 hover:border-primary/40 transition-all active:scale-95">
           <span className="text-2xl">✏️</span>
-          Enter Group Manually
+          Enter Group Manually (Group {groups.length + 1})
         </button>
       </div>
 

@@ -32,7 +32,7 @@ const POSITIONS = ['benchrest', 'prone', 'sticks', 'high_seat', 'standing', 'oth
 
 export default function ManualGroupForm({ session, editGroup, scopeProfile, groupNumber, rifles = [], ammunition = [], onSave, onBack }) {
   const [form, setForm] = useState({
-    group_name: `Group ${groupNumber}`,
+    group_name: groupNumber ? `Group ${groupNumber}` : '',
     number_of_shots: '',
     group_size_mm: '',
     group_size_input: '',
