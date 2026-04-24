@@ -94,7 +94,7 @@ function ShotByShotCardReadOnly({ stand, shots, onEdit }) {
   const shotColor = (result) => {
     if (result === 'dead') return 'bg-emerald-500 text-white';
     if (result === 'lost') return 'bg-red-500 text-white';
-    return 'bg-amber-400 text-white';
+    return 'bg-transparent text-foreground border-2 border-border';
   };
 
   return (
@@ -128,10 +128,10 @@ function ShotByShotCardReadOnly({ stand, shots, onEdit }) {
       <p className="text-xs text-muted-foreground mb-3">Score: {hits}/{validScored} valid</p>
 
       {shots.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex gap-1 justify-start flex-wrap">
           {shots.map(shot => (
             <div key={shot.id}
-              className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white ${shotColor(shot.result)}`}
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${shotColor(shot.result)}`}
               title={`Shot ${shot.shot_number}: ${shot.result}`}>
               {shot.shot_number}
             </div>
@@ -197,10 +197,10 @@ function ShotByShotCard({ stand, shots, onAddShot, onRemoveShot, onEdit, onDelet
       {expanded && (
         <>
           {shots.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-3">
+            <div className="flex gap-1 justify-start flex-wrap mb-3">
               {shots.map(shot => (
                 <div key={shot.id}
-                  className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 ${shotColor(shot.result)}`}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${shotColor(shot.result)}`}
                   title={`Shot ${shot.shot_number}: ${shot.result}`}>
                   {shot.shot_number}
                 </div>
