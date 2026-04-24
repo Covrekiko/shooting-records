@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { base44 } from '@/api/base44Client';
-import { X, Plus, Target, Trash2, Pencil, Download, TableProperties, LayoutList, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Plus, Target, Trash2, Pencil, Download, TableProperties, LayoutList, ChevronDown, ChevronUp, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { exportScorecardPDF } from '@/utils/clayScorecardPDF';
 import StandFormWrapper from './StandFormWrapper';
+import ViewStandModal from './ViewStandModal';
 
 const DISCIPLINES = ['Sporting', 'Skeet', 'Trap', 'DTL', 'Compak', 'Five Stand', 'Other'];
 const inp = 'w-full px-3 py-3 border border-border rounded-xl bg-background text-sm';
@@ -84,7 +85,7 @@ function QuickTotalForm({ form, setForm, error }) {
 
 
 // ─── Shot-by-Shot Card (Read-Only) ────────────────────────────
-function ShotByShotCardReadOnly({ stand, shots, onEdit }) {
+function ShotByShotCardReadOnly({ stand, shots, onEdit, onView, onDelete }) {
   const hits = shots.filter(s => s.result === 'dead').length;
   const misses = shots.filter(s => s.result === 'lost').length;
   const noBirds = shots.filter(s => s.result === 'no_bird').length;
@@ -104,7 +105,11 @@ function ShotByShotCardReadOnly({ stand, shots, onEdit }) {
           <span className="font-bold text-base">Stand {stand.stand_number}</span>
           <span className="ml-2 text-xs bg-secondary px-2 py-0.5 rounded-full">{stand.discipline_type}</span>
         </div>
-        <button onClick={onEdit} className="p-2 hover:bg-secondary rounded-lg"><Pencil className="w-4 h-4 text-muted-foreground" /></button>
+        <div className="flex gap-1">
+          <button onClick={onView} className="p-2 hover:bg-secondary rounded-lg" title="View Stand"><Eye className="w-4 h-4 text-muted-foreground" /></button>
+          <button onClick={onEdit} className="p-2 hover:bg-secondary rounded-lg" title="Edit Stand"><Pencil className="w-4 h-4 text-muted-foreground" /></button>
+          <button onClick={onDelete} className="p-2 hover:bg-destructive/10 rounded-lg" title="Delete Stand"><Trash2 className="w-4 h-4 text-destructive/60" /></button>
+        </div>
       </div>
 
       <div className="grid grid-cols-4 gap-2 mb-3">
@@ -236,7 +241,7 @@ function ShotByShotCard({ stand, shots, onAddShot, onRemoveShot, onEdit, onDelet
 }
 
 // ─── Quick Total Stand Card (Read-Only) ───────────────────────
-function QuickStandCardReadOnly({ stand, onEdit }) {
+function QuickStandCardReadOnly({ stand, onEdit, onView, onDelete }) {
   const valid = (stand.hits || 0) + (stand.misses || 0);
   const pct = valid > 0 ? Math.round(((stand.hits || 0) / valid) * 100) : 0;
   const noBirds = stand.no_birds || 0;
@@ -248,7 +253,11 @@ function QuickStandCardReadOnly({ stand, onEdit }) {
           <span className="font-bold text-base">Stand {stand.stand_number}</span>
           <span className="ml-2 text-xs bg-secondary px-2 py-0.5 rounded-full">{stand.discipline_type}</span>
         </div>
-        <button onClick={onEdit} className="p-2 hover:bg-secondary rounded-lg"><Pencil className="w-4 h-4 text-muted-foreground" /></button>
+        <div className="flex gap-1">
+          <button onClick={onView} className="p-2 hover:bg-secondary rounded-lg" title="View Stand"><Eye className="w-4 h-4 text-muted-foreground" /></button>
+          <button onClick={onEdit} className="p-2 hover:bg-secondary rounded-lg" title="Edit Stand"><Pencil className="w-4 h-4 text-muted-foreground" /></button>
+          <button onClick={onDelete} className="p-2 hover:bg-destructive/10 rounded-lg" title="Delete Stand"><Trash2 className="w-4 h-4 text-destructive/60" /></button>
+        </div>
       </div>
 
       <div className="grid grid-cols-4 gap-2 mb-2">
@@ -411,6 +420,7 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
   const [shotsMap, setShotsMap] = useState({});
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingStand, setEditingStand] = useState(null);
+  const [viewingStand, setViewingStand] = useState(null);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState('tap');
   const [lastActions, setLastActions] = useState({});
@@ -502,8 +512,15 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
   };
 
   const handleDeleteStand = async (standId) => {
-    if (!confirm('Delete this stand?')) return;
+    if (!confirm('Are you sure you want to delete this stand? This will remove all shot results for this stand.')) return;
+    
+    // Delete all shots linked to this stand
+    const shots = shotsMap[standId] || [];
+    await Promise.all(shots.map(s => base44.entities.ClayShot.delete(s.id).catch(() => {})));
+    
+    // Delete the stand
     await base44.entities.ClayStand.delete(standId);
+    
     const newStands = stands.filter(s => s.id !== standId);
     setStands(newStands);
     setShotsMap(prev => { const m = { ...prev }; delete m[standId]; return m; });
@@ -671,14 +688,18 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
                       <ShotByShotCardReadOnly
                         stand={stand}
                         shots={shotsMap[stand.id] || []}
+                        onView={() => setViewingStand(stand)}
                         onEdit={() => setEditingStand(stand)}
+                        onDelete={() => handleDeleteStand(stand.id)}
                       />
                     </motion.div>
                   ) : (
                     <motion.div key={stand.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
                       <QuickStandCardReadOnly
                         stand={stand}
+                        onView={() => setViewingStand(stand)}
                         onEdit={() => setEditingStand(stand)}
+                        onDelete={() => handleDeleteStand(stand.id)}
                       />
                     </motion.div>
                   )
@@ -698,6 +719,17 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
           )}
         </div>
       </div>
+
+      {/* View Stand Modal */}
+      <AnimatePresence>
+        {viewingStand && (
+          <ViewStandModal
+            stand={viewingStand}
+            shots={shotsMap[viewingStand.id] || []}
+            onClose={() => setViewingStand(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>,
     document.body
   );
