@@ -78,8 +78,79 @@ function QuickTotalForm({ form, setForm, error }) {
   );
 }
 
+// ─── Shot-by-Shot inline editor (used in StandForm) ──────────────
+function ShotByShotEditor({ totalShots, shots, onChange }) {
+  // shots is an array of results: 'hit' | 'miss' | 'no_bird' | null
+  const handleSetResult = (idx, result) => {
+    const updated = [...shots];
+    // Toggle off if same
+    updated[idx] = updated[idx] === result ? null : result;
+    onChange(updated);
+  };
+
+  const hits = shots.filter(r => r === 'hit').length;
+  const misses = shots.filter(r => r === 'miss').length;
+  const noBirds = shots.filter(r => r === 'no_bird').length;
+  const validScored = hits + misses;
+  const hitPct = validScored > 0 ? Math.round((hits / validScored) * 100) : 0;
+
+  return (
+    <div className="space-y-3">
+      {/* Live stats */}
+      <div className="grid grid-cols-4 gap-2">
+        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-2 text-center">
+          <p className="text-lg font-black text-emerald-600">{hits}</p>
+          <p className="text-[10px] text-muted-foreground">Hits</p>
+        </div>
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-2 text-center">
+          <p className="text-lg font-black text-red-500">{misses}</p>
+          <p className="text-[10px] text-muted-foreground">Misses</p>
+        </div>
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-2 text-center">
+          <p className="text-lg font-black text-amber-600">{noBirds}</p>
+          <p className="text-[10px] text-muted-foreground">No Birds</p>
+        </div>
+        <div className="bg-primary/10 rounded-xl p-2 text-center">
+          <p className="text-lg font-black text-primary">{hitPct}%</p>
+          <p className="text-[10px] text-muted-foreground">Hit %</p>
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground">Score: {hits}/{validScored} valid · {shots.filter(Boolean).length}/{totalShots} recorded</p>
+
+      {/* Per-shot rows */}
+      <div className="space-y-2">
+        {Array.from({ length: totalShots }, (_, i) => {
+          const result = shots[i] || null;
+          return (
+            <div key={i} className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground w-14 flex-shrink-0">Shot {i + 1}</span>
+              <div className="flex gap-1 flex-1">
+                <motion.button type="button" whileTap={{ scale: 0.93 }}
+                  onClick={() => handleSetResult(i, 'hit')}
+                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all border ${result === 'hit' ? 'bg-emerald-500 text-white border-emerald-600 shadow' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'}`}>
+                  ✓ Hit
+                </motion.button>
+                <motion.button type="button" whileTap={{ scale: 0.93 }}
+                  onClick={() => handleSetResult(i, 'miss')}
+                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all border ${result === 'miss' ? 'bg-red-500 text-white border-red-600 shadow' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'}`}>
+                  ✗ Miss
+                </motion.button>
+                <motion.button type="button" whileTap={{ scale: 0.93 }}
+                  onClick={() => handleSetResult(i, 'no_bird')}
+                  className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all border ${result === 'no_bird' ? 'bg-amber-400 text-white border-amber-500 shadow' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800'}`}>
+                  No Bird
+                </motion.button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── Add/Edit Stand Form ──────────────────────────────────────────
-function StandForm({ stand, standNumber, onSave, onCancel }) {
+function StandForm({ stand, standNumber, onSave, onCancel, initialShots }) {
   const [form, setForm] = useState(stand ? { ...stand } : {
     stand_number: standNumber,
     discipline_type: 'Sporting',
@@ -93,13 +164,73 @@ function StandForm({ stand, standNumber, onSave, onCancel }) {
     notes: '',
   });
   const [error, setError] = useState('');
+  // For shot-by-shot: total shots to record
+  const [totalShots, setTotalShots] = useState(
+    stand?.clays_total || stand?.shots_used || 10
+  );
+  // shots array: one entry per shot slot, value is result or null
+  const [shotResults, setShotResults] = useState(() => {
+    if (initialShots && initialShots.length > 0) {
+      return initialShots.map(s => s.result);
+    }
+    return Array(stand?.clays_total || 10).fill(null);
+  });
+
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleTotalShotsChange = (val) => {
+    const n = Math.max(1, parseInt(val) || 1);
+    setTotalShots(n);
+    setShotResults(prev => {
+      const arr = [...prev];
+      while (arr.length < n) arr.push(null);
+      return arr.slice(0, n);
+    });
+  };
+
+  const handleShotResultsChange = (updated) => {
+    setShotResults(updated);
+  };
+
+  const handleUndoLast = () => {
+    setShotResults(prev => {
+      const arr = [...prev];
+      // Find last non-null and clear it
+      for (let i = arr.length - 1; i >= 0; i--) {
+        if (arr[i] !== null) { arr[i] = null; break; }
+      }
+      return arr;
+    });
+  };
+
+  const handleResetAll = () => {
+    setShotResults(Array(totalShots).fill(null));
+  };
 
   const handleSubmit = () => {
     if (!form.stand_number || form.stand_number < 1) { setError('Stand number must be at least 1'); return; }
-    const valid = (form.hits || 0) + (form.misses || 0);
-    const hitPct = valid > 0 ? Math.round(((form.hits || 0) / valid) * 100) : 0;
-    onSave({ ...form, valid_scored_clays: valid, clays_total: valid + (form.no_birds || 0), hit_percentage: hitPct });
+    if (form.scoring_method === 'shot_by_shot') {
+      const hits = shotResults.filter(r => r === 'hit').length;
+      const misses = shotResults.filter(r => r === 'miss').length;
+      const no_birds = shotResults.filter(r => r === 'no_bird').length;
+      const valid = hits + misses;
+      const hitPct = valid > 0 ? Math.round((hits / valid) * 100) : 0;
+      onSave({
+        ...form,
+        hits,
+        misses,
+        no_birds,
+        valid_scored_clays: valid,
+        clays_total: valid + no_birds,
+        shots_used: shotResults.filter(Boolean).length,
+        hit_percentage: hitPct,
+        _shotResults: shotResults, // pass results to parent for DB save
+      });
+    } else {
+      const valid = (form.hits || 0) + (form.misses || 0);
+      const hitPct = valid > 0 ? Math.round(((form.hits || 0) / valid) * 100) : 0;
+      onSave({ ...form, valid_scored_clays: valid, clays_total: valid + (form.no_birds || 0), hit_percentage: hitPct });
+    }
   };
 
   return (
@@ -136,8 +267,23 @@ function StandForm({ stand, standNumber, onSave, onCancel }) {
       {form.scoring_method === 'quick_total' ? (
         <QuickTotalForm form={form} setForm={setForm} error={error} />
       ) : (
-        <div className="bg-secondary/50 rounded-xl p-3 text-sm text-muted-foreground text-center">
-          Record each shot (Hit / Miss / No Bird) on the stand card after saving.
+        <div className="space-y-3">
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Total Shots / Clays</label>
+            <input type="number" min="1" max="50" value={totalShots} onChange={e => handleTotalShotsChange(e.target.value)} className={inp} />
+          </div>
+          <ShotByShotEditor totalShots={totalShots} shots={shotResults} onChange={handleShotResultsChange} />
+          <div className="flex gap-2">
+            <button type="button" onClick={handleUndoLast}
+              className="flex-1 py-2 bg-secondary text-secondary-foreground rounded-xl text-xs font-semibold">
+              ↩ Undo Last
+            </button>
+            <button type="button" onClick={handleResetAll}
+              className="flex-1 py-2 bg-secondary text-secondary-foreground rounded-xl text-xs font-semibold">
+              ✕ Reset All
+            </button>
+          </div>
+          {error && <p className="text-sm text-destructive font-medium">{error}</p>}
         </div>
       )}
 
@@ -426,9 +572,29 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
     });
   };
 
+  const saveShotResults = async (standId, shotResults) => {
+    // Delete existing shots for this stand
+    const existing = await base44.entities.ClayShot.filter({ clay_stand_id: standId });
+    await Promise.all(existing.map(s => base44.entities.ClayShot.delete(s.id)));
+    // Create new shots
+    const newShots = [];
+    for (let i = 0; i < shotResults.length; i++) {
+      if (shotResults[i]) {
+        const shot = await base44.entities.ClayShot.create({ clay_stand_id: standId, shot_number: i + 1, result: shotResults[i] });
+        newShots.push(shot);
+      }
+    }
+    return newShots;
+  };
+
   const handleAddStand = async (formData) => {
-    const newStand = await base44.entities.ClayStand.create({ ...formData, clay_scorecard_id: scorecard.id });
-    if (newStand.scoring_method === 'shot_by_shot') setShotsMap(prev => ({ ...prev, [newStand.id]: [] }));
+    const { _shotResults, ...cleanData } = formData;
+    const newStand = await base44.entities.ClayStand.create({ ...cleanData, clay_scorecard_id: scorecard.id });
+    let shots = [];
+    if (newStand.scoring_method === 'shot_by_shot' && _shotResults) {
+      shots = await saveShotResults(newStand.id, _shotResults);
+    }
+    setShotsMap(prev => ({ ...prev, [newStand.id]: shots }));
     const newStands = [...stands, newStand].sort((a, b) => a.stand_number - b.stand_number);
     setStands(newStands);
     await saveScorecard(newStands);
@@ -436,8 +602,14 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
   };
 
   const handleEditStand = async (formData) => {
-    await base44.entities.ClayStand.update(editingStand.id, formData);
-    const newStands = stands.map(s => s.id === editingStand.id ? { ...editingStand, ...formData } : s).sort((a, b) => a.stand_number - b.stand_number);
+    const { _shotResults, ...cleanData } = formData;
+    await base44.entities.ClayStand.update(editingStand.id, cleanData);
+    let shots = shotsMap[editingStand.id] || [];
+    if (editingStand.scoring_method === 'shot_by_shot' && _shotResults) {
+      shots = await saveShotResults(editingStand.id, _shotResults);
+      setShotsMap(prev => ({ ...prev, [editingStand.id]: shots }));
+    }
+    const newStands = stands.map(s => s.id === editingStand.id ? { ...editingStand, ...cleanData } : s).sort((a, b) => a.stand_number - b.stand_number);
     setStands(newStands);
     await saveScorecard(newStands);
     setEditingStand(null);
@@ -599,7 +771,7 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
             <>
               <ScorecardTable stands={stands} stats={stats} onEdit={(s) => { setEditingStand(s); setView('tap'); }} />
               {editingStand && (
-                <StandForm stand={editingStand} standNumber={editingStand.stand_number} onSave={handleEditStand} onCancel={() => setEditingStand(null)} />
+                <StandForm stand={editingStand} standNumber={editingStand.stand_number} onSave={handleEditStand} onCancel={() => setEditingStand(null)} initialShots={shotsMap[editingStand.id] || []} />
               )}
             </>
           ) : (
@@ -607,7 +779,7 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
               <AnimatePresence>
                 {stands.map(stand => (
                   editingStand?.id === stand.id ? (
-                    <StandForm key={stand.id} stand={stand} standNumber={stand.stand_number} onSave={handleEditStand} onCancel={() => setEditingStand(null)} />
+                    <StandForm key={stand.id} stand={stand} standNumber={stand.stand_number} onSave={handleEditStand} onCancel={() => setEditingStand(null)} initialShots={shotsMap[stand.id] || []} />
                   ) : stand.scoring_method === 'shot_by_shot' ? (
                     <motion.div key={stand.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
                       <ShotByShotCard
