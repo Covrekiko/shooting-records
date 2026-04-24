@@ -48,6 +48,36 @@ export default function ManualGroupForm({ session, onSave, onBack }) {
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  const [sizeUnit, setSizeUnit] = useState('mm'); // 'mm' or 'inches'
+  const [sizeInput, setSizeInput] = useState('');
+
+  const handleSizeInput = (val) => {
+    setSizeInput(val);
+    const num = parseFloat(val);
+    if (!isNaN(num)) {
+      if (sizeUnit === 'mm') {
+        set('group_size_mm', val);
+        set('group_size_inches', (num / 25.4).toFixed(3));
+      } else {
+        set('group_size_mm', (num * 25.4).toFixed(1));
+        set('group_size_inches', val);
+      }
+    } else {
+      set('group_size_mm', '');
+      set('group_size_inches', '');
+    }
+  };
+
+  const handleUnitSwitch = (unit) => {
+    setSizeUnit(unit);
+    const mm = parseFloat(form.group_size_mm);
+    if (!isNaN(mm) && mm > 0) {
+      setSizeInput(unit === 'mm' ? form.group_size_mm : (mm / 25.4).toFixed(3));
+    } else {
+      setSizeInput('');
+    }
+  };
+
   const distanceM = session?.distance_unit === 'yards'
     ? parseFloat(session?.distance) * 0.9144
     : parseFloat(session?.distance);
@@ -86,13 +116,14 @@ export default function ManualGroupForm({ session, onSave, onBack }) {
 
   const handleSave = () => {
     const mm = parseFloat(form.group_size_mm);
+    const inches = parseFloat(form.group_size_inches) || (mm ? mm / 25.4 : null);
     onSave({
       ...form,
       number_of_shots: parseInt(form.number_of_shots) || null,
       group_size_mm: mm || null,
       group_size_moa: derived?.moa ? parseFloat(derived.moa) : null,
       group_size_mrad: derived?.mrad ? parseFloat(derived.mrad) : null,
-      group_size_inches: derived?.inches ? parseFloat(derived.inches) : null,
+      group_size_inches: inches ? parseFloat(inches.toFixed(3)) : null,
       point_of_impact_x: parseFloat(form.point_of_impact_x) || 0,
       point_of_impact_y: parseFloat(form.point_of_impact_y) || 0,
       clicks_up_down: derived?.elevClicks ? parseFloat(derived.elevClicks.toFixed(1)) : 0,
@@ -114,10 +145,30 @@ export default function ManualGroupForm({ session, onSave, onBack }) {
 
       <div className="bg-card rounded-2xl p-4 border border-border space-y-3">
         <h2 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Group Size</h2>
+        <div className="flex gap-2 mb-2">
+          {['mm', 'inches'].map(u => (
+            <button key={u} type="button" onClick={() => handleUnitSwitch(u)}
+              className={`flex-1 py-2 rounded-xl border text-sm font-semibold ${sizeUnit === u ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
+              {u}
+            </button>
+          ))}
+        </div>
         <div className="grid grid-cols-2 gap-3">
-          <div><Label>Group Size (mm)</Label><Input type="number" step="0.1" value={form.group_size_mm} onChange={e => set('group_size_mm', e.target.value)} placeholder="e.g. 24" /></div>
+          <div>
+            <Label>Group Size ({sizeUnit})</Label>
+            <Input type="number" step={sizeUnit === 'mm' ? '0.1' : '0.001'} value={sizeInput}
+              onChange={e => handleSizeInput(e.target.value)}
+              placeholder={sizeUnit === 'mm' ? 'e.g. 24' : 'e.g. 0.95'} />
+          </div>
           <div><Label>Distance</Label><Input disabled value={session ? `${session.distance}${session.distance_unit}` : '—'} /></div>
         </div>
+        {sizeInput && form.group_size_mm && (
+          <p className="text-xs text-muted-foreground">
+            {sizeUnit === 'mm'
+              ? `= ${(parseFloat(form.group_size_mm) / 25.4).toFixed(3)} inches`
+              : `= ${parseFloat(form.group_size_mm).toFixed(1)} mm`}
+          </p>
+        )}
         {derived && (
           <div className="grid grid-cols-3 gap-2">
             <div className="bg-primary/10 rounded-xl p-3 text-center">
