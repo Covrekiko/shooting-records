@@ -97,6 +97,7 @@ export default function SessionDetail({ session, onBack, onEdit, onNewSession })
       <main className="max-w-2xl mx-auto px-4 pt-2 pb-8 mobile-page-padding">
         <TargetPhotoAnalyzer
           session={session}
+          groups={groups}
           editGroup={editGroup}
           onSave={handleSaveGroup}
           onBack={() => { setShowPhotoAnalyzer(false); setEditGroup(null); }}
@@ -123,12 +124,12 @@ export default function SessionDetail({ session, onBack, onEdit, onNewSession })
   return (
     <main className="max-w-2xl mx-auto px-4 pt-2 pb-8 mobile-page-padding">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-5">
-        <button onClick={onBack} className="p-2 hover:bg-secondary rounded-xl transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div className="flex-1">
-          <h2 className="text-xl font-bold">{session.rifle_name || 'Session'}</h2>
+       <div className="flex items-center gap-3 mb-5">
+         <button onClick={onBack} className="p-2 hover:bg-secondary rounded-xl transition-colors">
+           <ArrowLeft className="w-5 h-5" />
+         </button>
+         <div className="flex-1">
+           <h2 className="text-xl font-bold">{session.rifle_name || 'Session'}</h2>
           <p className="text-xs text-muted-foreground">
             {session.date ? format(new Date(session.date), 'd MMM yyyy') : '—'} · {session.distance}{session.distance_unit || 'm'} · {session.range_name || ''}
           </p>
@@ -217,12 +218,12 @@ export default function SessionDetail({ session, onBack, onEdit, onNewSession })
         <button onClick={() => { setEditGroup(null); setShowPhotoAnalyzer(true); }}
           className="py-4 bg-card border border-border rounded-2xl font-semibold text-sm flex flex-col items-center gap-1.5 hover:border-primary/40 transition-all active:scale-95">
           <span className="text-2xl">📸</span>
-          Analyze Target Photo (Group {groups.length + 1})
+          Analyze Target Photo
         </button>
         <button onClick={() => { setEditGroup(null); setShowManualForm(true); }}
           className="py-4 bg-card border border-border rounded-2xl font-semibold text-sm flex flex-col items-center gap-1.5 hover:border-primary/40 transition-all active:scale-95">
           <span className="text-2xl">✏️</span>
-          Enter Group Manually (Group {groups.length + 1})
+          Enter Group Manually
         </button>
       </div>
 

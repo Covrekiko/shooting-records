@@ -28,7 +28,8 @@ function calcCentroid(marks) {
 const inp = 'w-full px-3 py-2.5 border border-border rounded-xl bg-background text-sm';
 const lbl = 'block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1';
 
-export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], ammunition = [], onSave, onBack }) {
+export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, rifles = [], ammunition = [], onSave, onBack }) {
+  const nextGroupNumber = (groups || []).length + 1;
   const [photo, setPhoto] = useState(editGroup?.photo_url || null);
   const [marks, setMarks] = useState(editGroup?.bullet_marks || []);
   const [centrePoint, setCentrePoint] = useState(editGroup?.centre_mark || null);
@@ -38,7 +39,7 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
   const [scaleInput, setScaleInput] = useState('10'); // mm per ref unit
   const [scaleUnit, setScaleUnit] = useState(editGroup?.scale_unit || 'mm'); // mm, cm, or inches
   const [scalePx, setScalePx] = useState(editGroup?.scale_mm_per_px || null);
-  const [groupName, setGroupName] = useState(editGroup?.group_name || '');
+  const [groupName, setGroupName] = useState(editGroup?.group_name || `Group ${nextGroupNumber}`);
   const [notes, setNotes] = useState(editGroup?.notes || '');
   const [confirmedZero, setConfirmedZero] = useState(editGroup?.confirmed || editGroup?.confirmed_zero || false);
   const [shootingPosition, setShootingPosition] = useState(editGroup?.shooting_position || session.shooting_position || '');
