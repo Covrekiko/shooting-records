@@ -85,7 +85,7 @@ function QuickTotalForm({ form, setForm, error }) {
 // noBirds: integer count (separate — no clay launched = no shot)
 function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNoBirdsChange, onShotMeta }) {
   const [voiceFlash, setVoiceFlash] = useState(null); // index of last voice-scored shot
-  const lastHeardRef = useRef('');
+  const [currentVoiceIndex, setCurrentVoiceIndex] = useState(0); // track position in voice mode
 
   const handleSetResult = (idx, result, meta = { input_method: 'manual' }) => {
     const updated = [...shots];
@@ -96,18 +96,28 @@ function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNo
     onShotMeta?.(updatedMeta);
   };
 
-  // Voice scoring hook — fills next empty shot slot
+  // Voice scoring hook — auto-advances through shots
   const { isListening, lastHeard, error: voiceError, start: startVoice, stop: stopVoice } = useVoiceScoring({
     onResult: ({ result, input_method, voice_timestamp, voice_confidence_score }) => {
       if (result === 'no_bird') {
         onNoBirdsChange(noBirds + 1);
         setVoiceFlash('nb');
         setTimeout(() => setVoiceFlash(null), 800);
+        // Find next empty slot and auto-advance
+        const nextIdx = shots.findIndex((s, i) => i >= currentVoiceIndex && (s === null || s === undefined));
+        if (nextIdx !== -1) {
+          setCurrentVoiceIndex(nextIdx);
+        } else {
+          // All filled, stay on current
+          setCurrentVoiceIndex(prev => Math.min(prev + 1, totalShots - 1));
+        }
         return;
       }
-      // Find next empty slot
-      const nextIdx = shots.findIndex(s => s === null || s === undefined);
+      
+      // Find next empty slot from current position
+      const nextIdx = shots.findIndex((s, i) => i >= currentVoiceIndex && (s === null || s === undefined));
       if (nextIdx === -1) return; // all filled
+      
       const updated = [...shots];
       updated[nextIdx] = result;
       onChange(updated);
@@ -116,6 +126,10 @@ function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNo
       onShotMeta?.(updatedMeta);
       setVoiceFlash(nextIdx);
       setTimeout(() => setVoiceFlash(null), 800);
+      
+      // Auto-advance to next empty slot
+      const afterNextIdx = shots.findIndex((s, i) => i > nextIdx && (s === null || s === undefined));
+      setCurrentVoiceIndex(afterNextIdx !== -1 ? afterNextIdx : nextIdx + 1);
     },
   });
 
@@ -161,14 +175,22 @@ function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNo
               {isListening && lastHeard ? (
                 <p className="text-[10px] text-muted-foreground">Heard: "<span className="font-semibold text-foreground">{lastHeard}</span>"</p>
               ) : (
-                <p className="text-[10px] text-muted-foreground">{isListening ? 'Say: Hit · Miss · No Bird' : 'Say commands instead of tapping'}</p>
+                <p className="text-[10px] text-muted-foreground">{isListening ? `Auto-advancing: Shot ${currentVoiceIndex + 1}/${totalShots}` : 'Say: Hit · Miss · No Bird'}</p>
               )}
             </div>
           </div>
           <motion.button
             type="button"
             whileTap={{ scale: 0.92 }}
-            onClick={isListening ? stopVoice : startVoice}
+            onClick={() => {
+              if (isListening) {
+                stopVoice();
+                setCurrentVoiceIndex(0);
+              } else {
+                setCurrentVoiceIndex(0);
+                startVoice();
+              }
+            }}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
               isListening
                 ? 'bg-red-500 text-white hover:bg-red-600'
