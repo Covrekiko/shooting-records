@@ -71,18 +71,26 @@ export default function SessionDetail({ session, onBack, onEdit, onNewSession })
   };
 
   const handleMarkBest = async (group) => {
-    // Unmark all, then mark this one
     for (const g of groups) {
-      if (g.id !== group.id && g.is_best_group) {
-        await base44.entities.TargetGroup.update(g.id, { is_best_group: false });
+      if (g.id !== group.id && g.best_group) {
+        await base44.entities.TargetGroup.update(g.id, { best_group: false });
       }
     }
-    await base44.entities.TargetGroup.update(group.id, { is_best_group: !group.is_best_group });
+    await base44.entities.TargetGroup.update(group.id, { best_group: !group.best_group });
+    loadData();
+  };
+
+  const handleDuplicateGroup = async (group) => {
+    const { id, created_date, updated_date, created_by, ...rest } = group;
+    await base44.entities.TargetGroup.create({ ...rest, session_id: session.id, group_name: `${rest.group_name} (copy)`, confirmed: false, best_group: false });
     loadData();
   };
 
   const bestGroup = groups.filter(g => g.group_size_moa).reduce((best, g) =>
     !best || g.group_size_moa < best.group_size_moa ? g : best, null);
+
+  // isBest check uses both old and new field name
+  const isBestGroup = (g) => bestGroup?.id === g.id;
 
   if (showPhotoAnalyzer) {
     return (
@@ -189,13 +197,14 @@ export default function SessionDetail({ session, onBack, onEdit, onNewSession })
               key={group.id}
               group={group}
               session={session}
-              isBest={bestGroup?.id === group.id}
+              isBest={isBestGroup(group)}
               onEdit={() => {
                 setEditGroup(group);
-                if (group.entry_type === 'photo') setShowPhotoAnalyzer(true);
+                if (group.entry_method === 'photo' || group.entry_type === 'photo') setShowPhotoAnalyzer(true);
                 else setShowManualForm(true);
               }}
               onDelete={() => handleDeleteGroup(group.id)}
+              onDuplicate={() => handleDuplicateGroup(group)}
               onSaveToScope={() => handleSaveToScopeCard(group)}
               onMarkBest={() => handleMarkBest(group)}
             />

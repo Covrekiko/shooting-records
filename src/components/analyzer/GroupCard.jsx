@@ -1,18 +1,28 @@
-import { Edit2, Trash2, ScanLine, Star } from 'lucide-react';
+import { Edit2, Trash2, ScanLine, Star, Copy } from 'lucide-react';
 
-export default function GroupCard({ group, session, isBest, onEdit, onDelete, onSaveToScope, onMarkBest }) {
+export default function GroupCard({ group, session, isBest, onEdit, onDelete, onDuplicate, onSaveToScope, onMarkBest }) {
   const hasCorrection = group.clicks_up_down || group.clicks_left_right;
+  const isConfirmed = group.confirmed || group.confirmed_zero;
+  const displayDistance = group.distance_override ? `${group.distance_override}m` : (session.distance ? `${session.distance}m` : null);
+  const displayAmmo = group.ammo_override || session.ammo_name || null;
+  const displayPosition = group.shooting_position || session.shooting_position || null;
 
   return (
     <div className={`bg-card border rounded-2xl p-4 ${isBest ? 'border-primary/40 bg-primary/5' : 'border-border'}`}>
       <div className="flex items-start justify-between mb-3">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="font-bold">{group.group_name}</span>
             {isBest && <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full font-semibold">⭐ Best</span>}
-            {group.confirmed_zero && <span className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full font-semibold">✓ Zero</span>}
+            {isConfirmed && <span className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full font-semibold">✓ Zero</span>}
           </div>
-          {group.number_of_shots > 0 && <p className="text-xs text-muted-foreground mt-0.5">{group.number_of_shots} shots · {group.entry_type === 'photo' ? '📸 Photo' : '✏️ Manual'}</p>}
+          <div className="flex flex-wrap gap-x-2 mt-0.5">
+            {group.number_of_shots > 0 && <p className="text-xs text-muted-foreground">{group.number_of_shots} shots</p>}
+            {displayDistance && <p className="text-xs text-muted-foreground">{displayDistance}</p>}
+            {displayAmmo && <p className="text-xs text-muted-foreground">{displayAmmo}</p>}
+            {displayPosition && <p className="text-xs text-muted-foreground capitalize">{displayPosition.replace('_', ' ')}</p>}
+            <p className="text-xs text-muted-foreground">{group.entry_method === 'photo' ? '📸 Photo' : '✏️ Manual'}</p>
+          </div>
         </div>
         <div className="flex gap-1">
           <button onClick={onMarkBest} title="Mark as best group" className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
@@ -21,6 +31,11 @@ export default function GroupCard({ group, session, isBest, onEdit, onDelete, on
           <button onClick={onSaveToScope} title="Save to Scope Click Card" className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
             <ScanLine className="w-4 h-4 text-muted-foreground" />
           </button>
+          {onDuplicate && (
+            <button onClick={onDuplicate} title="Duplicate group" className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
+              <Copy className="w-4 h-4 text-muted-foreground" />
+            </button>
+          )}
           <button onClick={onEdit} className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
             <Edit2 className="w-4 h-4 text-muted-foreground" />
           </button>

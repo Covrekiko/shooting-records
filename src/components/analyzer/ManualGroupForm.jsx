@@ -28,6 +28,8 @@ function calcClicksFromMoa(moa, clickValue) {
   return val ? Math.round(moa / val * 10) / 10 : 0;
 }
 
+const POSITIONS = ['benchrest', 'prone', 'sticks', 'high_seat', 'standing', 'other'];
+
 export default function ManualGroupForm({ session, editGroup, scopeProfile, groupNumber, onSave, onBack }) {
   const [form, setForm] = useState({
     group_name: `Group ${groupNumber}`,
@@ -37,9 +39,12 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
     group_size_unit: 'mm',
     point_of_impact_x: 0,
     point_of_impact_y: 0,
-    confirmed_zero: false,
+    confirmed: false,
     notes: '',
-    entry_type: 'manual',
+    entry_method: 'manual',
+    shooting_position: session.shooting_position || '',
+    distance_override: '',
+    ammo_override: '',
   });
   const [calculated, setCalculated] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -47,16 +52,17 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   useEffect(() => {
-    if (editGroup) setForm({ ...form, ...editGroup, group_size_input: editGroup.group_size_mm || '', group_size_unit: 'mm' });
+    if (editGroup) setForm(f => ({ ...f, ...editGroup, group_size_input: editGroup.group_size_mm || '', group_size_unit: 'mm' }));
   }, [editGroup]);
 
   useEffect(() => {
     recalculate();
-  }, [form.group_size_input, form.group_size_unit, form.point_of_impact_x, form.point_of_impact_y]);
+  }, [form.group_size_input, form.group_size_unit, form.point_of_impact_x, form.point_of_impact_y, form.distance_override]);
 
   const recalculate = () => {
     const input = parseFloat(form.group_size_input);
-    if (!input || !session.distance) return;
+    const effectiveDistance = parseFloat(form.distance_override) || parseFloat(session.distance);
+    if (!input || !effectiveDistance) return;
 
     let mm;
     if (form.group_size_unit === 'mm') mm = input;
@@ -65,7 +71,8 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
     else mm = input;
 
     // Convert distance to meters
-    const distM = session.distance_unit === 'yards' ? session.distance * 0.9144 : session.distance;
+    const rawDist = parseFloat(form.distance_override) || parseFloat(session.distance);
+    const distM = session.distance_unit === 'yards' ? rawDist * 0.9144 : rawDist;
     const moa = mmToMoa(mm, distM);
     const mrad = mmToMrad(mm, distM);
 
@@ -98,8 +105,6 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
     if (form.group_size_unit === 'cm') mm = cmToMm(input);
     if (form.group_size_unit === 'inches') mm = inchesToMm(input);
 
-    const distM = session.distance_unit === 'yards' ? session.distance * 0.9144 : session.distance;
-
     const payload = {
       group_name: form.group_name,
       number_of_shots: parseInt(form.number_of_shots) || 0,
@@ -111,9 +116,12 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
       point_of_impact_y: parseFloat(form.point_of_impact_y) || 0,
       clicks_up_down: (calculated?.clicksUp || 0) - (calculated?.clicksDown || 0),
       clicks_left_right: (calculated?.clicksRight || 0) - (calculated?.clicksLeft || 0),
-      confirmed_zero: form.confirmed_zero,
+      confirmed: form.confirmed,
       notes: form.notes,
-      entry_type: 'manual',
+      entry_method: 'manual',
+      shooting_position: form.shooting_position,
+      distance_override: form.distance_override ? parseFloat(form.distance_override) : null,
+      ammo_override: form.ammo_override || null,
     };
     setSaving(false);
     onSave(payload);
@@ -142,6 +150,30 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
               <label className={lbl}>Number of Shots</label>
               <input type="number" value={form.number_of_shots} onChange={e => set('number_of_shots', e.target.value)} placeholder="e.g. 5" className={inp} />
             </div>
+          </div>
+
+          {/* Distance override & Ammo override */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={lbl}>Distance (m) <span className="text-muted-foreground normal-case font-normal">override</span></label>
+              <input type="number" value={form.distance_override} onChange={e => set('distance_override', e.target.value)}
+                placeholder={session.distance ? `${session.distance}m` : 'e.g. 100'} className={inp} />
+            </div>
+            <div>
+              <label className={lbl}>Ammo <span className="text-muted-foreground normal-case font-normal">override</span></label>
+              <input value={form.ammo_override} onChange={e => set('ammo_override', e.target.value)}
+                placeholder={session.ammo_name || 'e.g. Federal 168gr'} className={inp} />
+            </div>
+          </div>
+
+          {/* Shooting position */}
+          <div>
+            <label className={lbl}>Shooting Position</label>
+            <select value={form.shooting_position} onChange={e => set('shooting_position', e.target.value)}
+              className={inp}>
+              <option value="">— Select —</option>
+              {POSITIONS.map(p => <option key={p} value={p}>{p.replace('_', ' ')}</option>)}
+            </select>
           </div>
 
           <div>
@@ -214,7 +246,7 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
 
         <div className="bg-card border border-border rounded-2xl p-4 space-y-4">
           <label className="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" checked={form.confirmed_zero} onChange={e => set('confirmed_zero', e.target.checked)} className="w-5 h-5" />
+            <input type="checkbox" checked={form.confirmed} onChange={e => set('confirmed', e.target.checked)} className="w-5 h-5" />
             <span className="font-semibold">Confirmed Zero ✓</span>
           </label>
           <div>

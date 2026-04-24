@@ -39,7 +39,11 @@ export default function TargetPhotoAnalyzer({ session, editGroup, onSave, onBack
   const [scalePx, setScalePx] = useState(editGroup?.scale_mm_per_px || null);
   const [groupName, setGroupName] = useState(editGroup?.group_name || `Group ${Date.now() % 100}`);
   const [notes, setNotes] = useState(editGroup?.notes || '');
-  const [confirmedZero, setConfirmedZero] = useState(editGroup?.confirmed_zero || false);
+  const [confirmedZero, setConfirmedZero] = useState(editGroup?.confirmed || editGroup?.confirmed_zero || false);
+  const [shootingPosition, setShootingPosition] = useState(editGroup?.shooting_position || session.shooting_position || '');
+  const [distanceOverride, setDistanceOverride] = useState(editGroup?.distance_override || '');
+  const [ammoOverride, setAmmoOverride] = useState(editGroup?.ammo_override || '');
+  const POSITIONS = ['benchrest', 'prone', 'sticks', 'high_seat', 'standing', 'other'];
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [results, setResults] = useState(null);
@@ -144,14 +148,16 @@ export default function TargetPhotoAnalyzer({ session, editGroup, onSave, onBack
       point_of_impact_y: results?.poiY || 0,
       clicks_up_down: 0,
       clicks_left_right: 0,
-      confirmed_zero: confirmedZero,
-      entry_type: 'photo',
+      confirmed: confirmedZero,
+      entry_method: 'photo',
       photo_url: photo,
-      bullet_marks: marks,
-      centre_mark: centrePoint,
-      aim_mark: aimPoint,
-      scale_reference: scaleRef,
+      bullet_holes: marks,
+      centre_x: centrePoint?.x || null,
+      centre_y: centrePoint?.y || null,
       scale_mm_per_px: scalePx,
+      shooting_position: shootingPosition || null,
+      distance_override: distanceOverride ? parseFloat(distanceOverride) : null,
+      ammo_override: ammoOverride || null,
       notes,
     };
     setSaving(false);
@@ -346,6 +352,29 @@ export default function TargetPhotoAnalyzer({ session, editGroup, onSave, onBack
               )}
             </div>
           )}
+
+          {/* Extra context fields */}
+          <div className="bg-card border border-border rounded-2xl p-4 mb-3 space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={lbl}>Distance override (m)</label>
+                <input type="number" value={distanceOverride} onChange={e => setDistanceOverride(e.target.value)}
+                  placeholder={session.distance ? `${session.distance}m` : 'e.g. 100'} className={inp} />
+              </div>
+              <div>
+                <label className={lbl}>Ammo override</label>
+                <input value={ammoOverride} onChange={e => setAmmoOverride(e.target.value)}
+                  placeholder={session.ammo_name || 'e.g. Federal 168gr'} className={inp} />
+              </div>
+            </div>
+            <div>
+              <label className={lbl}>Shooting Position</label>
+              <select value={shootingPosition} onChange={e => setShootingPosition(e.target.value)} className={inp}>
+                <option value="">— Select —</option>
+                {POSITIONS.map(p => <option key={p} value={p}>{p.replace('_', ' ')}</option>)}
+              </select>
+            </div>
+          </div>
 
           <div className="mb-4">
             <label className={lbl}>Notes</label>

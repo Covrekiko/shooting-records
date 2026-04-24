@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { X, Download } from 'lucide-react';
+import { X, Download, ScanLine } from 'lucide-react';
 import GroupCard from '@/components/analyzer/GroupCard';
 import ManualGroupForm from '@/components/analyzer/ManualGroupForm';
 import TargetPhotoAnalyzer from '@/components/analyzer/TargetPhotoAnalyzer';
@@ -8,15 +8,18 @@ import { exportSessionPDF } from '@/utils/analyzerPdfExport';
 import { createPortal } from 'react-dom';
 
 // Build a session-like object from a SessionRecord + rifle entry for the analyzer components
-function buildAnalyzerSession(sessionRecord, rifleEntry) {
+function buildAnalyzerSession(sessionRecord, rifleEntry, rifles) {
+  const rifle = rifles?.find(r => r.id === rifleEntry?.rifle_id);
   return {
     id: sessionRecord.id,
     date: sessionRecord.date,
     range_name: sessionRecord.location_name || '',
-    rifle_name: rifleEntry?.rifle_name || rifleEntry?.rifle_id || '',
+    rifle_id: rifleEntry?.rifle_id || '',
+    rifle_name: rifle?.name || rifleEntry?.rifle_name || rifleEntry?.rifle_id || '',
     scope_name: '',
     scope_profile_id: null,
     ammo_name: rifleEntry?.ammunition_brand || '',
+    ammo_id: rifleEntry?.ammunition_id || '',
     caliber: rifleEntry?.caliber || '',
     bullet_weight: rifleEntry?.grain || '',
     distance: rifleEntry?.meters_range || '',
@@ -36,18 +39,37 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
   const [showManualForm, setShowManualForm] = useState(false);
   const [showPhotoAnalyzer, setShowPhotoAnalyzer] = useState(false);
   const [editGroup, setEditGroup] = useState(null);
-  const [scopeProfile, setScopeProfile] = useState(null);
+  const [scopeProfiles, setScopeProfiles] = useState([]);
+  const [rifles, setRifles] = useState([]);
+  // Which rifle context to use for new groups (defaults to first)
+  const [selectedRifleIdx, setSelectedRifleIdx] = useState(0);
 
-  // Use first rifle entry for context; user can change later
-  const primaryRifle = sessionRecord?.rifles_used?.[0] || {};
-  const analyzerSession = buildAnalyzerSession(sessionRecord, primaryRifle);
+  const riflesUsed = sessionRecord?.rifles_used || [];
+  const primaryRifle = riflesUsed[selectedRifleIdx] || riflesUsed[0] || {};
+  const analyzerSession = buildAnalyzerSession(sessionRecord, primaryRifle, rifles);
+  // Pick scope profile for the selected rifle
+  const scopeProfile = scopeProfiles.find(sp => sp.rifle_id === primaryRifle?.rifle_id) || scopeProfiles[0] || null;
 
-  useEffect(() => { loadGroups(); }, [sessionRecord.id]);
+  useEffect(() => { loadAll(); }, [sessionRecord.id]);
 
-  const loadGroups = async () => {
+  const loadAll = async () => {
     setLoading(true);
-    const g = await base44.entities.TargetGroup.filter({ session_id: sessionRecord.id });
+    const [g, user] = await Promise.all([
+      base44.entities.TargetGroup.filter({ session_id: sessionRecord.id }),
+      base44.auth.me(),
+    ]);
     setGroups(g.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)));
+
+    // Load rifles and scope profiles for the rifles used
+    const rifleIds = (sessionRecord.rifles_used || []).map(r => r.rifle_id).filter(Boolean);
+    if (rifleIds.length) {
+      const [rList, spList] = await Promise.all([
+        base44.entities.Rifle.filter({ created_by: user.email }),
+        base44.entities.ScopeProfile.filter({ created_by: user.email }),
+      ]);
+      setRifles(rList);
+      setScopeProfiles(spList.filter(sp => rifleIds.includes(sp.rifle_id)));
+    }
     setLoading(false);
   };
 
@@ -60,33 +82,67 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
     setShowManualForm(false);
     setShowPhotoAnalyzer(false);
     setEditGroup(null);
-    loadGroups();
+    loadAll();
   };
 
   const handleDeleteGroup = async (id) => {
     if (!confirm('Delete this group?')) return;
     await base44.entities.TargetGroup.delete(id);
-    loadGroups();
+    loadAll();
+  };
+
+  const handleDuplicateGroup = async (group) => {
+    const { id, created_date, updated_date, created_by, ...rest } = group;
+    const nextNum = groups.length + 1;
+    await base44.entities.TargetGroup.create({
+      ...rest,
+      session_id: sessionRecord.id,
+      group_name: `${rest.group_name} (copy)`,
+      confirmed: false,
+      best_group: false,
+    });
+    loadAll();
   };
 
   const handleMarkBest = async (group) => {
     for (const g of groups) {
-      if (g.id !== group.id && g.is_best_group) {
-        await base44.entities.TargetGroup.update(g.id, { is_best_group: false });
+      if (g.id !== group.id && g.best_group) {
+        await base44.entities.TargetGroup.update(g.id, { best_group: false });
       }
     }
-    await base44.entities.TargetGroup.update(group.id, { is_best_group: !group.is_best_group });
-    loadGroups();
+    await base44.entities.TargetGroup.update(group.id, { best_group: !group.best_group });
+    loadAll();
   };
 
   const handleSaveToScope = async (group) => {
-    alert('Scope card saving available from the Scope Click Cards section');
+    if (!scopeProfile) {
+      alert('No scope profile found for this rifle. Add one in Scope Click Cards first.');
+      return;
+    }
+    const distance = group.distance_override || primaryRifle?.meters_range;
+    if (!distance) {
+      alert('No distance set for this group. Please set the distance in the group.');
+      return;
+    }
+    await base44.entities.ScopeDistanceData.create({
+      scope_profile_id: scopeProfile.id,
+      distance: parseInt(distance),
+      distance_unit: 'm',
+      elevation_clicks: group.clicks_up_down || 0,
+      windage_clicks: group.clicks_left_right || 0,
+      data_type: group.confirmed ? 'confirmed' : 'calculated',
+      ammunition_used: group.ammo_override || primaryRifle?.ammunition_brand || '',
+      date_confirmed: sessionRecord.date,
+      confirmed_at_range: group.confirmed || false,
+      notes: group.notes || '',
+    });
+    alert(`✓ Saved to scope click card: ${scopeProfile.scope_brand} at ${distance}m`);
   };
 
   const bestGroup = groups.filter(g => g.group_size_moa).reduce((best, g) =>
     !best || g.group_size_moa < best.group_size_moa ? g : best, null);
 
-  // Sub-screens
+  // Sub-screens — full-screen overlays
   if (showPhotoAnalyzer) {
     return createPortal(
       <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto">
@@ -133,6 +189,7 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
             <h2 className="text-lg font-bold">Target Analysis</h2>
             <p className="text-xs text-muted-foreground">
               {sessionRecord.location_name} · {primaryRifle?.meters_range ? `${primaryRifle.meters_range}m` : ''}
+              {scopeProfile ? ` · ${scopeProfile.scope_brand}` : ''}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -150,6 +207,25 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
         </div>
 
         <div className="px-5 py-4 pb-8">
+
+          {/* Rifle selector (when multiple rifles in session) */}
+          {riflesUsed.length > 1 && (
+            <div className="mb-4">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">Context for new groups</p>
+              <div className="flex gap-2 flex-wrap">
+                {riflesUsed.map((r, i) => {
+                  const rName = rifles.find(x => x.id === r.rifle_id)?.name || r.rifle_id || `Rifle ${i + 1}`;
+                  return (
+                    <button key={i} onClick={() => setSelectedRifleIdx(i)}
+                      className={`px-3 py-2 rounded-xl text-sm font-semibold transition-all ${selectedRifleIdx === i ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-secondary/80'}`}>
+                      {rName} {r.meters_range ? `· ${r.meters_range}m` : ''}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Best Group Summary */}
           {bestGroup && (
             <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 mb-4">
@@ -191,10 +267,11 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
                   isBest={bestGroup?.id === group.id}
                   onEdit={() => {
                     setEditGroup(group);
-                    if (group.entry_type === 'photo') setShowPhotoAnalyzer(true);
+                    if (group.entry_method === 'photo') setShowPhotoAnalyzer(true);
                     else setShowManualForm(true);
                   }}
                   onDelete={() => handleDeleteGroup(group.id)}
+                  onDuplicate={() => handleDuplicateGroup(group)}
                   onSaveToScope={() => handleSaveToScope(group)}
                   onMarkBest={() => handleMarkBest(group)}
                 />
