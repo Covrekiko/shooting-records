@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight, Trash2, Zap } from 'lucide-react';
+import AutoCheckinSettingToggle from '@/components/AutoCheckinSettingToggle';
 import { base44 } from '@/api/base44Client';
 import { DESIGN } from '@/lib/designConstants';
 
@@ -160,8 +161,6 @@ function Field({ label, error, required, children }) {
 }
 
 function SettingsPanel() {
-  const [loading, setLoading] = useState(true);
-
   return (
     <div className="space-y-6">
       <div>
@@ -176,6 +175,11 @@ function SettingsPanel() {
         <SettingCard title="Deer Locations" description="Manage deer hunting locations" link="/settings/locations" />
         <SettingCard title="Ammunition" description="Manage ammunition" link="/settings/ammunition" />
         <SettingCard title="Ammunition Inventory" description="Track stock levels & costs" link="/settings/ammunition-inventory" />
+      </div>
+
+      <div>
+        <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3">App Settings</h3>
+        <AutoCheckinSettingToggle />
       </div>
     </div>
   );

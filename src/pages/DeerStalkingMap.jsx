@@ -16,6 +16,8 @@ import AreaSaveForm from '@/components/deer-stalking/AreaSaveForm';
 import AreaSelector from '@/components/deer-stalking/AreaSelector';
 import FloatingMapSearch from '@/components/deer-stalking/FloatingMapSearch';
 import LegalShootingHoursWidget from '@/components/deer-stalking/LegalShootingHoursWidget';
+import { useAutoCheckin } from '@/hooks/useAutoCheckin';
+import AutoCheckinBanner from '@/components/AutoCheckinBanner';
 
 const mapContainerStyle = {
   width: '100%',
@@ -60,6 +62,8 @@ export default function DeerStalkingMap() {
   const [areaBounds, setAreaBounds] = useState(null);
   const [useSatellite, setUseSatellite] = useState(false);
   const [showError, setShowError] = useState(true);
+  const [autoCheckinMatch, setAutoCheckinMatch] = useState(null);
+  const [autoCheckinEnabled, setAutoCheckinEnabled] = useState(false);
   const [openInfoWindowId, setOpenInfoWindowId] = useState(null);
   const [openInfoWindowType, setOpenInfoWindowType] = useState(null);
   const mapRef = useRef(null);
@@ -68,7 +72,36 @@ export default function DeerStalkingMap() {
     loadData();
     getUserLocation();
     loadRiflesAndAmmo();
+    base44.auth.me().then(u => setAutoCheckinEnabled(u?.autoCheckinEnabled === true));
   }, []);
+
+  useAutoCheckin({
+    enabled: autoCheckinEnabled,
+    clubs: [],
+    areas: savedAreas,
+    hasActiveSession: !!activeOuting,
+    onAutoCheckin: (match) => setAutoCheckinMatch(match),
+  });
+
+  const handleAutoCheckinConfirm = async () => {
+    if (!autoCheckinMatch || activeOuting) return;
+    const now = new Date();
+    const area = savedAreas.find(a => a.id === autoCheckinMatch.id);
+    try {
+      await startOuting({
+        location_name: autoCheckinMatch.name,
+        area_id: autoCheckinMatch.id,
+        start_time: now.toISOString(),
+        check_in_method: 'auto_geolocation',
+        auto_check_in_detected: true,
+        auto_check_in_time: now.toISOString(),
+        auto_check_in_confirmed: true,
+      });
+      setAutoCheckinMatch(null);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
 
   // GPS tracking for active outing
   useEffect(() => {
@@ -574,6 +607,16 @@ export default function DeerStalkingMap() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* ── AUTO CHECK-IN BANNER ── */}
+      {autoCheckinMatch && (
+        <AutoCheckinBanner
+          match={autoCheckinMatch}
+          onConfirm={handleAutoCheckinConfirm}
+          onCancel={() => setAutoCheckinMatch(null)}
+          onDismiss={() => setAutoCheckinMatch(null)}
+        />
       )}
 
       {/* ── ERROR TOAST ── */}

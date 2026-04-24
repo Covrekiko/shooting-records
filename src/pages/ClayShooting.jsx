@@ -16,6 +16,8 @@ import MissingFieldsAlert from '@/components/MissingFieldsAlert';
 import ModalShell from '@/components/ModalShell';
 import { motion } from 'framer-motion';
 import { DESIGN } from '@/lib/designConstants';
+import { useAutoCheckin } from '@/hooks/useAutoCheckin';
+import AutoCheckinBanner from '@/components/AutoCheckinBanner';
 
 export default function ClayShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -30,6 +32,8 @@ export default function ClayShooting() {
   const [gpsTrack, setGpsTrack] = useState([]);
   const [viewingTrack, setViewingTrack] = useState(null);
   const [showScorecard, setShowScorecard] = useState(false);
+  const [autoCheckinMatch, setAutoCheckinMatch] = useState(null);
+  const [autoCheckinEnabled, setAutoCheckinEnabled] = useState(false);
 
   const [checkinData, setCheckinData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -37,6 +41,44 @@ export default function ClayShooting() {
     checkin_time: new Date().toTimeString().slice(0, 5),
     notes: '',
   });
+
+  useEffect(() => {
+    base44.auth.me().then(u => setAutoCheckinEnabled(u?.autoCheckinEnabled === true));
+  }, []);
+
+  useAutoCheckin({
+    enabled: autoCheckinEnabled,
+    clubs: clubs.filter(c => c.type === 'Clay Shooting' || c.type === 'Both'),
+    areas: [],
+    hasActiveSession: !!activeSession,
+    onAutoCheckin: (match) => setAutoCheckinMatch(match),
+  });
+
+  const handleAutoCheckinConfirm = async () => {
+    if (!autoCheckinMatch || activeSession) return;
+    const now = new Date();
+    const session = await base44.entities.SessionRecord.create({
+      date: now.toISOString().split('T')[0],
+      club_id: autoCheckinMatch.id,
+      category: 'clay_shooting',
+      status: 'active',
+      location_id: autoCheckinMatch.id,
+      location_name: autoCheckinMatch.name,
+      checkin_time: now.toTimeString().slice(0, 5),
+      start_time: now.toTimeString().slice(0, 5),
+      notes: '',
+      photos: [],
+      gps_track: [],
+      check_in_method: 'auto_geolocation',
+      auto_check_in_detected: true,
+      auto_check_in_location_id: autoCheckinMatch.id,
+      auto_check_in_time: now.toISOString(),
+      auto_check_in_confirmed: true,
+    });
+    setActiveSession(session);
+    trackingService.startTracking(session.id, 'clay');
+    setAutoCheckinMatch(null);
+  };
 
   useEffect(() => {
     sessionManager.clearExpiredSessions();
@@ -237,6 +279,14 @@ export default function ClayShooting() {
       {nearbyClub && (
         <CheckinBanner location={nearbyClub.name} distance={nearbyClub.distance} onDismiss={() => setNearbyClub(null)} onCheckin={() => setShowCheckin(true)} />
       )}
+      {autoCheckinMatch && (
+        <AutoCheckinBanner
+          match={autoCheckinMatch}
+          onConfirm={handleAutoCheckinConfirm}
+          onCancel={() => setAutoCheckinMatch(null)}
+          onDismiss={() => setAutoCheckinMatch(null)}
+        />
+      )}
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-4 mobile-page-padding">
         <div className="mb-4 flex items-center justify-between">
           <div className="hidden md:block">
@@ -274,6 +324,9 @@ export default function ClayShooting() {
                     {activeSession.location_name || 'Clay Ground'}
                   </p>
                   <p className="text-xs text-slate-400 dark:text-slate-500">Started {activeSession.checkin_time}</p>
+                  {activeSession.check_in_method === 'auto_geolocation' && (
+                    <p className="text-[10px] text-primary font-medium mt-0.5">📍 Auto by Geolocation</p>
+                  )}
                 </div>
               </div>
               <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowCheckout(true)}
