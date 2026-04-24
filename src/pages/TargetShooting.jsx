@@ -6,7 +6,7 @@ import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import RecordsSection from '@/components/RecordsSection';
-import { Clock, Plus, Map, Crosshair, ScanLine } from 'lucide-react';
+import { Plus, Map, Crosshair, ScanLine, Microscope } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
@@ -15,6 +15,8 @@ import BottomSheetSelect from '@/components/BottomSheetSelect';
 import ModalShell from '@/components/ModalShell';
 import { motion } from 'framer-motion';
 import { DESIGN } from '@/lib/designConstants';
+import TargetAnalysisPanel from '@/components/target-analysis/TargetAnalysisPanel';
+import TargetAnalysisSummary from '@/components/target-analysis/TargetAnalysisSummary';
 
 export default function TargetShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -29,6 +31,7 @@ export default function TargetShooting() {
   const [nearbyClub, setNearbyClub] = useState(null);
   const [gpsTrack, setGpsTrack] = useState([]);
   const [viewingTrack, setViewingTrack] = useState(null);
+  const [showTargetAnalysis, setShowTargetAnalysis] = useState(false);
 
   const [checkinData, setCheckinData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -272,7 +275,7 @@ export default function TargetShooting() {
 
         {activeSession && (
           <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-2xl p-4 mb-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
                 <div>
@@ -288,6 +291,14 @@ export default function TargetShooting() {
                 Check Out
               </motion.button>
             </div>
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setShowTargetAnalysis(true)}
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-background dark:bg-slate-800 border border-primary/30 rounded-xl text-sm font-semibold text-primary hover:bg-primary/5 transition-colors"
+            >
+              <Microscope className="w-4 h-4" />
+              Open Target Analysis
+            </motion.button>
           </div>
         )}
 
@@ -314,6 +325,13 @@ export default function TargetShooting() {
         {viewingTrack && <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />}
       </main>
 
+      {showTargetAnalysis && activeSession && (
+        <TargetAnalysisPanel
+          sessionRecord={activeSession}
+          onClose={() => setShowTargetAnalysis(false)}
+        />
+      )}
+
       {createPortal(
         <>
           {(showCheckin || showCheckout) && <div className="fixed inset-0 z-[50000] bg-black/50" onClick={() => { setShowCheckin(false); setShowCheckout(false); }} />}
@@ -327,7 +345,7 @@ export default function TargetShooting() {
           {showCheckout && activeSession && (
             <div className="fixed inset-0 z-[50001] flex flex-col justify-end sm:justify-center sm:items-center pointer-events-none">
               <div className="pointer-events-auto w-full sm:max-w-md">
-                <CheckoutModal rifles={rifles} ammunition={ammunition} onSubmit={handleCheckout} onClose={() => setShowCheckout(false)} gpsTrack={gpsTrack} onViewTrack={setViewingTrack} />
+                <CheckoutModal rifles={rifles} ammunition={ammunition} onSubmit={handleCheckout} onClose={() => setShowCheckout(false)} gpsTrack={gpsTrack} onViewTrack={setViewingTrack} sessionRecordId={activeSession.id} />
               </div>
             </div>
           )}
@@ -406,7 +424,7 @@ async function handlePhotoUpload(files, data, onChange) {
 }
 
 // ─── Check-out Modal ──────────────────────────────────────────────
-function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onViewTrack }) {
+function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onViewTrack, sessionRecordId }) {
   const [errors, setErrors] = useState({});
   const [data, setData] = useState({
     checkout_time: new Date().toTimeString().slice(0, 5),
@@ -557,6 +575,8 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
             View GPS Track
           </motion.button>
         )}
+
+        {sessionRecordId && <TargetAnalysisSummary sessionRecordId={sessionRecordId} />}
       </div>
     </ModalShell>
   );
