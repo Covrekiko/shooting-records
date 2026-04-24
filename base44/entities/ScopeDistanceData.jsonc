@@ -1,0 +1,78 @@
+{
+  "name": "ScopeDistanceData",
+  "type": "object",
+  "properties": {
+    "scope_profile_id": {
+      "type": "string",
+      "description": "Linked ScopeProfile ID"
+    },
+    "distance": {
+      "type": "integer",
+      "description": "Distance in meters or yards"
+    },
+    "distance_unit": {
+      "type": "string",
+      "enum": [
+        "m",
+        "yards"
+      ],
+      "default": "m"
+    },
+    "elevation_clicks": {
+      "type": "number",
+      "description": "Elevation adjustment in clicks"
+    },
+    "elevation_unit_value": {
+      "type": "string",
+      "description": "e.g. +2 MOA or +0.6 MRAD"
+    },
+    "windage_clicks": {
+      "type": "number",
+      "description": "Windage adjustment in clicks (optional)"
+    },
+    "windage_unit_value": {
+      "type": "string"
+    },
+    "data_type": {
+      "type": "string",
+      "enum": [
+        "calculated",
+        "confirmed"
+      ],
+      "default": "calculated",
+      "description": "Whether this is calculated or real confirmed data"
+    },
+    "ammunition_used": {
+      "type": "string"
+    },
+    "temperature": {
+      "type": "string",
+      "description": "Temperature at time of confirmation"
+    },
+    "weather_notes": {
+      "type": "string"
+    },
+    "confirmed_at_range": {
+      "type": "boolean",
+      "default": false
+    },
+    "date_confirmed": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "scope_profile_id",
+    "distance",
+    "data_type"
+  ]
+}

@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Menu, X, Settings, Target, Crosshair, Map,
   BookOpen, User, ArrowLeft, BarChart3,
-  Shield, Layers, RefreshCw, Sun, FlaskConical,
+  Shield, Layers, RefreshCw, Sun, FlaskConical, ScanLine,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
@@ -19,6 +19,7 @@ const PAGE_TITLES = {
   '/records': 'Records',
   '/reloading': 'Reloading',
   '/load-development': 'Load Development',
+  '/scope-click-card': 'Scope Click Cards',
   '/reports': 'Reports',
   '/goals': 'Goals',
   '/profile': 'Profile',
@@ -42,6 +43,7 @@ const NAV_SECTIONS = [
       { path: '/target-shooting', label: 'Target Shooting', icon: Crosshair },
       { path: '/clay-shooting', label: 'Clay Shooting', icon: Target },
       { path: '/deer-management', label: 'Deer Management', icon: Layers },
+      { path: '/scope-click-card', label: 'Scope Click Cards', icon: ScanLine },
     ],
   },
   {

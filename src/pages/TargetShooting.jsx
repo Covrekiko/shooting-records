@@ -6,7 +6,8 @@ import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import RecordsSection from '@/components/RecordsSection';
-import { Clock, Plus, Map, Crosshair } from 'lucide-react';
+import { Clock, Plus, Map, Crosshair, ScanLine } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
@@ -289,6 +290,21 @@ export default function TargetShooting() {
             </div>
           </div>
         )}
+
+        {/* Scope Click Card Banner */}
+        <Link
+          to="/scope-click-card"
+          className="flex items-center justify-between gap-3 bg-primary/10 border border-primary/30 rounded-xl px-5 py-4 mb-4 hover:bg-primary/15 transition-colors group"
+        >
+          <div className="flex items-center gap-3">
+            <ScanLine className="w-5 h-5 text-primary flex-shrink-0" />
+            <div>
+              <p className="font-semibold text-sm">Scope Click Cards / Ballistic DOPE</p>
+              <p className="text-xs text-muted-foreground">Manage scope profiles, click data & range confirmations</p>
+            </div>
+          </div>
+          <span className="text-xs font-semibold text-primary group-hover:underline whitespace-nowrap">Open →</span>
+        </Link>
 
         <div className="mt-4">
           <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Sessions</p>

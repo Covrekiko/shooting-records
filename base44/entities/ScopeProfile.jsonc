@@ -1,0 +1,80 @@
+{
+  "name": "ScopeProfile",
+  "type": "object",
+  "properties": {
+    "rifle_id": {
+      "type": "string",
+      "description": "Linked rifle ID from Rifle inventory"
+    },
+    "rifle_name": {
+      "type": "string",
+      "description": "Cached rifle name"
+    },
+    "caliber": {
+      "type": "string"
+    },
+    "scope_brand": {
+      "type": "string"
+    },
+    "scope_model": {
+      "type": "string"
+    },
+    "reticle_type": {
+      "type": "string"
+    },
+    "turret_type": {
+      "type": "string",
+      "enum": [
+        "MOA",
+        "MRAD"
+      ],
+      "default": "MOA"
+    },
+    "click_value": {
+      "type": "string",
+      "description": "e.g. 1/4 MOA, 0.1 MRAD"
+    },
+    "zero_distance": {
+      "type": "string",
+      "description": "e.g. 100m, 100 yards"
+    },
+    "zero_ammo": {
+      "type": "string",
+      "description": "Ammunition used for zero"
+    },
+    "bullet_brand": {
+      "type": "string"
+    },
+    "bullet_weight": {
+      "type": "string",
+      "description": "Weight in grains or grams"
+    },
+    "setup_type": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "main_hunting",
+        "target_shooting"
+      ],
+      "default": "standard"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "rifle_id",
+    "scope_brand",
+    "turret_type"
+  ]
+}
