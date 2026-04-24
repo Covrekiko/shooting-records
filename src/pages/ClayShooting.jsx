@@ -7,6 +7,8 @@ import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import { Plus, Map, Target, ClipboardList } from 'lucide-react';
 import ClayScorecard from '@/components/clay/ClayScorecard';
 import ClayCheckoutSummary from '@/components/clay/ClayCheckoutSummary';
+import ClayStandLocationsMap from '@/components/clay/ClayStandLocationsMap';
+import ClayAnalyticsDashboard from '@/components/clay/ClayAnalyticsDashboard';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import RecordsSection from '@/components/RecordsSection';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
@@ -35,6 +37,10 @@ export default function ClayShooting() {
   const [showScorecard, setShowScorecard] = useState(false);
   const [autoCheckinMatch, setAutoCheckinMatch] = useState(null);
   const [autoCheckinEnabled, setAutoCheckinEnabled] = useState(false);
+  const [stands, setStands] = useState([]);
+  const [allSessions, setAllSessions] = useState([]);
+  const [showMaps, setShowMaps] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
   const [checkinData, setCheckinData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -86,15 +92,19 @@ export default function ClayShooting() {
     async function loadData() {
       try {
         const currentUser = await base44.auth.me();
-        const [clubsList, shotgunsList, ammoList, activeSessions] = await Promise.all([
+        const [clubsList, shotgunsList, ammoList, activeSessions, standsList, allSessionsList] = await Promise.all([
           base44.entities.Club.filter({ created_by: currentUser.email }),
           base44.entities.Shotgun.filter({ created_by: currentUser.email }),
           base44.entities.Ammunition.filter({ created_by: currentUser.email }),
           base44.entities.SessionRecord.filter({ created_by: currentUser.email, category: 'clay_shooting', status: 'active' }),
+          base44.entities.ClayStand.filter({ created_by: currentUser.email }),
+          base44.entities.SessionRecord.filter({ created_by: currentUser.email, category: 'clay_shooting', status: 'completed' }),
         ]);
         setClubs(clubsList);
         setShotguns(shotgunsList);
         setAmmunition(ammoList);
+        setStands(standsList);
+        setAllSessions(allSessionsList);
         if (activeSessions.length > 0) {
           const session = activeSessions[0];
           // Validate session health - detect orphaned sessions from app restarts
@@ -343,7 +353,26 @@ export default function ClayShooting() {
           </div>
         )}
 
-        <div className="mt-4">
+        {/* Maps & Analytics Section */}
+        {(stands.length > 0 || allSessions.length > 0) && (
+          <div className="mt-6 space-y-4">
+            <div className="flex gap-2">
+              <motion.button whileTap={{ scale: 0.97 }} onClick={() => { setShowMaps(!showMaps); setShowAnalytics(false); }}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-colors ${showMaps ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}>
+                📍 Stand Locations
+              </motion.button>
+              <motion.button whileTap={{ scale: 0.97 }} onClick={() => { setShowAnalytics(!showAnalytics); setShowMaps(false); }}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-colors ${showAnalytics ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}>
+                📊 Analytics
+              </motion.button>
+            </div>
+
+            {showMaps && <ClayStandLocationsMap sessions={allSessions} stands={stands} clubs={clubs} />}
+            {showAnalytics && <ClayAnalyticsDashboard sessions={allSessions} stands={stands} />}
+          </div>
+        )}
+
+        <div className="mt-6">
           <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Sessions</p>
           <RecordsSection category="clay_shooting" title="Session Records" emptyMessage="No clay shooting sessions recorded yet" />
         </div>
