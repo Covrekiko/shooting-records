@@ -34,16 +34,14 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
   const [centrePoint, setCentrePoint] = useState(editGroup?.centre_mark || null);
   const [aimPoint, setAimPoint] = useState(editGroup?.aim_mark || null);
   const [mode, setMode] = useState('bullets'); // bullets | centre | aim
-  const [scaleRefType, setScaleRefType] = useState(editGroup?.scale_ref_type || '1cm');
-  const [scaleRef, setScaleRef] = useState(editGroup?.scale_ref_custom || '10');
-  const [scalePixels, setScalePixels] = useState('');
+  const [scaleRef, setScaleRef] = useState(editGroup?.scale_reference || '1cm grid');
+  const [scaleInput, setScaleInput] = useState('10'); // mm per ref unit
   const [scalePx, setScalePx] = useState(editGroup?.scale_mm_per_px || null);
-  const [groupName, setGroupName] = useState(editGroup?.group_name || '');
+  const [groupName, setGroupName] = useState(editGroup?.group_name || `Group ${Date.now() % 100}`);
   const [notes, setNotes] = useState(editGroup?.notes || '');
   const [confirmedZero, setConfirmedZero] = useState(editGroup?.confirmed || editGroup?.confirmed_zero || false);
   const [shootingPosition, setShootingPosition] = useState(editGroup?.shooting_position || session.shooting_position || '');
-  const [distanceValue, setDistanceValue] = useState(editGroup?.distance_value || session.distance || '');
-  const [distanceUnit, setDistanceUnit] = useState(editGroup?.distance_unit || session.distance_unit || 'm');
+  const [distanceOverride, setDistanceOverride] = useState(editGroup?.distance_override || '');
   const [selectedRifleId, setSelectedRifleId] = useState(editGroup?.rifle_id || session.rifle_id || '');
   const [selectedAmmoId, setSelectedAmmoId] = useState(editGroup?.ammunition_id || session.ammo_id || '');
   const POSITIONS = ['benchrest', 'prone', 'sticks', 'high_seat', 'standing', 'other'];
@@ -58,23 +56,11 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
 
   useEffect(() => { if (marks.length >= 2 || centrePoint) recalculate(); }, [marks, centrePoint, aimPoint, scalePx]);
 
-  const getScaleRefMm = () => {
-    const presets = {
-      '1cm': 10,
-      '1in': 25.4,
-      'bullseye': 45,
-    };
-    if (presets[scaleRefType]) return presets[scaleRefType];
-    if (scaleRefType === 'custom_cm') return parseFloat(scaleRef) * 10;
-    if (scaleRefType === 'custom_in') return parseFloat(scaleRef) * 25.4;
-    return parseFloat(scaleRef);
-  };
-
   const recalculate = () => {
     if (!scalePx || marks.length < 2) return;
     const groupPx = calcGroupSize(marks);
     const groupMm = groupPx * scalePx;
-    const distM = distanceUnit === 'yards' ? parseFloat(distanceValue) * 0.9144 : parseFloat(distanceValue);
+    const distM = session.distance_unit === 'yards' ? session.distance * 0.9144 : session.distance;
     const moa = mmToMoa(groupMm, distM);
     const mrad = mmToMrad(groupMm, distM);
 
@@ -128,18 +114,17 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
     const coords = getRelativeCoords(e);
 
     if (setScaleMode) {
-       const newPts = [...scalePoints, coords];
-       setScalePoints(newPts);
-       if (newPts.length === 2) {
-         const dist = Math.sqrt(Math.pow(newPts[1].x - newPts[0].x, 2) + Math.pow(newPts[1].y - newPts[0].y, 2));
-         const scaleRefMm = getScaleRefMm();
-         const mmPerPx = scaleRefMm / dist;
-         setScalePx(mmPerPx);
-         setSetScaleMode(false);
-         setScalePoints([]);
-       }
-       return;
-     }
+      const newPts = [...scalePoints, coords];
+      setScalePoints(newPts);
+      if (newPts.length === 2) {
+        const dist = Math.sqrt(Math.pow(newPts[1].x - newPts[0].x, 2) + Math.pow(newPts[1].y - newPts[0].y, 2));
+        const mmPerPx = parseFloat(scaleInput) / dist;
+        setScalePx(mmPerPx);
+        setSetScaleMode(false);
+        setScalePoints([]);
+      }
+      return;
+    }
 
     if (mode === 'bullets') {
       setMarks(prev => [...prev, coords]);
@@ -152,7 +137,6 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
 
   const handleSave = async () => {
     if (!results && marks.length < 2) { alert('Add at least 2 bullet marks to calculate group size'); return; }
-    if (!groupName.trim()) { alert('Group name is required'); return; }
     setSaving(true);
     const payload = {
       group_name: groupName,
@@ -172,11 +156,8 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
       centre_x: centrePoint?.x || null,
       centre_y: centrePoint?.y || null,
       scale_mm_per_px: scalePx,
-      scale_ref_type: scaleRefType,
-      scale_ref_custom: scaleRefType.startsWith('custom') ? scaleRef : null,
       shooting_position: shootingPosition || null,
-      distance_value: parseFloat(distanceValue),
-      distance_unit: distanceUnit,
+      distance_override: distanceOverride ? parseFloat(distanceOverride) : null,
       rifle_id: selectedRifleId || null,
       rifle_name: rifles.find(r => r.id === selectedRifleId)?.name || null,
       ammunition_id: selectedAmmoId || null,
@@ -240,34 +221,16 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
           </div>
 
           {/* Scale setup */}
-          <div className="bg-card border border-border rounded-2xl p-4 mb-3 space-y-3">
-            <p className="font-semibold text-sm">Scale Reference</p>
-            <div className="flex flex-col gap-2">
-              {[
-                { id: '1cm', label: '1 cm grid' },
-                { id: '1in', label: '1 inch square' },
-                { id: 'bullseye', label: 'Known bullseye (45mm)' },
-                { id: 'custom_mm', label: 'Custom (mm)' },
-                { id: 'custom_cm', label: 'Custom (cm)' },
-                { id: 'custom_in', label: 'Custom (inches)' },
-              ].map(opt => (
-                <button key={opt.id} type="button" onClick={() => setScaleRefType(opt.id)}
-                  className={`text-left px-3 py-2 rounded-lg border transition-colors text-sm ${scaleRefType === opt.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary border-border'}`}>
-                  {opt.label}
-                </button>
-              ))}
+          <div className="bg-card border border-border rounded-2xl p-4 mb-3">
+            <p className="font-semibold text-sm mb-2">Scale Reference</p>
+            <div className="flex gap-2 mb-2">
+              <input value={scaleInput} onChange={e => setScaleInput(e.target.value)} placeholder="mm (e.g. 10 for 1cm)" className={`${inp} flex-1`} type="number" />
+              <input value={scaleRef} onChange={e => setScaleRef(e.target.value)} placeholder="e.g. 1cm grid" className={`${inp} flex-1`} />
             </div>
-            {scaleRefType.startsWith('custom') && (
-              <div>
-                <label className={lbl}>Size</label>
-                <input type="number" value={scaleRef} onChange={e => setScaleRef(e.target.value)} placeholder="e.g. 10" className={inp} />
-              </div>
-            )}
-            <div>
-              <label className={lbl}>Pixel width of that feature</label>
-              <input type="number" value={scalePixels} onChange={e => setScalePixels(e.target.value)} placeholder="e.g. 50" className={inp} />
-            </div>
-            {scalePx && <p className="text-xs text-primary font-medium">Scale: {scalePx.toFixed(3)} mm/px</p>}
+            <button type="button" onClick={() => { setSetScaleMode(true); setScalePoints([]); }}
+              className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all ${setScaleMode ? 'bg-amber-500 text-white' : 'bg-secondary hover:bg-secondary/80'}`}>
+              {setScaleMode ? `Tap 2 points on photo (${scalePoints.length}/2 placed)` : (scalePx ? `✓ Scale set (${Math.round(1/scalePx * 10)/10}px/mm) — Recalibrate` : 'Tap 2 known points to set scale')}
+            </button>
           </div>
 
           {/* Mode selector */}
@@ -424,19 +387,9 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
               </div>
             )}
             <div>
-              <label className={lbl}>Distance Value</label>
-              <input type="number" value={distanceValue} onChange={e => setDistanceValue(e.target.value)} placeholder="e.g. 100" className={inp} />
-            </div>
-            <div>
-              <label className={lbl}>Distance Unit</label>
-              <div className="flex gap-2 mt-1">
-                {['m', 'yards'].map(u => (
-                  <button key={u} type="button" onClick={() => setDistanceUnit(u)}
-                    className={`flex-1 py-2 rounded-lg border text-xs font-semibold ${distanceUnit === u ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
-                    {u === 'm' ? 'meters' : 'yards'}
-                  </button>
-                ))}
-              </div>
+              <label className={lbl}>Distance override (m)</label>
+              <input type="number" value={distanceOverride} onChange={e => setDistanceOverride(e.target.value)}
+                placeholder={session.distance ? `${session.distance}m` : 'e.g. 100'} className={inp} />
             </div>
             <div>
               <label className={lbl}>Shooting Position</label>

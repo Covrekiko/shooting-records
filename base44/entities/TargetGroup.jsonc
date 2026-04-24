@@ -39,32 +39,20 @@
       "type": "number"
     },
     "clicks_up_down": {
-      "type": "number",
-      "description": "positive = up"
+      "type": "number"
     },
     "clicks_left_right": {
-      "type": "number",
-      "description": "positive = right"
+      "type": "number"
     },
-    "click_value": {
-      "type": "string"
-    },
-    "turret_unit": {
-      "type": "string",
-      "enum": [
-        "MOA",
-        "MRAD"
-      ]
-    },
-    "confirmed": {
+    "confirmed_zero": {
       "type": "boolean",
       "default": false
     },
-    "best_group": {
+    "is_best_group": {
       "type": "boolean",
       "default": false
     },
-    "entry_method": {
+    "entry_type": {
       "type": "string",
       "enum": [
         "photo",
@@ -72,64 +60,30 @@
       ],
       "default": "manual"
     },
-    "bullet_holes": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "x": {
-            "type": "number"
-          },
-          "y": {
-            "type": "number"
-          }
-        }
-      },
-      "description": "Pixel coordinates of bullet holes on photo"
-    },
-    "centre_x": {
-      "type": "number"
-    },
-    "centre_y": {
-      "type": "number"
-    },
-    "scale_mm_per_px": {
-      "type": "number"
-    },
-    "scale_ref_type": {
-      "type": "string",
-      "enum": [
-        "1cm",
-        "1in",
-        "bullseye",
-        "custom_mm",
-        "custom_cm",
-        "custom_in"
-      ],
-      "default": "1cm"
-    },
-    "scale_ref_custom": {
-      "type": "number",
-      "description": "Custom scale reference value for custom types"
-    },
     "photo_url": {
       "type": "string"
     },
     "marked_photo_url": {
       "type": "string"
     },
-    "distance_value": {
-      "type": "number",
-      "description": "Distance measurement numeric value"
+    "bullet_marks": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Array of {x,y} tap positions on photo"
     },
-    "distance_unit": {
-      "type": "string",
-      "enum": [
-        "m",
-        "yards"
-      ],
-      "default": "m",
-      "description": "Distance unit (meters or yards)"
+    "centre_mark": {
+      "type": "object"
+    },
+    "aim_mark": {
+      "type": "object"
+    },
+    "scale_reference": {
+      "type": "string"
+    },
+    "scale_mm_per_px": {
+      "type": "number"
     },
     "notes": {
       "type": "string"

@@ -30,20 +30,9 @@ function calcClicksFromMoa(moa, clickValue) {
 
 const POSITIONS = ['benchrest', 'prone', 'sticks', 'high_seat', 'standing', 'other'];
 
-function getNextGroupName(sessionGroups) {
-  const numbers = sessionGroups
-    .map(g => g.group_name)
-    .map(name => {
-      const match = name.match(/Group\s+(\d+)/);
-      return match ? parseInt(match[1]) : 0;
-    });
-  const nextNumber = (Math.max(...numbers, 0)) + 1;
-  return `Group ${nextNumber}`;
-}
-
-export default function ManualGroupForm({ session, editGroup, scopeProfile, groupNumber, sessionGroups = [], rifles = [], ammunition = [], onSave, onBack }) {
+export default function ManualGroupForm({ session, editGroup, scopeProfile, groupNumber, rifles = [], ammunition = [], onSave, onBack }) {
   const [form, setForm] = useState({
-    group_name: editGroup?.group_name || getNextGroupName(sessionGroups),
+    group_name: `Group ${groupNumber}`,
     number_of_shots: '',
     group_size_mm: '',
     group_size_input: '',
@@ -54,8 +43,7 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
     notes: '',
     entry_method: 'manual',
     shooting_position: session.shooting_position || '',
-    distance_value: editGroup?.distance_value || session?.distance || '',
-    distance_unit: editGroup?.distance_unit || session?.distance_unit || 'm',
+    distance_override: '',
     rifle_id: editGroup?.rifle_id || session.rifle_id || '',
     ammunition_id: editGroup?.ammunition_id || session.ammo_id || '',
   });
@@ -65,7 +53,7 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   useEffect(() => {
-    if (editGroup) setForm(f => ({ ...f, ...editGroup, group_size_input: editGroup.group_size_mm || '', group_size_unit: 'mm', rifle_id: editGroup.rifle_id || session.rifle_id || '', ammunition_id: editGroup.ammunition_id || session.ammo_id || '', distance_value: editGroup.distance_value || session.distance || '', distance_unit: editGroup.distance_unit || session.distance_unit || 'm' }));
+    if (editGroup) setForm(f => ({ ...f, ...editGroup, group_size_input: editGroup.group_size_mm || '', group_size_unit: 'mm', rifle_id: editGroup.rifle_id || session.rifle_id || '', ammunition_id: editGroup.ammunition_id || session.ammo_id || '' }));
   }, [editGroup]);
 
   useEffect(() => {
@@ -74,7 +62,7 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
 
   const recalculate = () => {
     const input = parseFloat(form.group_size_input);
-    const effectiveDistance = parseFloat(form.distance_value);
+    const effectiveDistance = parseFloat(form.distance_override) || parseFloat(session.distance);
     if (!input || !effectiveDistance || effectiveDistance <= 0) return;
 
     let mm;
@@ -84,7 +72,8 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
     else mm = input;
 
     // Convert distance to meters
-    const distM = form.distance_unit === 'yards' ? effectiveDistance * 0.9144 : effectiveDistance;
+    const rawDist = parseFloat(form.distance_override) || parseFloat(session.distance);
+    const distM = session.distance_unit === 'yards' ? rawDist * 0.9144 : rawDist;
     const moa = mmToMoa(mm, distM);
     const mrad = mmToMrad(mm, distM);
 
@@ -136,8 +125,7 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
       notes: form.notes,
       entry_method: 'manual',
       shooting_position: form.shooting_position,
-      distance_value: parseFloat(form.distance_value),
-      distance_unit: form.distance_unit,
+      distance_override: form.distance_override ? parseFloat(form.distance_override) : null,
       rifle_id: form.rifle_id || null,
       rifle_name: selectedRifle?.name || null,
       ammunition_id: form.ammunition_id || null,
@@ -202,20 +190,9 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
 
           {/* Distance override */}
           <div>
-            <label className={lbl}>Distance Value</label>
-            <input type="number" value={form.distance_value} onChange={e => set('distance_value', e.target.value)}
-              placeholder={session.distance ? `${session.distance}` : 'e.g. 100'} className={inp} />
-          </div>
-          <div>
-            <label className={lbl}>Distance Unit</label>
-            <div className="flex gap-2 mt-1">
-              {['m', 'yards'].map(u => (
-                <button key={u} type="button" onClick={() => set('distance_unit', u)}
-                  className={`flex-1 py-2 rounded-lg border text-xs font-semibold ${form.distance_unit === u ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
-                  {u === 'm' ? 'meters' : 'yards'}
-                </button>
-              ))}
-            </div>
+            <label className={lbl}>Distance (m) <span className="text-muted-foreground normal-case font-normal">override</span></label>
+            <input type="number" value={form.distance_override} onChange={e => set('distance_override', e.target.value)}
+              placeholder={session.distance ? `${session.distance}m` : 'e.g. 100'} className={inp} />
           </div>
 
           {/* Shooting position */}
