@@ -27,11 +27,31 @@ const STORES = [
 ];
 
 let _db = null;
+let _opening = null;
 
 async function openDB() {
+  // If the cached connection is closing/closed, reset it
+  if (_db && _db.closePending !== undefined && _db.closePending) {
+    _db = null;
+  }
+
+  if (_db) {
+    // Verify the connection is still usable
+    try {
+      _db.transaction(STORES[0], 'readonly').abort();
+    } catch (e) {
+      // Connection is dead — reset so we reopen
+      _db = null;
+      _opening = null;
+    }
+  }
+
   if (_db) return _db;
 
-  return new Promise((resolve, reject) => {
+  // Deduplicate concurrent open calls
+  if (_opening) return _opening;
+
+  _opening = new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onupgradeneeded = (event) => {
@@ -49,14 +69,21 @@ async function openDB() {
 
     request.onsuccess = (event) => {
       _db = event.target.result;
+      _opening = null;
+      // Auto-reset on unexpected close
+      _db.onclose = () => { _db = null; };
+      _db.onversionchange = () => { _db.close(); _db = null; };
       resolve(_db);
     };
 
     request.onerror = (event) => {
+      _opening = null;
       console.error('IndexedDB open error:', event.target.error);
       reject(event.target.error);
     };
   });
+
+  return _opening;
 }
 
 async function getAll(storeName) {
