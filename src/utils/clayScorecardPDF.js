@@ -86,7 +86,8 @@ export function exportScorecardPDF(session, stands, stats, shotgun, ammo, shotsM
           else if (isNb) doc.setTextColor(180, 120, 0);
           else doc.setTextColor(180, 40, 40);
           const label = isHit ? 'Hit' : isNb ? 'No Bird' : 'Miss';
-          doc.text(`Shot ${shot.shot_number}: ${label}`, 20, y); y += 5;
+          const methodLabel = shot.input_method === 'voice' ? ' — Voice' : ' — Manual';
+          doc.text(`Shot ${shot.shot_number}: ${label}${methodLabel}`, 20, y); y += 5;
         });
         checkPage(8);
         doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 30, 30);

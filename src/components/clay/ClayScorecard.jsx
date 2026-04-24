@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { base44 } from '@/api/base44Client';
-import { X, Plus, Target, Trash2, Pencil, Download, TableProperties, LayoutList, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Plus, Target, Trash2, Pencil, Download, TableProperties, LayoutList, ChevronDown, ChevronUp, Mic, MicOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { exportScorecardPDF } from '@/utils/clayScorecardPDF';
+import { useVoiceScoring } from '@/hooks/useVoiceScoring';
 
 const DISCIPLINES = ['Sporting', 'Skeet', 'Trap', 'DTL', 'Compak', 'Five Stand', 'Other'];
 const inp = 'w-full px-3 py-3 border border-border rounded-xl bg-background text-sm';
@@ -80,13 +81,43 @@ function QuickTotalForm({ form, setForm, error }) {
 
 // ─── Shot-by-Shot inline editor (used in StandForm) ──────────────
 // shots array: 'hit' | 'miss' | null (one per shot slot)
+// shotMeta array: { input_method, voice_confidence_score } per slot
 // noBirds: integer count (separate — no clay launched = no shot)
-function ShotByShotEditor({ totalShots, shots, noBirds, onChange, onNoBirdsChange }) {
-  const handleSetResult = (idx, result) => {
+function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNoBirdsChange, onShotMeta }) {
+  const [voiceFlash, setVoiceFlash] = useState(null); // index of last voice-scored shot
+  const lastHeardRef = useRef('');
+
+  const handleSetResult = (idx, result, meta = { input_method: 'manual' }) => {
     const updated = [...shots];
     updated[idx] = updated[idx] === result ? null : result;
     onChange(updated);
+    const updatedMeta = [...(shotMeta || [])];
+    updatedMeta[idx] = meta;
+    onShotMeta?.(updatedMeta);
   };
+
+  // Voice scoring hook — fills next empty shot slot
+  const { isListening, lastHeard, error: voiceError, start: startVoice, stop: stopVoice } = useVoiceScoring({
+    onResult: ({ result, input_method, voice_timestamp, voice_confidence_score }) => {
+      if (result === 'no_bird') {
+        onNoBirdsChange(noBirds + 1);
+        setVoiceFlash('nb');
+        setTimeout(() => setVoiceFlash(null), 800);
+        return;
+      }
+      // Find next empty slot
+      const nextIdx = shots.findIndex(s => s === null || s === undefined);
+      if (nextIdx === -1) return; // all filled
+      const updated = [...shots];
+      updated[nextIdx] = result;
+      onChange(updated);
+      const updatedMeta = [...(shotMeta || [])];
+      updatedMeta[nextIdx] = { input_method: 'voice', voice_timestamp, voice_confidence_score };
+      onShotMeta?.(updatedMeta);
+      setVoiceFlash(nextIdx);
+      setTimeout(() => setVoiceFlash(null), 800);
+    },
+  });
 
   const hits = shots.filter(r => r === 'hit').length;
   const misses = shots.filter(r => r === 'miss').length;
@@ -116,6 +147,42 @@ function ShotByShotEditor({ totalShots, shots, noBirds, onChange, onNoBirdsChang
       </div>
       <p className="text-xs text-muted-foreground">Score: {hits}/{validScored} valid · {shots.filter(Boolean).length}/{totalShots} recorded</p>
 
+      {/* ── Voice Scoring Controls ── */}
+      <div className={`rounded-xl border px-4 py-3 transition-colors ${isListening ? 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700' : 'bg-secondary/50 border-border'}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {isListening ? (
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+            ) : (
+              <Mic className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            )}
+            <div>
+              <p className="text-xs font-bold">{isListening ? 'Voice Scoring Active' : 'Voice Scoring'}</p>
+              {isListening && lastHeard ? (
+                <p className="text-[10px] text-muted-foreground">Heard: "<span className="font-semibold text-foreground">{lastHeard}</span>"</p>
+              ) : (
+                <p className="text-[10px] text-muted-foreground">{isListening ? 'Say: Hit · Miss · No Bird' : 'Say commands instead of tapping'}</p>
+              )}
+            </div>
+          </div>
+          <motion.button
+            type="button"
+            whileTap={{ scale: 0.92 }}
+            onClick={isListening ? stopVoice : startVoice}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+              isListening
+                ? 'bg-red-500 text-white hover:bg-red-600'
+                : 'bg-primary text-primary-foreground hover:bg-primary/90'
+            }`}>
+            {isListening ? <><MicOff className="w-3.5 h-3.5" /> Stop</> : <><Mic className="w-3.5 h-3.5" /> Start Voice</>}
+          </motion.button>
+        </div>
+        {voiceFlash === 'nb' && (
+          <p className="text-[10px] text-amber-600 font-bold mt-1">🎙 No Bird recorded</p>
+        )}
+        {voiceError && <p className="text-[10px] text-destructive mt-1">{voiceError}</p>}
+      </div>
+
       {/* No Bird counter — separate, since no clay = no shot */}
       <div className="flex items-center gap-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-4 py-3">
         <div className="flex-1">
@@ -137,21 +204,27 @@ function ShotByShotEditor({ totalShots, shots, noBirds, onChange, onNoBirdsChang
         </div>
       </div>
 
-      {/* Per-shot rows — only Hit / Miss */}
+      {/* Per-shot rows — only Hit / Miss, with voice indicator */}
       <div className="space-y-2">
         {Array.from({ length: totalShots }, (_, i) => {
           const result = shots[i] || null;
+          const meta = shotMeta?.[i];
+          const isVoice = meta?.input_method === 'voice';
+          const isFlashing = voiceFlash === i;
           return (
-            <div key={i} className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground w-14 flex-shrink-0">Shot {i + 1}</span>
+            <div key={i} className={`flex items-center gap-2 transition-all rounded-lg ${isFlashing ? 'bg-primary/10 scale-[1.01]' : ''}`}>
+              <div className="flex flex-col items-center w-14 flex-shrink-0">
+                <span className="text-xs font-semibold text-muted-foreground">Shot {i + 1}</span>
+                {isVoice && result && <span className="text-[9px] text-primary font-bold">🎙 Voice</span>}
+              </div>
               <div className="flex gap-1 flex-1">
                 <motion.button type="button" whileTap={{ scale: 0.93 }}
-                  onClick={() => handleSetResult(i, 'hit')}
+                  onClick={() => handleSetResult(i, 'hit', { input_method: 'manual' })}
                   className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all border ${result === 'hit' ? 'bg-emerald-500 text-white border-emerald-600 shadow' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'}`}>
                   ✓ Hit
                 </motion.button>
                 <motion.button type="button" whileTap={{ scale: 0.93 }}
-                  onClick={() => handleSetResult(i, 'miss')}
+                  onClick={() => handleSetResult(i, 'miss', { input_method: 'manual' })}
                   className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all border ${result === 'miss' ? 'bg-red-500 text-white border-red-600 shadow' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'}`}>
                   ✗ Miss
                 </motion.button>
@@ -193,6 +266,17 @@ function StandForm({ stand, standNumber, onSave, onCancel, initialShots }) {
     }
     return Array(10).fill(null);
   });
+  // shot metadata (input_method, voice_confidence_score, etc.)
+  const [shotMeta, setShotMeta] = useState(() => {
+    if (initialShots && initialShots.length > 0) {
+      return initialShots.filter(s => s.result !== 'no_bird').map(s => ({
+        input_method: s.input_method || 'manual',
+        voice_confidence_score: s.voice_confidence_score,
+        voice_timestamp: s.voice_timestamp,
+      }));
+    }
+    return Array(10).fill({ input_method: 'manual' });
+  });
   // No birds tracked separately
   const [noBirds, setNoBirds] = useState(() => {
     if (initialShots && initialShots.length > 0) {
@@ -209,6 +293,11 @@ function StandForm({ stand, standNumber, onSave, onCancel, initialShots }) {
     setShotResults(prev => {
       const arr = [...prev];
       while (arr.length < n) arr.push(null);
+      return arr.slice(0, n);
+    });
+    setShotMeta(prev => {
+      const arr = [...prev];
+      while (arr.length < n) arr.push({ input_method: 'manual' });
       return arr.slice(0, n);
     });
   };
@@ -230,6 +319,7 @@ function StandForm({ stand, standNumber, onSave, onCancel, initialShots }) {
 
   const handleResetAll = () => {
     setShotResults(Array(totalShots).fill(null));
+    setShotMeta(Array(totalShots).fill({ input_method: 'manual' }));
   };
 
   const handleSubmit = () => {
@@ -241,8 +331,18 @@ function StandForm({ stand, standNumber, onSave, onCancel, initialShots }) {
       const hitPct = valid > 0 ? Math.round((hits / valid) * 100) : 0;
       // Build full shot list: hit/miss shots + no_bird entries appended
       const fullShots = [
-        ...shotResults.map((r, i) => ({ shot_number: i + 1, result: r || 'miss' })),
-        ...Array.from({ length: noBirds }, (_, i) => ({ shot_number: shotResults.length + i + 1, result: 'no_bird' })),
+        ...shotResults.map((r, i) => ({
+          shot_number: i + 1,
+          result: r || 'miss',
+          input_method: shotMeta?.[i]?.input_method || 'manual',
+          voice_timestamp: shotMeta?.[i]?.voice_timestamp || null,
+          voice_confidence_score: shotMeta?.[i]?.voice_confidence_score || null,
+        })),
+        ...Array.from({ length: noBirds }, (_, i) => ({
+          shot_number: shotResults.length + i + 1,
+          result: 'no_bird',
+          input_method: 'manual',
+        })),
       ];
       onSave({
         ...form,
@@ -301,7 +401,15 @@ function StandForm({ stand, standNumber, onSave, onCancel, initialShots }) {
             <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Total Shots / Clays</label>
             <input type="number" min="1" max="50" value={totalShots} onChange={e => handleTotalShotsChange(e.target.value)} className={inp} />
           </div>
-          <ShotByShotEditor totalShots={totalShots} shots={shotResults} noBirds={noBirds} onChange={handleShotResultsChange} onNoBirdsChange={setNoBirds} />
+          <ShotByShotEditor
+            totalShots={totalShots}
+            shots={shotResults}
+            shotMeta={shotMeta}
+            noBirds={noBirds}
+            onChange={handleShotResultsChange}
+            onNoBirdsChange={setNoBirds}
+            onShotMeta={setShotMeta}
+          />
           <div className="flex gap-2">
             <button type="button" onClick={handleUndoLast}
               className="flex-1 py-2 bg-secondary text-secondary-foreground rounded-xl text-xs font-semibold">
@@ -605,10 +713,13 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
     // Delete existing shots for this stand
     const existing = await base44.entities.ClayShot.filter({ clay_stand_id: standId });
     await Promise.all(existing.map(s => base44.entities.ClayShot.delete(s.id)));
-    // Create new shots — shotResults is array of {shot_number, result}
+    // Create new shots — shotResults is array of {shot_number, result, input_method, ...}
     const newShots = [];
     for (const s of shotResults) {
-      const shot = await base44.entities.ClayShot.create({ clay_stand_id: standId, shot_number: s.shot_number, result: s.result });
+      const payload = { clay_stand_id: standId, shot_number: s.shot_number, result: s.result, input_method: s.input_method || 'manual' };
+      if (s.voice_timestamp) payload.voice_timestamp = s.voice_timestamp;
+      if (s.voice_confidence_score != null) payload.voice_confidence_score = s.voice_confidence_score;
+      const shot = await base44.entities.ClayShot.create(payload);
       newShots.push(shot);
     }
     return newShots;

@@ -17,6 +17,20 @@
       ],
       "default": "miss"
     },
+    "input_method": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "voice"
+      ],
+      "default": "manual"
+    },
+    "voice_timestamp": {
+      "type": "string"
+    },
+    "voice_confidence_score": {
+      "type": "number"
+    },
     "notes": {
       "type": "string"
     }
