@@ -36,25 +36,38 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack, defaultGro
   const [centre, setCentre] = useState(null);
   const [mode, setMode] = useState('holes'); // 'holes' | 'centre'
   const [groupName, setGroupName] = useState(defaultGroupName);
-  const [scaleRef, setScaleRef] = useState('25'); // mm reference
-  const [scaleUnit, setScaleUnit] = useState('mm'); // 'mm' or 'in'
+  const [scaleRefType, setScaleRefType] = useState('1cm'); // preset or 'custom_mm' | 'custom_cm' | 'custom_in'
+  const [scaleRef, setScaleRef] = useState('10'); // mm reference value
   const [scalePixels, setScalePixels] = useState(''); // how many px is that reference
+  const [distanceValue, setDistanceValue] = useState(session?.distance || '');
+  const [distanceUnit, setDistanceUnit] = useState(session?.distance_unit || 'm');
   const [numberOfShots, setNumberOfShots] = useState('');
   const [notes, setNotes] = useState('');
   const [clickValue, setClickValue] = useState('0.25');
   const [turretUnit, setTurretUnit] = useState('MOA');
-  const [distanceUnit, setDistanceUnit] = useState(session?.distance_unit || 'm');
   const [imgSize, setImgSize] = useState({ w: 1, h: 1, natW: 1, natH: 1 });
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
   const containerRef = useRef(null);
 
-  const scaleRefMm = scaleUnit === 'in' ? parseFloat(scaleRef) * 25.4 : parseFloat(scaleRef);
+  const getScaleRefMm = () => {
+    const presets = {
+      '1cm': 10,
+      '1in': 25.4,
+      'bullseye': 45, // standard 45mm bullseye
+    };
+    if (presets[scaleRefType]) return presets[scaleRefType];
+    if (scaleRefType === 'custom_cm') return parseFloat(scaleRef) * 10;
+    if (scaleRefType === 'custom_in') return parseFloat(scaleRef) * 25.4;
+    return parseFloat(scaleRef); // custom_mm
+  };
+  
+  const scaleRefMm = getScaleRefMm();
   const mmPerPx = scaleRef && scalePixels ? scaleRefMm / parseFloat(scalePixels) : MM_PER_PX_DEFAULT;
 
   const distanceM = distanceUnit === 'yards'
-    ? parseFloat(session?.distance) * 0.9144
-    : parseFloat(session?.distance);
+    ? parseFloat(distanceValue) * 0.9144
+    : parseFloat(distanceValue);
 
   const handleUpload = async (e) => {
     const file = e.target.files[0];
@@ -199,6 +212,8 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack, defaultGro
       scale_mm_per_px: mmPerPx,
       photo_url: photoUrl,
       entry_method: 'photo',
+      distance_value: parseFloat(distanceValue),
+      distance_unit: distanceUnit,
       notes,
     });
   };
@@ -224,26 +239,33 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack, defaultGro
             <Input value={groupName} onChange={e => setGroupName(e.target.value)} />
           </div>
 
-          {/* Scale calibration */}
+          {/* Scale Reference */}
           <div className="bg-card rounded-2xl p-4 border border-border space-y-3">
             <h2 className="font-semibold text-sm text-muted-foreground uppercase">Scale Reference</h2>
-            <p className="text-xs text-muted-foreground">Measure a known feature on the image (e.g. 10mm grid square) in pixels on screen.</p>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="flex flex-col gap-2">
+              {[
+                { id: '1cm', label: '1 cm grid' },
+                { id: '1in', label: '1 inch square' },
+                { id: 'bullseye', label: 'Known bullseye (45mm)' },
+                { id: 'custom_mm', label: 'Custom (mm)' },
+                { id: 'custom_cm', label: 'Custom (cm)' },
+                { id: 'custom_in', label: 'Custom (inches)' },
+              ].map(opt => (
+                <button key={opt.id} onClick={() => setScaleRefType(opt.id)}
+                  className={`text-left px-3 py-2 rounded-lg border transition-colors ${scaleRefType === opt.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary border-border'}`}>
+                  <p className="text-sm font-medium">{opt.label}</p>
+                </button>
+              ))}
+            </div>
+            {scaleRefType.startsWith('custom') && (
               <div>
                 <Label>Size</Label>
-                <Input type="number" value={scaleRef} onChange={e => setScaleRef(e.target.value)} />
+                <Input type="number" value={scaleRef} onChange={e => setScaleRef(e.target.value)} placeholder="e.g. 10" />
               </div>
-              <div>
-                <Label>Unit</Label>
-                <select value={scaleUnit} onChange={e => setScaleUnit(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm font-medium">
-                  <option value="mm">mm</option>
-                  <option value="in">in</option>
-                </select>
-              </div>
-              <div>
-                <Label>Pixels</Label>
-                <Input type="number" value={scalePixels} onChange={e => setScalePixels(e.target.value)} placeholder="e.g. 50" />
-              </div>
+            )}
+            <div>
+              <Label>Pixel width of that feature</Label>
+              <Input type="number" value={scalePixels} onChange={e => setScalePixels(e.target.value)} placeholder="e.g. 50" />
             </div>
             {mmPerPx && <p className="text-xs text-primary font-medium">Scale: {mmPerPx.toFixed(3)} mm/px</p>}
           </div>
@@ -312,41 +334,47 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack, defaultGro
                 </div>
               </div>
 
-              {/* Scope correction */}
+              {/* Distance and Scope correction */}
               <div>
-                <div className="grid grid-cols-2 gap-2 mb-3">
+                <div className="grid grid-cols-2 gap-3 mb-3">
                   <div>
-                    <Label>Turret Unit</Label>
-                    <div className="flex gap-2 mt-1">
-                      {['MOA', 'MRAD'].map(u => (
-                        <button key={u} onClick={() => setTurretUnit(u)}
-                          className={`flex-1 py-2 rounded-xl border text-sm font-semibold ${turretUnit === u ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
-                          {u}
-                        </button>
-                      ))}
-                    </div>
+                    <Label>Distance Value</Label>
+                    <Input type="number" value={distanceValue} onChange={e => setDistanceValue(e.target.value)} placeholder="e.g. 100" />
                   </div>
                   <div>
-                    <Label>Distance Override</Label>
+                    <Label>Distance Unit</Label>
                     <div className="flex gap-2 mt-1">
                       {['m', 'yards'].map(u => (
                         <button key={u} onClick={() => setDistanceUnit(u)}
-                          className={`flex-1 py-2 rounded-xl border text-sm font-semibold ${distanceUnit === u ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
-                          {u}
+                          className={`flex-1 py-2 rounded-lg border text-xs font-semibold ${distanceUnit === u ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
+                          {u === 'm' ? 'meters' : 'yards'}
                         </button>
                       ))}
                     </div>
                   </div>
                 </div>
-                <div className="mb-3">
-                  <Label>Click Value</Label>
-                  <div className="flex gap-1 mt-1 flex-wrap">
-                    {(turretUnit === 'MOA' ? ['0.25', '0.5', '1'] : ['0.1', '0.05']).map(v => (
-                      <button key={v} onClick={() => setClickValue(v)}
-                        className={`px-2 py-2 rounded-lg border text-xs ${clickValue === v ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
-                        {v}
-                      </button>
-                    ))}
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <Label>Turret Unit</Label>
+                    <div className="flex gap-2 mt-1">
+                      {['MOA', 'MRAD'].map(u => (
+                        <button key={u} onClick={() => setTurretUnit(u)}
+                          className={`flex-1 py-2 rounded-lg border text-xs font-semibold ${turretUnit === u ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
+                          {u}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Click Value</Label>
+                    <div className="flex gap-1 mt-1">
+                      {(turretUnit === 'MOA' ? ['0.25', '0.5', '1'] : ['0.1', '0.05']).map(v => (
+                        <button key={v} onClick={() => setClickValue(v)}
+                          className={`flex-1 py-2 rounded-lg border text-xs ${clickValue === v ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
+                          {v}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 

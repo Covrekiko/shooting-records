@@ -29,10 +29,12 @@ function calcClicks(corrMm, distanceM, clickValueStr, turretUnit) {
   }
 }
 
-export default function ManualGroupForm({ session, onSave, onBack }) {
+export default function ManualGroupForm({ session, onSave, onBack, defaultGroupName = 'Group 1' }) {
   const [uploading, setUploading] = useState(false);
+  const [distanceValue, setDistanceValue] = useState(session?.distance || '');
+  const [distanceUnit, setDistanceUnit] = useState(session?.distance_unit || 'm');
   const [form, setForm] = useState({
-    group_name: 'Group 1',
+    group_name: defaultGroupName,
     number_of_shots: '',
     group_size_mm: '',
     group_size_inches: '',
@@ -78,9 +80,9 @@ export default function ManualGroupForm({ session, onSave, onBack }) {
     }
   };
 
-  const distanceM = session?.distance_unit === 'yards'
-    ? parseFloat(session?.distance) * 0.9144
-    : parseFloat(session?.distance);
+  const distanceM = distanceUnit === 'yards'
+    ? parseFloat(distanceValue) * 0.9144
+    : parseFloat(distanceValue);
 
   const derived = (() => {
     const mm = parseFloat(form.group_size_mm);
@@ -128,6 +130,8 @@ export default function ManualGroupForm({ session, onSave, onBack }) {
       point_of_impact_y: parseFloat(form.point_of_impact_y) || 0,
       clicks_up_down: derived?.elevClicks ? parseFloat(derived.elevClicks.toFixed(1)) : 0,
       clicks_left_right: derived?.windClicks ? parseFloat(derived.windClicks.toFixed(1)) : 0,
+      distance_value: parseFloat(distanceValue),
+      distance_unit: distanceUnit,
     });
   };
 
@@ -154,14 +158,31 @@ export default function ManualGroupForm({ session, onSave, onBack }) {
           ))}
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <Label>Group Size ({sizeUnit})</Label>
-            <Input type="number" step={sizeUnit === 'mm' ? '0.1' : '0.001'} value={sizeInput}
-              onChange={e => handleSizeInput(e.target.value)}
-              placeholder={sizeUnit === 'mm' ? 'e.g. 24' : 'e.g. 0.95'} />
-          </div>
-          <div><Label>Distance</Label><Input disabled value={session ? `${session.distance}${session.distance_unit}` : '—'} /></div>
-        </div>
+           <div>
+             <Label>Group Size ({sizeUnit})</Label>
+             <Input type="number" step={sizeUnit === 'mm' ? '0.1' : '0.001'} value={sizeInput}
+               onChange={e => handleSizeInput(e.target.value)}
+               placeholder={sizeUnit === 'mm' ? 'e.g. 24' : 'e.g. 0.95'} />
+           </div>
+           <div>
+             <Label>Distance Value</Label>
+             <Input type="number" value={distanceValue} onChange={e => setDistanceValue(e.target.value)} placeholder="e.g. 100" />
+           </div>
+         </div>
+         <div className="grid grid-cols-2 gap-3">
+           <div></div>
+           <div>
+             <Label>Distance Unit</Label>
+             <div className="flex gap-2 mt-1">
+               {['m', 'yards'].map(u => (
+                 <button key={u} onClick={() => setDistanceUnit(u)}
+                   className={`flex-1 py-2 rounded-lg border text-xs font-semibold ${distanceUnit === u ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
+                   {u === 'm' ? 'meters' : 'yards'}
+                 </button>
+               ))}
+             </div>
+           </div>
+         </div>
         {sizeInput && form.group_size_mm && (
           <p className="text-xs text-muted-foreground">
             {sizeUnit === 'mm'

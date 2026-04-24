@@ -60,7 +60,7 @@ export default function AddGroup() {
         )}
 
         {mode === 'manual' && (
-          <ManualGroupForm session={session} onSave={handleSave} onBack={() => setMode(null)} />
+          <ManualGroupForm session={session} onSave={handleSave} onBack={() => setMode(null)} defaultGroupName={`Group ${nextGroupNumber}`} />
         )}
 
         {mode === 'photo' && (
