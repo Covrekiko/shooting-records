@@ -41,6 +41,7 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
   const [editGroup, setEditGroup] = useState(null);
   const [scopeProfiles, setScopeProfiles] = useState([]);
   const [rifles, setRifles] = useState([]);
+  const [ammunition, setAmmunition] = useState([]);
   // Which rifle context to use for new groups (defaults to first)
   const [selectedRifleIdx, setSelectedRifleIdx] = useState(0);
 
@@ -60,16 +61,16 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
     ]);
     setGroups(g.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)));
 
-    // Load rifles and scope profiles for the rifles used
+    // Always load rifles, ammo and scope profiles from DB
     const rifleIds = (sessionRecord.rifles_used || []).map(r => r.rifle_id).filter(Boolean);
-    if (rifleIds.length) {
-      const [rList, spList] = await Promise.all([
-        base44.entities.Rifle.filter({ created_by: user.email }),
-        base44.entities.ScopeProfile.filter({ created_by: user.email }),
-      ]);
-      setRifles(rList);
-      setScopeProfiles(spList.filter(sp => rifleIds.includes(sp.rifle_id)));
-    }
+    const [rList, spList, ammoList] = await Promise.all([
+      base44.entities.Rifle.filter({ created_by: user.email }),
+      base44.entities.ScopeProfile.filter({ created_by: user.email }),
+      base44.entities.Ammunition.filter({ created_by: user.email }),
+    ]);
+    setRifles(rList);
+    setAmmunition(ammoList);
+    setScopeProfiles(rifleIds.length ? spList.filter(sp => rifleIds.includes(sp.rifle_id)) : spList);
     setLoading(false);
   };
 
@@ -150,6 +151,8 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
           <TargetPhotoAnalyzer
             session={analyzerSession}
             editGroup={editGroup}
+            rifles={rifles}
+            ammunition={ammunition}
             onSave={handleSaveGroup}
             onBack={() => { setShowPhotoAnalyzer(false); setEditGroup(null); }}
           />
@@ -168,6 +171,8 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
             editGroup={editGroup}
             scopeProfile={scopeProfile}
             groupNumber={groups.length + 1}
+            rifles={rifles}
+            ammunition={ammunition}
             onSave={handleSaveGroup}
             onBack={() => { setShowManualForm(false); setEditGroup(null); }}
           />

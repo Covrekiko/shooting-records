@@ -30,7 +30,7 @@ function calcClicksFromMoa(moa, clickValue) {
 
 const POSITIONS = ['benchrest', 'prone', 'sticks', 'high_seat', 'standing', 'other'];
 
-export default function ManualGroupForm({ session, editGroup, scopeProfile, groupNumber, onSave, onBack }) {
+export default function ManualGroupForm({ session, editGroup, scopeProfile, groupNumber, rifles = [], ammunition = [], onSave, onBack }) {
   const [form, setForm] = useState({
     group_name: `Group ${groupNumber}`,
     number_of_shots: '',
@@ -44,7 +44,8 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
     entry_method: 'manual',
     shooting_position: session.shooting_position || '',
     distance_override: '',
-    ammo_override: '',
+    rifle_id: editGroup?.rifle_id || session.rifle_id || '',
+    ammunition_id: editGroup?.ammunition_id || session.ammo_id || '',
   });
   const [calculated, setCalculated] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -52,7 +53,7 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   useEffect(() => {
-    if (editGroup) setForm(f => ({ ...f, ...editGroup, group_size_input: editGroup.group_size_mm || '', group_size_unit: 'mm' }));
+    if (editGroup) setForm(f => ({ ...f, ...editGroup, group_size_input: editGroup.group_size_mm || '', group_size_unit: 'mm', rifle_id: editGroup.rifle_id || session.rifle_id || '', ammunition_id: editGroup.ammunition_id || session.ammo_id || '' }));
   }, [editGroup]);
 
   useEffect(() => {
@@ -105,6 +106,8 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
     if (form.group_size_unit === 'cm') mm = cmToMm(input);
     if (form.group_size_unit === 'inches') mm = inchesToMm(input);
 
+    const selectedAmmo = ammunition.find(a => a.id === form.ammunition_id);
+    const selectedRifle = rifles.find(r => r.id === form.rifle_id);
     const payload = {
       group_name: form.group_name,
       number_of_shots: parseInt(form.number_of_shots) || 0,
@@ -121,7 +124,10 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
       entry_method: 'manual',
       shooting_position: form.shooting_position,
       distance_override: form.distance_override ? parseFloat(form.distance_override) : null,
-      ammo_override: form.ammo_override || null,
+      rifle_id: form.rifle_id || null,
+      rifle_name: selectedRifle?.name || null,
+      ammunition_id: form.ammunition_id || null,
+      ammo_override: selectedAmmo ? `${selectedAmmo.brand}${selectedAmmo.caliber ? ` (${selectedAmmo.caliber})` : ''}${selectedAmmo.grain ? ` ${selectedAmmo.grain}gr` : ''}` : null,
     };
     setSaving(false);
     onSave(payload);
@@ -152,18 +158,39 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
             </div>
           </div>
 
-          {/* Distance override & Ammo override */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Rifle selector */}
+          {rifles.length > 0 && (
             <div>
-              <label className={lbl}>Distance (m) <span className="text-muted-foreground normal-case font-normal">override</span></label>
-              <input type="number" value={form.distance_override} onChange={e => set('distance_override', e.target.value)}
-                placeholder={session.distance ? `${session.distance}m` : 'e.g. 100'} className={inp} />
+              <label className={lbl}>Rifle</label>
+              <select value={form.rifle_id} onChange={e => set('rifle_id', e.target.value)} className={inp}>
+                <option value="">— Select rifle —</option>
+                {rifles.map(r => <option key={r.id} value={r.id}>{r.name} {r.caliber ? `(${r.caliber})` : ''}</option>)}
+              </select>
             </div>
+          )}
+
+          {/* Ammo selector */}
+          {ammunition.length > 0 && (
             <div>
-              <label className={lbl}>Ammo <span className="text-muted-foreground normal-case font-normal">override</span></label>
-              <input value={form.ammo_override} onChange={e => set('ammo_override', e.target.value)}
-                placeholder={session.ammo_name || 'e.g. Federal 168gr'} className={inp} />
+              <label className={lbl}>Ammunition</label>
+              <select value={form.ammunition_id} onChange={e => set('ammunition_id', e.target.value)} className={inp}>
+                <option value="">— Select ammunition —</option>
+                {ammunition
+                  .filter(a => {
+                    if (!form.rifle_id) return true;
+                    const rifle = rifles.find(r => r.id === form.rifle_id);
+                    return !rifle?.caliber || !a.caliber || a.caliber === rifle.caliber;
+                  })
+                  .map(a => <option key={a.id} value={a.id}>{a.brand}{a.caliber ? ` (${a.caliber})` : ''}{a.bullet_type ? ` - ${a.bullet_type}` : ''}{a.grain ? ` ${a.grain}gr` : ''}</option>)}
+              </select>
             </div>
+          )}
+
+          {/* Distance override */}
+          <div>
+            <label className={lbl}>Distance (m) <span className="text-muted-foreground normal-case font-normal">override</span></label>
+            <input type="number" value={form.distance_override} onChange={e => set('distance_override', e.target.value)}
+              placeholder={session.distance ? `${session.distance}m` : 'e.g. 100'} className={inp} />
           </div>
 
           {/* Shooting position */}

@@ -28,7 +28,7 @@ function calcCentroid(marks) {
 const inp = 'w-full px-3 py-2.5 border border-border rounded-xl bg-background text-sm';
 const lbl = 'block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1';
 
-export default function TargetPhotoAnalyzer({ session, editGroup, onSave, onBack }) {
+export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], ammunition = [], onSave, onBack }) {
   const [photo, setPhoto] = useState(editGroup?.photo_url || null);
   const [marks, setMarks] = useState(editGroup?.bullet_marks || []);
   const [centrePoint, setCentrePoint] = useState(editGroup?.centre_mark || null);
@@ -42,7 +42,8 @@ export default function TargetPhotoAnalyzer({ session, editGroup, onSave, onBack
   const [confirmedZero, setConfirmedZero] = useState(editGroup?.confirmed || editGroup?.confirmed_zero || false);
   const [shootingPosition, setShootingPosition] = useState(editGroup?.shooting_position || session.shooting_position || '');
   const [distanceOverride, setDistanceOverride] = useState(editGroup?.distance_override || '');
-  const [ammoOverride, setAmmoOverride] = useState(editGroup?.ammo_override || '');
+  const [selectedRifleId, setSelectedRifleId] = useState(editGroup?.rifle_id || session.rifle_id || '');
+  const [selectedAmmoId, setSelectedAmmoId] = useState(editGroup?.ammunition_id || session.ammo_id || '');
   const POSITIONS = ['benchrest', 'prone', 'sticks', 'high_seat', 'standing', 'other'];
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -157,7 +158,13 @@ export default function TargetPhotoAnalyzer({ session, editGroup, onSave, onBack
       scale_mm_per_px: scalePx,
       shooting_position: shootingPosition || null,
       distance_override: distanceOverride ? parseFloat(distanceOverride) : null,
-      ammo_override: ammoOverride || null,
+      rifle_id: selectedRifleId || null,
+      rifle_name: rifles.find(r => r.id === selectedRifleId)?.name || null,
+      ammunition_id: selectedAmmoId || null,
+      ammo_override: (() => {
+        const a = ammunition.find(x => x.id === selectedAmmoId);
+        return a ? `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.grain ? ` ${a.grain}gr` : ''}` : null;
+      })(),
       notes,
     };
     setSaving(false);
@@ -355,17 +362,34 @@ export default function TargetPhotoAnalyzer({ session, editGroup, onSave, onBack
 
           {/* Extra context fields */}
           <div className="bg-card border border-border rounded-2xl p-4 mb-3 space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            {rifles.length > 0 && (
               <div>
-                <label className={lbl}>Distance override (m)</label>
-                <input type="number" value={distanceOverride} onChange={e => setDistanceOverride(e.target.value)}
-                  placeholder={session.distance ? `${session.distance}m` : 'e.g. 100'} className={inp} />
+                <label className={lbl}>Rifle</label>
+                <select value={selectedRifleId} onChange={e => setSelectedRifleId(e.target.value)} className={inp}>
+                  <option value="">— Select rifle —</option>
+                  {rifles.map(r => <option key={r.id} value={r.id}>{r.name} {r.caliber ? `(${r.caliber})` : ''}</option>)}
+                </select>
               </div>
+            )}
+            {ammunition.length > 0 && (
               <div>
-                <label className={lbl}>Ammo override</label>
-                <input value={ammoOverride} onChange={e => setAmmoOverride(e.target.value)}
-                  placeholder={session.ammo_name || 'e.g. Federal 168gr'} className={inp} />
+                <label className={lbl}>Ammunition</label>
+                <select value={selectedAmmoId} onChange={e => setSelectedAmmoId(e.target.value)} className={inp}>
+                  <option value="">— Select ammunition —</option>
+                  {ammunition
+                    .filter(a => {
+                      if (!selectedRifleId) return true;
+                      const rifle = rifles.find(r => r.id === selectedRifleId);
+                      return !rifle?.caliber || !a.caliber || a.caliber === rifle.caliber;
+                    })
+                    .map(a => <option key={a.id} value={a.id}>{a.brand}{a.caliber ? ` (${a.caliber})` : ''}{a.bullet_type ? ` - ${a.bullet_type}` : ''}{a.grain ? ` ${a.grain}gr` : ''}</option>)}
+                </select>
               </div>
+            )}
+            <div>
+              <label className={lbl}>Distance override (m)</label>
+              <input type="number" value={distanceOverride} onChange={e => setDistanceOverride(e.target.value)}
+                placeholder={session.distance ? `${session.distance}m` : 'e.g. 100'} className={inp} />
             </div>
             <div>
               <label className={lbl}>Shooting Position</label>
