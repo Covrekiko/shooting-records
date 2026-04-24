@@ -1,4 +1,4 @@
-import { Edit2, Trash2, ScanLine, Star, Copy } from 'lucide-react';
+import { Edit2, Trash2, ScanLine, Star, Copy, Image } from 'lucide-react';
 
 export default function GroupCard({ group, session, isBest, onEdit, onDelete, onDuplicate, onSaveToScope, onMarkBest }) {
   const hasCorrection = group.clicks_up_down || group.clicks_left_right;
@@ -35,6 +35,12 @@ export default function GroupCard({ group, session, isBest, onEdit, onDelete, on
             <button onClick={onDuplicate} title="Duplicate group" className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
               <Copy className="w-4 h-4 text-muted-foreground" />
             </button>
+          )}
+          {(group.marked_photo_url || group.photo_url) && (
+            <a href={group.marked_photo_url || group.photo_url} target="_blank" rel="noopener noreferrer"
+              className="p-1.5 hover:bg-secondary rounded-lg transition-colors" title="View photo">
+              <Image className="w-4 h-4 text-muted-foreground" />
+            </a>
           )}
           <button onClick={onEdit} className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
             <Edit2 className="w-4 h-4 text-muted-foreground" />
@@ -85,12 +91,7 @@ export default function GroupCard({ group, session, isBest, onEdit, onDelete, on
         </div>
       )}
 
-      {/* Photo */}
-      {(group.marked_photo_url || group.photo_url) && (
-        <a href={group.marked_photo_url || group.photo_url} target="_blank" rel="noopener noreferrer" className="block mt-2">
-          <img src={group.marked_photo_url || group.photo_url} className="w-full max-h-48 object-cover rounded-xl border border-border" alt="Target" />
-        </a>
-      )}
+
 
       {group.notes && <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border">{group.notes}</p>}
     </div>
