@@ -34,11 +34,10 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
   const [centrePoint, setCentrePoint] = useState(editGroup?.centre_mark || null);
   const [aimPoint, setAimPoint] = useState(editGroup?.aim_mark || null);
   const [mode, setMode] = useState('bullets'); // bullets | centre | aim
-  const [scaleType, setScaleType] = useState(editGroup?.scale_type || 'custom');
-  const [calibrationDistance, setCalibrationDistance] = useState(editGroup?.calibration_distance || '');
-  const [calibrationUnit, setCalibrationUnit] = useState(editGroup?.calibration_unit || 'mm');
+  const [scaleRef, setScaleRef] = useState(editGroup?.scale_reference || '1cm grid');
+  const [scaleInput, setScaleInput] = useState('10'); // mm per ref unit
   const [scalePx, setScalePx] = useState(editGroup?.scale_mm_per_px || null);
-  const [groupName, setGroupName] = useState(editGroup?.group_name || 'Group 1');
+  const [groupName, setGroupName] = useState(editGroup?.group_name || `Group ${Date.now() % 100}`);
   const [notes, setNotes] = useState(editGroup?.notes || '');
   const [confirmedZero, setConfirmedZero] = useState(editGroup?.confirmed || editGroup?.confirmed_zero || false);
   const [shootingPosition, setShootingPosition] = useState(editGroup?.shooting_position || session.shooting_position || '');
@@ -118,31 +117,9 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
       const newPts = [...scalePoints, coords];
       setScalePoints(newPts);
       if (newPts.length === 2) {
-        const pixelDist = Math.sqrt(Math.pow(newPts[1].x - newPts[0].x, 2) + Math.pow(newPts[1].y - newPts[0].y, 2));
-        
-        // Auto-fill distance based on scale type
-        let distToUse = calibrationDistance;
-        let unitToUse = calibrationUnit;
-        
-        if (scaleType === '1cm') {
-          distToUse = '10';
-          unitToUse = 'mm';
-        } else if (scaleType === '1in') {
-          distToUse = '1';
-          unitToUse = 'in';
-        }
-        
-        // Convert to mm for calculation
-        const numDist = parseFloat(distToUse);
-        let distMm = numDist;
-        if (unitToUse === 'cm') distMm = numDist * 10;
-        else if (unitToUse === 'in') distMm = numDist * 25.4;
-        
-        if (numDist > 0) {
-          setCalibrationDistance(distToUse);
-          setCalibrationUnit(unitToUse);
-          setScalePx(distMm / pixelDist);
-        }
+        const dist = Math.sqrt(Math.pow(newPts[1].x - newPts[0].x, 2) + Math.pow(newPts[1].y - newPts[0].y, 2));
+        const mmPerPx = parseFloat(scaleInput) / dist;
+        setScalePx(mmPerPx);
         setSetScaleMode(false);
         setScalePoints([]);
       }
@@ -179,9 +156,6 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
       centre_x: centrePoint?.x || null,
       centre_y: centrePoint?.y || null,
       scale_mm_per_px: scalePx,
-      scale_type: scaleType,
-      calibration_distance: calibrationDistance,
-      calibration_unit: calibrationUnit,
       shooting_position: shootingPosition || null,
       distance_override: distanceOverride ? parseFloat(distanceOverride) : null,
       rifle_id: selectedRifleId || null,
@@ -248,43 +222,14 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
 
           {/* Scale setup */}
           <div className="bg-card border border-border rounded-2xl p-4 mb-3">
-            <p className="font-semibold text-sm mb-3">Scale Reference Type</p>
-            <div className="flex flex-col gap-2 mb-4">
-              {[
-                { id: 'custom', label: 'Custom' },
-                { id: '1cm', label: '1 cm grid' },
-                { id: '1in', label: '1 inch grid' },
-              ].map(opt => (
-                <button key={opt.id} onClick={() => setScaleType(opt.id)}
-                  className={`text-left px-3 py-2 rounded-lg border transition-colors text-sm font-medium ${scaleType === opt.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary border-border'}`}>
-                  {opt.label}
-                </button>
-              ))}
+            <p className="font-semibold text-sm mb-2">Scale Reference</p>
+            <div className="flex gap-2 mb-2">
+              <input value={scaleInput} onChange={e => setScaleInput(e.target.value)} placeholder="mm (e.g. 10 for 1cm)" className={`${inp} flex-1`} type="number" />
+              <input value={scaleRef} onChange={e => setScaleRef(e.target.value)} placeholder="e.g. 1cm grid" className={`${inp} flex-1`} />
             </div>
-
-            {scaleType === 'custom' && (
-              <div className="space-y-2 mb-3 p-3 bg-secondary/50 rounded-lg">
-                <div>
-                  <label className="text-xs font-semibold uppercase mb-1 block">Calibration Distance</label>
-                  <input type="number" value={calibrationDistance} onChange={e => setCalibrationDistance(e.target.value)} placeholder="e.g. 10" className={inp} />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold uppercase mb-1 block">Unit</label>
-                  <div className="flex gap-2">
-                    {['mm', 'cm', 'in'].map(u => (
-                      <button key={u} onClick={() => setCalibrationUnit(u)}
-                        className={`flex-1 py-2 rounded-lg border text-xs font-semibold transition-colors ${calibrationUnit === u ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border'}`}>
-                        {u === 'in' ? 'in' : u}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
             <button type="button" onClick={() => { setSetScaleMode(true); setScalePoints([]); }}
               className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all ${setScaleMode ? 'bg-amber-500 text-white' : 'bg-secondary hover:bg-secondary/80'}`}>
-              {setScaleMode ? `Tap 2 points (${scalePoints.length}/2 placed)` : (scalePx ? `✓ Scale set (${Math.round(1/scalePx * 100)/100}mm/px) — Recalibrate` : 'Tap 2 points to calibrate')}
+              {setScaleMode ? `Tap 2 points on photo (${scalePoints.length}/2 placed)` : (scalePx ? `✓ Scale set (${Math.round(1/scalePx * 10)/10}px/mm) — Recalibrate` : 'Tap 2 known points to set scale')}
             </button>
           </div>
 
