@@ -83,7 +83,68 @@ function QuickTotalForm({ form, setForm, error }) {
 
 
 
-// ─── Shot-by-Shot Card ────────────────────────────────────────────
+// ─── Shot-by-Shot Card (Read-Only) ────────────────────────────
+function ShotByShotCardReadOnly({ stand, shots, onEdit }) {
+  const hits = shots.filter(s => s.result === 'dead').length;
+  const misses = shots.filter(s => s.result === 'lost').length;
+  const noBirds = shots.filter(s => s.result === 'no_bird').length;
+  const validScored = hits + misses;
+  const pct = validScored > 0 ? Math.round((hits / validScored) * 100) : 0;
+
+  const shotColor = (result) => {
+    if (result === 'dead') return 'bg-emerald-500 text-white';
+    if (result === 'lost') return 'bg-red-500 text-white';
+    return 'bg-amber-400 text-white';
+  };
+
+  return (
+    <div className="bg-card border border-border rounded-2xl p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <span className="font-bold text-base">Stand {stand.stand_number}</span>
+          <span className="ml-2 text-xs bg-secondary px-2 py-0.5 rounded-full">{stand.discipline_type}</span>
+        </div>
+        <button onClick={onEdit} className="p-2 hover:bg-secondary rounded-lg"><Pencil className="w-4 h-4 text-muted-foreground" /></button>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2 mb-3">
+        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-2.5 text-center">
+          <p className="text-xl font-black text-emerald-600">{hits}</p>
+          <p className="text-xs text-muted-foreground">Dead</p>
+        </div>
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-2.5 text-center">
+          <p className="text-xl font-black text-red-500">{misses}</p>
+          <p className="text-xs text-muted-foreground">Lost</p>
+        </div>
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-2.5 text-center">
+          <p className="text-xl font-black text-amber-600">{noBirds}</p>
+          <p className="text-xs text-muted-foreground">No Bird</p>
+        </div>
+        <div className="bg-primary/10 rounded-xl p-2.5 text-center">
+          <p className="text-xl font-black text-primary">{pct}%</p>
+          <p className="text-xs text-muted-foreground">Score</p>
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground mb-3">Score: {hits}/{validScored} valid</p>
+
+      {shots.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {shots.map(shot => (
+            <div key={shot.id}
+              className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white ${shotColor(shot.result)}`}
+              title={`Shot ${shot.shot_number}: ${shot.result}`}>
+              {shot.shot_number}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {stand.notes && <p className="text-xs text-muted-foreground mt-2 italic">{stand.notes}</p>}
+    </div>
+  );
+}
+
+// ─── Shot-by-Shot Card (Editing) ──────────────────────────────
 function ShotByShotCard({ stand, shots, onAddShot, onRemoveShot, onEdit, onDelete }) {
   const hits = shots.filter(s => s.result === 'dead').length;
   const misses = shots.filter(s => s.result === 'lost').length;
@@ -93,11 +154,10 @@ function ShotByShotCard({ stand, shots, onAddShot, onRemoveShot, onEdit, onDelet
   const [expanded, setExpanded] = useState(true);
 
   const shotColor = (result) => {
-    if (result === 'hit') return 'bg-emerald-500 text-white border-emerald-600';
-    if (result === 'miss') return 'bg-red-500 text-white border-red-600';
+    if (result === 'dead') return 'bg-emerald-500 text-white border-emerald-600';
+    if (result === 'lost') return 'bg-red-500 text-white border-red-600';
     return 'bg-amber-400 text-white border-amber-500';
   };
-  const shotLabel = (result) => result === 'no_bird' ? 'NB' : result === 'hit' ? '✓' : '✗';
 
   return (
     <div className="bg-card border border-border rounded-2xl p-4">
@@ -110,12 +170,10 @@ function ShotByShotCard({ stand, shots, onAddShot, onRemoveShot, onEdit, onDelet
           <button onClick={() => setExpanded(e => !e)} className="p-2 hover:bg-secondary rounded-lg">
             {expanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
           </button>
-          <button onClick={onEdit} className="p-2 hover:bg-secondary rounded-lg"><Pencil className="w-4 h-4 text-muted-foreground" /></button>
           <button onClick={onDelete} className="p-2 hover:bg-destructive/10 rounded-lg"><Trash2 className="w-4 h-4 text-destructive/60" /></button>
         </div>
       </div>
 
-      {/* Score summary */}
       <div className="grid grid-cols-4 gap-2 mb-3">
         <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-2.5 text-center">
           <p className="text-xl font-black text-emerald-600">{hits}</p>
@@ -145,7 +203,6 @@ function ShotByShotCard({ stand, shots, onAddShot, onRemoveShot, onEdit, onDelet
                   className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 ${shotColor(shot.result)}`}
                   title={`Shot ${shot.shot_number}: ${shot.result}`}>
                   {shot.shot_number}
-                  <span className="sr-only">{shotLabel(shot.result)}</span>
                 </div>
               ))}
             </div>
@@ -178,13 +235,11 @@ function ShotByShotCard({ stand, shots, onAddShot, onRemoveShot, onEdit, onDelet
   );
 }
 
-// ─── Quick Total Stand Card ───────────────────────────────────────
-function QuickStandCard({ stand, onHit, onMiss, onNoBird, onUndo, onEdit, onDelete }) {
+// ─── Quick Total Stand Card (Read-Only) ───────────────────────
+function QuickStandCardReadOnly({ stand, onEdit }) {
   const valid = (stand.hits || 0) + (stand.misses || 0);
   const pct = valid > 0 ? Math.round(((stand.hits || 0) / valid) * 100) : 0;
   const noBirds = stand.no_birds || 0;
-  const totalIncl = valid + noBirds;
-  const remaining = totalIncl - (stand.hits || 0) - (stand.misses || 0) - noBirds;
 
   return (
     <div className="bg-card border border-border rounded-2xl p-4">
@@ -193,10 +248,51 @@ function QuickStandCard({ stand, onHit, onMiss, onNoBird, onUndo, onEdit, onDele
           <span className="font-bold text-base">Stand {stand.stand_number}</span>
           <span className="ml-2 text-xs bg-secondary px-2 py-0.5 rounded-full">{stand.discipline_type}</span>
         </div>
-        <div className="flex gap-1">
-          <button onClick={onEdit} className="p-2 hover:bg-secondary rounded-lg"><Pencil className="w-4 h-4 text-muted-foreground" /></button>
-          <button onClick={onDelete} className="p-2 hover:bg-destructive/10 rounded-lg"><Trash2 className="w-4 h-4 text-destructive/60" /></button>
+        <button onClick={onEdit} className="p-2 hover:bg-secondary rounded-lg"><Pencil className="w-4 h-4 text-muted-foreground" /></button>
+      </div>
+
+      <div className="grid grid-cols-4 gap-2 mb-2">
+        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3 text-center">
+          <p className="text-2xl font-black text-emerald-600">{stand.hits || 0}</p>
+          <p className="text-xs text-muted-foreground">Dead</p>
         </div>
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 text-center">
+          <p className="text-2xl font-black text-red-500">{stand.misses || 0}</p>
+          <p className="text-xs text-muted-foreground">Lost</p>
+        </div>
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-center">
+          <p className="text-2xl font-black text-amber-600">{noBirds}</p>
+          <p className="text-xs text-muted-foreground">No Bird</p>
+        </div>
+        <div className="bg-primary/10 rounded-xl p-3 text-center">
+          <p className="text-2xl font-black text-primary">{pct}%</p>
+          <p className="text-xs text-muted-foreground">Score</p>
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground mb-3">Score: {stand.hits || 0}/{valid} valid</p>
+
+      {stand.shots_used > 0 && stand.shots_used !== valid && (
+        <p className="text-xs text-muted-foreground">Cartridges used: {stand.shots_used}</p>
+      )}
+      {stand.notes && <p className="text-xs text-muted-foreground mt-1 italic">{stand.notes}</p>}
+    </div>
+  );
+}
+
+// ─── Quick Total Stand Card (Editing) ──────────────────────────
+function QuickStandCard({ stand, onHit, onMiss, onNoBird, onUndo, onEdit, onDelete }) {
+  const valid = (stand.hits || 0) + (stand.misses || 0);
+  const pct = valid > 0 ? Math.round(((stand.hits || 0) / valid) * 100) : 0;
+  const noBirds = stand.no_birds || 0;
+
+  return (
+    <div className="bg-card border border-border rounded-2xl p-4">
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <span className="font-bold text-base">Stand {stand.stand_number}</span>
+          <span className="ml-2 text-xs bg-secondary px-2 py-0.5 rounded-full">{stand.discipline_type}</span>
+        </div>
+        <button onClick={onDelete} className="p-2 hover:bg-destructive/10 rounded-lg"><Trash2 className="w-4 h-4 text-destructive/60" /></button>
       </div>
 
       <div className="grid grid-cols-4 gap-2 mb-2">
@@ -570,26 +666,17 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
                     <StandFormWrapper key={stand.id} stand={stand} standNumber={stand.stand_number} onSave={handleEditStand} onCancel={() => setEditingStand(null)} initialShots={shotsMap[stand.id] || []} />
                   ) : stand.scoring_method === 'shot_by_shot' ? (
                     <motion.div key={stand.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-                      <ShotByShotCard
+                      <ShotByShotCardReadOnly
                         stand={stand}
                         shots={shotsMap[stand.id] || []}
-                        onAddShot={(result) => handleAddShot(stand, result)}
-                        onRemoveShot={() => handleRemoveShot(stand)}
                         onEdit={() => setEditingStand(stand)}
-                        onDelete={() => handleDeleteStand(stand.id)}
-                        isDead={true}
                       />
                     </motion.div>
                   ) : (
                     <motion.div key={stand.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-                      <QuickStandCard
+                      <QuickStandCardReadOnly
                         stand={stand}
-                        onHit={() => handleHit(stand)}
-                        onMiss={() => handleMiss(stand)}
-                        onNoBird={() => handleNoBird(stand)}
-                        onUndo={() => handleUndo(stand)}
                         onEdit={() => setEditingStand(stand)}
-                        onDelete={() => handleDeleteStand(stand.id)}
                       />
                     </motion.div>
                   )
