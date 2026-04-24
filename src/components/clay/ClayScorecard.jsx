@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { base44 } from '@/api/base44Client';
 import { X, Plus, Target, Trash2, Pencil, Download, TableProperties, LayoutList, ChevronDown, ChevronUp, Mic, MicOff } from 'lucide-react';
@@ -84,20 +84,25 @@ function QuickTotalForm({ form, setForm, error }) {
 // shotMeta array: { input_method, voice_confidence_score } per slot
 // noBirds: integer count (separate — no clay launched = no shot)
 function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNoBirdsChange, onShotMeta }) {
-  const [voiceFlash, setVoiceFlash] = useState(null); // index of last voice-scored shot
-  const [currentVoiceIndex, setCurrentVoiceIndex] = useState(0); // track position in voice mode
-  const [isVoiceActive, setIsVoiceActive] = useState(false); // track if voice is actively listening
-  const [standComplete, setStandComplete] = useState(false); // track if all shots are filled
+  const [voiceFlash, setVoiceFlash] = useState(null);
+  const [activeShotIndex, setActiveShotIndex] = useState(0);
+  const activeShotIndexRef = useRef(0);
+  const [isVoiceActive, setIsVoiceActive] = useState(false);
+  const [standComplete, setStandComplete] = useState(false);
 
-  // Find the first empty shot
+  // Keep ref in sync with state
+  useEffect(() => {
+    activeShotIndexRef.current = activeShotIndex;
+  }, [activeShotIndex]);
+
   const findFirstEmptyShot = () => shots.findIndex((s) => s === null || s === undefined);
 
-  // Find next empty shot from a given position
   const findNextEmptyShot = (fromIndex) => {
     return shots.findIndex((s, i) => i > fromIndex && (s === null || s === undefined));
   };
 
-  const handleSetResult = (idx, result, meta = { input_method: 'manual' }) => {
+  const recordShotResult = useCallback((result, meta = { input_method: 'manual' }) => {
+    const idx = activeShotIndexRef.current;
     const updated = [...shots];
     updated[idx] = result;
     onChange(updated);
@@ -105,16 +110,16 @@ function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNo
     updatedMeta[idx] = meta;
     onShotMeta?.(updatedMeta);
 
-    // Auto-advance: find next empty shot
+    // Find next empty shot
     const nextEmpty = findNextEmptyShot(idx);
     if (nextEmpty !== -1) {
-      setCurrentVoiceIndex(nextEmpty);
+      setActiveShotIndex(nextEmpty);
     } else {
       // All shots filled
       setStandComplete(true);
       setIsVoiceActive(false);
     }
-  };
+  }, [shots, shotMeta, onChange, onShotMeta]);
 
   // Voice scoring hook — auto-advances through shots
   const { isListening, lastHeard, error: voiceError, start: startVoice, stop: stopVoice } = useVoiceScoring({
@@ -123,11 +128,11 @@ function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNo
         onNoBirdsChange(noBirds + 1);
         setVoiceFlash('nb');
         setTimeout(() => setVoiceFlash(null), 800);
-        // Don't save to shots array — no bird doesn't take a shot slot
-        // Just find next empty slot and auto-advance
-        const nextIdx = findNextEmptyShot(currentVoiceIndex - 1);
+        // No bird doesn't take a shot slot — just advance to next empty shot
+        const currentIdx = activeShotIndexRef.current;
+        const nextIdx = findNextEmptyShot(currentIdx - 1);
         if (nextIdx !== -1) {
-          setCurrentVoiceIndex(nextIdx);
+          setActiveShotIndex(nextIdx);
         } else {
           // All shots filled
           setStandComplete(true);
@@ -136,14 +141,14 @@ function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNo
         return;
       }
       
-      // Hit or Miss: save to current shot index
-      handleSetResult(currentVoiceIndex, result, {
+      // Hit or Miss: use recordShotResult which reads the current ref value
+      recordShotResult(result, {
         input_method: 'voice',
         voice_timestamp,
         voice_confidence_score,
       });
       
-      setVoiceFlash(currentVoiceIndex);
+      setVoiceFlash(activeShotIndexRef.current);
       setTimeout(() => setVoiceFlash(null), 800);
     },
   });
@@ -192,7 +197,7 @@ function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNo
             ) : isListening && lastHeard ? (
               <p className="text-[10px] text-muted-foreground">Heard: "<span className="font-semibold text-foreground">{lastHeard}</span>"</p>
             ) : (
-              <p className="text-[10px] text-muted-foreground">{isListening ? `Targeting: Shot ${currentVoiceIndex + 1}/${totalShots}` : 'Say: Hit · Miss · No Bird'}</p>
+              <p className="text-[10px] text-muted-foreground">{isListening ? `Targeting: Shot ${activeShotIndex + 1}/${totalShots}` : 'Say: Hit · Miss · No Bird'}</p>
             )}
           </div>
         </div>
@@ -207,7 +212,7 @@ function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNo
             } else {
               const firstEmpty = findFirstEmptyShot();
               if (firstEmpty !== -1) {
-                setCurrentVoiceIndex(firstEmpty);
+                setActiveShotIndex(firstEmpty);
                 setStandComplete(false);
                 setIsVoiceActive(true);
                 startVoice();
@@ -261,7 +266,7 @@ function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNo
           const meta = shotMeta?.[i];
           const isVoice = meta?.input_method === 'voice';
           const isFlashing = voiceFlash === i;
-          const isCurrent = isVoiceActive && currentVoiceIndex === i && !result;
+          const isCurrent = isVoiceActive && activeShotIndex === i && !result;
           return (
             <div key={i} className={`flex items-center gap-2 transition-all rounded-lg px-2 py-1 ${isFlashing ? 'bg-primary/10 scale-[1.01]' : isCurrent ? 'bg-primary/5 ring-1 ring-primary' : ''}`}>
               <div className="flex flex-col items-center w-14 flex-shrink-0">
@@ -271,12 +276,18 @@ function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNo
               </div>
               <div className="flex gap-1 flex-1">
                 <motion.button type="button" whileTap={{ scale: 0.93 }}
-                  onClick={() => handleSetResult(i, 'hit', { input_method: 'manual' })}
+                  onClick={() => {
+                    setActiveShotIndex(i);
+                    recordShotResult('hit', { input_method: 'manual' });
+                  }}
                   className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all border ${result === 'hit' ? 'bg-emerald-500 text-white border-emerald-600 shadow' : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800'}`}>
                   ✓ Hit
                 </motion.button>
                 <motion.button type="button" whileTap={{ scale: 0.93 }}
-                  onClick={() => handleSetResult(i, 'miss', { input_method: 'manual' })}
+                  onClick={() => {
+                    setActiveShotIndex(i);
+                    recordShotResult('miss', { input_method: 'manual' });
+                  }}
                   className={`flex-1 py-2.5 rounded-lg text-xs font-bold transition-all border ${result === 'miss' ? 'bg-red-500 text-white border-red-600 shadow' : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'}`}>
                   ✗ Miss
                 </motion.button>
