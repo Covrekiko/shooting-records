@@ -34,10 +34,11 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
   const [centrePoint, setCentrePoint] = useState(editGroup?.centre_mark || null);
   const [aimPoint, setAimPoint] = useState(editGroup?.aim_mark || null);
   const [mode, setMode] = useState('bullets'); // bullets | centre | aim
-  const [scaleRef, setScaleRef] = useState(editGroup?.scale_reference || '1cm grid');
-  const [scaleInput, setScaleInput] = useState('10'); // mm per ref unit
+  const [scaleRefType, setScaleRefType] = useState(editGroup?.scale_reference_type || '1cm');
+  const [scaleRefValue, setScaleRefValue] = useState(editGroup?.scale_reference_value || '');
+  const [scaleRefUnit, setScaleRefUnit] = useState(editGroup?.scale_reference_unit || 'mm');
   const [scalePx, setScalePx] = useState(editGroup?.scale_mm_per_px || null);
-  const [groupName, setGroupName] = useState(editGroup?.group_name || `Group ${Date.now() % 100}`);
+  const [groupName, setGroupName] = useState(editGroup?.group_name || 'Group 1');
   const [notes, setNotes] = useState(editGroup?.notes || '');
   const [confirmedZero, setConfirmedZero] = useState(editGroup?.confirmed || editGroup?.confirmed_zero || false);
   const [shootingPosition, setShootingPosition] = useState(editGroup?.shooting_position || session.shooting_position || '');
@@ -118,8 +119,17 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
       setScalePoints(newPts);
       if (newPts.length === 2) {
         const dist = Math.sqrt(Math.pow(newPts[1].x - newPts[0].x, 2) + Math.pow(newPts[1].y - newPts[0].y, 2));
-        const mmPerPx = parseFloat(scaleInput) / dist;
-        setScalePx(mmPerPx);
+        let refMm = 0;
+        if (scaleRefType === '1cm') refMm = 10;
+        else if (scaleRefType === '1in') refMm = 25.4;
+        else if (scaleRefType === 'bullseye') refMm = 45;
+        else if (scaleRefType === 'custom' && scaleRefValue) {
+          const val = parseFloat(scaleRefValue);
+          refMm = scaleRefUnit === 'cm' ? val * 10 : scaleRefUnit === 'in' ? val * 25.4 : val;
+        }
+        if (refMm > 0) {
+          setScalePx(refMm / dist);
+        }
         setSetScaleMode(false);
         setScalePoints([]);
       }
@@ -222,15 +232,43 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
 
           {/* Scale setup */}
           <div className="bg-card border border-border rounded-2xl p-4 mb-3">
-            <p className="font-semibold text-sm mb-2">Scale Reference</p>
-            <div className="flex gap-2 mb-2">
-              <input value={scaleInput} onChange={e => setScaleInput(e.target.value)} placeholder="mm (e.g. 10 for 1cm)" className={`${inp} flex-1`} type="number" />
-              <input value={scaleRef} onChange={e => setScaleRef(e.target.value)} placeholder="e.g. 1cm grid" className={`${inp} flex-1`} />
+            <p className="font-semibold text-sm mb-3">Scale Reference Type</p>
+            <div className="flex flex-col gap-2 mb-3">
+              {[
+                { id: '1cm', label: '1 cm grid' },
+                { id: '1in', label: '1 inch square' },
+                { id: 'bullseye', label: 'Known bullseye (45 mm)' },
+                { id: 'custom', label: 'Custom' },
+              ].map(opt => (
+                <button key={opt.id} onClick={() => setScaleRefType(opt.id)}
+                  className={`text-left px-3 py-2 rounded-lg border transition-colors ${scaleRefType === opt.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary border-border'}`}>
+                  <p className="text-sm font-medium">{opt.label}</p>
+                </button>
+              ))}
             </div>
-            <button type="button" onClick={() => { setSetScaleMode(true); setScalePoints([]); }}
-              className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all ${setScaleMode ? 'bg-amber-500 text-white' : 'bg-secondary hover:bg-secondary/80'}`}>
-              {setScaleMode ? `Tap 2 points on photo (${scalePoints.length}/2 placed)` : (scalePx ? `✓ Scale set (${Math.round(1/scalePx * 10)/10}px/mm) — Recalibrate` : 'Tap 2 known points to set scale')}
-            </button>
+            {scaleRefType === 'custom' && (
+              <div className="space-y-2 border-t border-border pt-3 mb-3">
+                <div>
+                  <label className="text-xs font-semibold uppercase mb-1 block">Scale Size</label>
+                  <input type="number" value={scaleRefValue} onChange={e => setScaleRefValue(e.target.value)} placeholder="e.g. 1" className={inp} />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold uppercase mb-1 block">Scale Unit</label>
+                  <div className="flex gap-2">
+                    {['mm', 'cm', 'in'].map(u => (
+                      <button key={u} onClick={() => setScaleRefUnit(u)}
+                        className={`flex-1 py-2 rounded-lg border text-xs font-semibold ${scaleRefUnit === u ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
+                        {u === 'in' ? 'inches' : u}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="border-t border-border pt-3">
+              <label className="text-xs font-semibold uppercase mb-1 block">Pixel Width of Reference</label>
+              <input type="number" value={scalePx || ''} onChange={e => setScalePx(e.target.value ? parseFloat(e.target.value) : null)} placeholder="e.g. 50" className={inp} />
+            </div>
           </div>
 
           {/* Mode selector */}
