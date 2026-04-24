@@ -1,9 +1,38 @@
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
 
 function fd(dateStr) {
   if (!dateStr) return '—';
   return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function drawTable(doc, headers, rows, x, y, colWidths, rowH = 7) {
+  const totalW = colWidths.reduce((a, b) => a + b, 0);
+  doc.setFillColor(40, 40, 40);
+  doc.rect(x, y, totalW, rowH, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  let cx = x;
+  headers.forEach((h, i) => {
+    doc.text(String(h), cx + 1, y + rowH - 2);
+    cx += colWidths[i];
+  });
+  y += rowH;
+  doc.setFont('helvetica', 'normal');
+  rows.forEach((row, ri) => {
+    if (ri % 2 === 0) { doc.setFillColor(248, 248, 250); doc.rect(x, y, totalW, rowH, 'F'); }
+    doc.setTextColor(0, 0, 0);
+    cx = x;
+    row.forEach((cell, i) => {
+      const txt = String(cell ?? '—').slice(0, Math.floor(colWidths[i] / 2.2));
+      doc.text(txt, cx + 1, y + rowH - 2);
+      cx += colWidths[i];
+    });
+    y += rowH;
+  });
+  doc.setDrawColor(200, 200, 200);
+  doc.rect(x, y - (rows.length + 1) * rowH, totalW, (rows.length + 1) * rowH);
+  return y;
 }
 
 export function exportSessionPDF(session, groups, scopeProfile) {
@@ -11,7 +40,6 @@ export function exportSessionPDF(session, groups, scopeProfile) {
   const pageW = doc.internal.pageSize.getWidth();
   let y = 15;
 
-  // Title
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
   doc.text('TARGET SESSION REPORT', pageW / 2, y, { align: 'center' });
@@ -26,7 +54,6 @@ export function exportSessionPDF(session, groups, scopeProfile) {
   doc.line(14, y, pageW - 14, y);
   y += 6;
 
-  // Session info
   const info = [
     ['Rifle:', session.rifle_name || '—', 'Scope:', session.scope_name || '—'],
     ['Ammunition:', session.ammo_name || '—', 'Calibre:', session.caliber || '—'],
@@ -36,14 +63,10 @@ export function exportSessionPDF(session, groups, scopeProfile) {
 
   doc.setFontSize(9);
   for (const row of info) {
-    doc.setFont('helvetica', 'bold');
-    doc.text(row[0], 14, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(String(row[1]), 42, y);
-    doc.setFont('helvetica', 'bold');
-    doc.text(row[2], pageW / 2 + 4, y);
-    doc.setFont('helvetica', 'normal');
-    doc.text(String(row[3]), pageW / 2 + 32, y);
+    doc.setFont('helvetica', 'bold'); doc.text(row[0], 14, y);
+    doc.setFont('helvetica', 'normal'); doc.text(String(row[1]), 42, y);
+    doc.setFont('helvetica', 'bold'); doc.text(row[2], pageW / 2 + 4, y);
+    doc.setFont('helvetica', 'normal'); doc.text(String(row[3]), pageW / 2 + 32, y);
     y += 6;
   }
 
@@ -65,47 +88,31 @@ export function exportSessionPDF(session, groups, scopeProfile) {
   doc.line(14, y, pageW - 14, y);
   y += 6;
 
-  // Groups table
   if (groups.length > 0) {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(11);
     doc.text('TARGET GROUPS', 14, y);
-    y += 2;
+    y += 6;
 
-    autoTable(doc, {
-      startY: y + 2,
-      head: [['Group', 'Shots', 'MOA', 'MRAD', 'Size mm', 'Size"', 'POI X mm', 'POI Y mm', 'Elev Clicks', 'Wind Clicks', 'Zero', 'Notes']],
-      body: groups.map(g => [
-        g.group_name || '—',
-        g.number_of_shots || '—',
-        g.group_size_moa?.toFixed(2) || '—',
-        g.group_size_mrad?.toFixed(3) || '—',
-        g.group_size_mm || '—',
-        g.group_size_inches?.toFixed(2) || '—',
-        g.point_of_impact_x !== undefined ? g.point_of_impact_x : '—',
-        g.point_of_impact_y !== undefined ? g.point_of_impact_y : '—',
-        g.clicks_up_down !== undefined ? g.clicks_up_down : '—',
-        g.clicks_left_right !== undefined ? g.clicks_left_right : '—',
-        g.confirmed_zero ? 'YES' : 'NO',
-        g.notes || '—',
-      ]),
-      theme: 'striped',
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 7, fontStyle: 'bold' },
-      bodyStyles: { fontSize: 7 },
-      columnStyles: {
-        0: { fontStyle: 'bold' },
-        2: { fontStyle: 'bold', textColor: [180, 80, 0] },
-      },
-      didParseCell: (hook) => {
-        const g = groups[hook.row.index];
-        if (g?.is_best_group) hook.cell.styles.fillColor = [255, 250, 230];
-      },
-    });
-
-    y = doc.previousAutoTable?.finalY + 8 || y + 40;
+    const headers = ['Group', 'Shots', 'MOA', 'MRAD', 'mm', 'inches', 'POI X', 'POI Y', 'Elev', 'Wind', 'Notes'];
+    const colWidths = [22, 10, 12, 12, 10, 12, 12, 12, 12, 12, 32];
+    const rows = groups.map(g => [
+      g.group_name || '—',
+      g.number_of_shots || '—',
+      g.group_size_moa?.toFixed(2) || '—',
+      g.group_size_mrad?.toFixed(3) || '—',
+      g.group_size_mm || '—',
+      g.group_size_inches?.toFixed(2) || '—',
+      g.point_of_impact_x !== undefined ? g.point_of_impact_x : '—',
+      g.point_of_impact_y !== undefined ? g.point_of_impact_y : '—',
+      g.clicks_up_down !== undefined ? g.clicks_up_down : '—',
+      g.clicks_left_right !== undefined ? g.clicks_left_right : '—',
+      g.notes || '—',
+    ]);
+    y = drawTable(doc, headers, rows, 14, y, colWidths);
+    y += 8;
   }
 
-  // Footer
   const pages = doc.getNumberOfPages();
   for (let i = 1; i <= pages; i++) {
     doc.setPage(i);
@@ -120,7 +127,7 @@ export function exportSessionPDF(session, groups, scopeProfile) {
   doc.save(fname);
 }
 
-export function exportRifleHistoryPDF(rifle, rifleSessions, groups, ammoStats) {
+export function exportRifleHistoryPDF(rifle, rifleSessions, groups) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   let y = 15;
@@ -139,20 +146,16 @@ export function exportRifleHistoryPDF(rifle, rifleSessions, groups, ammoStats) {
   y += 8;
 
   if (rifleSessions.length > 0) {
-    autoTable(doc, {
-      startY: y,
-      head: [['Date', 'Range', 'Distance', 'Ammo', 'Best MOA', 'Avg MOA', 'Groups']],
-      body: rifleSessions.map(s => {
-        const sg = groups.filter(g => g.session_id === s.id && g.group_size_moa);
-        const best = sg.length ? Math.min(...sg.map(g => g.group_size_moa)).toFixed(2) : '—';
-        const avg = sg.length ? (sg.reduce((sum, g) => sum + g.group_size_moa, 0) / sg.length).toFixed(2) : '—';
-        return [fd(s.date), s.range_name || '—', `${s.distance}${s.distance_unit || 'm'}`, s.ammo_name || '—', best, avg, sg.length];
-      }),
-      theme: 'striped',
-      headStyles: { fillColor: [40, 40, 40], textColor: 255, fontSize: 8 },
-      bodyStyles: { fontSize: 8 },
+    const headers = ['Date', 'Range', 'Distance', 'Ammo', 'Best MOA', 'Avg MOA', 'Groups'];
+    const colWidths = [24, 32, 20, 36, 20, 20, 16];
+    const rows = rifleSessions.map(s => {
+      const sg = groups.filter(g => g.session_id === s.id && g.group_size_moa);
+      const best = sg.length ? Math.min(...sg.map(g => g.group_size_moa)).toFixed(2) : '—';
+      const avg = sg.length ? (sg.reduce((sum, g) => sum + g.group_size_moa, 0) / sg.length).toFixed(2) : '—';
+      return [fd(s.date), s.range_name || '—', `${s.distance}${s.distance_unit || 'm'}`, s.ammo_name || '—', best, avg, sg.length];
     });
-    y = doc.previousAutoTable?.finalY + 10 || y + 40;
+    y = drawTable(doc, headers, rows, 14, y, colWidths);
+    y += 10;
   }
 
   const pages = doc.getNumberOfPages();
