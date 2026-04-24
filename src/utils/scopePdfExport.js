@@ -1,0 +1,219 @@
+import { jsPDF } from 'jspdf';
+
+// Draw a simple table manually using jsPDF primitives (no autotable required)
+function drawTable(doc, headers, rows, x, y, colWidths, rowH = 7) {
+  const totalW = colWidths.reduce((a, b) => a + b, 0);
+
+  // Header row
+  doc.setFillColor(40, 40, 40);
+  doc.rect(x, y, totalW, rowH, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  let cx = x + 1;
+  headers.forEach((h, i) => {
+    doc.text(String(h), cx + 1, y + rowH - 2);
+    cx += colWidths[i];
+  });
+  y += rowH;
+
+  // Data rows
+  doc.setFont('helvetica', 'normal');
+  rows.forEach((row, ri) => {
+    if (ri % 2 === 0) {
+      doc.setFillColor(248, 248, 250);
+      doc.rect(x, y, totalW, rowH, 'F');
+    }
+    doc.setTextColor(0, 0, 0);
+    cx = x + 1;
+    row.forEach((cell, i) => {
+      const txt = String(cell ?? '—').slice(0, Math.floor(colWidths[i] / 2.5));
+      doc.text(txt, cx + 1, y + rowH - 2);
+      cx += colWidths[i];
+    });
+    y += rowH;
+  });
+
+  // Border
+  doc.setDrawColor(200, 200, 200);
+  doc.rect(x, y - rows.length * rowH - rowH, totalW, (rows.length + 1) * rowH);
+
+  return y;
+}
+
+export function exportScopeClickCardPDF(profile, rifle, distanceData) {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  let y = 15;
+
+  // Title
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('SCOPE CLICK CARD / BALLISTIC DOPE', pageW / 2, y, { align: 'center' });
+  y += 8;
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`${profile.scope_brand} ${profile.scope_model || ''}`, pageW / 2, y, { align: 'center' });
+  y += 5;
+
+  const setupLabel = { main_hunting: 'Main Hunting Setup', target_shooting: 'Target Shooting Setup' };
+  if (profile.setup_type !== 'standard') {
+    doc.setFontSize(9);
+    doc.text(setupLabel[profile.setup_type] || '', pageW / 2, y, { align: 'center' });
+    y += 5;
+  }
+
+  doc.setDrawColor(200, 200, 200);
+  doc.line(14, y, pageW - 14, y);
+  y += 6;
+
+  // Info block
+  doc.setFontSize(9);
+  const col1X = 14, col2X = pageW / 2 + 4;
+
+  const infoRows = [
+    ['Rifle:', rifle?.name || profile.rifle_name || '—', 'Calibre:', profile.caliber || '—'],
+    ['Scope Brand:', profile.scope_brand || '—', 'Scope Model:', profile.scope_model || '—'],
+    ['Reticle:', profile.reticle_type || '—', 'Turret:', profile.turret_type || '—'],
+    ['Click Value:', profile.click_value || '—', 'Zero Distance:', profile.zero_distance || '—'],
+    ['Zero Ammo:', profile.zero_ammo || '—', 'Bullet:', `${profile.bullet_brand || ''} ${profile.bullet_weight || ''}`.trim() || '—'],
+  ];
+
+  for (const row of infoRows) {
+    doc.setFont('helvetica', 'bold');
+    doc.text(row[0], col1X, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(String(row[1]), col1X + 28, y);
+    doc.setFont('helvetica', 'bold');
+    doc.text(row[2], col2X, y);
+    doc.setFont('helvetica', 'normal');
+    doc.text(String(row[3]), col2X + 28, y);
+    y += 6;
+  }
+
+  if (profile.notes) {
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(8);
+    doc.text(`Notes: ${profile.notes}`, col1X, y);
+    y += 6;
+  }
+
+  doc.line(14, y, pageW - 14, y);
+  y += 6;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text('DISTANCE CLICK TABLE', col1X, y);
+  y += 6;
+
+  const sorted = [...distanceData].sort((a, b) => a.distance - b.distance);
+
+  if (sorted.length === 0) {
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(9);
+    doc.text('No distance data added yet.', col1X, y);
+  } else {
+    const headers = ['Dist', 'Type', 'Elev Clicks', 'Wind Clicks', 'Confirmed', 'Ammo', 'Date', 'Notes'];
+    const colWidths = [16, 14, 18, 18, 16, 30, 20, 50];
+    const rows = sorted.map(row => [
+      `${row.distance}${row.distance_unit || 'm'}`,
+      row.data_type === 'confirmed' ? 'CONF' : 'CALC',
+      row.elevation_clicks != null ? `+${row.elevation_clicks}` : '—',
+      row.windage_clicks != null ? `${row.windage_clicks >= 0 ? '+' : ''}${row.windage_clicks}` : '—',
+      row.confirmed_at_range ? 'YES' : 'NO',
+      row.ammunition_used || '—',
+      row.date_confirmed || '—',
+      row.notes || '—',
+    ]);
+    y = drawTable(doc, headers, rows, 14, y, colWidths);
+  }
+
+  y += 12;
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(150);
+  doc.text(`Generated: ${new Date().toLocaleDateString('en-GB')} | Shooting Records App`, pageW / 2, y, { align: 'center' });
+
+  doc.save(`scope-click-card-${(profile.scope_brand + '-' + (profile.scope_model || '')).replace(/\s+/g, '-').toLowerCase()}.pdf`);
+}
+
+export async function exportAllRifleScopeDataPDF(rifles, profiles) {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  let y = 15;
+
+  doc.setFontSize(20);
+  doc.setFont('helvetica', 'bold');
+  doc.text('RIFLE & SCOPE DATA BACKUP', pageW / 2, y, { align: 'center' });
+  y += 7;
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Exported: ${new Date().toLocaleDateString('en-GB')} | All rifles, scopes, and DOPE data`, pageW / 2, y, { align: 'center' });
+  y += 8;
+
+  doc.setDrawColor(180);
+  doc.line(14, y, pageW - 14, y);
+  y += 8;
+
+  // RIFLES SECTION
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  doc.text('RIFLES', 14, y);
+  y += 4;
+
+  if (rifles.length === 0) {
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'italic');
+    doc.text('No rifles found.', 14, y + 6);
+    y += 14;
+  } else {
+    const headers = ['Name', 'Make', 'Model', 'Calibre', 'Serial', 'Total Rounds', 'Last Clean'];
+    const colWidths = [30, 22, 26, 18, 24, 24, 22];
+    const rows = rifles.map(r => [r.name, r.make || '—', r.model || '—', r.caliber || '—', r.serial_number || '—', r.total_rounds_fired || 0, r.last_cleaning_date || '—']);
+    y = drawTable(doc, headers, rows, 14, y, colWidths);
+    y += 8;
+  }
+
+  // SCOPE PROFILES SECTION
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  if (y > 240) { doc.addPage(); y = 15; }
+  doc.text('SCOPE PROFILES', 14, y);
+  y += 4;
+
+  if (profiles.length === 0) {
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'italic');
+    doc.text('No scope profiles found.', 14, y + 6);
+  } else {
+    const headers = ['Rifle', 'Scope', 'Model', 'Calibre', 'Turret', 'Click', 'Zero', 'Setup'];
+    const colWidths = [26, 22, 22, 16, 14, 12, 18, 22];
+    const rows = profiles.map(p => {
+      const rifle = rifles.find(r => r.id === p.rifle_id);
+      return [
+        rifle?.name || p.rifle_name || '—',
+        p.scope_brand || '—',
+        p.scope_model || '—',
+        p.caliber || '—',
+        p.turret_type || '—',
+        p.click_value || '—',
+        p.zero_distance || '—',
+        p.setup_type || 'standard',
+      ];
+    });
+    y = drawTable(doc, headers, rows, 14, y, colWidths);
+  }
+
+  // Footer on all pages
+  const pages = doc.getNumberOfPages();
+  for (let i = 1; i <= pages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(150);
+    doc.text(`Page ${i} of ${pages} | Shooting Records App Backup`, pageW / 2, 290, { align: 'center' });
+  }
+
+  doc.save(`rifle-scope-backup-${new Date().toISOString().split('T')[0]}.pdf`);
+}

@@ -1,0 +1,95 @@
+{
+  "name": "TargetSession",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "range_name": {
+      "type": "string"
+    },
+    "rifle_id": {
+      "type": "string"
+    },
+    "rifle_name": {
+      "type": "string"
+    },
+    "scope_profile_id": {
+      "type": "string"
+    },
+    "scope_name": {
+      "type": "string"
+    },
+    "ammo_id": {
+      "type": "string"
+    },
+    "ammo_name": {
+      "type": "string"
+    },
+    "ammo_source": {
+      "type": "string",
+      "enum": [
+        "inventory",
+        "reloading",
+        "manual"
+      ],
+      "default": "manual"
+    },
+    "caliber": {
+      "type": "string"
+    },
+    "bullet_weight": {
+      "type": "string"
+    },
+    "distance": {
+      "type": "number"
+    },
+    "distance_unit": {
+      "type": "string",
+      "enum": [
+        "m",
+        "yards"
+      ],
+      "default": "m"
+    },
+    "shooting_position": {
+      "type": "string",
+      "enum": [
+        "benchrest",
+        "prone",
+        "sticks",
+        "high_seat",
+        "standing",
+        "other"
+      ],
+      "default": "benchrest"
+    },
+    "weather_notes": {
+      "type": "string"
+    },
+    "wind_direction": {
+      "type": "string"
+    },
+    "wind_speed": {
+      "type": "string"
+    },
+    "temperature": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "date",
+    "rifle_id",
+    "distance"
+  ]
+}

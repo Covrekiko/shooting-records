@@ -1,0 +1,96 @@
+{
+  "name": "TargetGroup",
+  "type": "object",
+  "properties": {
+    "session_id": {
+      "type": "string"
+    },
+    "group_name": {
+      "type": "string",
+      "default": "Group 1"
+    },
+    "number_of_shots": {
+      "type": "integer"
+    },
+    "group_size_mm": {
+      "type": "number"
+    },
+    "group_size_moa": {
+      "type": "number"
+    },
+    "group_size_mrad": {
+      "type": "number"
+    },
+    "group_size_inches": {
+      "type": "number"
+    },
+    "point_of_impact_x": {
+      "type": "number",
+      "description": "mm from centre, positive = right"
+    },
+    "point_of_impact_y": {
+      "type": "number",
+      "description": "mm from centre, positive = up"
+    },
+    "elevation_correction_mm": {
+      "type": "number"
+    },
+    "windage_correction_mm": {
+      "type": "number"
+    },
+    "clicks_up_down": {
+      "type": "number"
+    },
+    "clicks_left_right": {
+      "type": "number"
+    },
+    "confirmed_zero": {
+      "type": "boolean",
+      "default": false
+    },
+    "is_best_group": {
+      "type": "boolean",
+      "default": false
+    },
+    "entry_type": {
+      "type": "string",
+      "enum": [
+        "photo",
+        "manual"
+      ],
+      "default": "manual"
+    },
+    "photo_url": {
+      "type": "string"
+    },
+    "marked_photo_url": {
+      "type": "string"
+    },
+    "bullet_marks": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Array of {x,y} tap positions on photo"
+    },
+    "centre_mark": {
+      "type": "object"
+    },
+    "aim_mark": {
+      "type": "object"
+    },
+    "scale_reference": {
+      "type": "string"
+    },
+    "scale_mm_per_px": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "session_id",
+    "group_name"
+  ]
+}

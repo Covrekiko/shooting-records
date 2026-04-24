@@ -38,6 +38,7 @@ import SunriseSunsetTracker from './pages/SunriseSunsetTracker';
 import AmmoSummary from './pages/AmmoSummary';
 import LoadDevelopment from './pages/LoadDevelopment';
 import ScopeClickCard from './pages/ScopeClickCard';
+import TargetShootingAnalyzer from './pages/TargetShootingAnalyzer';
 
 // Sync dark mode with system preference
 function ThemeSync() {
@@ -140,6 +141,7 @@ const AuthenticatedApp = () => {
             <Route path="/reloading" element={<ReloadingManagement />} />
             <Route path="/load-development" element={<LoadDevelopment />} />
             <Route path="/scope-click-card" element={<ScopeClickCard />} />
+            <Route path="/target-analyzer" element={<TargetShootingAnalyzer />} />
             <Route path="*" element={<PageNotFound />} />
           </Routes>
         </div>
