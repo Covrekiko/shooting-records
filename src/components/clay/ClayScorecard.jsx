@@ -106,18 +106,13 @@ function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNo
     onShotMeta?.(updatedMeta);
 
     // Auto-advance: find next empty shot
-    if (isVoiceActive || meta.input_method === 'manual') {
-      const nextEmpty = findNextEmptyShot(idx);
-      if (nextEmpty !== -1) {
-        setCurrentVoiceIndex(nextEmpty);
-      } else {
-        // All shots filled
-        setStandComplete(true);
-        if (isVoiceActive) {
-          stopVoice();
-          setIsVoiceActive(false);
-        }
-      }
+    const nextEmpty = findNextEmptyShot(idx);
+    if (nextEmpty !== -1) {
+      setCurrentVoiceIndex(nextEmpty);
+    } else {
+      // All shots filled
+      setStandComplete(true);
+      setIsVoiceActive(false);
     }
   };
 
@@ -136,7 +131,6 @@ function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNo
         } else {
           // All shots filled
           setStandComplete(true);
-          stopVoice();
           setIsVoiceActive(false);
         }
         return;
