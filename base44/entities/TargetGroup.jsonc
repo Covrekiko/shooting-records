@@ -39,20 +39,32 @@
       "type": "number"
     },
     "clicks_up_down": {
-      "type": "number"
+      "type": "number",
+      "description": "positive = up"
     },
     "clicks_left_right": {
-      "type": "number"
+      "type": "number",
+      "description": "positive = right"
     },
-    "confirmed_zero": {
+    "click_value": {
+      "type": "string"
+    },
+    "turret_unit": {
+      "type": "string",
+      "enum": [
+        "MOA",
+        "MRAD"
+      ]
+    },
+    "confirmed": {
       "type": "boolean",
       "default": false
     },
-    "is_best_group": {
+    "best_group": {
       "type": "boolean",
       "default": false
     },
-    "entry_type": {
+    "entry_method": {
       "type": "string",
       "enum": [
         "photo",
@@ -60,33 +72,133 @@
       ],
       "default": "manual"
     },
+    "bullet_holes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Pixel coordinates of bullet holes on photo"
+    },
+    "centre_x": {
+      "type": "number"
+    },
+    "centre_y": {
+      "type": "number"
+    },
+    "scale_mm_per_px": {
+      "type": "number"
+    },
     "photo_url": {
       "type": "string"
     },
     "marked_photo_url": {
       "type": "string"
     },
-    "bullet_marks": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      },
-      "description": "Array of {x,y} tap positions on photo"
-    },
-    "centre_mark": {
-      "type": "object"
-    },
-    "aim_mark": {
-      "type": "object"
-    },
-    "scale_reference": {
-      "type": "string"
-    },
-    "scale_mm_per_px": {
-      "type": "number"
-    },
     "notes": {
       "type": "string"
+    },
+    "shooting_position": {
+      "type": "string"
+    },
+    "distance_override": {
+      "type": "number"
+    },
+    "rifle_id": {
+      "type": "string"
+    },
+    "rifle_name": {
+      "type": "string"
+    },
+    "ammunition_id": {
+      "type": "string"
+    },
+    "ammo_override": {
+      "type": "string"
+    },
+    "confirmed_zero": {
+      "type": "boolean",
+      "default": false
+    },
+    "ai_group_size_mm": {
+      "type": "number",
+      "description": "AI detected group size in mm"
+    },
+    "ai_group_size_moa": {
+      "type": "number",
+      "description": "AI detected group size in MOA"
+    },
+    "ai_group_size_mrad": {
+      "type": "number",
+      "description": "AI detected group size in MRAD"
+    },
+    "ai_detected_shots": {
+      "type": "integer",
+      "description": "Number of shots detected by AI"
+    },
+    "ai_point_of_impact_x": {
+      "type": "number",
+      "description": "AI detected POI X (mm from centre)"
+    },
+    "ai_point_of_impact_y": {
+      "type": "number",
+      "description": "AI detected POI Y (mm from centre)"
+    },
+    "ai_clicks_up_down": {
+      "type": "number",
+      "description": "AI suggested elevation clicks"
+    },
+    "ai_clicks_left_right": {
+      "type": "number",
+      "description": "AI suggested windage clicks"
+    },
+    "user_confirmed_group_size_mm": {
+      "type": "number",
+      "description": "User confirmed group size in mm"
+    },
+    "user_confirmed_group_size_moa": {
+      "type": "number",
+      "description": "User confirmed group size in MOA"
+    },
+    "user_confirmed_group_size_mrad": {
+      "type": "number",
+      "description": "User confirmed group size in MRAD"
+    },
+    "user_confirmed_clicks_up_down": {
+      "type": "number",
+      "description": "User confirmed elevation clicks"
+    },
+    "user_confirmed_clicks_left_right": {
+      "type": "number",
+      "description": "User confirmed windage clicks"
+    },
+    "ai_analysis_confirmed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether user confirmed AI analysis"
+    },
+    "ai_marked_photo_url": {
+      "type": "string",
+      "description": "Photo with AI detected marks overlaid"
+    },
+    "ai_detected_marks_json": {
+      "type": "string",
+      "description": "JSON string of AI detected bullet marks"
+    },
+    "manual_marks_json": {
+      "type": "string",
+      "description": "JSON string of user confirmed marks"
+    },
+    "comparison_result_json": {
+      "type": "string",
+      "description": "JSON string of AI vs manual comparison"
     }
   },
   "required": [

@@ -1,0 +1,56 @@
+{
+  "name": "TargetPhoto",
+  "type": "object",
+  "properties": {
+    "session_id": {
+      "type": "string"
+    },
+    "group_id": {
+      "type": "string"
+    },
+    "original_photo_url": {
+      "type": "string"
+    },
+    "ai_marked_photo_url": {
+      "type": "string",
+      "description": "Photo with AI detected marks overlaid"
+    },
+    "user_confirmed_photo_url": {
+      "type": "string",
+      "description": "Photo with user confirmed marks overlaid"
+    },
+    "ai_detected_marks_json": {
+      "type": "string",
+      "description": "JSON array of AI detected bullet holes {x, y}"
+    },
+    "manual_marks_json": {
+      "type": "string",
+      "description": "JSON array of user confirmed marks {x, y}"
+    },
+    "comparison_result_json": {
+      "type": "string",
+      "description": "JSON object with AI vs manual comparison"
+    },
+    "distance": {
+      "type": "number"
+    },
+    "distance_unit": {
+      "type": "string"
+    },
+    "scale_mm_per_px": {
+      "type": "number"
+    },
+    "ai_analysis_completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "user_confirmed": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "session_id",
+    "original_photo_url"
+  ]
+}

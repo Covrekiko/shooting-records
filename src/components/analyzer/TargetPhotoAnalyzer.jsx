@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Save, Loader2, Trash2, Plus, RotateCcw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import AIPhotoComparison from './AIPhotoComparison';
 
 // MOA/MRAD calculations
 function mmToMoa(mm, distanceM) { return mm / (distanceM / 100) / 29.088; }
@@ -31,6 +32,7 @@ const lbl = 'block text-xs font-semibold text-muted-foreground uppercase trackin
 export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, rifles = [], ammunition = [], onSave, onBack }) {
   const nextGroupNumber = (groups || []).length + 1;
   const [photo, setPhoto] = useState(editGroup?.photo_url || null);
+  const [analysisMode, setAnalysisMode] = useState(null); // null | manual | ai
   const [marks, setMarks] = useState(editGroup?.bullet_marks || []);
   const [centrePoint, setCentrePoint] = useState(editGroup?.centre_mark || null);
   const [aimPoint, setAimPoint] = useState(editGroup?.aim_mark || null);
@@ -193,6 +195,21 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     };
   };
 
+  // If user chose AI mode, show AI comparison
+  if (analysisMode === 'ai' && photo) {
+    return (
+      <AIPhotoComparison
+        session={session}
+        photo={photo}
+        editGroup={editGroup}
+        rifles={rifles}
+        ammunition={ammunition}
+        onBack={() => { setPhoto(null); setAnalysisMode(null); }}
+        onSave={(payload) => { onSave(payload); }}
+      />
+    );
+  }
+
   return (
     <div>
       <div className="flex items-center gap-3 mb-5">
@@ -224,7 +241,28 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
         </div>
       )}
 
-      {photo && (
+      {/* Analysis Mode Choice */}
+      {photo && !analysisMode && (
+        <div className="space-y-4 mb-4">
+          <p className="font-semibold text-sm">How would you like to analyze this photo?</p>
+          <div className="grid grid-cols-2 gap-3">
+            <button onClick={() => setAnalysisMode('ai')}
+              className="p-4 bg-card border-2 border-primary/40 rounded-2xl hover:border-primary transition-all text-center">
+              <p className="text-3xl mb-2">🤖</p>
+              <p className="font-bold text-sm">AI Analysis</p>
+              <p className="text-xs text-muted-foreground mt-1">AI detects + you confirm</p>
+            </button>
+            <button onClick={() => setAnalysisMode('manual')}
+              className="p-4 bg-card border-2 border-border rounded-2xl hover:border-primary transition-all text-center">
+              <p className="text-3xl mb-2">✏️</p>
+              <p className="font-bold text-sm">Manual Marking</p>
+              <p className="text-xs text-muted-foreground mt-1">Full control</p>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {photo && analysisMode === 'manual' && (
         <>
           {/* Group name */}
           <div className="mb-3">
