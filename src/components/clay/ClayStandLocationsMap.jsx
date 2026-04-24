@@ -95,7 +95,7 @@ export default function ClayStandLocationsMap({ sessions, stands, clubs }) {
       </motion.button>
 
       <div className="rounded-xl border border-border overflow-hidden">
-        <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY || ''}>
+        <LoadScript googleMapsApiKey={import.meta.env.VITE_GOOGLE_MAPS_API_KEY}>
           <GoogleMap mapContainerStyle={mapContainerStyle} center={center} zoom={10} options={{ disableDefaultUI: true, zoomControl: true }}>
             {clubCoords.map(club => {
               const clubStands = standsByClub[club.name]?.stands || [];
