@@ -14,6 +14,10 @@
     "gauge": {
       "type": "string"
     },
+    "barrel_length": {
+      "type": "string",
+      "description": "Barrel length (e.g., 28in, 30in, 32in)"
+    },
     "serial_number": {
       "type": "string"
     },

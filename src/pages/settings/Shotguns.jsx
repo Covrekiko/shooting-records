@@ -14,6 +14,7 @@ export default function Shotguns() {
     make: '',
     model: '',
     gauge: '',
+    barrel_length: '',
     serial_number: '',
     notes: '',
   });
@@ -45,7 +46,7 @@ export default function Shotguns() {
         const newShotgun = await base44.entities.Shotgun.create(formData);
         setShotguns([...shotguns, newShotgun]);
       }
-      setFormData({ name: '', make: '', model: '', gauge: '', serial_number: '', notes: '' });
+      setFormData({ name: '', make: '', model: '', gauge: '', barrel_length: '', serial_number: '', notes: '' });
       setShowForm(false);
     } catch (error) {
       console.error('Error saving shotgun:', error);
@@ -89,11 +90,11 @@ export default function Shotguns() {
         </div>
 
         <button
-          onClick={() => {
-            setEditingId(null);
-            setFormData({ name: '', make: '', model: '', gauge: '', serial_number: '', notes: '' });
-            setShowForm(!showForm);
-          }}
+         onClick={() => {
+           setEditingId(null);
+           setFormData({ name: '', make: '', model: '', gauge: '', barrel_length: '', serial_number: '', notes: '' });
+           setShowForm(!showForm);
+         }}
           className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 mb-6"
         >
           <Plus className="w-5 h-5" />
@@ -137,6 +138,13 @@ export default function Shotguns() {
               />
               <input
                 type="text"
+                placeholder="Barrel Length (e.g., 28in)"
+                value={formData.barrel_length}
+                onChange={(e) => setFormData({ ...formData, barrel_length: e.target.value })}
+                className="px-3 py-2 border border-border rounded-lg bg-background"
+              />
+              <input
+                type="text"
                 placeholder="Serial Number (optional)"
                 value={formData.serial_number}
                 onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
@@ -170,7 +178,7 @@ export default function Shotguns() {
             <div key={shotgun.id} className="bg-card border border-border rounded-lg p-4">
               <h3 className="font-semibold text-lg">{shotgun.name}</h3>
               <p className="text-sm text-muted-foreground">{shotgun.make} {shotgun.model}</p>
-              <p className="text-sm text-muted-foreground">{shotgun.gauge}</p>
+              <p className="text-sm text-muted-foreground">{shotgun.gauge}{shotgun.barrel_length && ` · ${shotgun.barrel_length}`}</p>
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => startEdit(shotgun)}
