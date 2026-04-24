@@ -43,6 +43,17 @@ function QuickTotalForm({ form, setForm, error }) {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const handleChange = (field, val) => {
+    // Prevent clearing field to empty — always keep at least 0
+    if (val === '' || val === undefined) {
+      const hits = field === 'hits' ? 0 : (form.hits || 0);
+      const misses = field === 'misses' ? 0 : (form.misses || 0);
+      const noBirds = field === 'no_birds' ? 0 : (form.no_birds || 0);
+      const validScored = hits + misses;
+      const clays_total = validScored + noBirds;
+      const hitPct = validScored > 0 ? Math.round((hits / validScored) * 100) : 0;
+      setForm(f => ({ ...f, hits, misses, no_birds: noBirds, valid_scored_clays: validScored, clays_total, hit_percentage: hitPct }));
+      return;
+    }
     const hits = field === 'hits' ? Math.max(0, parseInt(val) || 0) : (form.hits || 0);
     const misses = field === 'misses' ? Math.max(0, parseInt(val) || 0) : (form.misses || 0);
     const noBirds = field === 'no_birds' ? Math.max(0, parseInt(val) || 0) : (form.no_birds || 0);
