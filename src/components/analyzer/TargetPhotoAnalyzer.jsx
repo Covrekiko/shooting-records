@@ -284,6 +284,31 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             </label>
           </div>
 
+          {/* Results Summary */}
+          {results && (
+            <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 mb-3">
+              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-2">Results Preview</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-background rounded-xl p-2 text-center">
+                  <p className="text-xl font-black">{results.groupMm}mm</p>
+                  <p className="text-xs text-muted-foreground">Group Size</p>
+                </div>
+                <div className="bg-background rounded-xl p-2 text-center">
+                  <p className="text-xl font-black">{results.groupMoa}</p>
+                  <p className="text-xs text-muted-foreground">MOA</p>
+                </div>
+                <div className="bg-background rounded-xl p-2 text-center">
+                  <p className="text-lg font-bold">{results.shots}</p>
+                  <p className="text-xs text-muted-foreground">Shots</p>
+                </div>
+                <div className="bg-background rounded-xl p-2 text-center">
+                  <p className="text-lg font-bold">{results.groupInches}"</p>
+                  <p className="text-xs text-muted-foreground">Inches</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Interactive Image */}
           <div className="relative mb-3 rounded-2xl overflow-hidden border border-border bg-black select-none"
             style={{ touchAction: 'none' }}>
