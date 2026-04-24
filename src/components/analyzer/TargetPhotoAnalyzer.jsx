@@ -63,8 +63,8 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     const groupPx = calcGroupSize(marks);
     const groupMm = groupPx * scalePx;
     const distM = session.distance_unit === 'yards' ? session.distance * 0.9144 : session.distance;
-    const moa = mmToMoa(groupMm, distM);
-    const mrad = mmToMrad(groupMm, distM);
+    const moa = (distM && distM > 0) ? mmToMoa(groupMm, distM) : null;
+    const mrad = (distM && distM > 0) ? mmToMrad(groupMm, distM) : null;
 
     let poiX = 0, poiY = 0;
     if (centrePoint && marks.length) {
@@ -78,8 +78,8 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     setResults({
       shots: marks.length,
       groupMm: Math.round(groupMm * 10) / 10,
-      groupMoa: Math.round(moa * 100) / 100,
-      groupMrad: Math.round(mrad * 1000) / 1000,
+      groupMoa: moa ? Math.round(moa * 100) / 100 : null,
+      groupMrad: mrad ? Math.round(mrad * 1000) / 1000 : null,
       groupInches: Math.round(groupMm / 25.4 * 100) / 100,
       poiX: Math.round(poiX * 10) / 10,
       poiY: Math.round(poiY * 10) / 10,
@@ -284,31 +284,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             </label>
           </div>
 
-          {/* Results Summary */}
-          {results && (
-            <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 mb-3">
-              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-2">Results Preview</p>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-background rounded-xl p-2 text-center">
-                  <p className="text-xl font-black">{results.groupMm}mm</p>
-                  <p className="text-xs text-muted-foreground">Group Size</p>
-                </div>
-                <div className="bg-background rounded-xl p-2 text-center">
-                  <p className="text-xl font-black">{results.groupMoa}</p>
-                  <p className="text-xs text-muted-foreground">MOA</p>
-                </div>
-                <div className="bg-background rounded-xl p-2 text-center">
-                  <p className="text-lg font-bold">{results.shots}</p>
-                  <p className="text-xs text-muted-foreground">Shots</p>
-                </div>
-                <div className="bg-background rounded-xl p-2 text-center">
-                  <p className="text-lg font-bold">{results.groupInches}"</p>
-                  <p className="text-xs text-muted-foreground">Inches</p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Interactive Image */}
           <div className="relative mb-3 rounded-2xl overflow-hidden border border-border bg-black select-none"
             style={{ touchAction: 'none' }}>
@@ -380,11 +355,11 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               <p className="text-xs font-bold text-primary uppercase tracking-wide mb-3">Results</p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-background rounded-xl p-3 text-center">
-                  <p className="text-2xl font-black">{results.groupMoa}</p>
+                  <p className="text-2xl font-black">{results.groupMoa ? results.groupMoa : 'N/A'}</p>
                   <p className="text-xs text-muted-foreground">MOA</p>
                 </div>
                 <div className="bg-background rounded-xl p-3 text-center">
-                  <p className="text-2xl font-black">{results.groupMrad}</p>
+                  <p className="text-2xl font-black">{results.groupMrad ? results.groupMrad : 'N/A'}</p>
                   <p className="text-xs text-muted-foreground">MRAD</p>
                 </div>
                 <div className="bg-background rounded-xl p-3 text-center">
