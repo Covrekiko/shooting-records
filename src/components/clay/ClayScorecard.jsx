@@ -43,20 +43,10 @@ function QuickTotalForm({ form, setForm, error }) {
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const handleChange = (field, val) => {
-    // Prevent clearing field to empty — always keep at least 0
-    if (val === '' || val === undefined) {
-      const hits = field === 'hits' ? 0 : (form.hits || 0);
-      const misses = field === 'misses' ? 0 : (form.misses || 0);
-      const noBirds = field === 'no_birds' ? 0 : (form.no_birds || 0);
-      const validScored = hits + misses;
-      const clays_total = validScored + noBirds;
-      const hitPct = validScored > 0 ? Math.round((hits / validScored) * 100) : 0;
-      setForm(f => ({ ...f, hits, misses, no_birds: noBirds, valid_scored_clays: validScored, clays_total, hit_percentage: hitPct }));
-      return;
-    }
-    const hits = field === 'hits' ? Math.max(0, parseInt(val) || 0) : (form.hits || 0);
-    const misses = field === 'misses' ? Math.max(0, parseInt(val) || 0) : (form.misses || 0);
-    const noBirds = field === 'no_birds' ? Math.max(0, parseInt(val) || 0) : (form.no_birds || 0);
+    const numVal = Math.max(0, parseInt(val) || 0);
+    const hits = field === 'hits' ? numVal : (form.hits || 0);
+    const misses = field === 'misses' ? numVal : (form.misses || 0);
+    const noBirds = field === 'no_birds' ? numVal : (form.no_birds || 0);
     const validScored = hits + misses;
     const clays_total = validScored + noBirds;
     const hitPct = validScored > 0 ? Math.round((hits / validScored) * 100) : 0;
@@ -67,11 +57,11 @@ function QuickTotalForm({ form, setForm, error }) {
     <>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Hits</label>
+          <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Dead</label>
           <input type="number" min="0" value={form.hits || 0} onChange={e => handleChange('hits', e.target.value)} className={inp} />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Misses</label>
+          <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Lost</label>
           <input type="number" min="0" value={form.misses || 0} onChange={e => handleChange('misses', e.target.value)} className={inp} />
         </div>
         <div>
