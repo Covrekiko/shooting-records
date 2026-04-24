@@ -36,6 +36,7 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
   const [mode, setMode] = useState('bullets'); // bullets | centre | aim
   const [scaleRefType, setScaleRefType] = useState(editGroup?.scale_ref_type || '1cm');
   const [scaleRef, setScaleRef] = useState(editGroup?.scale_ref_custom || '10');
+  const [scalePixels, setScalePixels] = useState('');
   const [scalePx, setScalePx] = useState(editGroup?.scale_mm_per_px || null);
   const [groupName, setGroupName] = useState(editGroup?.group_name || '');
   const [notes, setNotes] = useState(editGroup?.notes || '');
@@ -127,17 +128,18 @@ export default function TargetPhotoAnalyzer({ session, editGroup, rifles = [], a
     const coords = getRelativeCoords(e);
 
     if (setScaleMode) {
-      const newPts = [...scalePoints, coords];
-      setScalePoints(newPts);
-      if (newPts.length === 2) {
-        const dist = Math.sqrt(Math.pow(newPts[1].x - newPts[0].x, 2) + Math.pow(newPts[1].y - newPts[0].y, 2));
-        const mmPerPx = parseFloat(scaleInput) / dist;
-        setScalePx(mmPerPx);
-        setSetScaleMode(false);
-        setScalePoints([]);
-      }
-      return;
-    }
+       const newPts = [...scalePoints, coords];
+       setScalePoints(newPts);
+       if (newPts.length === 2) {
+         const dist = Math.sqrt(Math.pow(newPts[1].x - newPts[0].x, 2) + Math.pow(newPts[1].y - newPts[0].y, 2));
+         const scaleRefMm = getScaleRefMm();
+         const mmPerPx = scaleRefMm / dist;
+         setScalePx(mmPerPx);
+         setSetScaleMode(false);
+         setScalePoints([]);
+       }
+       return;
+     }
 
     if (mode === 'bullets') {
       setMarks(prev => [...prev, coords]);
