@@ -36,8 +36,9 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack, defaultGro
   const [centre, setCentre] = useState(null);
   const [mode, setMode] = useState('holes'); // 'holes' | 'centre'
   const [groupName, setGroupName] = useState(defaultGroupName);
-  const [scaleRefType, setScaleRefType] = useState('1cm'); // preset or 'custom_mm' | 'custom_cm' | 'custom_in'
-  const [scaleRef, setScaleRef] = useState('10'); // mm reference value
+  const [scaleRefType, setScaleRefType] = useState('1cm'); // '1cm' | '1in' | 'bullseye' | 'custom_mm' | 'custom_cm' | 'custom_in'
+  const [scaleRefValue, setScaleRefValue] = useState(''); // custom value
+  const [scaleRefUnit, setScaleRefUnit] = useState('mm'); // 'mm' | 'cm' | 'in'
   const [scalePixels, setScalePixels] = useState(''); // how many px is that reference
   const [distanceValue, setDistanceValue] = useState(session?.distance || '');
   const [distanceUnit, setDistanceUnit] = useState(session?.distance_unit || 'm');
@@ -54,16 +55,21 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack, defaultGro
     const presets = {
       '1cm': 10,
       '1in': 25.4,
-      'bullseye': 45, // standard 45mm bullseye
+      'bullseye': 45,
     };
     if (presets[scaleRefType]) return presets[scaleRefType];
-    if (scaleRefType === 'custom_cm') return parseFloat(scaleRef) * 10;
-    if (scaleRefType === 'custom_in') return parseFloat(scaleRef) * 25.4;
-    return parseFloat(scaleRef); // custom_mm
+    if (!scaleRefValue) return 0;
+    const val = parseFloat(scaleRefValue);
+    if (scaleRefType === 'custom') {
+      if (scaleRefUnit === 'cm') return val * 10;
+      if (scaleRefUnit === 'in') return val * 25.4;
+      return val; // mm
+    }
+    return 0;
   };
   
   const scaleRefMm = getScaleRefMm();
-  const mmPerPx = scaleRef && scalePixels ? scaleRefMm / parseFloat(scalePixels) : MM_PER_PX_DEFAULT;
+  const mmPerPx = scaleRefMm && scalePixels ? scaleRefMm / parseFloat(scalePixels) : MM_PER_PX_DEFAULT;
 
   const distanceM = distanceUnit === 'yards'
     ? parseFloat(distanceValue) * 0.9144
@@ -241,15 +247,13 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack, defaultGro
 
           {/* Scale Reference */}
           <div className="bg-card rounded-2xl p-4 border border-border space-y-3">
-            <h2 className="font-semibold text-sm text-muted-foreground uppercase">Scale Reference</h2>
+            <h2 className="font-semibold text-sm text-muted-foreground uppercase">Scale Reference Type</h2>
             <div className="flex flex-col gap-2">
               {[
                 { id: '1cm', label: '1 cm grid' },
                 { id: '1in', label: '1 inch square' },
-                { id: 'bullseye', label: 'Known bullseye (45mm)' },
-                { id: 'custom_mm', label: 'Custom (mm)' },
-                { id: 'custom_cm', label: 'Custom (cm)' },
-                { id: 'custom_in', label: 'Custom (inches)' },
+                { id: 'bullseye', label: 'Known bullseye (45 mm)' },
+                { id: 'custom', label: 'Custom' },
               ].map(opt => (
                 <button key={opt.id} onClick={() => setScaleRefType(opt.id)}
                   className={`text-left px-3 py-2 rounded-lg border transition-colors ${scaleRefType === opt.id ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary border-border'}`}>
@@ -257,17 +261,30 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack, defaultGro
                 </button>
               ))}
             </div>
-            {scaleRefType.startsWith('custom') && (
-              <div>
-                <Label>Size</Label>
-                <Input type="number" value={scaleRef} onChange={e => setScaleRef(e.target.value)} placeholder="e.g. 10" />
+            {scaleRefType === 'custom' && (
+              <div className="space-y-2 border-t border-border pt-3">
+                <div>
+                  <Label>Scale Size</Label>
+                  <Input type="number" value={scaleRefValue} onChange={e => setScaleRefValue(e.target.value)} placeholder="e.g. 1" />
+                </div>
+                <div>
+                  <Label>Scale Unit</Label>
+                  <div className="flex gap-2 mt-1">
+                    {['mm', 'cm', 'in'].map(u => (
+                      <button key={u} onClick={() => setScaleRefUnit(u)}
+                        className={`flex-1 py-2 rounded-lg border text-xs font-semibold ${scaleRefUnit === u ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
+                        {u === 'in' ? 'inches' : u}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
-            <div>
-              <Label>Pixel width of that feature</Label>
+            <div className="border-t border-border pt-3">
+              <Label>Pixel Width of Reference</Label>
               <Input type="number" value={scalePixels} onChange={e => setScalePixels(e.target.value)} placeholder="e.g. 50" />
             </div>
-            {mmPerPx && <p className="text-xs text-primary font-medium">Scale: {mmPerPx.toFixed(3)} mm/px</p>}
+            {mmPerPx && <p className="text-xs text-primary font-medium">Calculated Scale: {mmPerPx.toFixed(3)} mm/px</p>}
           </div>
 
           {/* Mode selector */}
@@ -334,8 +351,9 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack, defaultGro
                 </div>
               </div>
 
-              {/* Distance and Scope correction */}
-              <div>
+              {/* Distance Override */}
+              <div className="border-t border-border pt-3">
+                <h3 className="font-semibold text-sm mb-3">Distance Override</h3>
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <div>
                     <Label>Distance Value</Label>
