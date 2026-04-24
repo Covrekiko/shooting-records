@@ -193,29 +193,35 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack, defaultGro
   const windClicks = -poiX < 0 ? -clicksH : clicksH;  // negative x means left, need to go right
 
   const handleSave = () => {
-    onSave({
-      group_name: groupName,
-      number_of_shots: holes.length || parseInt(numberOfShots) || null,
-      group_size_mm: groupSizeMm ? parseFloat(groupSizeMm.toFixed(1)) : null,
-      group_size_moa: groupSizeMoa ? parseFloat(groupSizeMoa.toFixed(2)) : null,
-      group_size_mrad: groupSizeMrad ? parseFloat(groupSizeMrad.toFixed(3)) : null,
-      group_size_inches: parseFloat(groupSizeInches.toFixed(2)),
-      point_of_impact_x: parseFloat(poiX.toFixed(1)),
-      point_of_impact_y: parseFloat(poiY.toFixed(1)),
-      clicks_up_down: parseFloat(elevClicks.toFixed(1)),
-      clicks_left_right: parseFloat(windClicks.toFixed(1)),
-      click_value: clickValue,
-      turret_unit: turretUnit,
-      bullet_holes: holes,
-      centre_x: centre?.x,
-      centre_y: centre?.y,
-      scale_mm_per_px: mmPerPx,
-      photo_url: photoUrl,
-      entry_method: 'photo',
-      distance_value: parseFloat(distanceValue),
-      distance_unit: distanceUnit,
-      notes,
-    });
+   if (!groupName.trim()) {
+     alert('Group name is required');
+     return;
+   }
+   onSave({
+     group_name: groupName,
+     number_of_shots: holes.length || parseInt(numberOfShots) || null,
+     group_size_mm: groupSizeMm ? parseFloat(groupSizeMm.toFixed(1)) : null,
+     group_size_moa: groupSizeMoa ? parseFloat(groupSizeMoa.toFixed(2)) : null,
+     group_size_mrad: groupSizeMrad ? parseFloat(groupSizeMrad.toFixed(3)) : null,
+     group_size_inches: parseFloat(groupSizeInches.toFixed(2)),
+     point_of_impact_x: parseFloat(poiX.toFixed(1)),
+     point_of_impact_y: parseFloat(poiY.toFixed(1)),
+     clicks_up_down: parseFloat(elevClicks.toFixed(1)),
+     clicks_left_right: parseFloat(windClicks.toFixed(1)),
+     click_value: clickValue,
+     turret_unit: turretUnit,
+     bullet_holes: holes,
+     centre_x: centre?.x,
+     centre_y: centre?.y,
+     scale_mm_per_px: mmPerPx,
+     scale_ref_type: scaleRefType,
+     scale_ref_custom: scaleRefType.startsWith('custom') ? parseFloat(scaleRef) : null,
+     photo_url: photoUrl,
+     entry_method: 'photo',
+     distance_value: parseFloat(distanceValue),
+     distance_unit: distanceUnit,
+     notes,
+   });
   };
 
   return (

@@ -39,20 +39,32 @@
       "type": "number"
     },
     "clicks_up_down": {
-      "type": "number"
+      "type": "number",
+      "description": "positive = up"
     },
     "clicks_left_right": {
-      "type": "number"
+      "type": "number",
+      "description": "positive = right"
     },
-    "confirmed_zero": {
+    "click_value": {
+      "type": "string"
+    },
+    "turret_unit": {
+      "type": "string",
+      "enum": [
+        "MOA",
+        "MRAD"
+      ]
+    },
+    "confirmed": {
       "type": "boolean",
       "default": false
     },
-    "is_best_group": {
+    "best_group": {
       "type": "boolean",
       "default": false
     },
-    "entry_type": {
+    "entry_method": {
       "type": "string",
       "enum": [
         "photo",
@@ -60,30 +72,64 @@
       ],
       "default": "manual"
     },
+    "bullet_holes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Pixel coordinates of bullet holes on photo"
+    },
+    "centre_x": {
+      "type": "number"
+    },
+    "centre_y": {
+      "type": "number"
+    },
+    "scale_mm_per_px": {
+      "type": "number"
+    },
+    "scale_ref_type": {
+      "type": "string",
+      "enum": [
+        "1cm",
+        "1in",
+        "bullseye",
+        "custom_mm",
+        "custom_cm",
+        "custom_in"
+      ],
+      "default": "1cm"
+    },
+    "scale_ref_custom": {
+      "type": "number",
+      "description": "Custom scale reference value for custom types"
+    },
     "photo_url": {
       "type": "string"
     },
     "marked_photo_url": {
       "type": "string"
     },
-    "bullet_marks": {
-      "type": "array",
-      "items": {
-        "type": "object"
-      },
-      "description": "Array of {x,y} tap positions on photo"
+    "distance_value": {
+      "type": "number",
+      "description": "Distance measurement numeric value"
     },
-    "centre_mark": {
-      "type": "object"
-    },
-    "aim_mark": {
-      "type": "object"
-    },
-    "scale_reference": {
-      "type": "string"
-    },
-    "scale_mm_per_px": {
-      "type": "number"
+    "distance_unit": {
+      "type": "string",
+      "enum": [
+        "m",
+        "yards"
+      ],
+      "default": "m",
+      "description": "Distance unit (meters or yards)"
     },
     "notes": {
       "type": "string"

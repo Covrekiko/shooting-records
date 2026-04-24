@@ -113,6 +113,7 @@ export default function SessionDetail({ session, onBack, onEdit, onNewSession })
           editGroup={editGroup}
           scopeProfile={scopeProfile}
           groupNumber={groups.length + 1}
+          sessionGroups={groups}
           onSave={handleSaveGroup}
           onBack={() => { setShowManualForm(false); setEditGroup(null); }}
         />
