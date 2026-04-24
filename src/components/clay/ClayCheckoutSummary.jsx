@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Eye, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { exportScorecardPDF } from '@/utils/clayScorecardPDF';
-import ClayScorecard from './ClayScorecard';
+import ScorecardShareButton from './ScorecardShareButton';
 
 export default function ClayCheckoutSummary({ sessionId, scorecard, shotguns, ammunition, onShowScorecard }) {
   const [stands, setStands] = useState([]);
@@ -100,7 +100,7 @@ export default function ClayCheckoutSummary({ sessionId, scorecard, shotguns, am
       </div>
 
       {/* Action Buttons */}
-      <div className="grid grid-cols-2 gap-2 pt-2">
+      <div className="grid grid-cols-3 gap-2 pt-2">
         <motion.button
           type="button"
           whileTap={{ scale: 0.95 }}
@@ -123,6 +123,7 @@ export default function ClayCheckoutSummary({ sessionId, scorecard, shotguns, am
           <Download className="w-3.5 h-3.5" />
           PDF
         </motion.button>
+        <ScorecardShareButton scorecard={scorecard} stands={stands} />
       </div>
     </div>
   );
