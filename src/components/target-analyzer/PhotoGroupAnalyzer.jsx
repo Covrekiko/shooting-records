@@ -43,6 +43,7 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack, defaultGro
   const [notes, setNotes] = useState('');
   const [clickValue, setClickValue] = useState('0.25');
   const [turretUnit, setTurretUnit] = useState('MOA');
+  const [distanceUnit, setDistanceUnit] = useState(session?.distance_unit || 'm');
   const [imgSize, setImgSize] = useState({ w: 1, h: 1, natW: 1, natH: 1 });
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
@@ -51,7 +52,7 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack, defaultGro
   const scaleRefMm = scaleUnit === 'in' ? parseFloat(scaleRef) * 25.4 : parseFloat(scaleRef);
   const mmPerPx = scaleRef && scalePixels ? scaleRefMm / parseFloat(scalePixels) : MM_PER_PX_DEFAULT;
 
-  const distanceM = session?.distance_unit === 'yards'
+  const distanceM = distanceUnit === 'yards'
     ? parseFloat(session?.distance) * 0.9144
     : parseFloat(session?.distance);
 
@@ -326,15 +327,26 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack, defaultGro
                     </div>
                   </div>
                   <div>
-                    <Label>Click Value</Label>
-                    <div className="flex gap-1 mt-1 flex-wrap">
-                      {(turretUnit === 'MOA' ? ['0.25', '0.5', '1'] : ['0.1', '0.05']).map(v => (
-                        <button key={v} onClick={() => setClickValue(v)}
-                          className={`px-2 py-2 rounded-lg border text-xs ${clickValue === v ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
-                          {v}
+                    <Label>Distance Override</Label>
+                    <div className="flex gap-2 mt-1">
+                      {['m', 'yards'].map(u => (
+                        <button key={u} onClick={() => setDistanceUnit(u)}
+                          className={`flex-1 py-2 rounded-xl border text-sm font-semibold ${distanceUnit === u ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
+                          {u}
                         </button>
                       ))}
                     </div>
+                  </div>
+                </div>
+                <div className="mb-3">
+                  <Label>Click Value</Label>
+                  <div className="flex gap-1 mt-1 flex-wrap">
+                    {(turretUnit === 'MOA' ? ['0.25', '0.5', '1'] : ['0.1', '0.05']).map(v => (
+                      <button key={v} onClick={() => setClickValue(v)}
+                        className={`px-2 py-2 rounded-lg border text-xs ${clickValue === v ? 'bg-primary text-primary-foreground' : 'bg-secondary'}`}>
+                        {v}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
