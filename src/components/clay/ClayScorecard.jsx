@@ -86,14 +86,39 @@ function QuickTotalForm({ form, setForm, error }) {
 function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNoBirdsChange, onShotMeta }) {
   const [voiceFlash, setVoiceFlash] = useState(null); // index of last voice-scored shot
   const [currentVoiceIndex, setCurrentVoiceIndex] = useState(0); // track position in voice mode
+  const [isVoiceActive, setIsVoiceActive] = useState(false); // track if voice is actively listening
+  const [standComplete, setStandComplete] = useState(false); // track if all shots are filled
+
+  // Find the first empty shot
+  const findFirstEmptyShot = () => shots.findIndex((s) => s === null || s === undefined);
+
+  // Find next empty shot from a given position
+  const findNextEmptyShot = (fromIndex) => {
+    return shots.findIndex((s, i) => i > fromIndex && (s === null || s === undefined));
+  };
 
   const handleSetResult = (idx, result, meta = { input_method: 'manual' }) => {
     const updated = [...shots];
-    updated[idx] = updated[idx] === result ? null : result;
+    updated[idx] = result;
     onChange(updated);
     const updatedMeta = [...(shotMeta || [])];
     updatedMeta[idx] = meta;
     onShotMeta?.(updatedMeta);
+
+    // Auto-advance: find next empty shot
+    if (isVoiceActive || meta.input_method === 'manual') {
+      const nextEmpty = findNextEmptyShot(idx);
+      if (nextEmpty !== -1) {
+        setCurrentVoiceIndex(nextEmpty);
+      } else {
+        // All shots filled
+        setStandComplete(true);
+        if (isVoiceActive) {
+          stopVoice();
+          setIsVoiceActive(false);
+        }
+      }
+    }
   };
 
   // Voice scoring hook — auto-advances through shots
@@ -103,33 +128,29 @@ function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNo
         onNoBirdsChange(noBirds + 1);
         setVoiceFlash('nb');
         setTimeout(() => setVoiceFlash(null), 800);
-        // Find next empty slot and auto-advance
-        const nextIdx = shots.findIndex((s, i) => i >= currentVoiceIndex && (s === null || s === undefined));
+        // Don't save to shots array — no bird doesn't take a shot slot
+        // Just find next empty slot and auto-advance
+        const nextIdx = findNextEmptyShot(currentVoiceIndex - 1);
         if (nextIdx !== -1) {
           setCurrentVoiceIndex(nextIdx);
         } else {
-          // All filled, stay on current
-          setCurrentVoiceIndex(prev => Math.min(prev + 1, totalShots - 1));
+          // All shots filled
+          setStandComplete(true);
+          stopVoice();
+          setIsVoiceActive(false);
         }
         return;
       }
       
-      // Find next empty slot from current position
-      const nextIdx = shots.findIndex((s, i) => i >= currentVoiceIndex && (s === null || s === undefined));
-      if (nextIdx === -1) return; // all filled
+      // Hit or Miss: save to current shot index
+      handleSetResult(currentVoiceIndex, result, {
+        input_method: 'voice',
+        voice_timestamp,
+        voice_confidence_score,
+      });
       
-      const updated = [...shots];
-      updated[nextIdx] = result;
-      onChange(updated);
-      const updatedMeta = [...(shotMeta || [])];
-      updatedMeta[nextIdx] = { input_method: 'voice', voice_timestamp, voice_confidence_score };
-      onShotMeta?.(updatedMeta);
-      setVoiceFlash(nextIdx);
+      setVoiceFlash(currentVoiceIndex);
       setTimeout(() => setVoiceFlash(null), 800);
-      
-      // Auto-advance to next empty slot
-      const afterNextIdx = shots.findIndex((s, i) => i > nextIdx && (s === null || s === undefined));
-      setCurrentVoiceIndex(afterNextIdx !== -1 ? afterNextIdx : nextIdx + 1);
     },
   });
 
@@ -163,46 +184,59 @@ function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNo
 
       {/* ── Voice Scoring Controls ── */}
       <div className={`rounded-xl border px-4 py-3 transition-colors ${isListening ? 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700' : 'bg-secondary/50 border-border'}`}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {isListening ? (
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          {isListening ? (
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+          ) : (
+            <Mic className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          )}
+          <div>
+            <p className="text-xs font-bold">{isListening ? 'Voice Scoring Active' : 'Voice Scoring'}</p>
+            {standComplete && isVoiceActive ? (
+              <p className="text-[10px] text-emerald-600 font-semibold">✓ Stand complete!</p>
+            ) : isListening && lastHeard ? (
+              <p className="text-[10px] text-muted-foreground">Heard: "<span className="font-semibold text-foreground">{lastHeard}</span>"</p>
             ) : (
-              <Mic className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <p className="text-[10px] text-muted-foreground">{isListening ? `Targeting: Shot ${currentVoiceIndex + 1}/${totalShots}` : 'Say: Hit · Miss · No Bird'}</p>
             )}
-            <div>
-              <p className="text-xs font-bold">{isListening ? 'Voice Scoring Active' : 'Voice Scoring'}</p>
-              {isListening && lastHeard ? (
-                <p className="text-[10px] text-muted-foreground">Heard: "<span className="font-semibold text-foreground">{lastHeard}</span>"</p>
-              ) : (
-                <p className="text-[10px] text-muted-foreground">{isListening ? `Auto-advancing: Shot ${currentVoiceIndex + 1}/${totalShots}` : 'Say: Hit · Miss · No Bird'}</p>
-              )}
-            </div>
           </div>
-          <motion.button
-            type="button"
-            whileTap={{ scale: 0.92 }}
-            onClick={() => {
-              if (isListening) {
-                stopVoice();
-                setCurrentVoiceIndex(0);
-              } else {
-                setCurrentVoiceIndex(0);
-                startVoice();
-              }
-            }}
-            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
-              isListening
-                ? 'bg-red-500 text-white hover:bg-red-600'
-                : 'bg-primary text-primary-foreground hover:bg-primary/90'
-            }`}>
-            {isListening ? <><MicOff className="w-3.5 h-3.5" /> Stop</> : <><Mic className="w-3.5 h-3.5" /> Start Voice</>}
-          </motion.button>
         </div>
-        {voiceFlash === 'nb' && (
-          <p className="text-[10px] text-amber-600 font-bold mt-1">🎙 No Bird recorded</p>
-        )}
-        {voiceError && <p className="text-[10px] text-destructive mt-1">{voiceError}</p>}
+        <motion.button
+          type="button"
+          whileTap={{ scale: 0.92 }}
+          onClick={() => {
+            if (isListening || isVoiceActive) {
+              stopVoice();
+              setIsVoiceActive(false);
+              setStandComplete(false);
+            } else {
+              const firstEmpty = findFirstEmptyShot();
+              if (firstEmpty !== -1) {
+                setCurrentVoiceIndex(firstEmpty);
+                setStandComplete(false);
+                setIsVoiceActive(true);
+                startVoice();
+              } else {
+                setStandComplete(true);
+              }
+            }
+          }}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+            isListening
+              ? 'bg-red-500 text-white hover:bg-red-600'
+              : 'bg-primary text-primary-foreground hover:bg-primary/90'
+          }`}>
+          {isListening ? <><MicOff className="w-3.5 h-3.5" /> Stop</> : <><Mic className="w-3.5 h-3.5" /> Start Voice</>}
+        </motion.button>
+      </div>
+      {standComplete && (
+        <p className="text-[10px] text-emerald-600 font-bold mt-1">✓ All shots recorded</p>
+      )}
+      {voiceFlash === 'nb' && (
+        <p className="text-[10px] text-amber-600 font-bold mt-1">🎙 No Bird recorded</p>
+      )}
+      {voiceError && <p className="text-[10px] text-destructive mt-1">{voiceError}</p>}
       </div>
 
       {/* No Bird counter — separate, since no clay = no shot */}
@@ -233,10 +267,12 @@ function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNo
           const meta = shotMeta?.[i];
           const isVoice = meta?.input_method === 'voice';
           const isFlashing = voiceFlash === i;
+          const isCurrent = isVoiceActive && currentVoiceIndex === i && !result;
           return (
-            <div key={i} className={`flex items-center gap-2 transition-all rounded-lg ${isFlashing ? 'bg-primary/10 scale-[1.01]' : ''}`}>
+            <div key={i} className={`flex items-center gap-2 transition-all rounded-lg px-2 py-1 ${isFlashing ? 'bg-primary/10 scale-[1.01]' : isCurrent ? 'bg-primary/5 ring-1 ring-primary' : ''}`}>
               <div className="flex flex-col items-center w-14 flex-shrink-0">
-                <span className="text-xs font-semibold text-muted-foreground">Shot {i + 1}</span>
+                <span className={`text-xs font-semibold ${isCurrent ? 'text-primary font-bold' : 'text-muted-foreground'}`}>Shot {i + 1}</span>
+                {isCurrent && !result && <span className="text-[9px] text-primary font-bold animate-pulse">← target</span>}
                 {isVoice && result && <span className="text-[9px] text-primary font-bold">🎙 Voice</span>}
               </div>
               <div className="flex gap-1 flex-1">
