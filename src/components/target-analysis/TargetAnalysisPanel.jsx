@@ -269,6 +269,7 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
                   key={group.id}
                   group={group}
                   session={analyzerSession}
+                  allGroups={groups}
                   isBest={bestGroup?.id === group.id}
                   onEdit={() => {
                     setEditGroup(group);

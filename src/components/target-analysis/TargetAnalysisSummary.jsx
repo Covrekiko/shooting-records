@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Target } from 'lucide-react';
+import { Target, Eye, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import { exportSessionPDF } from '@/utils/analyzerPdfExport';
+import GroupDetailView from '@/components/analyzer/GroupDetailView';
 
-export default function TargetAnalysisSummary({ sessionRecordId }) {
+export default function TargetAnalysisSummary({ sessionRecordId, sessionRecord }) {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+  const [viewingGroup, setViewingGroup] = useState(null);
 
   useEffect(() => {
     if (!sessionRecordId) return;
@@ -25,11 +29,31 @@ export default function TargetAnalysisSummary({ sessionRecordId }) {
     : null;
   const bestGroup = groups.find(g => g.group_size_moa === bestMoa);
 
+  const session = sessionRecord || { id: sessionRecordId };
+
   return (
     <div className="border-t border-slate-100 dark:border-slate-700 pt-4 mt-2">
-      <div className="flex items-center gap-2 mb-3">
-        <Target className="w-4 h-4 text-primary" />
-        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Target Analysis</span>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <Target className="w-4 h-4 text-primary" />
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Target Analysis</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => exportSessionPDF(session, groups, null)}
+            className="p-1.5 hover:bg-secondary rounded-lg transition-colors"
+            title="Download PDF"
+          >
+            <Download className="w-4 h-4 text-muted-foreground" />
+          </button>
+          <button
+            onClick={() => setExpanded(e => !e)}
+            className="p-1.5 hover:bg-secondary rounded-lg transition-colors"
+            title={expanded ? 'Collapse' : 'View all groups'}
+          >
+            {expanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
+          </button>
+        </div>
       </div>
 
       <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-xl p-3 space-y-2">
@@ -70,21 +94,44 @@ export default function TargetAnalysisSummary({ sessionRecordId }) {
           )}
         </div>
 
-        {/* All groups mini-list */}
-        {groups.length > 1 && (
-          <div className="border-t border-primary/10 pt-2 mt-2">
+        {/* All groups list — expanded */}
+        {expanded && (
+          <div className="border-t border-primary/10 pt-2 mt-2 space-y-1">
             {groups.map((g, i) => (
-              <div key={g.id} className="flex items-center justify-between text-xs py-0.5">
-                <span className="text-muted-foreground">{g.group_name || `Group ${i + 1}`}</span>
-                <span className="font-semibold">
-                  {g.group_size_moa ? `${g.group_size_moa.toFixed(2)} MOA` : '—'}
-                  {g.confirmed_zero && ' ✓'}
-                </span>
+              <div key={g.id} className="flex items-center justify-between text-xs py-1 px-1 rounded-lg hover:bg-primary/5">
+                <div>
+                  <span className="font-semibold">{g.group_name || `Group ${i + 1}`}</span>
+                  {g.rifle_name && <span className="text-muted-foreground ml-1.5">{g.rifle_name}</span>}
+                  {g.ammo_override && <span className="text-muted-foreground ml-1.5">· {g.ammo_override}</span>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">
+                    {g.group_size_moa ? `${g.group_size_moa.toFixed(2)} MOA` : '—'}
+                    {g.confirmed && ' ✓'}
+                  </span>
+                  <button
+                    onClick={() => setViewingGroup(g)}
+                    className="p-1 hover:bg-secondary rounded-lg transition-colors"
+                    title="View details"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {viewingGroup && (
+        <GroupDetailView
+          group={viewingGroup}
+          session={session}
+          allGroups={groups}
+          onExportAll={true}
+          onClose={() => setViewingGroup(null)}
+        />
+      )}
     </div>
   );
 }

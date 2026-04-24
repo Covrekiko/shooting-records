@@ -1,6 +1,9 @@
-import { Edit2, Trash2, ScanLine, Star, Copy, Image } from 'lucide-react';
+import { useState } from 'react';
+import { Edit2, Trash2, ScanLine, Star, Copy, Image, Eye } from 'lucide-react';
+import GroupDetailView from '@/components/analyzer/GroupDetailView';
 
-export default function GroupCard({ group, session, isBest, onEdit, onDelete, onDuplicate, onSaveToScope, onMarkBest }) {
+export default function GroupCard({ group, session, isBest, onEdit, onDelete, onDuplicate, onSaveToScope, onMarkBest, allGroups }) {
+  const [showDetail, setShowDetail] = useState(false);
   const hasCorrection = group.clicks_up_down || group.clicks_left_right;
   const isConfirmed = group.confirmed || group.confirmed_zero;
   const displayDistance = group.distance_override ? `${group.distance_override}m` : (session.distance ? `${session.distance}m` : null);
@@ -42,6 +45,9 @@ export default function GroupCard({ group, session, isBest, onEdit, onDelete, on
               <Image className="w-4 h-4 text-muted-foreground" />
             </a>
           )}
+          <button onClick={() => setShowDetail(true)} className="p-1.5 hover:bg-secondary rounded-lg transition-colors" title="View details">
+            <Eye className="w-4 h-4 text-muted-foreground" />
+          </button>
           <button onClick={onEdit} className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
             <Edit2 className="w-4 h-4 text-muted-foreground" />
           </button>
@@ -94,6 +100,16 @@ export default function GroupCard({ group, session, isBest, onEdit, onDelete, on
 
 
       {group.notes && <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border">{group.notes}</p>}
+
+      {showDetail && (
+        <GroupDetailView
+          group={group}
+          session={session}
+          allGroups={allGroups}
+          onExportAll={allGroups?.length > 0}
+          onClose={() => setShowDetail(false)}
+        />
+      )}
     </div>
   );
 }
