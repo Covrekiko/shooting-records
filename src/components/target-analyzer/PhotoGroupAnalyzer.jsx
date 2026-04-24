@@ -29,13 +29,13 @@ function centroid(holes) {
   };
 }
 
-export default function PhotoGroupAnalyzer({ session, onSave, onBack }) {
+export default function PhotoGroupAnalyzer({ session, onSave, onBack, defaultGroupName = 'Group 1' }) {
   const [photoUrl, setPhotoUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [holes, setHoles] = useState([]);
   const [centre, setCentre] = useState(null);
   const [mode, setMode] = useState('holes'); // 'holes' | 'centre'
-  const [groupName, setGroupName] = useState('Group 1');
+  const [groupName, setGroupName] = useState(defaultGroupName);
   const [scaleRef, setScaleRef] = useState('25'); // mm reference
   const [scaleUnit, setScaleUnit] = useState('mm'); // 'mm' or 'in'
   const [scalePixels, setScalePixels] = useState(''); // how many px is that reference
@@ -225,20 +225,24 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack }) {
 
           {/* Scale calibration */}
           <div className="bg-card rounded-2xl p-4 border border-border space-y-3">
-            <h2 className="font-semibold text-sm text-muted-foreground uppercase">Scale Calibration</h2>
+            <h2 className="font-semibold text-sm text-muted-foreground uppercase">Scale Reference</h2>
             <p className="text-xs text-muted-foreground">Measure a known feature on the image (e.g. 10mm grid square) in pixels on screen.</p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label>Known size</Label>
-                <div className="flex gap-2 mt-1">
-                  <Input type="number" value={scaleRef} onChange={e => setScaleRef(e.target.value)} className="flex-1" />
-                  <select value={scaleUnit} onChange={e => setScaleUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-border bg-background text-sm font-medium">
-                    <option value="mm">mm</option>
-                    <option value="in">in</option>
-                  </select>
-                </div>
+                <Label>Size</Label>
+                <Input type="number" value={scaleRef} onChange={e => setScaleRef(e.target.value)} />
               </div>
-              <div><Label>Pixel width of that feature</Label><Input type="number" value={scalePixels} onChange={e => setScalePixels(e.target.value)} placeholder="e.g. 50" /></div>
+              <div>
+                <Label>Unit</Label>
+                <select value={scaleUnit} onChange={e => setScaleUnit(e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm font-medium">
+                  <option value="mm">mm</option>
+                  <option value="in">in</option>
+                </select>
+              </div>
+              <div>
+                <Label>Pixels</Label>
+                <Input type="number" value={scalePixels} onChange={e => setScalePixels(e.target.value)} placeholder="e.g. 50" />
+              </div>
             </div>
             {mmPerPx && <p className="text-xs text-primary font-medium">Scale: {mmPerPx.toFixed(3)} mm/px</p>}
           </div>

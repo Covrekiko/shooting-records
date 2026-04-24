@@ -12,9 +12,19 @@ export default function AddGroup() {
   const navigate = useNavigate();
   const [session, setSession] = useState(null);
   const [mode, setMode] = useState(null); // 'manual' | 'photo'
+  const [nextGroupNumber, setNextGroupNumber] = useState(1);
 
   useEffect(() => {
-    base44.entities.TargetSession.filter({ id }).then(r => setSession(r[0] || null));
+    Promise.all([
+      base44.entities.TargetSession.filter({ id }).then(r => setSession(r[0] || null)),
+      base44.entities.TargetGroup.filter({ session_id: id }).then(groups => {
+        const nums = groups.map(g => {
+          const match = g.group_name?.match(/Group\s*(\d+)/);
+          return match ? parseInt(match[1]) : 0;
+        });
+        setNextGroupNumber(Math.max(...nums, 0) + 1);
+      })
+    ]);
   }, [id]);
 
   const handleSave = async (groupData) => {
@@ -54,7 +64,7 @@ export default function AddGroup() {
         )}
 
         {mode === 'photo' && (
-          <PhotoGroupAnalyzer session={session} onSave={handleSave} onBack={() => setMode(null)} />
+          <PhotoGroupAnalyzer session={session} onSave={handleSave} onBack={() => setMode(null)} defaultGroupName={`Group ${nextGroupNumber}`} />
         )}
       </div>
     </div>
