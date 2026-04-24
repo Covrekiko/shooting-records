@@ -453,7 +453,9 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
   const saveShotResults = async (standId, shotResults) => {
     // Delete existing shots for this stand
     const existing = await base44.entities.ClayShot.filter({ clay_stand_id: standId });
-    await Promise.all(existing.map(s => base44.entities.ClayShot.delete(s.id)));
+    await Promise.all(existing.map(s => 
+      base44.entities.ClayShot.delete(s.id).catch(() => {})
+    ));
     // Create new shots — shotResults is array of {shot_number, result, input_method, ...}
     const newShots = [];
     for (const s of shotResults) {
