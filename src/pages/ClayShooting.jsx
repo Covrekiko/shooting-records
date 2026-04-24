@@ -6,6 +6,7 @@ import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import { Plus, Map, Target, ClipboardList } from 'lucide-react';
 import ClayScorecard from '@/components/clay/ClayScorecard';
+import ClayCheckoutSummary from '@/components/clay/ClayCheckoutSummary';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import RecordsSection from '@/components/RecordsSection';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
@@ -375,7 +376,7 @@ export default function ClayShooting() {
           {showCheckout && activeSession && (
             <div className="fixed inset-0 z-[50001] flex flex-col justify-end sm:justify-center sm:items-center pointer-events-none">
               <div className="pointer-events-auto w-full sm:max-w-sm">
-                <CheckoutModal shotguns={shotguns} ammunition={ammunition} onSubmit={handleCheckout} onClose={() => setShowCheckout(false)} gpsTrack={gpsTrack} onViewTrack={setViewingTrack} sessionId={activeSession?.id} />
+                <CheckoutModal shotguns={shotguns} ammunition={ammunition} onSubmit={handleCheckout} onClose={() => setShowCheckout(false)} gpsTrack={gpsTrack} onViewTrack={setViewingTrack} sessionId={activeSession?.id} onShowScorecard={() => { setShowCheckout(false); setShowScorecard(true); }} />
               </div>
             </div>
           )}
@@ -459,7 +460,7 @@ async function handlePhotoUpload(files, data, onChange) {
 }
 
 // ─── Check-out Modal ──────────────────────────────────────────────
-function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onViewTrack, sessionId }) {
+function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onViewTrack, sessionId, onShowScorecard }) {
   const [data, setData] = useState({ checkout_time: new Date().toTimeString().slice(0, 5), shotgun_id: '', rounds_fired: '', ammunition_id: '', ammunition_used: '', notes: '', photos: [] });
   const [showAlert, setShowAlert] = useState(false);
   const [scorecardStats, setScorecardStats] = useState(null);
@@ -568,19 +569,13 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
             )}
           </div>
           {scorecardStats && scorecardStats.total_stands > 0 && (
-            <div className="bg-primary/5 border border-primary/20 rounded-xl p-3">
-              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-2">Clay Scorecard Summary</p>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-                <span className="text-muted-foreground">Total Stands</span><span className="font-semibold">{scorecardStats.total_stands}</span>
-                <span className="text-muted-foreground">Hits</span><span className="font-semibold text-emerald-600">{scorecardStats.total_hits}</span>
-                <span className="text-muted-foreground">Misses</span><span className="font-semibold text-red-500">{scorecardStats.total_misses}</span>
-                <span className="text-muted-foreground">No Birds</span><span className="font-semibold text-amber-600">{scorecardStats.total_no_birds || 0}</span>
-                <span className="text-muted-foreground">Valid Scored</span><span className="font-semibold">{scorecardStats.total_valid_scored_clays || scorecardStats.total_clays}</span>
-                <span className="text-muted-foreground">Final Score</span><span className="font-bold">{scorecardStats.total_hits}/{scorecardStats.total_valid_scored_clays || scorecardStats.total_clays}</span>
-                <span className="text-muted-foreground">Cartridges</span><span className="font-semibold">{scorecardStats.total_cartridges_used}</span>
-                <span className="text-muted-foreground">Hit Rate</span><span className="font-bold text-primary">{scorecardStats.hit_percentage}%</span>
-              </div>
-            </div>
+            <ClayCheckoutSummary
+              sessionId={sessionId}
+              scorecard={scorecardStats}
+              shotguns={shotguns}
+              ammunition={ammunition}
+              onShowScorecard={onShowScorecard}
+            />
           )}
 
           {gpsTrack && gpsTrack.length > 0 && (
