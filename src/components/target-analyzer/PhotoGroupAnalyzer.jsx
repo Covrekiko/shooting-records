@@ -37,6 +37,7 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack }) {
   const [mode, setMode] = useState('holes'); // 'holes' | 'centre'
   const [groupName, setGroupName] = useState('Group 1');
   const [scaleRef, setScaleRef] = useState('25'); // mm reference
+  const [scaleUnit, setScaleUnit] = useState('mm'); // 'mm' or 'in'
   const [scalePixels, setScalePixels] = useState(''); // how many px is that reference
   const [numberOfShots, setNumberOfShots] = useState('');
   const [notes, setNotes] = useState('');
@@ -47,7 +48,8 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack }) {
   const imgRef = useRef(null);
   const containerRef = useRef(null);
 
-  const mmPerPx = scaleRef && scalePixels ? parseFloat(scaleRef) / parseFloat(scalePixels) : MM_PER_PX_DEFAULT;
+  const scaleRefMm = scaleUnit === 'in' ? parseFloat(scaleRef) * 25.4 : parseFloat(scaleRef);
+  const mmPerPx = scaleRef && scalePixels ? scaleRefMm / parseFloat(scalePixels) : MM_PER_PX_DEFAULT;
 
   const distanceM = session?.distance_unit === 'yards'
     ? parseFloat(session?.distance) * 0.9144
@@ -226,7 +228,16 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack }) {
             <h2 className="font-semibold text-sm text-muted-foreground uppercase">Scale Calibration</h2>
             <p className="text-xs text-muted-foreground">Measure a known feature on the image (e.g. 10mm grid square) in pixels on screen.</p>
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Known size (mm)</Label><Input type="number" value={scaleRef} onChange={e => setScaleRef(e.target.value)} /></div>
+              <div>
+                <Label>Known size</Label>
+                <div className="flex gap-2 mt-1">
+                  <Input type="number" value={scaleRef} onChange={e => setScaleRef(e.target.value)} className="flex-1" />
+                  <select value={scaleUnit} onChange={e => setScaleUnit(e.target.value)} className="px-3 py-2 rounded-lg border border-border bg-background text-sm font-medium">
+                    <option value="mm">mm</option>
+                    <option value="in">in</option>
+                  </select>
+                </div>
+              </div>
               <div><Label>Pixel width of that feature</Label><Input type="number" value={scalePixels} onChange={e => setScalePixels(e.target.value)} placeholder="e.g. 50" /></div>
             </div>
             {mmPerPx && <p className="text-xs text-primary font-medium">Scale: {mmPerPx.toFixed(3)} mm/px</p>}
