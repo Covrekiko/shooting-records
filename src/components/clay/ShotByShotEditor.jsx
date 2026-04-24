@@ -8,19 +8,17 @@ const inp = 'w-full px-3 py-3 border border-border rounded-xl bg-background text
 /**
  * SINGLE SOURCE OF TRUTH for shot-by-shot scoring
  * 
- * shots = [
- *   { shot_number: 1, result: null, input_method: null },
- *   { shot_number: 2, result: 'dead', input_method: 'voice' },
- *   ...
- * ]
+ * shots = [null, 'dead', 'lost', null, 'no_bird', ...]
  * 
  * Result values: 'dead' | 'lost' | 'no_bird' | null
- * activeShotIndex = index of shot being scored
- * activeShotIndexRef = ref for voice callback to read current index
+ * 
+ * Two modes:
+ * 1. Normal recording: recordShotResult(result) fills first empty shot
+ * 2. Edit mode: editShotResult(shotIndex, result) updates specific shot
  */
 
 export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds, onChange, onNoBirdsChange, onShotMeta }) {
-  // ─── STATE: Single source of truth ──────────────────────────────
+  // ─── STATE ──────────────────────────────────────────────────────
   const [activeShotIndex, setActiveShotIndex] = useState(0);
   const activeShotIndexRef = useRef(0);
   const [isVoiceActive, setIsVoiceActive] = useState(false);
@@ -28,6 +26,7 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
   const [voiceFlash, setVoiceFlash] = useState(null);
   const [showDebug, setShowDebug] = useState(false);
   const [lastCommand, setLastCommand] = useState(null);
+  const [editingIndex, setEditingIndex] = useState(null);
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -45,32 +44,72 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
   }, [shots]);
 
   /**
-   * CORE FUNCTION: All scoring goes through here
-   * Manual buttons and voice commands call this
+   * RECORD: Fill next empty shot (normal scoring mode)
+   * Used by manual buttons and voice commands
    */
   const recordShotResult = useCallback((result, inputMethod = 'manual') => {
+    // If in edit mode, use edit function instead
+    if (editingIndex !== null) {
+      editShotResult(editingIndex, result);
+      return;
+    }
+
     const currentIdx = activeShotIndexRef.current;
     
-    // Update shot array
+    // Verify current shot is actually empty
+    if (shots[currentIdx] !== null && shots[currentIdx] !== undefined) {
+      // Current shot already filled, find next empty
+      const nextEmpty = findNextEmptyShot(currentIdx);
+      if (nextEmpty === -1) {
+        setStandComplete(true);
+        return;
+      }
+      // Record to next empty shot
+      const updated = [...shots];
+      updated[nextEmpty] = result;
+      onChange(updated);
+
+      const updatedMeta = [...(shotMeta || [])];
+      updatedMeta[nextEmpty] = { input_method: inputMethod };
+      onShotMeta?.(updatedMeta);
+
+      setActiveShotIndex(nextEmpty);
+      setStandComplete(false);
+    } else {
+      // Current shot is empty, fill it
+      const updated = [...shots];
+      updated[currentIdx] = result;
+      onChange(updated);
+
+      const updatedMeta = [...(shotMeta || [])];
+      updatedMeta[currentIdx] = { input_method: inputMethod };
+      onShotMeta?.(updatedMeta);
+
+      // Find next empty
+      const nextEmpty = findNextEmptyShot(currentIdx);
+      if (nextEmpty !== -1) {
+        setActiveShotIndex(nextEmpty);
+        setStandComplete(false);
+      } else {
+        setStandComplete(true);
+      }
+    }
+  }, [shots, shotMeta, onChange, onShotMeta, findNextEmptyShot, editingIndex]);
+
+  /**
+   * EDIT: Update specific shot (edit mode)
+   */
+  const editShotResult = useCallback((shotIndex, result) => {
     const updated = [...shots];
-    updated[currentIdx] = result;
+    updated[shotIndex] = result;
     onChange(updated);
 
-    // Update metadata
     const updatedMeta = [...(shotMeta || [])];
-    updatedMeta[currentIdx] = { input_method: inputMethod };
+    updatedMeta[shotIndex] = { input_method: 'manual' };
     onShotMeta?.(updatedMeta);
 
-    // Find next empty shot
-    const nextEmpty = findNextEmptyShot(currentIdx);
-    if (nextEmpty !== -1) {
-      setActiveShotIndex(nextEmpty);
-    } else {
-      // All shots filled
-      setStandComplete(true);
-      // Don't auto-stop voice — user must press Stop
-    }
-  }, [shots, shotMeta, onChange, onShotMeta, findNextEmptyShot]);
+    setEditingIndex(null);
+  }, [shots, shotMeta, onChange, onShotMeta]);
 
   // ─── VOICE HOOK ───────────────────────────────────────────────────
   const { isListening, lastHeard, error: voiceError, start: startVoice, stop: stopVoice } = useVoiceScoring({
@@ -81,19 +120,10 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
         setVoiceFlash('nb');
         setLastCommand('no_bird');
         setTimeout(() => setVoiceFlash(null), 800);
-        
-        // Move to next empty shot (if any)
-        const currentIdx = activeShotIndexRef.current;
-        const nextIdx = findNextEmptyShot(currentIdx - 1);
-        if (nextIdx !== -1) {
-          setActiveShotIndex(nextIdx);
-        } else {
-          setStandComplete(true);
-        }
         return;
       }
 
-      // Hit or Miss: use recordShotResult (reads current ref value)
+      // Dead or Lost: record to next empty shot
       recordShotResult(result, 'voice');
       setVoiceFlash(activeShotIndexRef.current);
       setLastCommand(result);
@@ -145,8 +175,9 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
     onChange(Array(totalShots).fill(null));
     onShotMeta(Array(totalShots).fill({ input_method: 'manual' }));
     
-    // Reset index
+    // Reset state
     setActiveShotIndex(0);
+    setEditingIndex(null);
     setStandComplete(false);
   };
 
@@ -168,19 +199,34 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
       updatedMeta[lastIdx] = { input_method: 'manual' };
       onShotMeta?.(updatedMeta);
       setActiveShotIndex(lastIdx);
+      setEditingIndex(null);
       setStandComplete(false);
     }
   };
 
   const handleTapShot = (shotIndex) => {
-    // User tapped a shot — set it as active
-    setActiveShotIndex(shotIndex);
+    // User tapped a shot — if it has a result, enter edit mode; otherwise set as active
+    if (shots[shotIndex] !== null && shots[shotIndex] !== undefined) {
+      setEditingIndex(shotIndex);
+    } else {
+      setActiveShotIndex(shotIndex);
+    }
   };
 
   const handleManualResult = (shotIndex, result) => {
     // User tapped manual button
-    setActiveShotIndex(shotIndex);
-    recordShotResult(result, 'manual');
+    if (editingIndex !== null) {
+      // In edit mode: update that specific shot
+      editShotResult(shotIndex, result);
+    } else if (shots[shotIndex] === null || shots[shotIndex] === undefined) {
+      // Shot is empty: record to it
+      setActiveShotIndex(shotIndex);
+      recordShotResult(result, 'manual');
+    } else {
+      // Shot already has a result: enter edit mode for it
+      setEditingIndex(shotIndex);
+      editShotResult(shotIndex, result);
+    }
   };
 
   // ─── DEBUG PANEL ──────────────────────────────────────────────────
@@ -298,22 +344,24 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
           const meta = shotMeta?.[i];
           const isVoice = meta?.input_method === 'voice';
           const isFlashing = voiceFlash === i;
-          const isCurrent = isVoiceActive && activeShotIndex === i && !result;
+          const isCurrent = activeShotIndex === i && !result;
+          const isEditing = editingIndex === i;
 
           return (
             <div
               key={i}
               className={`flex items-center gap-2 transition-all rounded-lg px-2 py-1 cursor-pointer ${
-                isFlashing ? 'bg-primary/10 scale-[1.01]' : isCurrent ? 'bg-primary/5 ring-1 ring-primary' : 'hover:bg-secondary/50'
+                isFlashing ? 'bg-primary/10 scale-[1.01]' : isEditing ? 'bg-primary/10 ring-2 ring-primary' : isCurrent ? 'bg-primary/5 ring-1 ring-primary' : 'hover:bg-secondary/50'
               }`}
               onClick={() => handleTapShot(i)}
             >
               <div className="flex flex-col items-center w-14 flex-shrink-0">
-                <span className={`text-xs font-semibold ${isCurrent ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
+                <span className={`text-xs font-semibold ${isCurrent || isEditing ? 'text-primary font-bold' : 'text-muted-foreground'}`}>
                   Shot {i + 1}
                 </span>
-                {isCurrent && !result && <span className="text-[9px] text-primary font-bold animate-pulse">target</span>}
+                {isCurrent && !result && <span className="text-[9px] text-primary font-bold animate-pulse">ready</span>}
                 {isVoice && result && <span className="text-[9px] text-primary font-bold">🎙</span>}
+                {isEditing && <span className="text-[9px] text-primary font-bold">edit</span>}
               </div>
 
               <div className="flex gap-1 flex-1">
