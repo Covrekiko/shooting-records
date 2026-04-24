@@ -63,7 +63,7 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
   const recalculate = () => {
     const input = parseFloat(form.group_size_input);
     const effectiveDistance = parseFloat(form.distance_override) || parseFloat(session.distance);
-    if (!input || !effectiveDistance) return;
+    if (!input || !effectiveDistance || effectiveDistance <= 0) return;
 
     let mm;
     if (form.group_size_unit === 'mm') mm = input;
@@ -84,6 +84,8 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
       : calcClicksFromMoa(mmToMoa(Math.abs(parseFloat(form.point_of_impact_y) || 0), distM), clickVal);
     const clicksWind = isMrad ? Math.round((parseFloat(form.point_of_impact_x) / distM) / parseFloat(clickVal) * 10) / 10
       : calcClicksFromMoa(mmToMoa(Math.abs(parseFloat(form.point_of_impact_x) || 0), distM), clickVal);
+
+    if (!isFinite(moa) || !isFinite(mrad)) return;
 
     setCalculated({
       mm: Math.round(mm * 10) / 10,
