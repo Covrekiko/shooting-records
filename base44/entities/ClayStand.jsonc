@@ -45,6 +45,14 @@
       "type": "integer",
       "default": 0
     },
+    "no_birds": {
+      "type": "integer",
+      "default": 0
+    },
+    "valid_scored_clays": {
+      "type": "integer",
+      "default": 0
+    },
     "hit_percentage": {
       "type": "number",
       "default": 0

@@ -519,9 +519,11 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
               <p className="text-xs font-bold text-primary uppercase tracking-wide mb-2">Clay Scorecard Summary</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
                 <span className="text-muted-foreground">Total Stands</span><span className="font-semibold">{scorecardStats.total_stands}</span>
-                <span className="text-muted-foreground">Total Clays</span><span className="font-semibold">{scorecardStats.total_clays}</span>
                 <span className="text-muted-foreground">Hits</span><span className="font-semibold text-emerald-600">{scorecardStats.total_hits}</span>
                 <span className="text-muted-foreground">Misses</span><span className="font-semibold text-red-500">{scorecardStats.total_misses}</span>
+                <span className="text-muted-foreground">No Birds</span><span className="font-semibold text-amber-600">{scorecardStats.total_no_birds || 0}</span>
+                <span className="text-muted-foreground">Valid Scored</span><span className="font-semibold">{scorecardStats.total_valid_scored_clays || scorecardStats.total_clays}</span>
+                <span className="text-muted-foreground">Final Score</span><span className="font-bold">{scorecardStats.total_hits}/{scorecardStats.total_valid_scored_clays || scorecardStats.total_clays}</span>
                 <span className="text-muted-foreground">Cartridges</span><span className="font-semibold">{scorecardStats.total_cartridges_used}</span>
                 <span className="text-muted-foreground">Hit Rate</span><span className="font-bold text-primary">{scorecardStats.hit_percentage}%</span>
               </div>

@@ -12,7 +12,8 @@
       "type": "string",
       "enum": [
         "hit",
-        "miss"
+        "miss",
+        "no_bird"
       ],
       "default": "miss"
     },
