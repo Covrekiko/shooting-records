@@ -355,20 +355,20 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               <p className="text-xs font-bold text-primary uppercase tracking-wide mb-3">Results</p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-background rounded-xl p-3 text-center">
-                  <p className="text-2xl font-black">{results.groupMoa ? results.groupMoa : 'N/A'}</p>
-                  <p className="text-xs text-muted-foreground">MOA</p>
-                </div>
-                <div className="bg-background rounded-xl p-3 text-center">
-                  <p className="text-2xl font-black">{results.groupMrad ? results.groupMrad : 'N/A'}</p>
-                  <p className="text-xs text-muted-foreground">MRAD</p>
-                </div>
-                <div className="bg-background rounded-xl p-3 text-center">
-                  <p className="text-xl font-bold">{results.groupMm}mm</p>
+                  <p className="text-2xl font-black">{results.groupMm}mm</p>
                   <p className="text-xs text-muted-foreground">Group Size</p>
                 </div>
                 <div className="bg-background rounded-xl p-3 text-center">
-                  <p className="text-xl font-bold">{results.shots} shots</p>
-                  <p className="text-xs text-muted-foreground">Number of Shots</p>
+                  <p className="text-2xl font-black">{results.groupInches}"</p>
+                  <p className="text-xs text-muted-foreground">Inches</p>
+                </div>
+                <div className="bg-background rounded-xl p-3 text-center">
+                  <p className="text-xl font-bold">{results.groupMoa ? results.groupMoa : 'N/A'}</p>
+                  <p className="text-xs text-muted-foreground">MOA</p>
+                </div>
+                <div className="bg-background rounded-xl p-3 text-center">
+                  <p className="text-xl font-bold">{results.groupMrad ? results.groupMrad : 'N/A'}</p>
+                  <p className="text-xs text-muted-foreground">MRAD</p>
                 </div>
               </div>
               {(results.poiX !== 0 || results.poiY !== 0) && (
