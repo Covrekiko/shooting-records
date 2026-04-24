@@ -7,7 +7,7 @@ import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import { Plus, Map, Target, ClipboardList } from 'lucide-react';
 import ClayScorecard from '@/components/clay/ClayScorecard';
 import ClayCheckoutSummary from '@/components/clay/ClayCheckoutSummary';
-import ClayStandLocationsMap from '@/components/clay/ClayStandLocationsMap';
+
 import ClayAnalyticsDashboard from '@/components/clay/ClayAnalyticsDashboard';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import RecordsSection from '@/components/RecordsSection';
@@ -39,7 +39,6 @@ export default function ClayShooting() {
   const [autoCheckinEnabled, setAutoCheckinEnabled] = useState(false);
   const [stands, setStands] = useState([]);
   const [allSessions, setAllSessions] = useState([]);
-  const [showMaps, setShowMaps] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
 
   const [checkinData, setCheckinData] = useState({
@@ -353,22 +352,14 @@ export default function ClayShooting() {
           </div>
         )}
 
-        {/* Maps & Analytics Section */}
+        {/* Analytics Section */}
         {(stands.length > 0 || allSessions.length > 0) && (
-          <div className="mt-6 space-y-4">
-            <div className="flex gap-2">
-              <motion.button whileTap={{ scale: 0.97 }} onClick={() => { setShowMaps(!showMaps); setShowAnalytics(false); }}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-colors ${showMaps ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}>
-                📍 Stand Locations
-              </motion.button>
-              <motion.button whileTap={{ scale: 0.97 }} onClick={() => { setShowAnalytics(!showAnalytics); setShowMaps(false); }}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-colors ${showAnalytics ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}>
-                📊 Analytics
-              </motion.button>
-            </div>
-
-            {showMaps && <ClayStandLocationsMap sessions={allSessions} stands={stands} clubs={clubs} />}
-            {showAnalytics && <ClayAnalyticsDashboard sessions={allSessions} stands={stands} />}
+          <div className="mt-6">
+            <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowAnalytics(!showAnalytics)}
+              className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-colors ${showAnalytics ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}>
+              📊 Analytics
+            </motion.button>
+            {showAnalytics && <div className="mt-4"><ClayAnalyticsDashboard sessions={allSessions} stands={stands} /></div>}
           </div>
         )}
 
