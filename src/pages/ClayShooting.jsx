@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
 import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
-import { Clock, Plus, Map, Target } from 'lucide-react';
+import { Plus, Map, Target, ClipboardList } from 'lucide-react';
+import ClayScorecard from '@/components/clay/ClayScorecard';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import RecordsSection from '@/components/RecordsSection';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
@@ -28,6 +29,7 @@ export default function ClayShooting() {
   const [nearbyClub, setNearbyClub] = useState(null);
   const [gpsTrack, setGpsTrack] = useState([]);
   const [viewingTrack, setViewingTrack] = useState(null);
+  const [showScorecard, setShowScorecard] = useState(false);
 
   const [checkinData, setCheckinData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -263,7 +265,7 @@ export default function ClayShooting() {
 
         {activeSession && (
           <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-2xl p-4 mb-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
                 <div>
@@ -279,6 +281,11 @@ export default function ClayShooting() {
                 Check Out
               </motion.button>
             </div>
+            <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowScorecard(true)}
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-background dark:bg-slate-800 border border-primary/30 rounded-xl text-sm font-semibold text-primary hover:bg-primary/5 transition-colors">
+              <ClipboardList className="w-4 h-4" />
+              Open Scorecard
+            </motion.button>
           </div>
         )}
 
@@ -290,6 +297,15 @@ export default function ClayShooting() {
         {viewingTrack && createPortal(
           <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />,
           document.body
+        )}
+
+        {showScorecard && activeSession && (
+          <ClayScorecard
+            session={activeSession}
+            shotguns={shotguns}
+            ammunition={ammunition}
+            onClose={() => setShowScorecard(false)}
+          />
         )}
       </main>
 
@@ -306,7 +322,7 @@ export default function ClayShooting() {
           {showCheckout && activeSession && (
             <div className="fixed inset-0 z-[50001] flex flex-col justify-end sm:justify-center sm:items-center pointer-events-none">
               <div className="pointer-events-auto w-full sm:max-w-sm">
-                <CheckoutModal shotguns={shotguns} ammunition={ammunition} onSubmit={handleCheckout} onClose={() => setShowCheckout(false)} gpsTrack={gpsTrack} onViewTrack={setViewingTrack} />
+                <CheckoutModal shotguns={shotguns} ammunition={ammunition} onSubmit={handleCheckout} onClose={() => setShowCheckout(false)} gpsTrack={gpsTrack} onViewTrack={setViewingTrack} sessionId={activeSession?.id} />
               </div>
             </div>
           )}
@@ -390,10 +406,18 @@ async function handlePhotoUpload(files, data, onChange) {
 }
 
 // ─── Check-out Modal ──────────────────────────────────────────────
-function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onViewTrack }) {
+function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onViewTrack, sessionId }) {
   const [data, setData] = useState({ checkout_time: new Date().toTimeString().slice(0, 5), shotgun_id: '', rounds_fired: '', ammunition_id: '', ammunition_used: '', notes: '', photos: [] });
   const [showAlert, setShowAlert] = useState(false);
+  const [scorecardStats, setScorecardStats] = useState(null);
   const onChange = (field, value) => setData(prev => ({ ...prev, [field]: value }));
+
+  useEffect(() => {
+    if (!sessionId) return;
+    base44.entities.ClayScorecard.filter({ clay_session_id: sessionId }).then(res => {
+      if (res[0]) setScorecardStats(res[0]);
+    });
+  }, [sessionId]);
 
   const inputCls = DESIGN.INPUT;
   const labelCls = DESIGN.LABEL;
@@ -490,6 +514,20 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
               </div>
             )}
           </div>
+          {scorecardStats && scorecardStats.total_stands > 0 && (
+            <div className="bg-primary/5 border border-primary/20 rounded-xl p-3">
+              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-2">Clay Scorecard Summary</p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+                <span className="text-muted-foreground">Total Stands</span><span className="font-semibold">{scorecardStats.total_stands}</span>
+                <span className="text-muted-foreground">Total Clays</span><span className="font-semibold">{scorecardStats.total_clays}</span>
+                <span className="text-muted-foreground">Hits</span><span className="font-semibold text-emerald-600">{scorecardStats.total_hits}</span>
+                <span className="text-muted-foreground">Misses</span><span className="font-semibold text-red-500">{scorecardStats.total_misses}</span>
+                <span className="text-muted-foreground">Cartridges</span><span className="font-semibold">{scorecardStats.total_cartridges_used}</span>
+                <span className="text-muted-foreground">Hit Rate</span><span className="font-bold text-primary">{scorecardStats.hit_percentage}%</span>
+              </div>
+            </div>
+          )}
+
           {gpsTrack && gpsTrack.length > 0 && (
             <motion.button type="button" onClick={() => onViewTrack(gpsTrack)} whileTap={{ scale: 0.97 }}
               className="w-full px-3 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">

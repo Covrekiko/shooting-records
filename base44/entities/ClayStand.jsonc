@@ -1,0 +1,55 @@
+{
+  "name": "ClayStand",
+  "type": "object",
+  "properties": {
+    "clay_scorecard_id": {
+      "type": "string"
+    },
+    "stand_number": {
+      "type": "integer"
+    },
+    "discipline_type": {
+      "type": "string",
+      "enum": [
+        "Sporting",
+        "Skeet",
+        "Trap",
+        "DTL",
+        "Compak",
+        "Five Stand",
+        "Other"
+      ],
+      "default": "Sporting"
+    },
+    "clays_total": {
+      "type": "integer",
+      "default": 0
+    },
+    "shots_used": {
+      "type": "integer",
+      "default": 0
+    },
+    "hits": {
+      "type": "integer",
+      "default": 0
+    },
+    "misses": {
+      "type": "integer",
+      "default": 0
+    },
+    "hit_percentage": {
+      "type": "number",
+      "default": 0
+    },
+    "notes": {
+      "type": "string"
+    },
+    "photo_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "clay_scorecard_id",
+    "stand_number"
+  ]
+}

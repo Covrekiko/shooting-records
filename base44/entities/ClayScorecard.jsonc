@@ -1,0 +1,39 @@
+{
+  "name": "ClayScorecard",
+  "type": "object",
+  "properties": {
+    "clay_session_id": {
+      "type": "string"
+    },
+    "total_stands": {
+      "type": "integer",
+      "default": 0
+    },
+    "total_clays": {
+      "type": "integer",
+      "default": 0
+    },
+    "total_hits": {
+      "type": "integer",
+      "default": 0
+    },
+    "total_misses": {
+      "type": "integer",
+      "default": 0
+    },
+    "total_cartridges_used": {
+      "type": "integer",
+      "default": 0
+    },
+    "hit_percentage": {
+      "type": "number",
+      "default": 0
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "clay_session_id"
+  ]
+}
