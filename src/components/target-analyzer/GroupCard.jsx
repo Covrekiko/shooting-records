@@ -1,4 +1,6 @@
-import { Star, Trash2, Crosshair, CheckCircle } from 'lucide-react';
+import { Star, Trash2, Crosshair, CheckCircle, Eye } from 'lucide-react';
+import { useState } from 'react';
+import GroupDetailView from '@/components/analyzer/GroupDetailView';
 
 function formatClicks(val, dir) {
   if (!val || val === 0) return null;
@@ -7,7 +9,8 @@ function formatClicks(val, dir) {
   return `${abs} ${label}`;
 }
 
-export default function GroupCard({ group, session, onDelete, onMarkBest, onSaveToScopeCard }) {
+export default function GroupCard({ group, session, onDelete, onMarkBest, onSaveToScopeCard, allGroups }) {
+  const [showDetail, setShowDetail] = useState(false);
   const elevClicks = formatClicks(group.clicks_up_down, ['Up', 'Down']);
   const windClicks = formatClicks(group.clicks_left_right, ['Right', 'Left']);
 
@@ -20,9 +23,14 @@ export default function GroupCard({ group, session, onDelete, onMarkBest, onSave
           {group.confirmed && <CheckCircle className="w-4 h-4 text-green-500" />}
           <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-muted-foreground capitalize">{group.entry_method}</span>
         </div>
-        <button onClick={onDelete} className="text-destructive/60 hover:text-destructive p-1">
-          <Trash2 className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+            <button onClick={() => setShowDetail(true)} className="p-1.5 hover:bg-secondary rounded-lg transition-colors" title="View details">
+              <Eye className="w-4 h-4 text-muted-foreground" />
+            </button>
+            <button onClick={onDelete} className="text-destructive/60 hover:text-destructive p-1">
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
       </div>
 
       {/* Stats grid */}
@@ -69,6 +77,16 @@ export default function GroupCard({ group, session, onDelete, onMarkBest, onSave
       )}
 
       {group.notes && <p className="text-sm text-muted-foreground">{group.notes}</p>}
+
+      {showDetail && (
+        <GroupDetailView
+          group={group}
+          session={session}
+          allGroups={allGroups || [group]}
+          onExportAll={true}
+          onClose={() => setShowDetail(false)}
+        />
+      )}
 
       <div className="flex gap-2">
         <button onClick={onMarkBest}
