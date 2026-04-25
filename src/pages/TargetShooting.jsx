@@ -203,25 +203,30 @@ export default function TargetShooting() {
       console.log('🟢 Checkout: Collected', finalTrack.length, 'GPS points before stop');
 
       // Update rifle round counts and decrement ammo
-      const uniqueAmmoIds = new Set();
+      // Accumulate rounds per ammo ID in case multiple rifles share the same ammo
+      const ammoTotals = {};
       for (const rifle of formData.rifles_used || []) {
-       const roundsFired = parseInt(rifle.rounds_fired) || 0;
+        const roundsFired = parseInt(rifle.rounds_fired) || 0;
 
-       // Update rifle total only (Since Cleaning is calculated based on total and baseline)
-       if (rifle.rifle_id && roundsFired > 0) {
-         const currentRifle = rifles.find(r => r.id === rifle.rifle_id);
-         if (currentRifle) {
-           await base44.entities.Rifle.update(rifle.rifle_id, {
-             total_rounds_fired: (currentRifle.total_rounds_fired || 0) + roundsFired,
-           });
-         }
-       }
-        
-        // Decrement ammo if needed — pass session ID for reliable restore on delete
-        if (rifle.ammunition_id && roundsFired && !uniqueAmmoIds.has(rifle.ammunition_id)) {
-          await decrementAmmoStock(rifle.ammunition_id, roundsFired, 'target_shooting', activeSession.id);
-          uniqueAmmoIds.add(rifle.ammunition_id);
+        // Update rifle total (Since Cleaning is calculated based on total and baseline)
+        if (rifle.rifle_id && roundsFired > 0) {
+          const currentRifle = rifles.find(r => r.id === rifle.rifle_id);
+          if (currentRifle) {
+            await base44.entities.Rifle.update(rifle.rifle_id, {
+              total_rounds_fired: (currentRifle.total_rounds_fired || 0) + roundsFired,
+            });
+          }
         }
+
+        // Accumulate rounds per ammo ID (handles multiple rifles using same ammo)
+        if (rifle.ammunition_id && roundsFired > 0) {
+          ammoTotals[rifle.ammunition_id] = (ammoTotals[rifle.ammunition_id] || 0) + roundsFired;
+        }
+      }
+
+      // Decrement each unique ammo entry once with the total rounds used
+      for (const [ammoId, totalRounds] of Object.entries(ammoTotals)) {
+        await decrementAmmoStock(ammoId, totalRounds, 'target_shooting', activeSession.id);
       }
 
       // Prepare data

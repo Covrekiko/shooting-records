@@ -91,7 +91,7 @@ export default function AmmoSummary() {
   };
 
   const riflesNeedingCleaning = rifles.filter(
-    (r) => r.cleaning_reminder_threshold && r.rounds_since_cleaning >= r.cleaning_reminder_threshold
+    (r) => r.cleaning_reminder_threshold && ((r.total_rounds_fired || 0) - (r.rounds_at_last_cleaning || 0)) >= r.cleaning_reminder_threshold
   );
 
   const handleExportPDF = () => {

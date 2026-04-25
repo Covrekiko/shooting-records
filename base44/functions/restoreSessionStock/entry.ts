@@ -58,18 +58,22 @@ Deno.serve(async (req) => {
 
     // ─── TARGET SHOOTING ─────────────────────────────────────────────────
     if (session.category === 'target_shooting' && Array.isArray(session.rifles_used)) {
-      const seenAmmoIds = new Set();
+      // Accumulate rounds per ammo ID (mirrors checkout logic — multiple rifles may share same ammo)
+      const ammoTotals = {};
       for (const rifle of session.rifles_used) {
         const roundsFired = parseInt(rifle.rounds_fired) || 0;
         if (roundsFired <= 0) continue;
 
-        if (rifle.ammunition_id && !seenAmmoIds.has(rifle.ammunition_id)) {
-          await restoreAmmo(rifle.ammunition_id, roundsFired);
-          seenAmmoIds.add(rifle.ammunition_id);
+        if (rifle.ammunition_id) {
+          ammoTotals[rifle.ammunition_id] = (ammoTotals[rifle.ammunition_id] || 0) + roundsFired;
         }
         if (rifle.rifle_id) {
           await restoreRifleRounds(rifle.rifle_id, roundsFired);
         }
+      }
+      // Restore each unique ammo entry once with the accumulated total
+      for (const [ammoId, totalRounds] of Object.entries(ammoTotals)) {
+        await restoreAmmo(ammoId, totalRounds);
       }
     }
 

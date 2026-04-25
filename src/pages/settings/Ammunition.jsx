@@ -256,6 +256,14 @@ export default function Ammunition() {
                     <p className="text-sm text-muted-foreground">Grain: {ammo.grain}</p>
                   )}
                 </div>
+                <div className="text-right mr-3">
+                  {ammo.quantity_in_stock !== undefined && (
+                    <p className="text-sm font-bold text-foreground">{ammo.quantity_in_stock} <span className="text-xs font-normal text-muted-foreground">{ammo.units || 'rounds'}</span></p>
+                  )}
+                  {ammo.cost_per_unit > 0 && (
+                    <p className="text-xs text-muted-foreground">£{ammo.cost_per_unit.toFixed(2)}/rd</p>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleEditAmmo(ammo)}
