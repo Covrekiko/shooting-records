@@ -115,9 +115,9 @@ export default function DeerManagement() {
       const finalTrack = trackingService.getTrack();
       console.log('🟢 Checkout: Collected', finalTrack.length, 'GPS points before stop');
 
-      // Update rifle round counts (Since Cleaning is calculated based on total and baseline)
+      // Update rifle round counts only if something was shot
       const roundsFired = parseInt(checkoutData.total_count) || 0;
-      if (checkoutData.rifle_id && roundsFired > 0) {
+      if (checkoutData.shot_anything && checkoutData.rifle_id && roundsFired > 0) {
         const currentRifle = rifles.find(r => r.id === checkoutData.rifle_id);
         if (currentRifle) {
           await base44.entities.Rifle.update(checkoutData.rifle_id, {
@@ -126,19 +126,19 @@ export default function DeerManagement() {
         }
       }
 
-      // Decrement ammo if needed — pass session ID for reliable restore on delete
-      if (checkoutData.ammunition_id && checkoutData.total_count) {
-        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count), 'deer_management', activeOuting.id);
-      }
-
-      // Prepare data
+      // Prepare data first — determine if anything was shot before touching stock
       const submitData = { ...checkoutData, active_checkin: false };
       if (!checkoutData.shot_anything) {
         submitData.species_list = [];
         submitData.total_count = null;
         submitData.rifle_id = null;
-        submitData.ammunition_id = null; // Only clear if nothing shot
+        submitData.ammunition_id = null;
         submitData.ammunition_used = null;
+      }
+
+      // Decrement ammo only if something was actually shot
+      if (checkoutData.shot_anything && checkoutData.ammunition_id && checkoutData.total_count) {
+        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count), 'deer_management', activeOuting.id);
       }
 
       // Save to database FIRST, then stop tracking

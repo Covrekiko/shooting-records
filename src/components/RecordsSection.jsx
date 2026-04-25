@@ -172,9 +172,11 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
           <div className="mb-6 pb-4 border-b border-border">
             <h3 className="font-bold text-lg mb-3">Evidence Photos</h3>
             <div className="grid grid-cols-4 gap-2">
-              {currentRecord.photos.map((photo, idx) => (
-                <img key={idx} src={photo} alt="record" className="h-28 w-28 object-cover rounded-lg border border-border" />
-              ))}
+              {currentRecord.photos.map((photo, idx) => {
+                const photoUrl = typeof photo === 'string' ? photo : photo?.url;
+                if (!photoUrl) return null;
+                return <img key={idx} src={photoUrl} alt="record" className="h-28 w-28 object-cover rounded-lg border border-border" />;
+              })}
             </div>
           </div>
         )}
@@ -411,7 +413,7 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
               )}
             </div>
 
-            {currentRecord.total_count && currentRecord.total_count !== '0' && currentRecord.rifle_id && (
+            {currentRecord.total_count && currentRecord.total_count !== '0' && currentRecord.rifle_id && rifles[currentRecord.rifle_id] && (
               <div className="mb-6 pb-4 border-b border-border">
                 <h3 className="font-bold text-lg mb-3 text-primary">Rifle & Ammunition Details</h3>
                 <div className="bg-secondary/30 p-4 rounded-lg space-y-4">
@@ -420,18 +422,18 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                       <div>
                         <label className="text-xs font-bold text-muted-foreground uppercase">Make</label>
-                        <p className="text-sm">{rifles[currentRecord.rifle_id].make || '-'}</p>
+                        <p className="text-sm">{rifles[currentRecord.rifle_id]?.make || '-'}</p>
                       </div>
                       <div>
                         <label className="text-xs font-bold text-muted-foreground uppercase">Model</label>
-                        <p className="text-sm">{rifles[currentRecord.rifle_id].model || '-'}</p>
+                        <p className="text-sm">{rifles[currentRecord.rifle_id]?.model || '-'}</p>
                       </div>
                       <div>
                         <label className="text-xs font-bold text-muted-foreground uppercase">Caliber</label>
-                        <p className="text-sm">{rifles[currentRecord.rifle_id].caliber || '-'}</p>
+                        <p className="text-sm">{rifles[currentRecord.rifle_id]?.caliber || '-'}</p>
                       </div>
                     </div>
-                    {rifles[currentRecord.rifle_id].serial_number && (
+                    {rifles[currentRecord.rifle_id]?.serial_number && (
                       <div className="mt-3">
                         <label className="text-xs font-bold text-muted-foreground">Serial Number</label>
                         <p className="font-mono text-sm">{rifles[currentRecord.rifle_id].serial_number}</p>

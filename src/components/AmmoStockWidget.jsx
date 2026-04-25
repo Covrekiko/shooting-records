@@ -77,7 +77,7 @@ export default function AmmoStockWidget() {
             </div>
             <div className="pt-3 border-t border-slate-200/60 dark:border-slate-700">
               <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mb-2.5">Top 3 in Stock:</p>
-              {ammo
+              {[...ammo]
                 .sort((a, b) => b.quantity_in_stock - a.quantity_in_stock)
                 .slice(0, 3)
                 .map((item) => (
