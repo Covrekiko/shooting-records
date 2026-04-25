@@ -217,9 +217,9 @@ export default function TargetShooting() {
          }
        }
         
-        // Decrement ammo if needed
+        // Decrement ammo if needed — pass session ID for reliable restore on delete
         if (rifle.ammunition_id && roundsFired && !uniqueAmmoIds.has(rifle.ammunition_id)) {
-          await decrementAmmoStock(rifle.ammunition_id, roundsFired, 'target_shooting');
+          await decrementAmmoStock(rifle.ammunition_id, roundsFired, 'target_shooting', activeSession.id);
           uniqueAmmoIds.add(rifle.ammunition_id);
         }
       }

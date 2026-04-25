@@ -216,9 +216,9 @@ export default function ClayShooting() {
          }
        }
 
-      // Decrement ammo if needed
+      // Decrement ammo if needed — pass session ID for reliable restore on delete
       if (formData.ammunition_id && formData.rounds_fired) {
-        await decrementAmmoStock(formData.ammunition_id, parseInt(formData.rounds_fired), 'clay_shooting');
+        await decrementAmmoStock(formData.ammunition_id, parseInt(formData.rounds_fired), 'clay_shooting', activeSession.id);
       }
 
       // Prepare data

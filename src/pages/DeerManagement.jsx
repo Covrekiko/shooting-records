@@ -126,9 +126,9 @@ export default function DeerManagement() {
         }
       }
 
-      // Decrement ammo if needed
+      // Decrement ammo if needed — pass session ID for reliable restore on delete
       if (checkoutData.ammunition_id && checkoutData.total_count) {
-        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count), 'deer_management');
+        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count), 'deer_management', activeOuting.id);
       }
 
       // Prepare data

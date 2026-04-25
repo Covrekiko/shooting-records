@@ -39,7 +39,7 @@ export default function ReloadingManagement() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this reloading session?')) return;
+    if (!confirm('Delete this reloading session? All component stock will be restored.')) return;
     try {
       // Get the session to restore its stock
       const session = sessions.find(s => s.id === id);
@@ -113,37 +113,23 @@ export default function ReloadingManagement() {
         }
       }
 
-      // Delete related AmmoSpending records for this session
-      try {
-        const user = await base44.auth.me();
-        const spendingRecords = await base44.entities.AmmoSpending.filter({ created_by: user.email });
-        console.log('🔍 Searching AmmoSpending records. Total found:', spendingRecords.length);
-        console.log('Looking for - Caliber:', session.caliber, 'Date:', session.date, 'Brand:', session.brand || 'Reloaded');
-        
-        // Delete spending records matching this session's caliber, date, and brand
-        let deletedCount = 0;
-        for (const record of spendingRecords) {
-          console.log('Checking record:', { id: record.id, caliber: record.caliber, date: record.date_used, brand: record.brand });
-          
-          // More flexible matching: normalize caliber, check exact date, flexible brand
-          const matchCaliber = record.caliber && session.caliber && 
-            (record.caliber.toLowerCase().trim() === session.caliber.toLowerCase().trim() ||
-             record.caliber.includes(session.caliber) || 
-             session.caliber.includes(record.caliber));
-          const matchDate = record.date_used === session.date;
-          const matchBrand = record.brand === 'Reloaded' || record.brand === (session.brand || 'Reloaded');
-          
-          console.log('Match results:', { matchCaliber, matchDate, matchBrand });
-          
-          if (matchCaliber && matchDate && matchBrand) {
-            console.log('✅ Deleting spending record:', record.id);
-            await base44.entities.AmmoSpending.delete(record.id);
-            deletedCount++;
+      // Reverse the global Ammunition stock added when this batch was created (if create_ammo was used)
+      if (session && session.rounds_loaded > 0) {
+        try {
+          const user = await base44.auth.me();
+          const ammoList = await base44.entities.Ammunition.filter({ created_by: user.email });
+          const matchedAmmo = ammoList.find(a =>
+            (a.brand === 'Reload' || a.brand === 'Reloaded') &&
+            a.caliber === session.caliber
+          );
+          if (matchedAmmo) {
+            const newQty = Math.max(0, (matchedAmmo.quantity_in_stock || 0) - session.rounds_loaded);
+            await base44.entities.Ammunition.update(matchedAmmo.id, { quantity_in_stock: newQty });
+            console.log(`🟢 Reversed ${session.rounds_loaded} reloaded rounds for ${session.caliber} → stock now: ${newQty}`);
           }
+        } catch (e) {
+          console.warn('Could not reverse ammo stock for reloaded batch:', e.message);
         }
-        console.log('🗑️ Total AmmoSpending records deleted:', deletedCount);
-      } catch (spendingError) {
-        console.error('❌ Could not delete AmmoSpending records:', spendingError);
       }
 
       // Delete the session
