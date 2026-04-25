@@ -39,17 +39,17 @@ export default function Reports() {
     try {
       const currentUser = await base44.auth.me();
 
-      const [targetShoots, clayShoots, deerMgmt] = await Promise.all([
-        base44.entities.TargetShooting.filter({ created_by: currentUser.email }),
-        base44.entities.ClayShooting.filter({ created_by: currentUser.email }),
-        base44.entities.DeerManagement.filter({ created_by: currentUser.email }),
-      ]);
+      // Load from the single global SessionRecord entity
+      const sessionRecords = await base44.entities.SessionRecord.filter({ created_by: currentUser.email });
 
-      const allRecords = [
-        ...targetShoots.map((r) => ({ ...r, recordType: 'target' })),
-        ...clayShoots.map((r) => ({ ...r, recordType: 'clay' })),
-        ...deerMgmt.map((r) => ({ ...r, recordType: 'deer' })),
-      ].sort((a, b) => new Date(b.date) - new Date(a.date));
+      const allRecords = sessionRecords.map((r) => {
+        const recordTypeMap = {
+          'target_shooting': 'target',
+          'clay_shooting': 'clay',
+          'deer_management': 'deer',
+        };
+        return { ...r, recordType: recordTypeMap[r.category] || r.category };
+      }).sort((a, b) => new Date(b.date) - new Date(a.date));
 
       setRecords(allRecords);
     } catch (error) {

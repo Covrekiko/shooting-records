@@ -221,10 +221,10 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
         total_cost: costBreakdown.totalCost,
         cost_per_round: costBreakdown.costPerCartridge,
         components: [
-          { type: 'primer', name: primer.name, quantity_used: cartridgesLoaded, cost: costBreakdown.primerCost },
-          { type: 'powder', name: powder.name, quantity_used: powderUsed, unit: powder.unit, cost: costBreakdown.powderCost },
-          { type: 'brass', name: brass.name, quantity_used: cartridgesLoaded, cost: costBreakdown.brassCost, is_used_brass: formData.brass_is_used },
-          { type: 'bullet', name: bullet.name, quantity_used: cartridgesLoaded, cost: costBreakdown.bulletCost },
+          { type: 'primer', component_id: formData.primer_id, name: primer.name, quantity_used: cartridgesLoaded, cost: costBreakdown.primerCost },
+          { type: 'powder', component_id: formData.powder_id, name: powder.name, quantity_used: powderUsed, unit: powder.unit, cost: costBreakdown.powderCost },
+          { type: 'brass', component_id: brassLookupId, name: brass.name, quantity_used: cartridgesLoaded, cost: costBreakdown.brassCost, is_used_brass: formData.brass_is_used },
+          { type: 'bullet', component_id: formData.bullet_id, name: bullet.name, quantity_used: cartridgesLoaded, cost: costBreakdown.bulletCost },
         ],
         notes: formData.notes,
       };

@@ -178,12 +178,36 @@ export default function Records() {
       const recordData = { ...data, category: categoryMap[recordType] };
       
       if (recordId) {
-        // Update existing
-        await getRepository('SessionRecord').update(recordId, recordData);
+        // For existing records: restore old stock first, then save, then apply new stock
+        try {
+          await base44.functions.invoke('restoreSessionStock', { sessionId: recordId });
+        } catch (e) {
+          console.warn('Could not restore old stock before edit (may be a new manual record):', e.message);
+        }
+        await base44.entities.SessionRecord.update(recordId, recordData);
+        // Re-apply ammo decrement based on new data
+        if (recordData.category === 'clay_shooting' && recordData.ammunition_id && recordData.rounds_fired) {
+          const { decrementAmmoStock } = await import('@/lib/ammoUtils');
+          await decrementAmmoStock(recordData.ammunition_id, parseInt(recordData.rounds_fired), 'clay_shooting', recordId);
+        } else if (recordData.category === 'deer_management' && recordData.ammunition_id && recordData.total_count) {
+          const { decrementAmmoStock } = await import('@/lib/ammoUtils');
+          await decrementAmmoStock(recordData.ammunition_id, parseInt(recordData.total_count), 'deer_management', recordId);
+        } else if (recordData.category === 'target_shooting' && Array.isArray(recordData.rifles_used)) {
+          const { decrementAmmoStock } = await import('@/lib/ammoUtils');
+          const ammoTotals = {};
+          for (const rifle of recordData.rifles_used) {
+            if (rifle.ammunition_id && parseInt(rifle.rounds_fired) > 0) {
+              ammoTotals[rifle.ammunition_id] = (ammoTotals[rifle.ammunition_id] || 0) + parseInt(rifle.rounds_fired);
+            }
+          }
+          for (const [ammoId, totalRounds] of Object.entries(ammoTotals)) {
+            await decrementAmmoStock(ammoId, totalRounds, 'target_shooting', recordId);
+          }
+        }
         setAllRecords(allRecords.map(r => r.id === recordId ? { ...r, ...recordData, recordType } : r));
       } else {
-        // Create new
-        const newRecord = await getRepository('SessionRecord').create(recordData);
+        // Create new manual record — no ammo deduction (manual records are historical logs)
+        const newRecord = await base44.entities.SessionRecord.create(recordData);
         setAllRecords([{ ...newRecord, recordType }, ...allRecords]);
       }
     } catch (error) {

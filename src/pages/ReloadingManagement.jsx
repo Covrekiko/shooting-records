@@ -151,7 +151,10 @@ export default function ReloadingManagement() {
   const handleSubmit = async (data) => {
     try {
       if (editingSession) {
-        await base44.entities.ReloadingSession.update(editingSession.id, data);
+        // When editing, only update metadata fields — never silently change rounds_loaded
+        // (that would cause ammo stock to drift). Preserve original rounds_loaded.
+        const safeUpdate = { ...data, rounds_loaded: editingSession.rounds_loaded };
+        await base44.entities.ReloadingSession.update(editingSession.id, safeUpdate);
       } else {
         await base44.entities.ReloadingSession.create(data);
         
