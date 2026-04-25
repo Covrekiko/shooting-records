@@ -231,45 +231,32 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
       const createdSession = await base44.entities.ReloadingSession.create(reloadSession);
 
-      // Find or create Ammunition entry for tracking
+      // Find or create Ammunition entry and add reloaded rounds to global stock
       const existingReloadedAmmo = await base44.entities.Ammunition.filter({
         created_by: user.email,
         brand: 'Reloaded',
         caliber: formData.caliber,
       });
 
-      let ammoId;
       if (existingReloadedAmmo.length > 0) {
-        ammoId = existingReloadedAmmo[0].id;
+        // Existing entry — just add to current stock
+        const existing = existingReloadedAmmo[0];
+        await base44.entities.Ammunition.update(existing.id, {
+          quantity_in_stock: (existing.quantity_in_stock || 0) + cartridgesLoaded,
+          cost_per_unit: costBreakdown.costPerCartridge,
+        });
       } else {
-        const newAmmo = await base44.entities.Ammunition.create({
+        // New entry — create with the correct starting stock
+        await base44.entities.Ammunition.create({
           brand: 'Reloaded',
           caliber: formData.caliber,
           quantity_in_stock: cartridgesLoaded,
           units: 'rounds',
           cost_per_unit: costBreakdown.costPerCartridge,
           date_purchased: formData.date,
+          notes: `Auto-created from reload batch ${formData.batch_number}`,
         });
-        ammoId = newAmmo.id;
       }
-
-      // Create AmmoSpending record to track this reloading session
-      await base44.entities.AmmoSpending.create({
-        ammunition_id: ammoId,
-        brand: 'Reloaded',
-        caliber: formData.caliber,
-        quantity_used: cartridgesLoaded,
-        cost_per_unit: costBreakdown.costPerCartridge,
-        total_cost: costBreakdown.totalCost,
-        date_used: formData.date,
-        session_type: 'reloading',
-        notes: `Reloaded batch ${formData.batch_number}`,
-      });
-
-      // Update ammunition inventory with loaded rounds
-      await base44.entities.Ammunition.update(ammoId, {
-        quantity_in_stock: (existingReloadedAmmo[0]?.quantity_in_stock || cartridgesLoaded) + cartridgesLoaded,
-      });
 
       onSubmit();
     } catch (error) {

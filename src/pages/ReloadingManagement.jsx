@@ -113,19 +113,21 @@ export default function ReloadingManagement() {
         }
       }
 
-      // Reverse the global Ammunition stock added when this batch was created (if create_ammo was used)
+      // Reverse the global Ammunition stock added when this batch was created
       if (session && session.rounds_loaded > 0) {
         try {
           const user = await base44.auth.me();
           const ammoList = await base44.entities.Ammunition.filter({ created_by: user.email });
           const matchedAmmo = ammoList.find(a =>
-            (a.brand === 'Reload' || a.brand === 'Reloaded') &&
+            a.brand === 'Reloaded' &&
             a.caliber === session.caliber
           );
           if (matchedAmmo) {
             const newQty = Math.max(0, (matchedAmmo.quantity_in_stock || 0) - session.rounds_loaded);
             await base44.entities.Ammunition.update(matchedAmmo.id, { quantity_in_stock: newQty });
             console.log(`🟢 Reversed ${session.rounds_loaded} reloaded rounds for ${session.caliber} → stock now: ${newQty}`);
+          } else {
+            console.warn(`⚠️ No 'Reloaded' ammo found for caliber ${session.caliber} — nothing to reverse`);
           }
         } catch (e) {
           console.warn('Could not reverse ammo stock for reloaded batch:', e.message);
@@ -158,12 +160,12 @@ export default function ReloadingManagement() {
           const user = await base44.auth.me();
           const existingAmmo = await base44.entities.Ammunition.filter({
             created_by: user.email,
-            brand: 'Reload',
+            brand: 'Reloaded',
             caliber: data.caliber,
           });
 
           if (existingAmmo.length > 0) {
-            // Update existing ammo
+            // Update existing ammo — add to current stock
             const ammo = existingAmmo[0];
             await base44.entities.Ammunition.update(ammo.id, {
               quantity_in_stock: (ammo.quantity_in_stock || 0) + data.rounds_loaded,
@@ -171,7 +173,7 @@ export default function ReloadingManagement() {
           } else {
             // Create new ammo entry
             await base44.entities.Ammunition.create({
-              brand: 'Reload',
+              brand: 'Reloaded',
               caliber: data.caliber,
               bullet_type: 'Custom',
               quantity_in_stock: data.rounds_loaded,
