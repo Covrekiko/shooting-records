@@ -19,6 +19,7 @@ import TargetAnalysisPanel from '@/components/target-analysis/TargetAnalysisPane
 import TargetAnalysisSummary from '@/components/target-analysis/TargetAnalysisSummary';
 import { useAutoCheckin } from '@/hooks/useAutoCheckin';
 import AutoCheckinBanner from '@/components/AutoCheckinBanner';
+import { T } from '@/lib/theme';
 
 export default function TargetShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -279,17 +280,17 @@ export default function TargetShooting() {
 
   if (loading) {
     return (
-      <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
+      <div style={{ background: T.bg }} className="min-h-screen">
         <Navigation />
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: `${T.bronze} transparent ${T.bronze} ${T.bronze}` }} />
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
+    <div style={{ background: T.bg }} className="min-h-screen">
       <Navigation />
       {nearbyClub && (
         <CheckinBanner location={nearbyClub.name} distance={nearbyClub.distance} onDismiss={() => setNearbyClub(null)} onCheckin={() => setShowCheckin(true)} />
@@ -305,20 +306,20 @@ export default function TargetShooting() {
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-4 mobile-page-padding">
         <div className="mb-4 flex items-center justify-between">
           <div className="hidden md:block">
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Target Shooting</h1>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Rifle range sessions</p>
+            <h1 className="text-xl font-bold tracking-tight" style={{ color: T.text }}>Target Shooting</h1>
+            <p className="text-xs mt-0.5" style={{ color: T.muted }}>Rifle range sessions</p>
           </div>
 
         </div>
 
         {!activeSession && (
-          <div className={`${DESIGN.CARD} p-5 mb-4 flex flex-col items-center justify-center text-center gap-3`}>
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center">
-              <Crosshair className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+          <div className="p-5 mb-4 flex flex-col items-center justify-center text-center gap-3 rounded-2xl" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: T.panel }}>
+              <Crosshair className="w-6 h-6" style={{ color: T.bronze }} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No Active Session</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Start a session to begin tracking</p>
+              <p className="text-sm font-semibold" style={{ color: T.text }}>No Active Session</p>
+              <p className="text-xs mt-0.5" style={{ color: T.muted }}>Start a session to begin tracking</p>
             </div>
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
               className={`${DESIGN.BUTTON_PRIMARY} flex items-center gap-2 w-full justify-center`}>
@@ -329,19 +330,19 @@ export default function TargetShooting() {
         )}
 
         {activeSession && (
-          <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-2xl p-4 mb-4">
+          <div className="rounded-2xl p-4 mb-4" style={{ background: T.card, border: `1px solid ${T.border}`, borderTop: `2px solid ${T.bronze}` }}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
+                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 animate-pulse" style={{ background: T.bronze }} />
                 <div>
-                  <p className="text-xs font-bold text-primary uppercase tracking-widest">Active Session</p>
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mt-0.5">
+                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: T.bronze }}>Active Session</p>
+                  <p className="text-sm font-semibold mt-0.5" style={{ color: T.text }}>
                     {activeSession.location_name || 'Target Range'}
                   </p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Started {activeSession.checkin_time}</p>
-                  {activeSession.check_in_method === 'auto_geolocation' && (
-                    <p className="text-[10px] text-primary font-medium mt-0.5">📍 Auto by Geolocation</p>
-                  )}
+                  <p className="text-xs" style={{ color: T.muted }}>Started {activeSession.checkin_time}</p>
+                   {activeSession.check_in_method === 'auto_geolocation' && (
+                     <p className="text-[10px] font-medium mt-0.5" style={{ color: T.bronze }}>📍 Auto by Geolocation</p>
+                   )}
                 </div>
               </div>
               <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowCheckout(true)}
@@ -352,7 +353,8 @@ export default function TargetShooting() {
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => setShowTargetAnalysis(true)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-background dark:bg-slate-800 border border-primary/30 rounded-xl text-sm font-semibold text-primary hover:bg-primary/5 transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+              style={{ background: T.bg, border: `1px solid ${T.border}`, color: T.bronze }}
             >
               <Microscope className="w-4 h-4" />
               Open Target Analysis
@@ -363,20 +365,21 @@ export default function TargetShooting() {
         {/* Scope Click Card Banner */}
         <Link
           to="/scope-click-card"
-          className="flex items-center justify-between gap-3 bg-primary/10 border border-primary/30 rounded-xl px-5 py-4 mb-4 hover:bg-primary/15 transition-colors group"
+          className="flex items-center justify-between gap-3 rounded-xl px-5 py-4 mb-4 transition-colors group"
+          style={{ background: T.card, border: `1px solid ${T.border}` }}
         >
           <div className="flex items-center gap-3">
-            <ScanLine className="w-5 h-5 text-primary flex-shrink-0" />
+            <ScanLine className="w-5 h-5 flex-shrink-0" style={{ color: T.bronze }} />
             <div>
-              <p className="font-semibold text-sm">Scope Click Cards / Ballistic DOPE</p>
-              <p className="text-xs text-muted-foreground">Manage scope profiles, click data & range confirmations</p>
+              <p className="font-semibold text-sm" style={{ color: T.text }}>Scope Click Cards / Ballistic DOPE</p>
+              <p className="text-xs" style={{ color: T.muted }}>Manage scope profiles, click data & range confirmations</p>
             </div>
           </div>
-          <span className="text-xs font-semibold text-primary group-hover:underline whitespace-nowrap">Open →</span>
+          <span className="text-xs font-semibold group-hover:underline whitespace-nowrap" style={{ color: T.bronze }}>Open →</span>
         </Link>
 
         <div className="mt-4">
-          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Sessions</p>
+          <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: T.bronze }}>Recent Sessions</p>
           <RecordsSection category="target_shooting" title="Session Records" emptyMessage="No target shooting sessions recorded yet" />
         </div>
 
