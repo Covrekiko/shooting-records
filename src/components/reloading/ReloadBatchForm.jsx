@@ -457,6 +457,10 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     return { valid: true };
   };
 
+  if (loading) {
+    return <div className="text-center py-6" style={{ backgroundColor: darkBg }}><div className="w-6 h-6 border-2 rounded-full animate-spin mx-auto" style={{ borderColor, borderTopColor: accentBronze }}></div></div>;
+  }
+
   // Premium dark tactical color palette
   const darkBg = "#151A18";
   const secondaryBg = "#1E2421";
@@ -465,10 +469,6 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
   const secondaryText = "#A8ADA7";
   const accentBronze = "#C79A45";
   const darkBronze = "#8A6A35";
-
-  if (loading) {
-    return <div className="text-center py-6" style={{ backgroundColor: darkBg }}><div className="w-6 h-6 border-2 rounded-full animate-spin mx-auto" style={{ borderColor, borderTopColor: accentBronze }}></div></div>;
-  }
 
   const inputCls = "w-full px-3.5 py-3 border text-base transition-all rounded-lg text-[#F2F2EF] placeholder-[#6B7370]"
     + " bg-[#1E2421] border-[#2E3732] focus:border-[#C79A45] focus:ring-1 focus:ring-[#C79A45]/20 outline-none";
