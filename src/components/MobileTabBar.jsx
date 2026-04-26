@@ -40,18 +40,18 @@ export default function MobileTabBar() {
   // Sync status pill config
   let syncPill = null;
   if (!isOnline) {
-    syncPill = { icon: WifiOff, label: 'Offline', bg: 'bg-slate-600', action: null };
+    syncPill = { icon: WifiOff, label: 'Offline', bg: 'bg-slate-500', action: null };
   } else if (isSyncing) {
-    syncPill = { icon: RefreshCw, label: `Syncing…`, bg: 'bg-blue-500', spinning: true, action: null };
+    syncPill = { icon: RefreshCw, label: `Syncing…`, bg: 'bg-cyan-600', spinning: true, action: null };
   } else if (syncFailed) {
-    syncPill = { icon: CloudUpload, label: 'Sync failed — tap to retry', bg: 'bg-red-500', action: manualSync };
+    syncPill = { icon: CloudUpload, label: 'Sync failed — tap to retry', bg: 'bg-rose-600', action: manualSync };
   } else if (hasPending) {
-    syncPill = { icon: CloudUpload, label: `${pendingCount} pending`, bg: 'bg-amber-500', action: manualSync };
+    syncPill = { icon: CloudUpload, label: `${pendingCount} pending`, bg: 'bg-amber-600', action: manualSync };
   }
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-[9000] bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-700/60"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[9000] bg-card/95 backdrop-blur-md border-t border-border"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       {/* Sync status strip */}
@@ -76,16 +76,16 @@ export default function MobileTabBar() {
               key={key}
               onClick={() => handleTabPress(key)}
               className={`flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 transition-colors active:scale-90 transform-gpu ${
-                isActive ? 'text-primary' : 'text-slate-400 dark:text-slate-500'
+                isActive ? 'text-primary' : 'text-muted-foreground'
               }`}
-            >
+              >
               <div className={`flex items-center justify-center w-7 h-7 rounded-xl transition-all ${
-                isActive ? 'bg-primary/10 dark:bg-primary/20' : ''
+                isActive ? 'bg-primary/10' : ''
               }`}>
                 <Icon style={{ width: isActive ? 20 : 18, height: isActive ? 20 : 18 }} />
               </div>
               <span className={`text-[9px] font-semibold tracking-tight leading-none ${
-                isActive ? 'text-primary' : 'text-slate-400 dark:text-slate-500'
+                isActive ? 'text-primary' : 'text-muted-foreground'
               }`}>
                 {label}
               </span>

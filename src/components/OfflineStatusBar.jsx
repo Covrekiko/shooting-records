@@ -20,20 +20,20 @@ export default function OfflineStatusBar() {
   let bgClass = '';
 
   if (!isOnline) {
-    bgClass = 'bg-slate-700 dark:bg-slate-800';
+    bgClass = 'bg-muted';
     content = (
       <>
         <WifiOff className="w-3.5 h-3.5 flex-shrink-0" />
         <span>Offline</span>
         {pendingCount > 0 && (
-          <span className="ml-1 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+          <span className="ml-1 bg-warning text-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">
             {pendingCount} pending
           </span>
         )}
       </>
     );
   } else if (isSyncing) {
-    bgClass = 'bg-blue-600 dark:bg-blue-700';
+    bgClass = 'bg-cyan-700';
     content = (
       <>
         <RefreshCw className="w-3.5 h-3.5 flex-shrink-0 animate-spin" />
@@ -41,13 +41,13 @@ export default function OfflineStatusBar() {
       </>
     );
   } else if (syncState === SYNC_STATE.FAILED) {
-    bgClass = 'bg-red-600 dark:bg-red-700';
+    bgClass = 'bg-destructive';
     content = (
       <>
         <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
         <span>Sync failed</span>
         {lastSyncResult?.failed > 0 && (
-          <span className="ml-1 text-red-200 text-[10px]">({lastSyncResult.failed} errors)</span>
+          <span className="ml-1 text-destructive/70 text-[10px]">({lastSyncResult.failed} errors)</span>
         )}
         <button
           onClick={manualSync}
@@ -58,7 +58,7 @@ export default function OfflineStatusBar() {
       </>
     );
   } else if (isOnline && pendingCount > 0) {
-    bgClass = 'bg-amber-500 dark:bg-amber-600';
+    bgClass = 'bg-warning';
     content = (
       <>
         <CloudOff className="w-3.5 h-3.5 flex-shrink-0" />
@@ -81,7 +81,7 @@ export default function OfflineStatusBar() {
         initial={{ opacity: 0, y: -4 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -4 }}
-        className={`relative z-[8999] ${bgClass} text-white text-xs font-semibold flex items-center justify-center gap-2 px-4 py-1.5`}
+        className={`relative z-[8999] ${bgClass} text-foreground text-xs font-semibold flex items-center justify-center gap-2 px-4 py-1.5`}
       >
         {content}
       </motion.div>
