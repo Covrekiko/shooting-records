@@ -275,8 +275,8 @@ export default function DeerStalkingMap() {
       return;
     }
     try {
-      if (checkoutData.ammunition_id && checkoutData.total_count) {
-        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count));
+      if (checkoutData.shot_anything && checkoutData.ammunition_id && checkoutData.total_count) {
+        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count), 'deer_management', activeOuting.id);
       }
 
       const submitData = { ...checkoutData, active_checkin: false };

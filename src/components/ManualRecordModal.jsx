@@ -58,6 +58,8 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
     // Clay Shooting
     shotgun_id: record?.shotgun_id || '',
     rounds_fired: record?.rounds_fired || '',
+
+    // Ammo (shared, no duplicate keys)
     ammunition_used: record?.ammunition_used || '',
     ammunition_id: record?.ammunition_id || '',
 
@@ -69,8 +71,6 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
     species_list: record?.species_list || [],
     total_count: record?.total_count || '',
     rifle_id: record?.rifle_id || '',
-    ammunition_id: record?.ammunition_id || '',
-    ammunition_used: record?.ammunition_used || '',
   });
 
   useEffect(() => {
@@ -83,7 +83,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
       setUser(currentUser);
       const [clubsList, locationsList, riflesList, shotgunsList, ammoList] = await Promise.all([
         base44.entities.Club.filter({ created_by: currentUser.email }),
-        base44.entities.DeerLocation.filter({ created_by: currentUser.email }),
+        base44.entities.Area.filter({ created_by: currentUser.email }),
         base44.entities.Rifle.filter({ created_by: currentUser.email }),
         base44.entities.Shotgun.filter({ created_by: currentUser.email }),
         base44.entities.Ammunition.filter({ created_by: currentUser.email }),
@@ -275,7 +275,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                     {formData.rifles_used.map((rifle, idx) => (
                       <div key={idx} className="bg-secondary/30 p-3 rounded-lg">
                         <div className="flex justify-between items-start mb-2">
-                          <div className="font-medium">{rifles[rifle.rifle_id]?.name || 'Unknown Rifle'}</div>
+                          <div className="font-medium">{rifles.find(r => r.id === rifle.rifle_id)?.name || 'Unknown Rifle'}</div>
                           <button
                             type="button"
                             onClick={() => setFormData({ ...formData, rifles_used: formData.rifles_used.filter((_, i) => i !== idx) })}
@@ -375,7 +375,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                   value={formData.location_id}
                   onChange={(val) => { setFormData({ ...formData, location_id: val }); clearError('location'); }}
                   placeholder="Select a location"
-                  options={locations.map(l => ({ value: l.id, label: l.place_name }))}
+                  options={locations.map(l => ({ value: l.id, label: l.name }))}
                 />
                 {errors.location && <p className="text-xs text-destructive mt-1">{errors.location}</p>}
               </div>

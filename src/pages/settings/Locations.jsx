@@ -18,7 +18,7 @@ export default function Locations() {
     deer_species: [],
     notes: '',
   });
-  const [addressError, setAddressError] = useState('');
+
 
   useEffect(() => {
     loadLocations();
@@ -33,43 +33,6 @@ export default function Locations() {
       console.error('Error loading locations:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const validateAddress = async () => {
-    const address = `${formData.address_number} ${formData.address_street}, ${formData.city}, ${formData.postcode}`;
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
-      );
-      const results = await response.json();
-      if (results.length === 0) {
-        setAddressError('Address not found. Please check and try again.');
-        return false;
-      }
-      setAddressError('');
-      return true;
-    } catch (error) {
-      setAddressError('Error validating address');
-      return false;
-    }
-  };
-
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setFormData({
-            ...formData,
-            latitude: position.coords.latitude.toFixed(6),
-            longitude: position.coords.longitude.toFixed(6),
-          });
-        },
-        (error) => alert('Could not get location: ' + error.message),
-        { enableHighAccuracy: true }
-      );
-    } else {
-      alert('Geolocation not supported');
     }
   };
 
@@ -105,7 +68,6 @@ export default function Locations() {
         deer_species: [],
         notes: '',
       });
-      setAddressError('');
       setShowForm(false);
     } catch (error) {
       console.error('Error saving area:', error);
@@ -168,7 +130,6 @@ export default function Locations() {
               deer_species: [],
               notes: '',
             });
-            setAddressError('');
             setShowForm(!showForm);
           }}
           className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 mb-6"
