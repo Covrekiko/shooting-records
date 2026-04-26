@@ -38,8 +38,10 @@ export default function Records() {
   const anyModalOpen = !!(viewingRecord || previewingPdf || viewingTrack || viewingPhoto || manualRecordModal);
   useBodyScrollLock(anyModalOpen);
 
-  const loadRecordsCallback = useCallback(() => loadRecords(), []);
-  const { pulling, progress, refreshing } = usePullToRefresh(loadRecordsCallback);
+  const loadRecordsRef = useRef(null);
+  const { pulling, progress, refreshing } = usePullToRefresh(useCallback(() => {
+    loadRecordsRef.current?.();
+  }, []));
 
   useEffect(() => {
     loadRecords();
@@ -50,6 +52,7 @@ export default function Records() {
   }, [filters, allRecords]);
 
   const loadRecords = async () => {
+    loadRecordsRef.current = loadRecords;
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
