@@ -13,7 +13,6 @@ import { trackingService } from '@/lib/trackingService';
 import ModalShell from '@/components/ModalShell';
 import { motion } from 'framer-motion';
 import { DESIGN } from '@/lib/designConstants';
-import { T } from '@/lib/theme';
 
 let liveGpsTrack = [];
 
@@ -159,17 +158,17 @@ export default function DeerManagement() {
 
   if (loading || outingLoading) {
     return (
-      <div style={{ background: T.bg }} className="min-h-screen">
+      <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
         <Navigation />
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: `${T.bronze} transparent ${T.bronze} ${T.bronze}` }} />
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ background: T.bg }} className="min-h-screen">
+    <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
       <Navigation />
       {nearbyLocation && (
         <CheckinBanner location={nearbyLocation.name} distance={nearbyLocation.distance} onDismiss={() => setNearbyLocation(null)} onCheckin={() => setShowCheckin(true)} />
@@ -223,7 +222,7 @@ export default function DeerManagement() {
         )}
 
         <div className="mt-4">
-          <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: T.bronze }}>Recent Outings</p>
+          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Outings</p>
           <RecordsSection category="deer_management" title="Outing Records" emptyMessage="No deer management outings recorded yet" />
         </div>
 

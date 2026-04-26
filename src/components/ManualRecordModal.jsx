@@ -8,7 +8,6 @@ import { X } from 'lucide-react';
 import AddRifleForm from './AddRifleForm';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
-import { T } from '@/lib/theme';
 
 async function handlePhotoUpload(files, data, setFormData) {
   if (!files || files.length === 0) return;
@@ -184,8 +183,8 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
   if (loading) {
     return createPortal(
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[50001]">
-        <div className="rounded-lg p-6 max-w-md w-full" style={{ background: T.card }}>
-          <div className="w-6 h-6 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: `${T.bronze} transparent ${T.bronze} ${T.bronze}` }}></div>
+        <div className="bg-card rounded-lg p-6 max-w-md w-full">
+          <div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>,
       document.body
@@ -194,10 +193,10 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
 
   return createPortal(
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[50001] overflow-y-auto" ref={modalRef}>
-      <div className="rounded-2xl max-w-2xl w-full p-6 my-8" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+      <div className="bg-card rounded-lg max-w-2xl w-full p-6 my-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold" style={{ color: T.text }}>{record ? 'Edit Record' : 'Add Manual Record'}</h2>
-          <button onClick={onClose} className="p-1 rounded transition-colors" style={{ color: T.muted }}>
+          <h2 className="text-2xl font-bold">{record ? 'Edit Record' : 'Add Manual Record'}</h2>
+          <button onClick={onClose} className="p-1 hover:bg-secondary rounded">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -206,7 +205,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
           {/* Record Type & Date */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: T.text }}>Record Type</label>
+              <label className="block text-sm font-medium mb-2">Record Type</label>
               <BottomSheetSelect
                 value={recordType}
                 onChange={setRecordType}
@@ -219,7 +218,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: T.text }}>Date</label>
+              <label className="block text-sm font-medium mb-2">Date</label>
               <input
                 type="date"
                 value={date}
@@ -227,17 +226,12 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                   setDate(e.target.value);
                   clearError('date');
                 }}
-                style={{
-                  width: '100%',
-                  padding: '0.5rem 0.75rem',
-                  border: `1px solid ${errors.date ? T.danger : T.border}`,
-                  borderRadius: '0.5rem',
-                  background: T.bg,
-                  color: T.text,
-                }}
+                className={`w-full px-3 py-2 border rounded-lg bg-background ${
+                  errors.date ? 'border-destructive' : 'border-border'
+                }`}
                 required
               />
-              {errors.date && <p className="text-xs mt-1" style={{ color: T.danger }}>{errors.date}</p>}
+              {errors.date && <p className="text-xs text-destructive mt-1">{errors.date}</p>}
             </div>
           </div>
 

@@ -58,7 +58,7 @@ export default function OfflineStatusBar() {
       </>
     );
   } else if (isOnline && pendingCount > 0) {
-    bgClass = 'bg-[#8A6A35]';
+    bgClass = 'bg-amber-500 dark:bg-amber-600';
     content = (
       <>
         <CloudOff className="w-3.5 h-3.5 flex-shrink-0" />
