@@ -382,11 +382,9 @@ export default function ReloadingManagement() {
 
         {/* Reload Batch Form Modal */}
         {showBatchForm && createPortal(
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[50000] flex items-end sm:items-center justify-center p-4">
-            <div
-              className="bg-[#151A18] border border-[#2E3732] rounded-t-2xl sm:rounded-xl w-full sm:max-w-2xl flex flex-col shadow-2xl"
-              style={{ maxHeight: '92dvh' }}
-            >
+          <div className="fixed inset-0 bg-black/50 z-[50000] flex items-end sm:items-center justify-center">
+            <div className="bg-card rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl flex flex-col"
+              style={{ maxHeight: '92dvh' }}>
               <ReloadBatchForm
                 onSubmit={() => {
                   setShowBatchForm(false);
