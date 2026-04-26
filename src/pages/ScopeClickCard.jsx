@@ -7,6 +7,7 @@ import ScopeProfileCard from '@/components/scope/ScopeProfileCard';
 import ScopeProfileForm from '@/components/scope/ScopeProfileForm';
 import ScopeDetailView from '@/components/scope/ScopeDetailView';
 import { exportAllRifleScopeDataPDF } from '@/utils/scopePdfExport';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 export default function ScopeClickCard() {
   const [profiles, setProfiles] = useState([]);
@@ -82,6 +83,8 @@ export default function ScopeClickCard() {
     loadData();
   };
 
+  useBodyScrollLock(!!(showForm || selectedProfile));
+
   const filteredProfiles = profiles.filter(p => {
     const q = searchQuery.toLowerCase();
     const matchSearch = !q || [p.scope_brand, p.scope_model, p.caliber, p.rifle_name, p.bullet_brand, p.zero_ammo]
@@ -92,7 +95,7 @@ export default function ScopeClickCard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
         <Navigation />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -102,7 +105,7 @@ export default function ScopeClickCard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         {/* Header */}

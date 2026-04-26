@@ -93,7 +93,7 @@ export default function AmmunitionInventory() {
 
   if (loading) {
     return (
-      <div>
+      <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
         <Navigation />
         <div className="flex items-center justify-center min-h-screen">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -103,9 +103,9 @@ export default function AmmunitionInventory() {
   }
 
   return (
-    <div>
+    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
-      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8">
+      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold mb-1">Ammunition Inventory</h1>

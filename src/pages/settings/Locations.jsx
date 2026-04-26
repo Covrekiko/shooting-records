@@ -138,7 +138,7 @@ export default function Locations() {
 
   if (loading) {
     return (
-      <div>
+      <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
         <ChildScreenHeader title="Deer Locations" />
         <div className="flex items-center justify-center min-h-screen">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -148,9 +148,9 @@ export default function Locations() {
   }
 
   return (
-    <div>
+    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <ChildScreenHeader title="Deer Locations" />
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-4xl mx-auto px-4 py-8 mobile-page-padding">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Deer Locations</h1>
           <p className="text-muted-foreground">Manage your hunting locations</p>

@@ -255,7 +255,7 @@ export default function AdminUsers() {
                         <MoreVertical className="w-4 h-4" />
                       </button>
                       {selectedUserMenu === user.id && (
-                        <div className="absolute right-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg z-10">
+                        <div className="absolute right-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg z-10" onMouseLeave={() => setSelectedUserMenu(null)}>
                           <button
                             onClick={() => handleStatusChange(user.id, 'suspended')}
                             className="w-full px-4 py-2 text-left text-sm hover:bg-secondary flex items-center gap-2 border-b border-border"
