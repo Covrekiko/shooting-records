@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
 
 export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition, onSubmit, onClose }) {
-  console.log('🔴 UnifiedCheckoutModal RENDERING - activeOuting:', activeOuting?.id, 'rifles:', rifles.length, 'ammunition:', ammunition.length);
+  useBodyScrollLock(true);
   const [checkoutData, setCheckoutData] = useState({
     end_time: new Date().toTimeString().slice(0, 5),
     shot_anything: false,

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, Clock } from 'lucide-react';
 import { getRepository } from '@/lib/offlineSupport';
 import { format } from 'date-fns';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 const Field = ({ label, value }) => {
   if (!value && value !== 0) return null;
@@ -30,6 +31,7 @@ const CATEGORY_CONFIG = {
 };
 
 export default function RecordDetailModal({ record, onClose, rifles, shotguns, clubs, locations }) {
+  useBodyScrollLock(true);
   const [rec, setRec] = useState(record);
 
   useEffect(() => {

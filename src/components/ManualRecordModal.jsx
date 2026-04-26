@@ -7,6 +7,7 @@ import { base44 } from '@/api/base44Client';
 import { X } from 'lucide-react';
 import AddRifleForm from './AddRifleForm';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 async function handlePhotoUpload(files, data, setFormData) {
   if (!files || files.length === 0) return;
@@ -27,6 +28,7 @@ async function handlePhotoUpload(files, data, setFormData) {
 }
 
 export default function ManualRecordModal({ record = null, onClose, onSave, recordTypes = ['target', 'clay', 'deer'] }) {
+  useBodyScrollLock(true);
   const modalRef = useRef(null);
   const { errors, validateField, clearError, hasErrors } = useFormValidation();
   useMobileKeyboardHandler(modalRef);

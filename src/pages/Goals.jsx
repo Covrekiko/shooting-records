@@ -5,12 +5,14 @@ import Navigation from '@/components/Navigation';
 import GoalCard from '@/components/GoalCard';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
 import { Plus, Trophy } from 'lucide-react';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 export default function Goals() {
   const [goals, setGoals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [user, setUser] = useState(null);
+  useBodyScrollLock(showForm);
 
   useEffect(() => {
     loadGoals();

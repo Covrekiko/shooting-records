@@ -112,9 +112,9 @@ export default function LoadDevelopment() {
   }
 
   return (
-    <div>
+    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
-      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8">
+      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
           <div>
