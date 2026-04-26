@@ -428,7 +428,7 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
               <Edit className="w-4 h-4" />
             </button>
             <button
-              onClick={() => onDelete(record.id)}
+              onClick={onDelete}
               className="px-3 py-1 text-sm bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded transition-colors flex items-center gap-1"
             >
               <Trash2 className="w-4 h-4" />

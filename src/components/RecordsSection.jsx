@@ -213,14 +213,14 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
         {/* Target Shooting Section */}
         {category === 'target_shooting' && (
           <>
-            {currentRecord.location_id && clubs[currentRecord.location_id] && (
+            {(currentRecord.club_id && clubs[currentRecord.club_id]) && (
               <div className="mb-6 pb-4 border-b border-border">
                 <h3 className="font-bold text-lg mb-3 text-primary">Venue Details</h3>
                 <div className="bg-secondary/30 p-4 rounded-lg">
-                  <p className="font-semibold text-base">{clubs[currentRecord.location_id].name}</p>
-                  <p className="text-sm text-muted-foreground mt-2">{clubs[currentRecord.location_id].location}</p>
-                  {clubs[currentRecord.location_id].notes && (
-                    <p className="text-sm mt-2">{clubs[currentRecord.location_id].notes}</p>
+                  <p className="font-semibold text-base">{clubs[currentRecord.club_id].name}</p>
+                  <p className="text-sm text-muted-foreground mt-2">{clubs[currentRecord.club_id].location}</p>
+                  {clubs[currentRecord.club_id].notes && (
+                    <p className="text-sm mt-2">{clubs[currentRecord.club_id].notes}</p>
                   )}
                 </div>
               </div>
@@ -317,13 +317,13 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
         {/* Clay Shooting Section */}
         {category === 'clay_shooting' && (
           <>
-            {getClubName(currentRecord.location_id) && (
+            {(currentRecord.club_id && clubs[currentRecord.club_id]) && (
               <div className="mb-6 pb-4 border-b border-border">
                 <h3 className="font-bold text-base sm:text-lg mb-3 text-primary">Venue Details</h3>
                 <div className="bg-secondary/30 p-4 rounded-lg">
-                  <p className="font-semibold text-base">{getClubName(currentRecord.location_id)}</p>
-                  {clubs[currentRecord.location_id]?.location && (
-                    <p className="text-sm text-muted-foreground mt-1">{clubs[currentRecord.location_id].location}</p>
+                  <p className="font-semibold text-base">{getClubName(currentRecord.club_id)}</p>
+                  {clubs[currentRecord.club_id]?.location && (
+                    <p className="text-sm text-muted-foreground mt-1">{clubs[currentRecord.club_id].location}</p>
                   )}
                 </div>
               </div>

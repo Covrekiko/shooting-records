@@ -19,7 +19,7 @@ import { RoundsPerMonthChart } from '@/components/RoundsPerMonthChart';
 import { DeerSuccessRateChart } from '@/components/DeerSuccessRateChart';
 import AmmoStockWidget from '@/components/AmmoStockWidget';
 import ReloadingWidget from '@/components/widgets/ReloadingWidget';
-import { preCacheUserData, getRepository } from '@/lib/offlineSupport';
+import { getRepository } from '@/lib/offlineSupport';
 
 // ── data helpers (unchanged logic) ──────────────────────────────────────────
 function getMonthlyData(targetShoots, clayShoots, deerMgmt) {
@@ -106,7 +106,7 @@ function getDeerSuccessRate(deerMgmt) {
 function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
   const locationMap = {};
   const clubMap = clubs.reduce((acc, c) => ({ ...acc, [c.id]: c.name }), {});
-  const deerLocationMap = locations.reduce((acc, l) => ({ ...acc, [l.id]: l.place_name }), {});
+  const deerLocationMap = locations.reduce((acc, l) => ({ ...acc, [l.id]: l.name }), {});
   targetShoots.forEach((r) => { const name = clubMap[r.location_id] || clubMap[r.club_id] || r.location_name || 'Unknown Club'; locationMap[name] = (locationMap[name] || 0) + 1; });
   clayShoots.forEach((r) => { const name = clubMap[r.location_id] || clubMap[r.club_id] || r.location_name || 'Unknown Club'; locationMap[name] = (locationMap[name] || 0) + 1; });
   deerMgmt.forEach((r) => { const name = deerLocationMap[r.location_id] || r.place_name || 'Unknown Location'; locationMap[name] = (locationMap[name] || 0) + 1; });
@@ -248,9 +248,6 @@ export default function Dashboard() {
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-
-      // Pre-cache data for offline use (non-blocking)
-      preCacheUserData(currentUser.email).catch(() => {});
 
       if (currentUser.role === 'admin') {
         const [users, allRecords] = await Promise.all([

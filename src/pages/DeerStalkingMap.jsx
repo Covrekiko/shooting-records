@@ -37,7 +37,6 @@ export default function DeerStalkingMap() {
 
   const [markers, setMarkers] = useState([]);
   const [harvests, setHarvests] = useState([]);
-  const [locations, setLocations] = useState([]);
   const [userLocation, setUserLocation] = useState(defaultCenter);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -135,15 +134,13 @@ export default function DeerStalkingMap() {
     try {
       setLoading(true);
       const currentUser = await base44.auth.me();
-      const [markersData, harvestsData, locationsData, areasData] = await Promise.all([
+      const [markersData, harvestsData, areasData] = await Promise.all([
         base44.entities.MapMarker.list(),
         base44.entities.Harvest.list(),
-        base44.entities.DeerLocation.list(),
         base44.entities.Area.filter({ created_by: currentUser.email }),
       ]);
       setMarkers(markersData || []);
       setHarvests(harvestsData || []);
-      setLocations(locationsData || []);
       setSavedAreas(areasData || []);
     } catch (err) {
       setError(err.message);
@@ -685,7 +682,6 @@ export default function DeerStalkingMap() {
           {showOuting && (
             <div className="fixed inset-0 z-[50001] flex items-center justify-center">
               <OutingModal
-                locations={locations}
                 onClose={() => setShowOuting(false)}
                 onSubmit={handleStartOuting}
                 selectedArea={savedAreas.find((a) => a.id === selectedAreaId)}

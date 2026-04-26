@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
 import { cacheUserProfile, getCachedUserProfile } from '@/lib/syncEngine';
+import { preCacheUserData } from '@/lib/offlineSupport';
 
 const AuthContext = createContext();
 
@@ -108,8 +109,9 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       setAuthError(null); // Clear any previous auth errors on success
       setIsLoadingAuth(false);
-      // Cache user profile for offline access
+      // Cache user profile and pre-cache all entity data for offline access
       cacheUserProfile(currentUser).catch(() => {});
+      preCacheUserData(currentUser.email).catch(() => {});
     } catch (error) {
       console.error('User auth check failed:', error);
 
