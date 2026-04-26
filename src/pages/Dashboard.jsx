@@ -20,6 +20,7 @@ import { DeerSuccessRateChart } from '@/components/DeerSuccessRateChart';
 import AmmoStockWidget from '@/components/AmmoStockWidget';
 import ReloadingWidget from '@/components/widgets/ReloadingWidget';
 import { getRepository } from '@/lib/offlineSupport';
+import { useModules } from '@/context/ModulesContext';
 
 // ── data helpers (unchanged logic) ──────────────────────────────────────────
 function getMonthlyData(targetShoots, clayShoots, deerMgmt) {
@@ -180,16 +181,18 @@ function PrimaryCard({ to, icon, label, sub }) {
 }
 
 function SecondaryGrid({ user }) {
-  const items = [
-    { to: '/target-shooting', icon: <Crosshair />, label: 'Target' },
-    { to: '/clay-shooting', icon: <Target />, label: 'Clay' },
-    { to: '/deer-management', icon: <span className="text-lg">🦌</span>, label: 'Deer' },
-    { to: '/reloading', icon: <RefreshCw />, label: 'Reloading' },
-    { to: '/load-development', icon: <FlaskConical />, label: 'Load Dev' },
+  const { isEnabled } = useModules();
+  const allItems = [
+    { to: '/target-shooting', icon: <Crosshair />, label: 'Target', module: 'target_shooting' },
+    { to: '/clay-shooting', icon: <Target />, label: 'Clay', module: 'clay_shooting' },
+    { to: '/deer-management', icon: <span className="text-lg">🦌</span>, label: 'Deer', module: 'deer_management' },
+    { to: '/reloading', icon: <RefreshCw />, label: 'Reloading', module: 'reloading' },
+    { to: '/load-development', icon: <FlaskConical />, label: 'Load Dev', module: 'reloading' },
     { to: '/settings/rifles', icon: <span className="text-lg">🔧</span>, label: 'Equipment' },
     { to: '/reports', icon: <BarChart3 />, label: 'Reports' },
     ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck />, label: 'Admin' }] : []),
   ];
+  const items = allItems.filter(item => !item.module || isEnabled(item.module));
 
   return (
     <div className="grid grid-cols-4 gap-2">
@@ -241,6 +244,7 @@ export default function Dashboard() {
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const { activeOuting } = useOuting();
+  const { isEnabled } = useModules();
 
   const today = format(new Date(), 'EEE, d MMM');
 
@@ -326,17 +330,17 @@ export default function Dashboard() {
 
 
         {/* ── Active Session Banner ── */}
-        {activeOuting && <ActiveSessionBanner outing={activeOuting} />}
+        {activeOuting && isEnabled('stalk_map') && <ActiveSessionBanner outing={activeOuting} />}
 
         {/* ── Primary Actions ── */}
-        <PrimaryCard to="/deer-stalking" icon={<Map />} label="Stalking Map" sub="Areas & outings" />
+        {isEnabled('stalk_map') && <PrimaryCard to="/deer-stalking" icon={<Map />} label="Stalking Map" sub="Areas & outings" />}
 
         {/* ── Secondary Grid ── */}
         <SecondaryGrid user={user} />
 
         {/* ── Widgets ── */}
         <AmmoStockWidget />
-        <ReloadingWidget />
+        {isEnabled('reloading') && <ReloadingWidget />}
 
         {/* ── Analytics (collapsible) ── */}
         {chartData && <ChartsSection chartData={chartData} />}

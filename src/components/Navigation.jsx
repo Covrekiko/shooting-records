@@ -9,6 +9,7 @@ import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOffline } from '@/context/OfflineContext';
 import { getTabForPath, TAB_DEFAULT } from '@/context/TabHistoryContext';
+import { useModules } from '@/context/ModulesContext';
 
 const PAGE_TITLES = {
   '/target-shooting': 'Target Shooting',
@@ -40,17 +41,17 @@ const NAV_SECTIONS = [
   {
     label: 'Sessions',
     items: [
-      { path: '/target-shooting', label: 'Target Shooting', icon: Crosshair },
-      { path: '/clay-shooting', label: 'Clay Shooting', icon: Target },
-      { path: '/deer-management', label: 'Deer Management', icon: Layers },
-      { path: '/scope-click-card', label: 'Scope Click Cards', icon: ScanLine },
+      { path: '/target-shooting', label: 'Target Shooting', icon: Crosshair, module: 'target_shooting' },
+      { path: '/clay-shooting', label: 'Clay Shooting', icon: Target, module: 'clay_shooting' },
+      { path: '/deer-management', label: 'Deer Management', icon: Layers, module: 'deer_management' },
+      { path: '/scope-click-card', label: 'Scope Click Cards', icon: ScanLine, module: 'target_shooting' },
     ],
   },
   {
     label: 'Field',
     items: [
-      { path: '/deer-stalking', label: 'Stalking Map', icon: Map },
-      { path: '/deer-stalking-logs', label: 'Stalking Logs', icon: BookOpen },
+      { path: '/deer-stalking', label: 'Stalking Map', icon: Map, module: 'stalk_map' },
+      { path: '/deer-stalking-logs', label: 'Stalking Logs', icon: BookOpen, module: 'stalk_map' },
       { path: '/sunrise-sunset', label: 'Shooting Hours', icon: Sun },
     ],
   },
@@ -58,8 +59,8 @@ const NAV_SECTIONS = [
     label: 'Armory',
     items: [
       { path: '/ammo-summary', label: 'Armory Status', icon: Shield },
-      { path: '/reloading', label: 'Reloading', icon: RefreshCw },
-      { path: '/load-development', label: 'Load Development', icon: FlaskConical },
+      { path: '/reloading', label: 'Reloading', icon: RefreshCw, module: 'reloading' },
+      { path: '/load-development', label: 'Load Development', icon: FlaskConical, module: 'reloading' },
     ],
   },
   {
@@ -72,13 +73,13 @@ const NAV_SECTIONS = [
 ];
 
 const DESKTOP_ITEMS = [
-  { path: '/target-shooting', label: 'Target', icon: Crosshair },
-  { path: '/clay-shooting', label: 'Clay', icon: Target },
-  { path: '/deer-management', label: 'Deer', icon: Layers },
-  { path: '/deer-stalking', label: 'Map', icon: Map },
+  { path: '/target-shooting', label: 'Target', icon: Crosshair, module: 'target_shooting' },
+  { path: '/clay-shooting', label: 'Clay', icon: Target, module: 'clay_shooting' },
+  { path: '/deer-management', label: 'Deer', icon: Layers, module: 'deer_management' },
+  { path: '/deer-stalking', label: 'Map', icon: Map, module: 'stalk_map' },
   { path: '/ammo-summary', label: 'Armory', icon: Shield },
   { path: '/records', label: 'Records', icon: BookOpen },
-  { path: '/reloading', label: 'Reloading', icon: RefreshCw },
+  { path: '/reloading', label: 'Reloading', icon: RefreshCw, module: 'reloading' },
 ];
 
 export default function Navigation() {
@@ -87,6 +88,7 @@ export default function Navigation() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isOnline, hasPending, isSyncing } = useOffline();
+  const { isEnabled } = useModules();
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -125,7 +127,7 @@ export default function Navigation() {
               />
             </Link>
             <div className="flex gap-0.5 items-center">
-              {DESKTOP_ITEMS.map((item) => {
+              {DESKTOP_ITEMS.filter(item => !item.module || isEnabled(item.module)).map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path);
                 return (
@@ -206,10 +208,13 @@ export default function Navigation() {
               transition={{ duration: 0.15 }}
               className="mx-3 mb-1 bg-white dark:bg-slate-800/95 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-700/60 overflow-hidden"
             >
-              {NAV_SECTIONS.map((section) => (
+              {NAV_SECTIONS.map((section) => {
+                const visibleItems = section.items.filter(item => !item.module || isEnabled(item.module));
+                if (visibleItems.length === 0) return null;
+                return (
                 <div key={section.label} className="px-2 pt-2 pb-1">
                   <p className="px-3 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{section.label}</p>
-                  {section.items.map((item) => {
+                  {visibleItems.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item.path);
                     return (
@@ -226,10 +231,11 @@ export default function Navigation() {
                     );
                   })}
                 </div>
-              ))}
+                );
+                })}
 
-              {/* Profile + Admin */}
-              <div className="px-2 pt-1 pb-2 border-t border-slate-100 dark:border-slate-700/60 mt-1">
+                {/* Profile + Admin */}
+                <div className="px-2 pt-1 pb-2 border-t border-slate-100 dark:border-slate-700/60 mt-1">
                 {user?.role === 'admin' && (
                   <Link to="/admin/users" onClick={() => setOpen(false)}
                     className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80 mb-0.5">

@@ -8,6 +8,9 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { OutingProvider } from '@/context/OutingContext';
 import { OfflineProvider } from '@/context/OfflineContext';
+import { ModulesProvider, useModules } from '@/context/ModulesContext';
+import ModuleOnboarding from '@/components/ModuleOnboarding';
+import ModuleGate from '@/components/ModuleGate';
 import OfflineStatusBar from '@/components/OfflineStatusBar';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { TabHistoryProvider } from '@/context/TabHistoryContext';
@@ -38,6 +41,7 @@ import SunriseSunsetTracker from './pages/SunriseSunsetTracker';
 import AmmoSummary from './pages/AmmoSummary';
 import LoadDevelopment from './pages/LoadDevelopment';
 import ScopeClickCard from './pages/ScopeClickCard';
+import AppModules from './pages/AppModules';
 
 
 // Sync dark mode with system preference
@@ -82,11 +86,10 @@ function AnimatedRoutes({ children }) {
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user, refreshUser } = useAuth();
-
-  <ThemeSync />
+  const { enabledModules, loading: modulesLoading, saveModules } = useModules();
 
   // Show loading spinner while checking app public settings or auth
-  if (isLoadingPublicSettings || isLoadingAuth) {
+  if (isLoadingPublicSettings || isLoadingAuth || modulesLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
@@ -99,7 +102,6 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
       navigateToLogin();
       return null;
     }
@@ -110,6 +112,11 @@ const AuthenticatedApp = () => {
     return <ProfileSetup onComplete={refreshUser} />;
   }
 
+  // Show module onboarding if modules have never been configured
+  if (user && enabledModules === undefined) {
+    return <ModuleOnboarding onComplete={saveModules} />;
+  }
+
   // Render the main app
   return (
     <>
@@ -118,11 +125,12 @@ const AuthenticatedApp = () => {
         <div>
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/target-shooting" element={<TargetShooting />} />
-            <Route path="/clay-shooting" element={<ClayShooting />} />
-            <Route path="/deer-management" element={<DeerManagement />} />
+            <Route path="/target-shooting" element={<ModuleGate module="target_shooting"><TargetShooting /></ModuleGate>} />
+            <Route path="/clay-shooting" element={<ModuleGate module="clay_shooting"><ClayShooting /></ModuleGate>} />
+            <Route path="/deer-management" element={<ModuleGate module="deer_management"><DeerManagement /></ModuleGate>} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/settings" element={<Profile />} />
+            <Route path="/profile/modules" element={<AppModules />} />
             <Route path="/records" element={<Records />} />
             <Route path="/goals" element={<Goals />} />
             <Route path="/settings/rifles" element={<Rifles />} />
@@ -134,13 +142,13 @@ const AuthenticatedApp = () => {
             <Route path="/reports" element={<Reports />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/users" element={<Users />} />
-            <Route path="/deer-stalking" element={<DeerStalkingMap />} />
-            <Route path="/deer-stalking-logs" element={<DeerStalkingLogs />} />
+            <Route path="/deer-stalking" element={<ModuleGate module="stalk_map"><DeerStalkingMap /></ModuleGate>} />
+            <Route path="/deer-stalking-logs" element={<ModuleGate module="stalk_map"><DeerStalkingLogs /></ModuleGate>} />
             <Route path="/sunrise-sunset" element={<SunriseSunsetTracker />} />
             <Route path="/ammo-summary" element={<AmmoSummary />} />
-            <Route path="/reloading" element={<ReloadingManagement />} />
-            <Route path="/load-development" element={<LoadDevelopment />} />
-            <Route path="/scope-click-card" element={<ScopeClickCard />} />
+            <Route path="/reloading" element={<ModuleGate module="reloading"><ReloadingManagement /></ModuleGate>} />
+            <Route path="/load-development" element={<ModuleGate module="reloading"><LoadDevelopment /></ModuleGate>} />
+            <Route path="/scope-click-card" element={<ModuleGate module="target_shooting"><ScopeClickCard /></ModuleGate>} />
 
             <Route path="*" element={<PageNotFound />} />
           </Routes>
@@ -157,16 +165,18 @@ function App() {
       <AuthProvider>
         <QueryClientProvider client={queryClientInstance}>
           <OfflineProvider>
-            <OutingProvider>
-              <Router>
-                <TabHistoryProvider>
-                  <OfflineStatusBar />
-                  <AuthenticatedApp />
-                  <MobileTabBar />
-                  <Toaster />
-                </TabHistoryProvider>
-              </Router>
-            </OutingProvider>
+            <ModulesProvider>
+              <OutingProvider>
+                <Router>
+                  <TabHistoryProvider>
+                    <OfflineStatusBar />
+                    <AuthenticatedApp />
+                    <MobileTabBar />
+                    <Toaster />
+                  </TabHistoryProvider>
+                </Router>
+              </OutingProvider>
+            </ModulesProvider>
           </OfflineProvider>
         </QueryClientProvider>
       </AuthProvider>

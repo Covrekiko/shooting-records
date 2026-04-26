@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight, Trash2, Zap } from 'lucide-react';
+import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight, Trash2, Zap, Layers } from 'lucide-react';
 import AutoCheckinSettingToggle from '@/components/AutoCheckinSettingToggle';
 import { base44 } from '@/api/base44Client';
 import { DESIGN } from '@/lib/designConstants';
@@ -103,6 +103,17 @@ export default function Profile() {
               >
                 <Map className="w-4 h-4" />
                 Stalking Logs
+              </Link>
+              <Link
+                to="/profile/modules"
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                  isActive('/profile/modules')
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+              >
+                <Layers className="w-4 h-4" />
+                App Modules
               </Link>
               <button
                 onClick={handleLogout}
