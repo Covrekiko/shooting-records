@@ -305,20 +305,20 @@ export default function TargetShooting() {
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-4 mobile-page-padding">
         <div className="mb-4 flex items-center justify-between">
           <div className="hidden md:block">
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Target Shooting</h1>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Rifle range sessions</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Target Shooting</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Rifle range sessions</p>
           </div>
 
         </div>
 
         {!activeSession && (
           <div className={`${DESIGN.CARD} p-5 mb-4 flex flex-col items-center justify-center text-center gap-3`}>
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center">
-              <Crosshair className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+            <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center">
+              <Crosshair className="w-6 h-6 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No Active Session</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Start a session to begin tracking</p>
+              <p className="text-sm font-semibold text-foreground">No Active Session</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Start a session to begin tracking</p>
             </div>
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
               className={`${DESIGN.BUTTON_PRIMARY} flex items-center gap-2 w-full justify-center`}>
@@ -335,10 +335,10 @@ export default function TargetShooting() {
                 <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
                 <div>
                   <p className="text-xs font-bold text-primary uppercase tracking-widest">Active Session</p>
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mt-0.5">
+                  <p className="text-sm font-semibold text-foreground mt-0.5">
                     {activeSession.location_name || 'Target Range'}
                   </p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Started {activeSession.checkin_time}</p>
+                  <p className="text-xs text-muted-foreground">Started {activeSession.checkin_time}</p>
                   {activeSession.check_in_method === 'auto_geolocation' && (
                     <p className="text-[10px] text-primary font-medium mt-0.5">📍 Auto by Geolocation</p>
                   )}
@@ -352,7 +352,7 @@ export default function TargetShooting() {
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => setShowTargetAnalysis(true)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-background dark:bg-slate-800 border border-primary/30 rounded-xl text-sm font-semibold text-primary hover:bg-primary/5 transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-muted border border-primary/30 rounded-xl text-sm font-semibold text-primary hover:bg-primary/5 transition-colors"
             >
               <Microscope className="w-4 h-4" />
               Open Target Analysis
@@ -376,7 +376,7 @@ export default function TargetShooting() {
         </Link>
 
         <div className="mt-4">
-          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Sessions</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Recent Sessions</p>
           <RecordsSection category="target_shooting" title="Session Records" emptyMessage="No target shooting sessions recorded yet" />
         </div>
 
@@ -541,20 +541,20 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
           <input type="time" value={data.checkout_time} onChange={(e) => setData(prev => ({ ...prev, checkout_time: e.target.value }))} className={inputCls} required />
         </div>
 
-        <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
+        <div className="border-t border-border pt-4">
           <div className="flex items-center justify-between mb-3">
             <span className={labelCls}>Firearms Used</span>
             <motion.button type="button" onClick={addRifleEntry} whileTap={{ scale: 0.95 }}
-              className="text-xs bg-slate-100 dark:bg-slate-700 hover:bg-primary hover:text-primary-foreground px-3 py-1.5 rounded-lg font-medium transition-all">
+              className="text-xs bg-secondary hover:bg-primary hover:text-primary-foreground px-3 py-1.5 rounded-lg font-medium transition-all">
               + Add
             </motion.button>
           </div>
 
           {data.rifles_used.map((rifle, index) => (
-            <div key={index} className="bg-slate-50 dark:bg-slate-700/50 border border-slate-200/70 dark:border-slate-600 p-3 rounded-xl mb-3 space-y-2.5">
+            <div key={index} className="bg-muted border border-border p-3 rounded-xl mb-3 space-y-2.5">
               {errors[`rifle_${index}`] && <p className="text-red-500 text-xs font-medium">{errors[`rifle_${index}`]}</p>}
               <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold text-slate-500">Rifle {index + 1}</span>
+                <span className="text-xs font-semibold text-muted-foreground">Rifle {index + 1}</span>
                 {data.rifles_used.length > 1 && (
                   <button type="button" onClick={() => removeRifleEntry(index)} className="text-xs text-red-400 hover:text-red-600 font-medium">Remove</button>
                 )}
@@ -565,7 +565,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                 <input type="number" placeholder="Meters" value={rifle.meters_range} onChange={(e) => updateRifleEntry(index, 'meters_range', e.target.value)} className={inputCls} />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide block mb-1.5">Ammunition *</label>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block mb-1.5">Ammunition *</label>
                 {rifle.rifle_id ? (
                   <BottomSheetSelect
                     value={rifle.ammunition_id || ''}
@@ -584,7 +584,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                     }).map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
                   />
                 ) : (
-                  <p className="text-xs text-slate-400">Select a rifle first</p>
+                  <p className="text-xs text-muted-foreground">Select a rifle first</p>
                 )}
               </div>
             </div>
@@ -599,11 +599,11 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
         <div>
           <label className={labelCls}>Photos</label>
           <div className="flex gap-2 mb-2">
-            <label className="flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-slate-600 dark:text-slate-300 transition-colors">
+            <label className="flex-1 px-3 py-2.5 bg-secondary hover:bg-secondary/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-foreground transition-colors">
               Choose File
               <input type="file" accept="image/*" multiple onChange={(e) => handlePhotoUpload(e.target.files, data, (f, v) => setData(prev => ({ ...prev, [f]: v })))} className="hidden" />
             </label>
-            <label className="flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-slate-600 dark:text-slate-300 transition-colors">
+            <label className="flex-1 px-3 py-2.5 bg-secondary hover:bg-secondary/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-foreground transition-colors">
               Camera
               <input type="file" accept="image/*" capture="environment" multiple onChange={(e) => handlePhotoUpload(e.target.files, data, (f, v) => setData(prev => ({ ...prev, [f]: v })))} className="hidden" />
             </label>
@@ -615,7 +615,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                 const analysis = typeof photo === 'object' ? photo.analysis : null;
                 return (
                   <div key={idx} className="relative group">
-                    <img src={photoUrl} alt="preview" className="h-16 w-16 object-cover rounded-xl border border-slate-200" />
+                    <img src={photoUrl} alt="preview" className="h-16 w-16 object-cover rounded-xl border border-border" />
                     {analysis && <div className="absolute bottom-0 right-0 bg-primary text-primary-foreground text-xs px-1 rounded-tl-lg">{analysis.accuracy_percentage}%</div>}
                     <button type="button" onClick={() => setData(prev => ({ ...prev, photos: prev.photos.filter((_, i) => i !== idx) }))}
                       className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs shadow">×</button>
@@ -628,7 +628,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
 
         {gpsTrack && gpsTrack.length > 0 && (
           <motion.button type="button" onClick={() => onViewTrack(gpsTrack)} whileTap={{ scale: 0.97 }}
-            className="w-full px-3 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-primary hover:text-primary-foreground rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            className="w-full px-3 py-2.5 bg-secondary hover:bg-primary hover:text-primary-foreground rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-medium text-foreground">
             <Map className="w-4 h-4" />
             View GPS Track
           </motion.button>

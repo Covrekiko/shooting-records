@@ -300,20 +300,20 @@ export default function ClayShooting() {
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-4 mobile-page-padding">
         <div className="mb-4 flex items-center justify-between">
           <div className="hidden md:block">
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Clay Shooting</h1>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Shotgun clay sessions</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Clay Shooting</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Shotgun clay sessions</p>
           </div>
 
         </div>
 
         {!activeSession && (
           <div className={`${DESIGN.CARD} p-5 mb-4 flex flex-col items-center justify-center text-center gap-3`}>
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center">
-              <Target className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+            <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center">
+              <Target className="w-6 h-6 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No Active Session</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Start a session to begin tracking</p>
+              <p className="text-sm font-semibold text-foreground">No Active Session</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Start a session to begin tracking</p>
             </div>
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
               className={`${DESIGN.BUTTON_PRIMARY} flex items-center gap-2 w-full justify-center`}>
@@ -330,10 +330,10 @@ export default function ClayShooting() {
                 <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
                 <div>
                   <p className="text-xs font-bold text-primary uppercase tracking-widest">Active Session</p>
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mt-0.5">
+                  <p className="text-sm font-semibold text-foreground mt-0.5">
                     {activeSession.location_name || 'Clay Ground'}
                   </p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Started {activeSession.checkin_time}</p>
+                  <p className="text-xs text-muted-foreground">Started {activeSession.checkin_time}</p>
                   {activeSession.check_in_method === 'auto_geolocation' && (
                     <p className="text-[10px] text-primary font-medium mt-0.5">📍 Auto by Geolocation</p>
                   )}
@@ -356,7 +356,7 @@ export default function ClayShooting() {
         {(stands.length > 0 || allSessions.length > 0) && (
           <div className="mt-6">
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowAnalytics(!showAnalytics)}
-              className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-colors ${showAnalytics ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}>
+              className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-colors ${showAnalytics ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground hover:bg-secondary/80'}`}>
               📊 Analytics
             </motion.button>
             {showAnalytics && <div className="mt-4"><ClayAnalyticsDashboard sessions={allSessions} stands={stands} /></div>}
@@ -364,7 +364,7 @@ export default function ClayShooting() {
         )}
 
         <div className="mt-6">
-          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Sessions</p>
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Recent Sessions</p>
           <RecordsSection category="clay_shooting" title="Session Records" emptyMessage="No clay shooting sessions recorded yet" />
         </div>
 
@@ -533,7 +533,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
             <input type="number" min="0" value={data.rounds_fired} onChange={(e) => onChange('rounds_fired', e.target.value)} className={inputCls} required />
           </div>
           <div>
-            <label className={labelCls}>Ammunition <span className="text-slate-400 font-normal">(optional)</span></label>
+            <label className={labelCls}>Ammunition <span className="text-muted-foreground font-normal">(optional)</span></label>
             <input
               type="text"
               value={data.ammunition_used || ''}
@@ -543,7 +543,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
             />
             {ammunition.length > 0 && (
               <div className="mt-2">
-                <p className="text-[10px] text-slate-400 mb-1">Or pick from saved:</p>
+                <p className="text-[10px] text-muted-foreground mb-1">Or pick from saved:</p>
                 <BottomSheetSelect
                   value={data.ammunition_id || ''}
                   onChange={(val) => {
@@ -567,11 +567,11 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
           <div>
             <label className={labelCls}>Photos</label>
             <div className="flex gap-2 mb-2">
-              <label className="flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-slate-600 dark:text-slate-300 transition-colors">
-                Choose File
-                <input type="file" accept="image/*" multiple onChange={(e) => handlePhotoUpload(e.target.files, data, onChange)} className="hidden" />
-              </label>
-              <label className="flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-slate-600 dark:text-slate-300 transition-colors">
+              <label className="flex-1 px-3 py-2.5 bg-secondary hover:bg-secondary/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-foreground transition-colors">
+                  Choose File
+                  <input type="file" accept="image/*" multiple onChange={(e) => handlePhotoUpload(e.target.files, data, onChange)} className="hidden" />
+                </label>
+                <label className="flex-1 px-3 py-2.5 bg-secondary hover:bg-secondary/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-foreground transition-colors">
                 Camera
                 <input type="file" accept="image/*" capture="environment" multiple onChange={(e) => handlePhotoUpload(e.target.files, data, onChange)} className="hidden" />
               </label>
@@ -580,7 +580,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
               <div className="flex flex-wrap gap-2">
                 {data.photos.map((photo, idx) => (
                   <div key={idx} className="relative group">
-                    <img src={photo} alt="preview" className="h-16 w-16 object-cover rounded-xl border border-slate-200" />
+                    <img src={photo} alt="preview" className="h-16 w-16 object-cover rounded-xl border border-border" />
                     <button type="button" onClick={() => onChange('photos', data.photos.filter((_, i) => i !== idx))}
                       className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs shadow">×</button>
                   </div>
@@ -600,7 +600,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
 
           {gpsTrack && gpsTrack.length > 0 && (
             <motion.button type="button" onClick={() => onViewTrack(gpsTrack)} whileTap={{ scale: 0.97 }}
-              className="w-full px-3 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+              className="w-full px-3 py-2.5 bg-secondary hover:bg-secondary/80 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-medium text-foreground">
               <Map className="w-4 h-4" />
               View GPS Track
             </motion.button>
