@@ -267,7 +267,7 @@ export default function Dashboard() {
           getRepository('Rifle').filter({ created_by: currentUser.email }),
           getRepository('Shotgun').filter({ created_by: currentUser.email }),
           getRepository('Club').filter({ created_by: currentUser.email }),
-          getRepository('DeerLocation').filter({ created_by: currentUser.email }),
+          getRepository('Area').filter({ created_by: currentUser.email }),
         ]);
         const targetShoots = allRecords.filter((r) => r.category === 'target_shooting');
         const clayShoots = allRecords.filter((r) => r.category === 'clay_shooting');

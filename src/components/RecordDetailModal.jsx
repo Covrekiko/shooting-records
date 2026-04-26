@@ -174,8 +174,8 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
             <>
               {(getLocation(rec.location_id) || rec.place_name) && (
                 <Section title="Location">
-                  <Field label="Place" value={getLocation(rec.location_id)?.place_name || rec.place_name} />
-                  <Field label="Address" value={getLocation(rec.location_id)?.location} />
+                  <Field label="Place" value={getLocation(rec.location_id)?.name || rec.place_name || rec.location_name} />
+                  <Field label="Address" value={getLocation(rec.location_id)?.location_address} />
                 </Section>
               )}
 

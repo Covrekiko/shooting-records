@@ -65,7 +65,7 @@ export default function Records() {
         getRepository('Rifle').filter({ created_by: currentUser.email }),
         getRepository('Shotgun').filter({ created_by: currentUser.email }),
         getRepository('Club').filter({ created_by: currentUser.email }),
-        getRepository('DeerLocation').filter({ created_by: currentUser.email }),
+        getRepository('Area').filter({ created_by: currentUser.email }),
       ]);
 
       const rifleMap = {};

@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'ShootingRecordsOfflineDB';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 const STORES = [
   'user_profile',
@@ -217,6 +217,7 @@ export const ENTITY_STORE_MAP = {
   ReloadingSession: 'reloading_sessions',
   ReloadingComponent: 'reloading_components',
   ReloadingStock: 'reloading_stock',
+  ReloadingInventory: 'reloading_stock',
   CleaningHistory: 'cleaning_history',
   AmmoSpending: 'ammo_spending',
 };

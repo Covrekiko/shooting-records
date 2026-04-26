@@ -1,106 +1,131 @@
+// Handle skip-waiting message from client
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 /**
- * Service Worker — Shooting Records App
- * Caches app shell, static assets, and enables full offline access.
+ * Service Worker — App Shell + Asset Caching
+ * Strategy:
+ *   - App shell (HTML, manifest): Network-first, fall back to cache
+ *   - JS/CSS/fonts/images: Cache-first, update in background
+ *   - API calls: Network-only (never cached — IndexedDB handles data offline)
  */
 
-const CACHE_NAME = 'shooting-records-v3';
-const RUNTIME_CACHE = 'shooting-records-runtime-v3';
+const CACHE_NAME = 'shooting-records-v4';
+const SHELL_CACHE = 'shell-v4';
 
-// App shell files to cache on install
+// Core app shell files to pre-cache on install
 const PRECACHE_URLS = [
   '/',
-  '/index.html',
   '/manifest.json',
 ];
 
-// Install: pre-cache app shell
+// ── Install: pre-cache app shell ─────────────────────────────────────────────
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_URLS).catch((err) => {
-        console.warn('[SW] Pre-cache failed for some URLs:', err);
-      });
-    }).then(() => self.skipWaiting())
+    caches.open(SHELL_CACHE).then((cache) =>
+      cache.addAll(PRECACHE_URLS).catch(() => {
+        // Individual failures are OK — don't block install
+      })
+    ).then(() => self.skipWaiting())
   );
 });
 
-// Activate: clean up old caches
+// ── Activate: clean up old caches ────────────────────────────────────────────
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME && name !== RUNTIME_CACHE)
-          .map((name) => caches.delete(name))
-      );
-    }).then(() => self.clients.claim())
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((k) => k !== CACHE_NAME && k !== SHELL_CACHE)
+          .map((k) => caches.delete(k))
+      )
+    ).then(() => self.clients.claim())
   );
 });
 
-// Fetch: serve from cache, with network fallback
+// ── Fetch: routing strategy ───────────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET, chrome-extension, and base44 API calls (those go to network only)
+  // 1. Never intercept API calls, auth, or non-GET requests
   if (request.method !== 'GET') return;
-  if (url.protocol === 'chrome-extension:') return;
-
-  // API calls — network only, no caching (data must be fresh or handled by IndexedDB)
-  if (url.pathname.startsWith('/api/') || url.hostname.includes('base44')) {
-    return; // Let the browser handle it normally
+  if (url.pathname.startsWith('/api/')) return;
+  if (url.hostname !== self.location.hostname) {
+    // External resources (CDN fonts, images): cache-first
+    event.respondWith(cacheFirst(request, CACHE_NAME));
+    return;
   }
 
-  // For navigation requests (page loads) — always try network first, fallback to cached index.html
+  // 2. App shell navigation (HTML pages): network-first → shell cache fallback
   if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request).catch(() => {
-        return caches.match('/index.html');
-      })
-    );
+    event.respondWith(networkFirstShell(request));
     return;
   }
 
-  // For static assets (JS, CSS, images, fonts) — cache first, then network
+  // 3. Static assets (JS, CSS, fonts, images): cache-first, update in background
   if (
-    url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|webp)$/) ||
-    url.pathname.startsWith('/assets/')
+    url.pathname.match(/\.(js|css|woff2?|ttf|otf|eot|png|jpg|jpeg|gif|svg|ico|webp)(\?|$)/)
   ) {
-    event.respondWith(
-      caches.match(request).then((cachedResponse) => {
-        if (cachedResponse) return cachedResponse;
-
-        return fetch(request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const responseToCache = networkResponse.clone();
-            caches.open(RUNTIME_CACHE).then((cache) => {
-              cache.put(request, responseToCache);
-            });
-          }
-          return networkResponse;
-        }).catch(() => {
-          // Return a fallback for images if completely offline
-          return new Response('', { status: 404 });
-        });
-      })
-    );
+    event.respondWith(cacheFirst(request, CACHE_NAME));
     return;
   }
 
-  // For all other requests — network first, then cache
-  event.respondWith(
-    fetch(request).then((networkResponse) => {
-      if (networkResponse && networkResponse.status === 200) {
-        const responseToCache = networkResponse.clone();
-        caches.open(RUNTIME_CACHE).then((cache) => {
-          cache.put(request, responseToCache);
-        });
-      }
-      return networkResponse;
-    }).catch(() => {
-      return caches.match(request).then((cached) => {
-        return cached || caches.match('/index.html');
-      });
-    })
-  );
+  // 4. manifest.json: network-first → cache
+  if (url.pathname === '/manifest.json') {
+    event.respondWith(networkFirstShell(request));
+    return;
+  }
+
+  // 5. Everything else: network-first
+  event.respondWith(networkFirst(request));
 });
+
+// ── Strategies ────────────────────────────────────────────────────────────────
+
+async function networkFirstShell(request) {
+  try {
+    const response = await fetch(request);
+    const cache = await caches.open(SHELL_CACHE);
+    cache.put(request, response.clone());
+    return response;
+  } catch {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    // Last resort: return root index for navigation
+    const root = await caches.match('/');
+    return root || new Response('Offline', { status: 503 });
+  }
+}
+
+async function cacheFirst(request, cacheName) {
+  const cached = await caches.match(request);
+  if (cached) {
+    // Update cache in background
+    fetchAndCache(request, cacheName).catch(() => {});
+    return cached;
+  }
+  return fetchAndCache(request, cacheName);
+}
+
+async function networkFirst(request) {
+  try {
+    const response = await fetch(request);
+    return response;
+  } catch {
+    const cached = await caches.match(request);
+    return cached || new Response('Offline', { status: 503 });
+  }
+}
+
+async function fetchAndCache(request, cacheName) {
+  const response = await fetch(request);
+  if (response.ok || response.status === 0) {
+    const cache = await caches.open(cacheName);
+    cache.put(request, response.clone());
+  }
+  return response;
+}

@@ -22,11 +22,12 @@ if (typeof window !== 'undefined') {
 async function pingCheck() {
   if (typeof fetch === 'undefined') return;
   try {
-    // Use a tiny cachebust to avoid cache
-    await fetch(`/favicon.ico?_=${Date.now()}`, { method: 'HEAD', cache: 'no-store', signal: AbortSignal.timeout(5000) });
+    // Ping our own manifest (always exists, tiny, no redirect)
+    await fetch(`/manifest.json?_=${Date.now()}`, { method: 'HEAD', cache: 'no-store', signal: AbortSignal.timeout(5000) });
     if (!_isOnline) notify(true);
   } catch {
-    if (_isOnline) notify(false);
+    // Only mark offline if browser also says offline — avoids false positives from CORS/CSP
+    if (_isOnline && !navigator.onLine) notify(false);
   }
 }
 

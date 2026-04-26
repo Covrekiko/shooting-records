@@ -29,7 +29,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
            base44.entities.Rifle.filter({ created_by: currentUser.email }),
            base44.entities.Shotgun.filter({ created_by: currentUser.email }),
            base44.entities.Club.filter({ created_by: currentUser.email }),
-           base44.entities.DeerLocation.filter({ created_by: currentUser.email }),
+           base44.entities.Area.filter({ created_by: currentUser.email }),
          ]);
 
          setRecords(recordsList);
@@ -157,7 +157,7 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
    const getShotgunName = (shotgunId) => shotguns[shotgunId]?.name || 'Unknown Shotgun';
    const getShotgunDetails = (shotgunId) => shotguns[shotgunId];
    const getClubName = (clubId) => clubs[clubId]?.name || 'Unknown Club';
-   const getLocationName = (locationId) => locations[locationId]?.place_name || 'Unknown Location';
+   const getLocationName = (locationId) => locations[locationId]?.name || 'Unknown Location';
 
    return (
      <div className="fixed inset-0 bg-black/50 z-[50001] flex items-end sm:items-center justify-center p-4 sm:p-0" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
@@ -383,9 +383,9 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
             <div className="mb-6 pb-4 border-b border-border">
               <h3 className="font-bold text-lg mb-3 text-primary">Location & Hunting Details</h3>
               <div className="bg-secondary/30 p-4 rounded-lg">
-                <p className="font-semibold text-base">{locations[currentRecord.location_id]?.place_name || currentRecord.location_name || 'N/A'}</p>
-                {locations[currentRecord.location_id]?.location && (
-                  <p className="text-sm text-muted-foreground mt-2">{locations[currentRecord.location_id].location}</p>
+                <p className="font-semibold text-base">{locations[currentRecord.location_id]?.name || currentRecord.location_name || 'N/A'}</p>
+                {locations[currentRecord.location_id]?.location_address && (
+                 <p className="text-sm text-muted-foreground mt-2">{locations[currentRecord.location_id].location_address}</p>
                 )}
               </div>
             </div>

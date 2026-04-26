@@ -25,15 +25,16 @@ export async function preCacheUserData(userEmail) {
       { name: 'Rifle', method: () => base44.entities.Rifle.filter({ created_by: userEmail }) },
       { name: 'Shotgun', method: () => base44.entities.Shotgun.filter({ created_by: userEmail }) },
       { name: 'Club', method: () => base44.entities.Club.filter({ created_by: userEmail }) },
-      { name: 'DeerLocation', method: () => base44.entities.DeerLocation.filter({ created_by: userEmail }) },
-      { name: 'Ammunition', method: () => base44.entities.Ammunition.filter({ created_by: userEmail }) },
       { name: 'Area', method: () => base44.entities.Area.filter({ created_by: userEmail }) },
+      { name: 'Ammunition', method: () => base44.entities.Ammunition.filter({ created_by: userEmail }) },
       { name: 'MapMarker', method: () => base44.entities.MapMarker.list() },
       { name: 'Harvest', method: () => base44.entities.Harvest.list() },
       { name: 'ReloadingComponent', method: () => base44.entities.ReloadingComponent.filter({ created_by: userEmail }) },
       { name: 'ReloadingSession', method: () => base44.entities.ReloadingSession.filter({ created_by: userEmail }) },
       { name: 'CleaningHistory', method: () => base44.entities.CleaningHistory.filter({ created_by: userEmail }) },
       { name: 'DeerOuting', method: () => base44.entities.DeerOuting.filter({ created_by: userEmail }) },
+      { name: 'AmmoSpending', method: () => base44.entities.AmmoSpending.filter({ created_by: userEmail }) },
+      { name: 'ReloadingInventory', method: () => base44.entities.ReloadingInventory.filter({ created_by: userEmail }) },
     ];
 
     await Promise.allSettled(

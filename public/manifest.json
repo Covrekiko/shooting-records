@@ -1,11 +1,11 @@
 {
   "name": "Shooting Records",
-  "short_name": "ShootingLog",
-  "description": "Track shooting sessions, ammunition, reloading, and deer management",
+  "short_name": "Shooting",
+  "description": "Shooting and deer management records app",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8f9fa",
-  "theme_color": "#c2671a",
+  "background_color": "#f8fafc",
+  "theme_color": "#f97316",
   "orientation": "portrait-primary",
   "icons": [
     {
