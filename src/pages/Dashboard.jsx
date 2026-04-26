@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import {
   Target, Crosshair, Map, BookOpen,
-  BarChart3, ChevronRight, Clock, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck, TrendingUp,
+  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck,
 } from 'lucide-react';
 import {
   MonthlyActivityChart,
@@ -22,26 +22,7 @@ import ReloadingWidget from '@/components/widgets/ReloadingWidget';
 import { getRepository } from '@/lib/offlineSupport';
 import { useModules } from '@/context/ModulesContext';
 
-// ── palette ──────────────────────────────────────────────────────────────────
-const C = {
-  bg: '#0B0F0E',
-  card: '#151A18',
-  panel: '#1E2421',
-  border: '#2E3732',
-  bronze: '#C79A45',
-  bronzeDark: '#8A6A35',
-  text: '#F2F2EF',
-  muted: '#A8ADA7',
-  success: '#4CAF50',
-};
-
-const cardStyle = {
-  background: C.card,
-  border: `1px solid ${C.border}`,
-  boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
-};
-
-// ── data helpers ──────────────────────────────────────────────────────────────
+// ── data helpers (unchanged logic) ──────────────────────────────────────────
 function getMonthlyData(targetShoots, clayShoots, deerMgmt) {
   const monthlyMap = {};
   const allRecords = [
@@ -88,6 +69,7 @@ function getRoundsPerMonth(targetShoots, clayShoots) {
     const date = new Date(record.date);
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     if (!monthlyMap[monthKey]) monthlyMap[monthKey] = { month: monthKey, rifle: 0, shotgun: 0 };
+    // Rounds are in rifles_used array for target shooting
     const rounds = Array.isArray(record.rifles_used)
       ? record.rifles_used.reduce((sum, r) => sum + (parseInt(r.rounds_fired) || 0), 0)
       : (record.rounds_fired || 0);
@@ -132,7 +114,7 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
   return Object.entries(locationMap).map(([name, visits]) => ({ name, visits })).sort((a, b) => b.visits - a.visits).slice(0, 8);
 }
 
-// ── sub-components ────────────────────────────────────────────────────────────
+// ── sub-components ───────────────────────────────────────────────────────────
 
 function ActiveSessionBanner({ outing }) {
   const startTime = outing.start_time ? new Date(outing.start_time) : null;
@@ -143,25 +125,20 @@ function ActiveSessionBanner({ outing }) {
       <motion.div
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-3 px-4 py-3.5 rounded-2xl"
-        style={{
-          background: 'linear-gradient(135deg, #1A3A2A 0%, #0F2218 100%)',
-          border: `1px solid ${C.success}40`,
-          boxShadow: `0 0 20px ${C.success}20`,
-        }}
+        className="flex items-center gap-3 px-4 py-3.5 bg-emerald-600 dark:bg-emerald-700 rounded-2xl shadow-lg"
       >
-        <div className="w-2 h-2 rounded-full animate-pulse flex-shrink-0" style={{ background: C.success }} />
+        <div className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-widest" style={{ color: C.success }}>Active Outing</p>
-          <p className="text-sm font-bold truncate mt-0.5" style={{ color: C.text }}>{outing.location_name || 'Deer Stalking'}</p>
+          <p className="text-[10px] font-bold text-emerald-200 uppercase tracking-widest">Active Outing</p>
+          <p className="text-sm font-bold text-white truncate mt-0.5">{outing.location_name || 'Deer Stalking'}</p>
         </div>
         {elapsed !== null && (
-          <div className="flex items-center gap-1 text-xs font-semibold flex-shrink-0 px-2 py-1 rounded-lg" style={{ background: 'rgba(76,175,80,0.15)', color: C.success }}>
+          <div className="flex items-center gap-1 text-emerald-200 text-xs font-semibold flex-shrink-0 bg-black/10 px-2 py-1 rounded-lg">
             <Clock className="w-3 h-3" />
             {elapsed >= 60 ? `${Math.floor(elapsed / 60)}h ${elapsed % 60}m` : `${elapsed}m`}
           </div>
         )}
-        <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: C.success }} />
+        <ChevronRight className="w-4 h-4 text-emerald-300 flex-shrink-0" />
       </motion.div>
     </Link>
   );
@@ -177,13 +154,9 @@ function KpiRow({ stats }) {
   return (
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
-        <div
-          key={item.label}
-          className="rounded-xl px-2 py-3 text-center"
-          style={{ background: C.panel, border: `1px solid ${C.border}` }}
-        >
-          <p className="text-lg font-bold leading-none" style={{ color: C.bronze }}>{item.value}</p>
-          <p className="text-[10px] mt-1 font-medium" style={{ color: C.muted }}>{item.label}</p>
+        <div key={item.label} className="bg-white dark:bg-slate-800 rounded-xl px-2 py-2.5 text-center border border-slate-200/70 dark:border-slate-700 shadow-sm">
+          <p className="text-base md:text-lg font-bold text-slate-900 dark:text-slate-100 leading-none">{item.value}</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-medium">{item.label}</p>
         </div>
       ))}
     </div>
@@ -193,21 +166,15 @@ function KpiRow({ stats }) {
 function PrimaryCard({ to, icon, label, sub }) {
   return (
     <Link to={to}>
-      <div
-        className="rounded-2xl p-4 active:scale-[0.97] transition-all duration-100 flex items-center gap-4"
-        style={{ ...cardStyle, borderTop: `2px solid ${C.bronze}` }}
-      >
-        <div
-          className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5"
-          style={{ background: `${C.bronze}20`, color: C.bronze }}
-        >
+      <div className="bg-white dark:bg-slate-800/80 rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/60 shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-4">
+        <div className="w-11 h-11 rounded-xl bg-primary/10 dark:bg-primary/15 flex items-center justify-center flex-shrink-0 text-primary [&_svg]:w-5 [&_svg]:h-5">
           {icon}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold leading-snug tracking-tight" style={{ color: C.text }}>{label}</p>
-          {sub && <p className="text-xs mt-0.5 truncate" style={{ color: C.muted }}>{sub}</p>}
+          <p className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight">{label}</p>
+          {sub && <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">{sub}</p>}
         </div>
-        <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: C.bronzeDark }} />
+        <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 flex-shrink-0" />
       </div>
     </Link>
   );
@@ -218,10 +185,10 @@ function SecondaryGrid({ user }) {
   const allItems = [
     { to: '/target-shooting', icon: <Crosshair />, label: 'Target', module: 'target_shooting' },
     { to: '/clay-shooting', icon: <Target />, label: 'Clay', module: 'clay_shooting' },
-    { to: '/deer-management', icon: <Layers />, label: 'Deer', module: 'deer_management' },
+    { to: '/deer-management', icon: <span className="text-lg">🦌</span>, label: 'Deer', module: 'deer_management' },
     { to: '/reloading', icon: <RefreshCw />, label: 'Reloading', module: 'reloading' },
     { to: '/load-development', icon: <FlaskConical />, label: 'Load Dev', module: 'reloading' },
-    { to: '/settings/rifles', icon: <Shield />, label: 'Equipment' },
+    { to: '/settings/rifles', icon: <span className="text-lg">🔧</span>, label: 'Equipment' },
     { to: '/reports', icon: <BarChart3 />, label: 'Reports' },
     ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck />, label: 'Admin' }] : []),
   ];
@@ -231,17 +198,11 @@ function SecondaryGrid({ user }) {
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
         <Link key={item.to} to={item.to}>
-          <div
-            className="rounded-xl p-2.5 active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center"
-            style={{ background: C.panel, border: `1px solid ${C.border}` }}
-          >
-            <div
-              className="w-9 h-9 rounded-lg flex items-center justify-center [&_svg]:w-4 [&_svg]:h-4"
-              style={{ background: `${C.bronze}15`, color: C.bronze }}
-            >
+          <div className="bg-white dark:bg-slate-800/80 rounded-xl p-2.5 border border-slate-200/60 dark:border-slate-700/60 shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center">
+            <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center text-slate-500 dark:text-slate-400 [&_svg]:w-4 [&_svg]:h-4">
               {item.icon}
             </div>
-            <p className="text-[10px] font-semibold leading-tight tracking-wide" style={{ color: C.muted }}>{item.label}</p>
+            <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 leading-tight tracking-wide">{item.label}</p>
           </div>
         </Link>
       ))}
@@ -252,23 +213,19 @@ function SecondaryGrid({ user }) {
 function ChartsSection({ chartData }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-2xl overflow-hidden" style={cardStyle}>
+    <div className="bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-3.5 transition-colors"
-        style={{ color: C.text }}
+        className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
       >
         <span className="flex items-center gap-2.5">
-          <TrendingUp className="w-4 h-4" style={{ color: C.bronze }} />
-          <span className="text-sm font-semibold tracking-tight">Analytics</span>
+          <BarChart3 className="w-4 h-4 text-primary" />
+          <span className="tracking-tight">Analytics</span>
         </span>
-        <ChevronRight
-          className="w-4 h-4 transition-transform duration-200"
-          style={{ color: C.bronzeDark, transform: open ? 'rotate(90deg)' : 'none' }}
-        />
+        <ChevronRight className={`w-4 h-4 text-slate-300 dark:text-slate-600 transition-transform duration-200 ${open ? 'rotate-90' : ''}`} />
       </button>
       {open && (
-        <div className="px-4 pb-4 space-y-4 pt-4" style={{ borderTop: `1px solid ${C.border}` }}>
+        <div className="px-4 pb-4 space-y-4 border-t border-slate-100 dark:border-slate-700/60 pt-4">
           <MonthlyActivityChart data={chartData.monthly} />
           <RoundsPerMonthChart data={chartData.roundsPerMonth} />
           <RoundsPerFirearmChart data={chartData.firearm} />
@@ -280,7 +237,7 @@ function ChartsSection({ chartData }) {
   );
 }
 
-// ── Main component ─────────────────────────────────────────────────────────────
+// ── Main component ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState(null);
@@ -345,47 +302,32 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen" style={{ background: C.bg }}>
+      <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
         <Navigation />
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="w-7 h-7 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: `${C.bronze} transparent ${C.bronze} ${C.bronze}` }} />
+          <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" style={{ background: C.bg }}>
+    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
 
       {/* Pull-to-refresh indicator */}
       {(pulling || refreshing) && (
         <div className="flex justify-center py-1">
           <div
-            className="w-5 h-5 border-2 border-t-transparent rounded-full"
-            style={{
-              borderColor: `${C.bronze} transparent ${C.bronze} ${C.bronze}`,
-              animation: refreshing ? 'spin 0.6s linear infinite' : 'none',
-              opacity: refreshing ? 1 : progress,
-              transform: `rotate(${progress * 360}deg)`,
-            }}
+            className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full"
+            style={{ animation: refreshing ? 'spin 0.6s linear infinite' : 'none', opacity: refreshing ? 1 : progress, transform: `rotate(${progress * 360}deg)` }}
           />
         </div>
       )}
 
-      <main className="max-w-2xl mx-auto px-3 pt-3 pb-8 mobile-page-padding space-y-3">
+      <main className="max-w-2xl mx-auto px-3 pt-2 pb-8 mobile-page-padding space-y-3">
 
-        {/* ── Header row ── */}
-        <div className="flex items-center justify-between px-1">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: C.bronze }}>Overview</p>
-            <p className="text-sm font-medium mt-0.5" style={{ color: C.muted }}>{today}</p>
-          </div>
-          <BookOpen className="w-5 h-5" style={{ color: C.bronzeDark }} />
-        </div>
 
-        {/* ── KPI Strip ── */}
-        {stats && <KpiRow stats={stats} />}
 
         {/* ── Active Session Banner ── */}
         {activeOuting && isEnabled('stalk_map') && <ActiveSessionBanner outing={activeOuting} />}

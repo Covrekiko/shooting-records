@@ -20,7 +20,7 @@ export default function OfflineStatusBar() {
   let bgClass = '';
 
   if (!isOnline) {
-    bgClass = 'bg-[#2E3732]';
+    bgClass = 'bg-slate-700 dark:bg-slate-800';
     content = (
       <>
         <WifiOff className="w-3.5 h-3.5 flex-shrink-0" />
@@ -33,7 +33,7 @@ export default function OfflineStatusBar() {
       </>
     );
   } else if (isSyncing) {
-    bgClass = 'bg-[#1E3A5F]';
+    bgClass = 'bg-blue-600 dark:bg-blue-700';
     content = (
       <>
         <RefreshCw className="w-3.5 h-3.5 flex-shrink-0 animate-spin" />
@@ -41,7 +41,7 @@ export default function OfflineStatusBar() {
       </>
     );
   } else if (syncState === SYNC_STATE.FAILED) {
-    bgClass = 'bg-[#B84A3A]';
+    bgClass = 'bg-red-600 dark:bg-red-700';
     content = (
       <>
         <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />

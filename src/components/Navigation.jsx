@@ -4,7 +4,7 @@ import {
   BookOpen, User, ArrowLeft, BarChart3,
   Shield, Layers, RefreshCw, Sun, FlaskConical, ScanLine,
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOffline } from '@/context/OfflineContext';
@@ -25,7 +25,6 @@ const PAGE_TITLES = {
   '/goals': 'Goals',
   '/profile': 'Profile',
   '/profile/settings': 'Settings',
-  '/profile/modules': 'App Modules',
   '/settings/rifles': 'Rifles',
   '/settings/shotguns': 'Shotguns',
   '/settings/clubs': 'Clubs',
@@ -110,31 +109,22 @@ export default function Navigation() {
     }
   };
 
-  const connDot = !isOnline
-    ? 'bg-[#A8ADA7]'
-    : isSyncing
-    ? 'bg-blue-400 animate-pulse'
-    : hasPending
-    ? 'bg-[#D99A32]'
-    : 'bg-[#4CAF50]';
-
   return (
     <>
       {/* ── DESKTOP NAV ─────────────────────────────────────────────── */}
-      <div className="hidden md:block sticky top-0 z-[9000]" style={{ background: '#0B0F0E' }}>
+      <div className="hidden md:block sticky top-0 z-[9000] bg-slate-50 dark:bg-[#0f1117]">
         <div className="max-w-7xl mx-auto px-4 pt-3 pb-2">
-          <div
-            className="rounded-2xl px-5 py-3 flex items-center justify-between"
-            style={{
-              background: '#151A18',
-              border: '1px solid #2E3732',
-              boxShadow: '0 4px 24px rgba(0,0,0,0.5)',
-            }}
-          >
-            <Link to="/" className="text-sm font-bold flex items-center gap-2.5" style={{ color: '#F2F2EF' }}>
+          <div className="bg-white dark:bg-slate-800/80 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 px-5 py-3 flex items-center justify-between">
+            <Link to="/" className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
               <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-8 h-8 rounded-xl object-cover" />
-              <span className="tracking-tight">Shooting Guard</span>
-              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${connDot}`} />
+              <span className="tracking-tight">Shooting Records</span>
+              {/* Connectivity dot */}
+              <span
+                title={!isOnline ? 'Offline' : isSyncing ? 'Syncing…' : hasPending ? 'Changes pending' : 'Online'}
+                className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                  !isOnline ? 'bg-slate-400' : isSyncing ? 'bg-blue-400 animate-pulse' : hasPending ? 'bg-amber-400' : 'bg-emerald-400'
+                }`}
+              />
             </Link>
             <div className="flex gap-0.5 items-center">
               {DESKTOP_ITEMS.filter(item => !item.module || isEnabled(item.module)).map((item) => {
@@ -142,14 +132,11 @@ export default function Navigation() {
                 const active = isActive(item.path);
                 return (
                   <Link key={item.path} to={item.path}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-150"
-                    style={{
-                      background: active ? '#C79A45' : 'transparent',
-                      color: active ? '#0B0F0E' : '#A8ADA7',
-                    }}
-                    onMouseEnter={e => { if (!active) { e.currentTarget.style.color = '#F2F2EF'; e.currentTarget.style.background = '#1E2421'; } }}
-                    onMouseLeave={e => { if (!active) { e.currentTarget.style.color = '#A8ADA7'; e.currentTarget.style.background = 'transparent'; } }}
-                  >
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 ${
+                      active
+                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/80'
+                    }`}>
                     <Icon className="w-3.5 h-3.5" />
                     {item.label}
                   </Link>
@@ -157,20 +144,20 @@ export default function Navigation() {
               })}
               {user?.role === 'admin' && (
                 <Link to="/admin/users"
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all"
-                  style={{ color: '#A8ADA7' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = '#F2F2EF'; e.currentTarget.style.background = '#1E2421'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = '#A8ADA7'; e.currentTarget.style.background = 'transparent'; }}
-                >
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 ${
+                    isActive('/admin/users')
+                      ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/80'
+                  }`}>
                   <Settings className="w-3.5 h-3.5" />Admin
                 </Link>
               )}
               <Link to="/profile"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all"
-                style={isActive('/profile') ? { background: '#C79A45', color: '#0B0F0E' } : { color: '#A8ADA7' }}
-                onMouseEnter={e => { if (!isActive('/profile')) { e.currentTarget.style.color = '#F2F2EF'; e.currentTarget.style.background = '#1E2421'; } }}
-                onMouseLeave={e => { if (!isActive('/profile')) { e.currentTarget.style.color = '#A8ADA7'; e.currentTarget.style.background = 'transparent'; } }}
-              >
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 ${
+                  isActive('/profile')
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/80'
+                }`}>
                 <User className="w-3.5 h-3.5" />Profile
               </Link>
             </div>
@@ -179,42 +166,35 @@ export default function Navigation() {
       </div>
 
       {/* ── MOBILE TOP BAR ──────────────────────────────────────────── */}
-      <div className="md:hidden sticky top-0 z-[9000]" style={{ background: '#0B0F0E' }}>
-        <div
-          className="mx-3 mt-2 mb-1.5 rounded-2xl px-4 py-2.5 flex items-center justify-between"
-          style={{
-            background: '#151A18',
-            border: '1px solid #2E3732',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-          }}
-        >
+      <div className="md:hidden sticky top-0 z-[9000] bg-slate-50 dark:bg-[#0f1117]">
+        <div className="mx-3 mt-2 mb-1.5 bg-white dark:bg-slate-800/80 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 px-4 py-2.5 flex items-center justify-between">
           {isDashboard ? (
-            <Link to="/" className="text-sm font-bold flex items-center gap-2" style={{ color: '#F2F2EF' }}>
+            <Link to="/" className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-7 h-7 rounded-lg object-cover" />
-              <span className="tracking-tight">Shooting Guard</span>
-              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${connDot}`} />
+              <span className="tracking-tight">Shooting Records</span>
+              <span
+                title={!isOnline ? 'Offline' : isSyncing ? 'Syncing…' : hasPending ? 'Changes pending' : 'Online'}
+                className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                  !isOnline ? 'bg-slate-400' : isSyncing ? 'bg-blue-400 animate-pulse' : hasPending ? 'bg-amber-400' : 'bg-emerald-400'
+                }`}
+              />
             </Link>
           ) : (
             <motion.button
               onClick={handleBack}
               whileTap={{ scale: 0.9 }}
-              className="flex items-center gap-1.5"
-              style={{ color: '#F2F2EF' }}
+              className="flex items-center gap-1.5 text-slate-900 dark:text-white"
             >
-              <ArrowLeft className="w-4 h-4" style={{ color: '#C79A45' }} />
+              <ArrowLeft className="w-4 h-4 text-slate-400" />
               <span className="text-sm font-semibold">{pageTitle || 'Back'}</span>
             </motion.button>
           )}
 
           <button
             onClick={() => setOpen(!open)}
-            className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-90 transition-transform"
-            style={{ background: '#1E2421', border: '1px solid #2E3732' }}
+            className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center active:scale-90 transition-transform"
           >
-            {open
-              ? <X className="w-4 h-4" style={{ color: '#C79A45' }} />
-              : <Menu className="w-4 h-4" style={{ color: '#A8ADA7' }} />
-            }
+            {open ? <X className="w-4.5 h-4.5 text-slate-700 dark:text-white" /> : <Menu className="w-4.5 h-4.5 text-slate-700 dark:text-white" />}
           </button>
         </div>
 
@@ -226,58 +206,48 @@ export default function Navigation() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.97 }}
               transition={{ duration: 0.15 }}
-              className="mx-3 mb-1 rounded-2xl overflow-hidden"
-              style={{
-                background: '#151A18',
-                border: '1px solid #2E3732',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-              }}
+              className="mx-3 mb-1 bg-white dark:bg-slate-800/95 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-700/60 overflow-hidden"
             >
               {NAV_SECTIONS.map((section) => {
                 const visibleItems = section.items.filter(item => !item.module || isEnabled(item.module));
                 if (visibleItems.length === 0) return null;
                 return (
-                  <div key={section.label} className="px-2 pt-2 pb-1">
-                    <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest" style={{ color: '#C79A45' }}>
-                      {section.label}
-                    </p>
-                    {visibleItems.map((item) => {
-                      const Icon = item.icon;
-                      const active = isActive(item.path);
-                      return (
-                        <Link key={item.path} to={item.path} onClick={() => setOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95 mb-0.5"
-                          style={{
-                            background: active ? '#C79A45' : 'transparent',
-                            color: active ? '#0B0F0E' : '#F2F2EF',
-                          }}
-                        >
-                          <Icon className="w-4 h-4 flex-shrink-0" style={{ color: active ? '#0B0F0E' : '#C79A45' }} />
-                          <span className="flex-1">{item.label}</span>
-                          {active && <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#0B0F0E' }} />}
-                        </Link>
-                      );
-                    })}
-                  </div>
+                <div key={section.label} className="px-2 pt-2 pb-1">
+                  <p className="px-3 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{section.label}</p>
+                  {visibleItems.map((item) => {
+                    const Icon = item.icon;
+                    const active = isActive(item.path);
+                    return (
+                      <Link key={item.path} to={item.path} onClick={() => setOpen(false)}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95 mb-0.5 ${
+                          active
+                            ? 'bg-slate-900 text-white dark:bg-primary dark:text-white'
+                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80'
+                        }`}>
+                        <Icon className="w-4 h-4 flex-shrink-0" />
+                        <span className="flex-1">{item.label}</span>
+                        {active && <div className="w-1.5 h-1.5 rounded-full bg-white/60" />}
+                      </Link>
+                    );
+                  })}
+                </div>
                 );
-              })}
+                })}
 
-              {/* Profile + Admin */}
-              <div className="px-2 pt-1 pb-2 mt-1" style={{ borderTop: '1px solid #2E3732' }}>
+                {/* Profile + Admin */}
+                <div className="px-2 pt-1 pb-2 border-t border-slate-100 dark:border-slate-700/60 mt-1">
                 {user?.role === 'admin' && (
                   <Link to="/admin/users" onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-0.5"
-                    style={{ color: '#F2F2EF' }}
-                  >
-                    <Settings className="w-4 h-4" style={{ color: '#C79A45' }} />
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80 mb-0.5">
+                    <Settings className="w-4 h-4" />
                     <span>Admin</span>
                   </Link>
                 )}
                 <Link to="/profile" onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
-                  style={isActive('/profile') ? { background: '#C79A45', color: '#0B0F0E' } : { color: '#F2F2EF' }}
-                >
-                  <User className="w-4 h-4" style={{ color: isActive('/profile') ? '#0B0F0E' : '#C79A45' }} />
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    isActive('/profile') ? 'bg-slate-900 text-white' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80'
+                  }`}>
+                  <User className="w-4 h-4" />
                   <span>Profile</span>
                 </Link>
               </div>
@@ -285,6 +255,7 @@ export default function Navigation() {
           )}
         </AnimatePresence>
       </div>
+
     </>
   );
 }

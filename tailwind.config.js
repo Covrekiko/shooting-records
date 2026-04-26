@@ -9,9 +9,6 @@ module.exports = {
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
   		},
-      fontFamily: {
-        sans: ['Inter', 'sans-serif'],
-      },
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
@@ -62,40 +59,30 @@ module.exports = {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
-  			},
-        bronze: {
-          DEFAULT: '#C79A45',
-          dark: '#8A6A35',
-          light: '#D4AD6A',
-        },
-        tactical: {
-          dark: '#0B0F0E',
-          card: '#151A18',
-          panel: '#1E2421',
-          border: '#2E3732',
-          text: '#F2F2EF',
-          muted: '#A8ADA7',
-        }
+  			}
   		},
   		keyframes: {
   			'accordion-down': {
-  				from: { height: '0' },
-  				to: { height: 'var(--radix-accordion-content-height)' }
+  				from: {
+  					height: '0'
+  				},
+  				to: {
+  					height: 'var(--radix-accordion-content-height)'
+  				}
   			},
   			'accordion-up': {
-  				from: { height: 'var(--radix-accordion-content-height)' },
-  				to: { height: '0' }
+  				from: {
+  					height: 'var(--radix-accordion-content-height)'
+  				},
+  				to: {
+  					height: '0'
+  				}
   			}
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out'
-  		},
-      boxShadow: {
-        'bronze': '0 0 20px rgba(199, 154, 69, 0.2)',
-        'card': '0 4px 24px rgba(0,0,0,0.5)',
-        'card-hover': '0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(199,154,69,0.1)',
-      }
+  		}
   	}
   },
   safelist: [
