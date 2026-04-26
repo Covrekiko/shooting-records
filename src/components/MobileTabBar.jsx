@@ -17,13 +17,11 @@ export default function MobileTabBar() {
   const { setLastPath, getLastPath } = useTabHistory();
   const { isOnline, isSyncing, hasPending, syncFailed, pendingCount, manualSync } = useOffline();
 
-  // Track path changes into tab history
   useEffect(() => {
     const tab = getTabForPath(location.pathname);
     if (tab) setLastPath(tab, location.pathname);
   }, [location.pathname, setLastPath]);
 
-  // Hide on full-screen pages like the stalking map
   if (location.pathname === '/deer-stalking') return null;
 
   const activeTab = getTabForPath(location.pathname);
@@ -37,22 +35,27 @@ export default function MobileTabBar() {
     navigate(dest);
   };
 
-  // Sync status pill config
   let syncPill = null;
   if (!isOnline) {
-    syncPill = { icon: WifiOff, label: 'Offline', bg: 'bg-slate-600', action: null };
+    syncPill = { icon: WifiOff, label: 'Offline', bg: '#2E3732', action: null };
   } else if (isSyncing) {
-    syncPill = { icon: RefreshCw, label: `Syncing…`, bg: 'bg-blue-500', spinning: true, action: null };
+    syncPill = { icon: RefreshCw, label: 'Syncing…', bg: '#1E3A5F', spinning: true, action: null };
   } else if (syncFailed) {
-    syncPill = { icon: CloudUpload, label: 'Sync failed — tap to retry', bg: 'bg-red-500', action: manualSync };
+    syncPill = { icon: CloudUpload, label: 'Sync failed — tap to retry', bg: '#B84A3A', action: manualSync };
   } else if (hasPending) {
-    syncPill = { icon: CloudUpload, label: `${pendingCount} pending`, bg: 'bg-amber-500', action: manualSync };
+    syncPill = { icon: CloudUpload, label: `${pendingCount} pending`, bg: '#8A6A35', action: manualSync };
   }
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-[9000] bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-700/60"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[9000]"
+      style={{
+        background: '#151A18',
+        borderTop: '1px solid #2E3732',
+        backdropFilter: 'blur(12px)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        boxShadow: '0 -4px 24px rgba(0,0,0,0.5)',
+      }}
     >
       {/* Sync status strip */}
       {syncPill && (() => {
@@ -61,13 +64,15 @@ export default function MobileTabBar() {
           <button
             onClick={syncPill.action || undefined}
             disabled={!syncPill.action}
-            className={`w-full flex items-center justify-center gap-1.5 py-1 text-white text-[10px] font-semibold ${syncPill.bg} ${syncPill.action ? 'active:opacity-80' : ''}`}
+            className="w-full flex items-center justify-center gap-1.5 py-1 text-[10px] font-semibold"
+            style={{ background: syncPill.bg, color: '#F2F2EF' }}
           >
             <PillIcon className={`w-3 h-3 flex-shrink-0 ${syncPill.spinning ? 'animate-spin' : ''}`} />
             {syncPill.label}
           </button>
         );
       })()}
+
       <div className="flex items-stretch">
         {TABS.map(({ key, label, icon: Icon }) => {
           const isActive = key === activeTab;
@@ -75,20 +80,32 @@ export default function MobileTabBar() {
             <button
               key={key}
               onClick={() => handleTabPress(key)}
-              className={`flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 transition-colors active:scale-90 transform-gpu ${
-                isActive ? 'text-primary' : 'text-slate-400 dark:text-slate-500'
-              }`}
+              className="flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 transition-all active:scale-90 transform-gpu"
             >
-              <div className={`flex items-center justify-center w-7 h-7 rounded-xl transition-all ${
-                isActive ? 'bg-primary/10 dark:bg-primary/20' : ''
-              }`}>
-                <Icon style={{ width: isActive ? 20 : 18, height: isActive ? 20 : 18 }} />
+              <div
+                className="flex items-center justify-center w-8 h-8 rounded-xl transition-all"
+                style={isActive ? { background: 'rgba(199,154,69,0.15)' } : {}}
+              >
+                <Icon
+                  style={{
+                    width: isActive ? 20 : 18,
+                    height: isActive ? 20 : 18,
+                    color: isActive ? '#C79A45' : '#A8ADA7',
+                  }}
+                />
               </div>
-              <span className={`text-[9px] font-semibold tracking-tight leading-none ${
-                isActive ? 'text-primary' : 'text-slate-400 dark:text-slate-500'
-              }`}>
+              <span
+                className="text-[9px] font-semibold tracking-tight leading-none"
+                style={{ color: isActive ? '#C79A45' : '#A8ADA7' }}
+              >
                 {label}
               </span>
+              {isActive && (
+                <div
+                  className="w-4 h-0.5 rounded-full mt-0.5"
+                  style={{ background: '#C79A45' }}
+                />
+              )}
             </button>
           );
         })}

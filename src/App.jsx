@@ -44,16 +44,10 @@ import ScopeClickCard from './pages/ScopeClickCard';
 import AppModules from './pages/AppModules';
 
 
-// Sync dark mode with system preference
+// Force dark mode for the premium tactical theme
 function ThemeSync() {
   useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const apply = (dark) => {
-      document.documentElement.classList.toggle('dark', dark);
-    };
-    apply(mq.matches);
-    mq.addEventListener('change', (e) => apply(e.matches));
-    return () => mq.removeEventListener('change', () => {});
+    document.documentElement.classList.add('dark');
   }, []);
   return null;
 }

@@ -4,7 +4,21 @@ import Navigation from '@/components/Navigation';
 import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight, Trash2, Zap, Layers } from 'lucide-react';
 import AutoCheckinSettingToggle from '@/components/AutoCheckinSettingToggle';
 import { base44 } from '@/api/base44Client';
-import { DESIGN } from '@/lib/designConstants';
+import { T } from '@/lib/theme';
+
+const sidebarLink = (active) => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.75rem',
+  padding: '0.625rem 0.75rem',
+  borderRadius: '0.75rem',
+  fontSize: '0.875rem',
+  fontWeight: 500,
+  transition: 'all 0.15s',
+  color: active ? T.bg : T.muted,
+  background: active ? T.bronze : 'transparent',
+  textDecoration: 'none',
+});
 
 export default function Profile() {
   const location = useLocation();
@@ -28,97 +42,37 @@ export default function Profile() {
     }
   };
 
+  const navItems = [
+    { path: '/profile', label: 'My Details', icon: User },
+    { path: '/profile/settings', label: 'Equipment & Areas', icon: Settings },
+    { path: '/records', label: 'Records', icon: FileText },
+    { path: '/reports', label: 'Reports', icon: BarChart3 },
+    { path: '/ammo-summary', label: 'Armory Status', icon: Zap },
+    { path: '/deer-stalking-logs', label: 'Stalking Logs', icon: Map },
+    { path: '/profile/modules', label: 'App Modules', icon: Layers },
+  ];
+
   return (
-    <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
+    <div className="min-h-screen" style={{ background: T.bg }}>
       <Navigation />
       <main className="max-w-5xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
-        <h1 className="text-xl font-bold mb-4 hidden md:block text-slate-900 dark:text-slate-100">Profile</h1>
+        <h1 className="text-xl font-bold mb-4 hidden md:block" style={{ color: T.text }}>Profile</h1>
 
         <div className="flex flex-col md:flex-row gap-4">
           {/* Sidebar */}
           <div className="w-full md:w-52">
-            <div className="bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm p-2 space-y-0.5">
-              <Link
-                to="/profile"
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  isActive('/profile')
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
-              >
-                <User className="w-4 h-4" />
-                My Details
-              </Link>
-              <Link
-                to="/profile/settings"
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  isActive('/profile/settings')
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
-              >
-                <Settings className="w-4 h-4" />
-                Equipment & Areas
-              </Link>
-              <Link
-                to="/records"
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  isActive('/profile/records')
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
-              >
-                <FileText className="w-4 h-4" />
-                Records
-              </Link>
-              <Link
-                to="/reports"
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  isActive('/reports')
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
-              >
-                <BarChart3 className="w-4 h-4" />
-                Reports
-              </Link>
-              <Link
-                to="/ammo-summary"
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  isActive('/ammo-summary')
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
-              >
-                <Zap className="w-4 h-4" />
-                Armory Status
-              </Link>
-              <Link
-                to="/deer-stalking-logs"
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  isActive('/deer-stalking-logs')
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
-              >
-                <Map className="w-4 h-4" />
-                Stalking Logs
-              </Link>
-              <Link
-                to="/profile/modules"
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  isActive('/profile/modules')
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
-                }`}
-              >
-                <Layers className="w-4 h-4" />
-                App Modules
-              </Link>
+            <div className="rounded-2xl p-2 space-y-0.5" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+              {navItems.map(({ path, label, icon: Icon }) => (
+                <Link key={path} to={path} style={sidebarLink(isActive(path))}>
+                  <Icon className="w-4 h-4" style={{ color: isActive(path) ? T.bg : T.bronze }} />
+                  {label}
+                </Link>
+              ))}
               <button
                 onClick={handleLogout}
                 disabled={loading}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors disabled:opacity-50"
+                style={{ color: T.danger }}
               >
                 <LogOut className="w-4 h-4" />
                 {loading ? 'Logging out...' : 'Logout'}
@@ -128,7 +82,7 @@ export default function Profile() {
 
           {/* Content */}
           <div className="flex-1">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700 shadow-sm p-5">
+            <div className="rounded-2xl p-5" style={{ background: T.card, border: `1px solid ${T.border}` }}>
               {isActive('/profile/settings') ? (
                 <SettingsPanel />
               ) : (
@@ -145,14 +99,18 @@ export default function Profile() {
 function CollapsibleSection({ title, children }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden">
+    <div className="rounded-xl overflow-hidden" style={{ background: T.panel, border: `1px solid ${T.border}` }}>
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-secondary/50 transition-colors"
+        className="w-full flex items-center justify-between px-5 py-4 text-left transition-colors"
+        style={{ color: T.muted }}
       >
-        <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{title}</span>
-        {open ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+        <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: T.bronze }}>{title}</span>
+        {open
+          ? <ChevronDown className="w-4 h-4" style={{ color: T.muted }} />
+          : <ChevronRight className="w-4 h-4" style={{ color: T.muted }} />
+        }
       </button>
       {open && <div className="px-5 pb-5">{children}</div>}
     </div>
@@ -162,11 +120,11 @@ function CollapsibleSection({ title, children }) {
 function Field({ label, error, required, children }) {
   return (
     <div>
-      <label className="block text-sm font-medium mb-1">
-        {label}{required && <span className="text-destructive ml-1">*</span>}
+      <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wide" style={{ color: T.muted }}>
+        {label}{required && <span className="ml-1" style={{ color: T.danger }}>*</span>}
       </label>
       {children}
-      {error && <p className="text-destructive text-xs mt-1">{error}</p>}
+      {error && <p className="text-xs mt-1" style={{ color: T.danger }}>{error}</p>}
     </div>
   );
 }
@@ -175,45 +133,32 @@ function SettingsPanel() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-4">Equipment & Areas</h2>
-        <p className="text-muted-foreground">Manage your firearms and locations</p>
+        <h2 className="text-2xl font-bold mb-1" style={{ color: T.text }}>Equipment & Areas</h2>
+        <p className="text-sm" style={{ color: T.muted }}>Manage your firearms and locations</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <SettingCard title="Rifles" description="Manage your rifle collection" link="/settings/rifles" />
-        <SettingCard title="Shotguns" description="Manage your shotgun collection" link="/settings/shotguns" />
-        <SettingCard title="Clubs" description="Manage shooting clubs" link="/settings/clubs" />
-        <SettingCard title="Deer Locations" description="Manage deer hunting locations" link="/settings/locations" />
-        <SettingCard title="Ammunition" description="Manage ammunition" link="/settings/ammunition" />
-        <SettingCard title="Ammunition Inventory" description="Track stock levels & costs" link="/settings/ammunition-inventory" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[
+          { title: 'Rifles', description: 'Manage your rifle collection', link: '/settings/rifles' },
+          { title: 'Shotguns', description: 'Manage your shotgun collection', link: '/settings/shotguns' },
+          { title: 'Clubs', description: 'Manage shooting clubs', link: '/settings/clubs' },
+          { title: 'Deer Locations', description: 'Manage deer hunting locations', link: '/settings/locations' },
+          { title: 'Ammunition', description: 'Manage ammunition', link: '/settings/ammunition' },
+          { title: 'Ammunition Inventory', description: 'Track stock levels & costs', link: '/settings/ammunition-inventory' },
+        ].map(({ title, description, link }) => (
+          <Link key={link} to={link}
+            className="block rounded-xl p-4 transition-all active:scale-[0.98]"
+            style={{ background: T.panel, border: `1px solid ${T.border}`, borderTop: `2px solid ${T.bronze}` }}
+          >
+            <h3 className="text-sm font-bold mb-1" style={{ color: T.text }}>{title}</h3>
+            <p className="text-xs" style={{ color: T.muted }}>{description}</p>
+          </Link>
+        ))}
       </div>
 
       <div>
-        <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3">App Settings</h3>
+        <h3 className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: T.bronze }}>App Settings</h3>
         <AutoCheckinSettingToggle />
-      </div>
-    </div>
-  );
-}
-
-function SettingCard({ title, description, link }) {
-  return (
-    <Link to={link} className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-5 hover:shadow-md transition-all block shadow-sm">
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-sm text-muted-foreground">{description}</p>
-    </Link>
-  );
-}
-
-function RecordsPanel() {
-  return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">Records</h2>
-      <div className="bg-card border border-border rounded-lg p-8 text-center">
-        <p className="text-muted-foreground">View and manage all your shooting records</p>
-        <Link to="/records" className="mt-4 inline-block px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">
-          View All Records
-        </Link>
       </div>
     </div>
   );
@@ -222,9 +167,19 @@ function RecordsPanel() {
 const COUNTRIES = [
   'United Kingdom', 'United States', 'Australia', 'Canada', 'Ireland',
   'New Zealand', 'South Africa', 'France', 'Germany', 'Spain',
-  'Italy', 'Netherlands', 'Belgium', 'Sweden', 'Norway', 'Denmark',
-  'Other'
+  'Italy', 'Netherlands', 'Belgium', 'Sweden', 'Norway', 'Denmark', 'Other'
 ];
+
+const tacInputClass = (hasError) => ({
+  width: '100%',
+  padding: '0.5rem 0.75rem',
+  border: `1px solid ${hasError ? T.danger : T.border}`,
+  borderRadius: '0.75rem',
+  background: T.bg,
+  color: T.text,
+  fontSize: '0.875rem',
+  outline: 'none',
+});
 
 function PersonalDetailsPanel() {
   const [form, setForm] = useState(null);
@@ -284,74 +239,75 @@ function PersonalDetailsPanel() {
     setSaved(true);
   };
 
-  if (!form) return <div className="flex justify-center py-12"><div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
-
-  const inputClass = (field) =>
-    `w-full px-3 py-2 border rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-colors ${
-      errors[field] ? 'border-destructive' : 'border-border'
-    }`;
+  if (!form) return (
+    <div className="flex justify-center py-12">
+      <div className="w-6 h-6 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: `${T.bronze} transparent ${T.bronze} ${T.bronze}` }} />
+    </div>
+  );
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-1">My Details</h2>
-      <p className="text-muted-foreground text-sm mb-6">Update your personal information below.</p>
+      <h2 className="text-2xl font-bold mb-1" style={{ color: T.text }}>My Details</h2>
+      <p className="text-sm mb-6" style={{ color: T.muted }}>Update your personal information below.</p>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Personal */}
+      <form onSubmit={handleSubmit} className="space-y-4">
         <CollapsibleSection title="Personal Details">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="First Name" error={errors.firstName} required>
-              <input type="text" value={form.firstName} onChange={e => set('firstName', e.target.value)} placeholder="First name" className={inputClass('firstName')} autoComplete="given-name" />
-            </Field>
-            <Field label="Middle Name" error={errors.middleName}>
-              <input type="text" value={form.middleName} onChange={e => set('middleName', e.target.value)} placeholder="Optional" className={inputClass('middleName')} autoComplete="additional-name" />
-            </Field>
-            <Field label="Surname / Last Name" error={errors.lastName} required>
-              <input type="text" value={form.lastName} onChange={e => set('lastName', e.target.value)} placeholder="Last name" className={inputClass('lastName')} autoComplete="family-name" />
-            </Field>
-            <Field label="Date of Birth" error={errors.dateOfBirth} required>
-              <input type="date" value={form.dateOfBirth} onChange={e => set('dateOfBirth', e.target.value)} max={new Date().toISOString().split('T')[0]} className={inputClass('dateOfBirth')} autoComplete="bday" />
-            </Field>
-            <Field label="Phone Number" error={errors.phone}>
-              <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="e.g. 07700 900000" className={inputClass('phone')} autoComplete="tel" />
-            </Field>
+            {[
+              { key: 'firstName', label: 'First Name', type: 'text', placeholder: 'First name', required: true },
+              { key: 'middleName', label: 'Middle Name', type: 'text', placeholder: 'Optional' },
+              { key: 'lastName', label: 'Surname / Last Name', type: 'text', placeholder: 'Last name', required: true },
+              { key: 'dateOfBirth', label: 'Date of Birth', type: 'date', required: true },
+              { key: 'phone', label: 'Phone Number', type: 'tel', placeholder: 'e.g. 07700 900000' },
+            ].map(({ key, label, type, placeholder, required }) => (
+              <Field key={key} label={label} error={errors[key]} required={required}>
+                <input
+                  type={type}
+                  value={form[key]}
+                  onChange={e => set(key, e.target.value)}
+                  placeholder={placeholder}
+                  max={type === 'date' ? new Date().toISOString().split('T')[0] : undefined}
+                  style={tacInputClass(!!errors[key])}
+                />
+              </Field>
+            ))}
           </div>
         </CollapsibleSection>
 
-        {/* Address */}
         <CollapsibleSection title="Address">
           <div className="space-y-4">
             <Field label="Address Line 1" error={errors.addressLine1} required>
-              <input type="text" value={form.addressLine1} onChange={e => set('addressLine1', e.target.value)} placeholder="e.g. 12 High Street" className={inputClass('addressLine1')} autoComplete="address-line1" />
+              <input type="text" value={form.addressLine1} onChange={e => set('addressLine1', e.target.value)} placeholder="e.g. 12 High Street" style={tacInputClass(!!errors.addressLine1)} />
             </Field>
             <Field label="Address Line 2" error={errors.addressLine2}>
-              <input type="text" value={form.addressLine2} onChange={e => set('addressLine2', e.target.value)} placeholder="Flat, suite (optional)" className={inputClass('addressLine2')} autoComplete="address-line2" />
+              <input type="text" value={form.addressLine2} onChange={e => set('addressLine2', e.target.value)} placeholder="Flat, suite (optional)" style={tacInputClass(false)} />
             </Field>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Field label="City / Town" error={errors.city}>
-                <input type="text" value={form.city} onChange={e => set('city', e.target.value)} placeholder="e.g. London" className={inputClass('city')} autoComplete="address-level2" />
+                <input type="text" value={form.city} onChange={e => set('city', e.target.value)} placeholder="e.g. London" style={tacInputClass(false)} />
               </Field>
               <Field label="Postcode" error={errors.postcode}>
-                <input type="text" value={form.postcode} onChange={e => set('postcode', e.target.value.toUpperCase())} placeholder="e.g. SW1A 1AA" className={inputClass('postcode')} autoComplete="postal-code" />
+                <input type="text" value={form.postcode} onChange={e => set('postcode', e.target.value.toUpperCase())} placeholder="e.g. SW1A 1AA" style={tacInputClass(false)} />
               </Field>
               <Field label="Country" error={errors.country}>
-                <select value={form.country} onChange={e => set('country', e.target.value)} className={inputClass('country')} autoComplete="country-name">
-                  {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+                <select value={form.country} onChange={e => set('country', e.target.value)} style={{ ...tacInputClass(false), cursor: 'pointer' }}>
+                  {COUNTRIES.map(c => <option key={c} value={c} style={{ background: T.panel }}>{c}</option>)}
                 </select>
               </Field>
             </div>
           </div>
         </CollapsibleSection>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 pt-2">
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-2 bg-primary text-primary-foreground font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="px-6 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-all active:scale-95"
+            style={{ background: T.bronze, color: T.bg }}
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
-          {saved && <span className="text-sm text-green-600 font-medium">✓ Saved successfully</span>}
+          {saved && <span className="text-sm font-medium" style={{ color: T.success }}>✓ Saved successfully</span>}
         </div>
       </form>
 
@@ -377,41 +333,44 @@ function DeleteAccountSection() {
   };
 
   return (
-    <div className="mt-10 border border-destructive/30 rounded-xl p-5 bg-destructive/5">
-      <h3 className="text-sm font-semibold text-destructive uppercase tracking-wide mb-2 flex items-center gap-2">
+    <div className="mt-10 rounded-xl p-5" style={{ border: `1px solid ${T.danger}40`, background: `${T.danger}08` }}>
+      <h3 className="text-sm font-semibold uppercase tracking-wide mb-2 flex items-center gap-2" style={{ color: T.danger }}>
         <Trash2 className="w-4 h-4" /> Delete Account
       </h3>
-      <p className="text-sm text-muted-foreground mb-4">
+      <p className="text-sm mb-4" style={{ color: T.muted }}>
         Permanently delete your account and all associated data. This action cannot be undone.
       </p>
       {!confirming ? (
         <button
           onClick={() => setConfirming(true)}
-          className="px-4 py-2 border border-destructive text-destructive rounded-lg text-sm font-medium hover:bg-destructive hover:text-destructive-foreground transition-colors"
+          className="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+          style={{ border: `1px solid ${T.danger}`, color: T.danger, background: 'transparent' }}
         >
           Delete My Account
         </button>
       ) : (
         <div className="space-y-3">
-          <p className="text-sm font-medium">Type <strong>DELETE</strong> to confirm:</p>
+          <p className="text-sm font-medium" style={{ color: T.text }}>Type <strong style={{ color: T.danger }}>DELETE</strong> to confirm:</p>
           <input
             type="text"
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
             placeholder="DELETE"
-            className="w-full px-3 py-2 border border-destructive rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-destructive"
+            style={{ ...tacInputClass(false), border: `1px solid ${T.danger}` }}
           />
           <div className="flex gap-3">
             <button
               onClick={handleDelete}
               disabled={confirmText !== 'DELETE' || deleting}
-              className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg text-sm font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
+              className="px-4 py-2 rounded-xl text-sm font-medium disabled:opacity-50 transition-all"
+              style={{ background: T.danger, color: T.text }}
             >
               {deleting ? 'Deleting...' : 'Confirm Delete'}
             </button>
             <button
               onClick={() => { setConfirming(false); setConfirmText(''); }}
-              className="px-4 py-2 border border-border rounded-lg text-sm hover:bg-secondary transition-colors"
+              className="px-4 py-2 rounded-xl text-sm transition-all"
+              style={{ border: `1px solid ${T.border}`, color: T.muted, background: 'transparent' }}
             >
               Cancel
             </button>
