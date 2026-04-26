@@ -69,6 +69,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
       const updatedRecords = await base44.entities.SessionRecord.filter({
         created_by: currentUser.email,
         category,
+        status: 'completed',
       });
       setRecords(updatedRecords);
     } catch (error) {

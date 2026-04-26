@@ -101,8 +101,8 @@ export function OutingProvider({ children }) {
 
        // Create DeerOuting (map system) - primary record with area_id link
        const outing = await base44.entities.DeerOuting.create({
-         location_name: data.place_name || '',
-         area_id: data.location_id || '',
+         location_name: data.place_name || data.location_name || '',
+         area_id: data.location_id || data.area_id || '',
          start_time: isoDateTime,
          gps_track: [],
          active: true,
