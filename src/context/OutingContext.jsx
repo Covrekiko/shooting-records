@@ -111,12 +111,15 @@ export function OutingProvider({ children }) {
        console.log('🟢 CHECK IN SAVE SUCCESS - DeerOuting created with ID:', outing.id, 'areaId:', outing.area_id, 'start_time:', isoDateTime);
 
        // Create SessionRecord for deer management - mirror with location_id AND explicit outing_id link
-       if (data.place_name && data.location_id) {
+       // Support both manual (place_name/location_id) and auto-checkin (location_name/area_id) field names
+       const srLocationId = data.location_id || data.area_id;
+       const srLocationName = data.place_name || data.location_name;
+       if (srLocationName && srLocationId) {
          const sr = await base44.entities.SessionRecord.create({
            category: 'deer_management',
            date: isoDate,
-           location_id: data.location_id,
-           location_name: data.place_name,
+           location_id: srLocationId,
+           location_name: srLocationName,
            start_time: isoTime,
            status: 'active',
            notes: '',

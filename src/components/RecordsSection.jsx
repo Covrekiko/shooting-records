@@ -25,6 +25,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
            base44.entities.SessionRecord.filter({
              created_by: currentUser.email,
              category,
+             status: 'completed',
            }),
            base44.entities.Rifle.filter({ created_by: currentUser.email }),
            base44.entities.Shotgun.filter({ created_by: currentUser.email }),

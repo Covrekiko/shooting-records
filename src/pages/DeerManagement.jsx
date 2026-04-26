@@ -271,7 +271,7 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
 
   const handleAreaSelect = (areaId) => {
     onChange('location_id', areaId);
-    if (!data.place_name && areaId) {
+    if (areaId) {
       const selected = areas.find(a => a.id === areaId);
       if (selected) onChange('place_name', selected.name);
     }
