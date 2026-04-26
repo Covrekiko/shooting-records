@@ -6,6 +6,7 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import ManualRecordModal from '@/components/ManualRecordModal';
 import { createPortal } from 'react-dom';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { Download, Eye, Trash2, X, FileText, Map, Image, ChevronDown, Plus, Edit } from 'lucide-react';
 import { format } from 'date-fns';
 import { exportRecordsToPdf, getRecordsPdfBlob } from '@/utils/recordsPdfExport';
@@ -34,6 +35,9 @@ export default function Records() {
     dateFrom: '',
     dateTo: '',
   });
+
+  const anyModalOpen = !!(viewingRecord || previewingPdf || viewingTrack || viewingPhoto || manualRecordModal);
+  useBodyScrollLock(anyModalOpen);
 
   useEffect(() => {
     loadRecords();
@@ -446,6 +450,7 @@ function PhotoModal({ photo, onClose }) {
   const [zoom, setZoom] = useState(1);
   const imgRef = useRef(null);
   const containerRef = useRef(null);
+  useBodyScrollLock(true);
 
   useEffect(() => {
     const handleEscape = (e) => {
@@ -579,6 +584,7 @@ function getBadgeLabel(type) {
 function PdfPreviewModal({ records, userInfo, rifles, clubs, shotguns, onClose }) {
    const [pdfUrl, setPdfUrl] = useState(null);
    const [loading, setLoading] = useState(true);
+   useBodyScrollLock(true);
 
    useEffect(() => {
      (async () => {

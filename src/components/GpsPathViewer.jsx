@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Polyline, CircleMarker, Popup, useMap } from '
 import 'leaflet/dist/leaflet.css';
 import { X } from 'lucide-react';
 import { format } from 'date-fns';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 function MapResizer() {
   const map = useMap();
@@ -16,6 +17,8 @@ function MapResizer() {
 }
 
 export default function GpsPathViewer({ track, onClose }) {
+  useBodyScrollLock(true);
+
   // Validate GPS coordinates
   const isValidCoord = (lat, lng) => {
     return lat && lng && 

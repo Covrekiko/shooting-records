@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import ReloadingSessionForm from '@/components/reloading/ReloadingSessionForm';
 import ReloadingInventoryWidget from '@/components/reloading/ReloadingInventoryWidget';
 import ComponentManager from '@/components/reloading/ComponentManager';
@@ -197,6 +198,9 @@ export default function ReloadingManagement() {
       alert('Error: ' + error.message);
     }
   };
+
+  const anyModalOpen = showBatchForm || showForm;
+  useBodyScrollLock(anyModalOpen);
 
   const totalCost = sessions.reduce((sum, s) => sum + (s.total_cost || 0), 0);
   const totalRounds = sessions.reduce((sum, s) => sum + (s.rounds_loaded || 0), 0);

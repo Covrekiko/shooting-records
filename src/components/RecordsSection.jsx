@@ -137,6 +137,21 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
 
 function SessionReportModal({ record, onClose, rifles, shotguns, clubs, locations, category }) {
    const [currentRecord, setCurrentRecord] = useState(record);
+   useEffect(() => {
+     const body = document.body;
+     const scrollY = window.scrollY;
+     body.style.overflow = 'hidden';
+     body.style.position = 'fixed';
+     body.style.top = `-${scrollY}px`;
+     body.style.width = '100%';
+     return () => {
+       body.style.overflow = '';
+       body.style.position = '';
+       body.style.top = '';
+       body.style.width = '';
+       window.scrollTo(0, scrollY);
+     };
+   }, []);
 
    useEffect(() => {
      const refreshRecord = async () => {

@@ -88,6 +88,13 @@
     @apply bg-background text-foreground;
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
+    overflow-x: hidden;
+  }
+
+  /* Prevent any child from causing horizontal scroll */
+  #root {
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   button, a, [role="button"],

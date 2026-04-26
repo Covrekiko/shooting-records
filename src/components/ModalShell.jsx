@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 /**
  * ModalShell — unified bottom-sheet on mobile, centered dialog on desktop.
@@ -10,6 +11,8 @@ import { motion } from 'framer-motion';
  *   children   — scrollable body content
  */
 export default function ModalShell({ title, onClose, footer, children, maxWidth = 'sm:max-w-md' }) {
+  useBodyScrollLock(true);
+
   return (
     <motion.div
       initial={{ y: '100%', opacity: 0 }}
