@@ -17,7 +17,6 @@ export default function Records() {
   const [allRecords, setAllRecords] = useState([]);
   const [filteredRecords, setFilteredRecords] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { pulling, progress, refreshing } = usePullToRefresh(useCallback(() => loadRecords(), []));
   const [user, setUser] = useState(null);
   const [viewingRecord, setViewingRecord] = useState(null);
   const [users, setUsers] = useState({});
@@ -38,6 +37,9 @@ export default function Records() {
 
   const anyModalOpen = !!(viewingRecord || previewingPdf || viewingTrack || viewingPhoto || manualRecordModal);
   useBodyScrollLock(anyModalOpen);
+
+  const loadRecordsCallback = useCallback(() => loadRecords(), []);
+  const { pulling, progress, refreshing } = usePullToRefresh(loadRecordsCallback);
 
   useEffect(() => {
     loadRecords();

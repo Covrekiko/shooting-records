@@ -649,8 +649,15 @@ export default function DeerStalkingMap() {
       {/* Modals - rendered via portal */}
       {createPortal(
         <>
-          {(showPOI || showHarvest || showOuting || showCheckout || showAreaDrawer || showAreaForm) && (
-            <div className="fixed inset-0 z-[50000] pointer-events-auto" />
+          {(showPOI || showHarvest || showOuting || showCheckout || showAreaForm) && (
+            <div className="fixed inset-0 z-[50000] bg-black/50 pointer-events-auto" onClick={() => {
+              setShowPOI(false);
+              setShowHarvest(false);
+              setShowOuting(false);
+              setShowCheckout(false);
+              setShowAreaForm(false);
+              setWaitingForPin(null);
+            }} />
           )}
 
           {showPOI && mapClick && (

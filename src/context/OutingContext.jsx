@@ -84,10 +84,20 @@ export function OutingProvider({ children }) {
      try {
        console.log('🟢 CHECK IN SAVE STARTED - OutingContext, areaId:', data.location_id, 'placeName:', data.place_name);
 
-       // Construct proper ISO date-time from date and time inputs
-       const [year, month, day] = (data.date || '').split('-');
-       const [hours, minutes] = (data.start_time || '').split(':');
-       const isoDateTime = new Date(year, parseInt(month) - 1, day, hours, minutes).toISOString();
+       // Support both: full ISO start_time (from auto-checkin) or separate date+time strings (from manual check-in form)
+       let isoDateTime;
+       if (data.start_time && data.start_time.includes('T')) {
+         // Already a full ISO datetime (e.g. from auto-checkin)
+         isoDateTime = data.start_time;
+       } else {
+         const [year, month, day] = (data.date || new Date().toISOString().split('T')[0]).split('-');
+         const [hours, minutes] = (data.start_time || '00:00').split(':');
+         isoDateTime = new Date(year, parseInt(month) - 1, day, hours, minutes).toISOString();
+       }
+
+       // Extract plain date and time strings for SessionRecord
+       const isoDate = isoDateTime.split('T')[0];
+       const isoTime = isoDateTime.split('T')[1]?.slice(0, 5) || '00:00';
 
        // Create DeerOuting (map system) - primary record with area_id link
        const outing = await base44.entities.DeerOuting.create({
@@ -101,18 +111,18 @@ export function OutingProvider({ children }) {
        console.log('🟢 CHECK IN SAVE SUCCESS - DeerOuting created with ID:', outing.id, 'areaId:', outing.area_id, 'start_time:', isoDateTime);
 
        // Create SessionRecord for deer management - mirror with location_id AND explicit outing_id link
-       if (data.place_name && data.date && data.start_time && data.location_id) {
+       if (data.place_name && data.location_id) {
          const sr = await base44.entities.SessionRecord.create({
            category: 'deer_management',
-           date: data.date,
+           date: isoDate,
            location_id: data.location_id,
            location_name: data.place_name,
-           start_time: data.start_time,
+           start_time: isoTime,
            status: 'active',
            notes: '',
            photos: [],
            gps_track: [],
-           checkin_time: data.start_time,
+           checkin_time: isoTime,
            outing_id: outing.id,
          });
          console.log('🟢 SessionRecord created with ID:', sr.id, 'location_id:', sr.location_id, 'outing_id:', outing.id);

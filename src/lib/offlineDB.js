@@ -208,7 +208,6 @@ export const ENTITY_STORE_MAP = {
   Rifle: 'rifles',
   Shotgun: 'shotguns',
   Club: 'clubs',
-  DeerLocation: 'locations',
   Ammunition: 'ammunition',
   Area: 'areas',
   MapMarker: 'map_markers',

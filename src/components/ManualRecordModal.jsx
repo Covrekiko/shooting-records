@@ -373,7 +373,11 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                 <label className="block text-sm font-medium mb-2">Location</label>
                 <BottomSheetSelect
                   value={formData.location_id}
-                  onChange={(val) => { setFormData({ ...formData, location_id: val }); clearError('location'); }}
+                  onChange={(val) => {
+                    const selected = locations.find(l => l.id === val);
+                    setFormData({ ...formData, location_id: val, place_name: selected?.name || formData.place_name });
+                    clearError('location');
+                  }}
                   placeholder="Select a location"
                   options={locations.map(l => ({ value: l.id, label: l.name }))}
                 />
