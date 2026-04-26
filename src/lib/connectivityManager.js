@@ -4,7 +4,7 @@
  */
 
 const listeners = new Set();
-let _isOnline = navigator.onLine;
+let _isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
 
 function notify(online) {
   _isOnline = online;
@@ -13,11 +13,14 @@ function notify(online) {
   });
 }
 
-window.addEventListener('online', () => notify(true));
-window.addEventListener('offline', () => notify(false));
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => notify(true));
+  window.addEventListener('offline', () => notify(false));
+}
 
 // Also poll with a real HTTP check every 30s to catch captive portals / broken connections
 async function pingCheck() {
+  if (typeof fetch === 'undefined') return;
   try {
     // Use a tiny cachebust to avoid cache
     await fetch(`/favicon.ico?_=${Date.now()}`, { method: 'HEAD', cache: 'no-store', signal: AbortSignal.timeout(5000) });
@@ -28,7 +31,9 @@ async function pingCheck() {
 }
 
 // Poll every 30 seconds
-setInterval(pingCheck, 30000);
+if (typeof setInterval !== 'undefined') {
+  setInterval(pingCheck, 30000);
+}
 
 export const connectivityManager = {
   isOnline: () => _isOnline,

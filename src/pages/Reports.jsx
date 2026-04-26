@@ -88,7 +88,12 @@ export default function Reports() {
         });
       } else if (reportType === 'category') {
         if (category === 'all') {
-          doc = await generateCategoryReportPDF(records, 'target', {});
+          if (records.length === 0) {
+            alert('No records found');
+            setPreviewLoading(false);
+            return;
+          }
+          doc = await generateCategoryReportPDF(records, 'all', {});
         } else {
           filteredRecords = records.filter((r) => r.recordType === category);
           if (filteredRecords.length === 0) {
@@ -139,7 +144,8 @@ export default function Reports() {
         doc.save(`Shooting_Report_${year}_${String(month + 1).padStart(2, '0')}.pdf`);
       } else if (reportType === 'category') {
         if (category === 'all') {
-          const doc = await generateCategoryReportPDF(records, 'target', {});
+          if (records.length === 0) { alert('No records found'); return; }
+          const doc = await generateCategoryReportPDF(records, 'all', {});
           doc.save(`All_Records_Report.pdf`);
         } else {
           filteredRecords = records.filter((r) => r.recordType === category);

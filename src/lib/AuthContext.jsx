@@ -77,9 +77,12 @@ export const AuthProvider = ({ children }) => {
           const cached = await getCachedUserProfile().catch(() => null);
           if (cached && appParams.token) {
             // User was previously logged in — allow offline access
-            setUser(cached);
+            setUser({ ...cached, profileComplete: true });
             setIsAuthenticated(true);
             setAuthError(null);
+          } else {
+            // Not cached — treat as auth required
+            setIsAuthenticated(false);
           }
           setIsLoadingAuth(false);
           setIsLoadingPublicSettings(false);
@@ -115,7 +118,7 @@ export const AuthProvider = ({ children }) => {
       if (isNetworkError) {
         const cached = await getCachedUserProfile().catch(() => null);
         if (cached) {
-          setUser(cached);
+          setUser({ ...cached, profileComplete: true });
           setIsAuthenticated(true);
           setAuthError(null);
           setIsLoadingAuth(false);

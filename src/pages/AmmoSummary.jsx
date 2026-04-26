@@ -147,7 +147,7 @@ export default function AmmoSummary() {
                       <div>
                         <p className="font-medium text-sm">{rifle.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {rifle.rounds_since_cleaning} / {rifle.cleaning_reminder_threshold} rounds
+                          {(rifle.total_rounds_fired || 0) - (rifle.rounds_at_last_cleaning || 0)} / {rifle.cleaning_reminder_threshold} rounds
                         </p>
                       </div>
                       <button

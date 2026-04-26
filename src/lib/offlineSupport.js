@@ -33,6 +33,7 @@ export async function preCacheUserData(userEmail) {
       { name: 'ReloadingComponent', method: () => base44.entities.ReloadingComponent.filter({ created_by: userEmail }) },
       { name: 'ReloadingSession', method: () => base44.entities.ReloadingSession.filter({ created_by: userEmail }) },
       { name: 'CleaningHistory', method: () => base44.entities.CleaningHistory.filter({ created_by: userEmail }) },
+      { name: 'DeerOuting', method: () => base44.entities.DeerOuting.filter({ created_by: userEmail }) },
     ];
 
     await Promise.allSettled(

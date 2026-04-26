@@ -48,11 +48,11 @@ function getFirearmData(targetShoots, clayShoots, rifles, shotguns) {
     if (record.rifles_used?.length) {
       record.rifles_used.forEach((rifle) => {
         const name = rifleMap[rifle.rifle_id] || 'Unknown Rifle';
-        firearmMap[name] = (firearmMap[name] || 0) + (rifle.rounds_fired || 0);
+        firearmMap[name] = (firearmMap[name] || 0) + (parseInt(rifle.rounds_fired) || 0);
       });
     } else if (record.rifle_id) {
       const name = rifleMap[record.rifle_id] || 'Unknown Rifle';
-      firearmMap[name] = (firearmMap[name] || 0) + (record.rounds_fired || 0);
+      firearmMap[name] = (firearmMap[name] || 0) + (parseInt(record.rounds_fired) || 0);
     }
   });
   clayShoots.forEach((record) => {
@@ -68,7 +68,11 @@ function getRoundsPerMonth(targetShoots, clayShoots) {
     const date = new Date(record.date);
     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     if (!monthlyMap[monthKey]) monthlyMap[monthKey] = { month: monthKey, rifle: 0, shotgun: 0 };
-    monthlyMap[monthKey].rifle += record.rounds_fired || 0;
+    // Rounds are in rifles_used array for target shooting
+    const rounds = Array.isArray(record.rifles_used)
+      ? record.rifles_used.reduce((sum, r) => sum + (parseInt(r.rounds_fired) || 0), 0)
+      : (record.rounds_fired || 0);
+    monthlyMap[monthKey].rifle += rounds;
   });
   clayShoots.forEach((record) => {
     const date = new Date(record.date);
@@ -103,8 +107,8 @@ function getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations) {
   const locationMap = {};
   const clubMap = clubs.reduce((acc, c) => ({ ...acc, [c.id]: c.name }), {});
   const deerLocationMap = locations.reduce((acc, l) => ({ ...acc, [l.id]: l.place_name }), {});
-  targetShoots.forEach((r) => { const name = clubMap[r.club_id] || 'Unknown Club'; locationMap[name] = (locationMap[name] || 0) + 1; });
-  clayShoots.forEach((r) => { const name = clubMap[r.club_id] || 'Unknown Club'; locationMap[name] = (locationMap[name] || 0) + 1; });
+  targetShoots.forEach((r) => { const name = clubMap[r.location_id] || clubMap[r.club_id] || r.location_name || 'Unknown Club'; locationMap[name] = (locationMap[name] || 0) + 1; });
+  clayShoots.forEach((r) => { const name = clubMap[r.location_id] || clubMap[r.club_id] || r.location_name || 'Unknown Club'; locationMap[name] = (locationMap[name] || 0) + 1; });
   deerMgmt.forEach((r) => { const name = deerLocationMap[r.location_id] || r.place_name || 'Unknown Location'; locationMap[name] = (locationMap[name] || 0) + 1; });
   return Object.entries(locationMap).map(([name, visits]) => ({ name, visits })).sort((a, b) => b.visits - a.visits).slice(0, 8);
 }
@@ -268,7 +272,12 @@ export default function Dashboard() {
         const targetShoots = allRecords.filter((r) => r.category === 'target_shooting');
         const clayShoots = allRecords.filter((r) => r.category === 'clay_shooting');
         const deerMgmt = allRecords.filter((r) => r.category === 'deer_management');
-        const totalRounds = targetShoots.reduce((sum, s) => sum + (s.rounds_fired || 0), 0);
+        const totalRounds = targetShoots.reduce((sum, s) => {
+          if (Array.isArray(s.rifles_used) && s.rifles_used.length > 0) {
+            return sum + s.rifles_used.reduce((rSum, r) => rSum + (parseInt(r.rounds_fired) || 0), 0);
+          }
+          return sum + (parseInt(s.rounds_fired) || 0);
+        }, 0);
         const totalShotgunRounds = clayShoots.reduce((sum, s) => sum + (s.rounds_fired || 0), 0);
         setStats({ targetSessions: targetShoots.length, claySessions: clayShoots.length, deerOutings: deerMgmt.length, totalRifleRounds: totalRounds, totalShotgunRounds });
         setChartData({

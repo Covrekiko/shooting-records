@@ -49,8 +49,15 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
   const handleDelete = async (id) => {
     if (!confirm('Delete this record? Ammunition and firearm counts will be restored.')) return;
     try {
-      // Use the backend function to restore all stock reliably
-      await base44.functions.invoke('restoreSessionStock', { sessionId: id });
+      const isOnline = navigator.onLine;
+      if (!isOnline) {
+        if (!confirm('You are offline. Deleting now will remove the record locally but ammunition stock cannot be restored until you are back online. Continue?')) return;
+      }
+
+      // Use the backend function to restore all stock reliably (online only)
+      if (isOnline) {
+        await base44.functions.invoke('restoreSessionStock', { sessionId: id });
+      }
 
       // Delete the record from the database
       await base44.entities.SessionRecord.delete(id);
