@@ -95,7 +95,7 @@ export default function AmmunitionInventory() {
     return (
       <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
         <Navigation />
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center min-h-[60vh]">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>

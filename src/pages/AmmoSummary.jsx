@@ -111,7 +111,7 @@ export default function AmmoSummary() {
   }
 
   return (
-    <div className="bg-slate-50 dark:bg-[#0f1117] min-h-screen">
+    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-6 flex items-center justify-between gap-4">

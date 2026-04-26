@@ -213,9 +213,9 @@ export default function SunriseSunsetTracker() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen mobile-page-padding">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-card border-b border-border">
+      <div className="sticky top-0 z-40 bg-white dark:bg-slate-800/80 border-b border-slate-200/60 dark:border-slate-700/60">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="p-2 hover:bg-secondary rounded-lg">
             <ArrowLeft className="w-5 h-5" />

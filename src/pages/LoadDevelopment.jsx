@@ -10,6 +10,7 @@ import TestDetailPage from '@/components/load-development/TestDetailPage';
 import TestViewModal from '@/components/load-development/TestViewModal';
 import { generateLoadTestPDF } from '@/utils/loadTestPDF';
 import { base44 as b44 } from '@/api/base44Client';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 const STATUS_COLORS = {
   Draft: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
@@ -89,6 +90,8 @@ export default function LoadDevelopment() {
       console.error(e);
     }
   };
+
+  useBodyScrollLock(!!(showCreate || viewTest));
 
   const caliberOptions = [...new Set(tests.map(t => t.caliber).filter(Boolean))];
 

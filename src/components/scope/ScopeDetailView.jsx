@@ -5,12 +5,15 @@ import { createPortal } from 'react-dom';
 import DistanceDataForm from '@/components/scope/DistanceDataForm';
 import DistanceTable from '@/components/scope/DistanceTable';
 import { exportScopeClickCardPDF } from '@/utils/scopePdfExport';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 export default function ScopeDetailView({ profile, rifle, onClose, onEdit }) {
   const [distanceData, setDistanceData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingRow, setEditingRow] = useState(null);
+
+  useBodyScrollLock(true);
 
   useEffect(() => {
     loadDistanceData();
