@@ -5,7 +5,36 @@ import { X, Plus } from 'lucide-react';
 import { searchCalibers } from '@/utils/caliberCatalog';
 import AddBrassModal from './AddBrassModal';
 
+// Inject premium dark styles for selects and inputs
+const selectStyles = `
+  .reload-batch-select {
+    color: #F2F2EF !important;
+    background-color: #1E2421 !important;
+    border: 1px solid #2E3732 !important;
+  }
+  .reload-batch-select:focus {
+    border-color: #C79A45 !important;
+    outline: none;
+    box-shadow: 0 0 0 1px #C79A4520 !important;
+  }
+  .reload-batch-select option {
+    background-color: #1E2421;
+    color: #F2F2EF;
+  }
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8) brightness(1.2);
+    cursor: pointer;
+  }
+`;
+
 export default function ReloadBatchForm({ onSubmit, onClose }) {
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.innerHTML = selectStyles;
+    document.head.appendChild(style);
+    return () => style.remove();
+  }, []);
+
   const [components, setComponents] = useState({});
   const [rifles, setRifles] = useState([]);
   const [user, setUser] = useState(null);
@@ -429,31 +458,41 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
   };
 
   if (loading) {
-    return <div className="text-center py-4"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div></div>;
+    return <div className="text-center py-6" style={{ backgroundColor: darkBg }}><div className="w-6 h-6 border-2 rounded-full animate-spin mx-auto" style={{ borderColor, borderTopColor: accentBronze }}></div></div>;
   }
 
-  const inputCls = "w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-base";
-  const labelCls = "text-xs font-bold text-muted-foreground uppercase mb-2 block";
+  // Premium dark tactical color palette
+  const darkBg = "#151A18";
+  const secondaryBg = "#1E2421";
+  const borderColor = "#2E3732";
+  const mainText = "#F2F2EF";
+  const secondaryText = "#A8ADA7";
+  const accentBronze = "#C79A45";
+  const darkBronze = "#8A6A35";
+
+  const inputCls = "w-full px-3.5 py-3 border text-base transition-all rounded-lg text-[#F2F2EF] placeholder-[#6B7370]"
+    + " bg-[#1E2421] border-[#2E3732] focus:border-[#C79A45] focus:ring-1 focus:ring-[#C79A45]/20 outline-none";
+  const labelCls = "text-xs font-semibold text-[#A8ADA7] uppercase tracking-wide mb-2.5 block";
 
   return (
-    <div className="flex flex-col" style={{ minHeight: 0, flex: 1 }}>
+    <div className="flex flex-col" style={{ minHeight: 0, flex: 1, backgroundColor: darkBg }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-border flex-shrink-0">
-        <h2 className="text-lg font-bold">New Reload Batch</h2>
-        <button onClick={onClose} className="w-10 h-10 flex items-center justify-center hover:bg-secondary rounded-xl">
-          <X className="w-5 h-5" />
+      <div className="flex items-center justify-between px-6 pt-6 pb-5 border-b flex-shrink-0" style={{ borderColor }}>
+        <h2 className="text-xl font-bold tracking-tight" style={{ color: mainText }}>New Reload Batch</h2>
+        <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-lg hover:opacity-70 transition-opacity" style={{ backgroundColor: secondaryBg }}>
+          <X className="w-5 h-5" style={{ color: secondaryText }} />
         </button>
       </div>
 
       {/* Form Content */}
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5"
+      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6"
         style={{ WebkitOverflowScrolling: 'touch' }}>
       {validationError && (
-       <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-lg p-3 text-sm font-medium">
+       <div className="border rounded-lg p-4 text-sm font-medium" style={{ backgroundColor: '#B84A3A20', borderColor: '#B84A3A40', color: '#E8A6A0' }}>
          {validationError}
        </div>
       )}
-      <form id="reload-batch-form" onSubmit={handleSubmit} className="space-y-5">
+      <form id="reload-batch-form" onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className={labelCls}>Date</label>
@@ -483,7 +522,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                 required
               />
               {showCaliberDropdown && caliberResults.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-2 rounded-lg shadow-xl z-10 max-h-48 overflow-y-auto" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
                   {caliberResults.map((caliber, idx) => (
                     <button
                       key={idx}
@@ -493,7 +532,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                         setShowCaliberDropdown(false);
                         setCaliberResults([]);
                       }}
-                      className="w-full text-left px-3 py-2 hover:bg-secondary border-b border-border last:border-b-0 text-sm"
+                      className="w-full text-left px-4 py-2.5 hover:opacity-80 transition-opacity border-b last:border-b-0 text-sm" style={{ borderColor, color: mainText }}
                     >
                       {caliber}
                     </button>
@@ -512,7 +551,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className={labelCls}>Rifle (optional)</label>
-            <select value={formData.rifle_id} onChange={(e) => setFormData({ ...formData, rifle_id: e.target.value })} className={inputCls}>
+            <select value={formData.rifle_id} onChange={(e) => setFormData({ ...formData, rifle_id: e.target.value })} className={`${inputCls} reload-batch-select`}>
               <option value="">None</option>
               {rifles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
             </select>
@@ -534,18 +573,18 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
         <div>
           <label className={labelCls}>Primer</label>
-          <select value={formData.primer_id} onChange={(e) => setFormData({ ...formData, primer_id: e.target.value })} className={inputCls} required>
+          <select value={formData.primer_id} onChange={(e) => setFormData({ ...formData, primer_id: e.target.value })} className={`${inputCls} reload-batch-select`} required>
             <option value="">Select primer</option>
             {components.primer.map(p => <option key={p.id} value={p.id}>{p.name} - {p.quantity_remaining} in stock (£{p.cost_per_unit.toFixed(4)}/ea)</option>)}
           </select>
           {stockWarnings.primer && (
-            <p className="text-xs text-destructive font-semibold mt-1.5">{stockWarnings.primer}</p>
+            <p className="text-xs font-semibold mt-2.5" style={{ color: '#E8A6A0' }}>{stockWarnings.primer}</p>
           )}
         </div>
 
         <div>
           <label className={labelCls}>Powder</label>
-          <select value={formData.powder_id} onChange={(e) => setFormData({ ...formData, powder_id: e.target.value })} className={inputCls} required>
+          <select value={formData.powder_id} onChange={(e) => setFormData({ ...formData, powder_id: e.target.value })} className={`${inputCls} reload-batch-select`} required>
             <option value="">Select powder</option>
             {components.powder.map(p => {
               // Display powder with normalized unit
@@ -561,28 +600,28 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
             })}
           </select>
           {stockWarnings.powder && (
-            <p className="text-xs text-destructive font-semibold mt-1.5">{stockWarnings.powder}</p>
-          )}
+             <p className="text-xs font-semibold mt-2.5" style={{ color: '#E8A6A0' }}>{stockWarnings.powder}</p>
+           )}
         </div>
 
         <div>
           <label className={labelCls}>Powder Charge & Unit</label>
           <div className="flex gap-2">
             <input
-              type="number"
-              inputMode="decimal"
-              value={formData.powder_charge}
-              onChange={(e) => setFormData({ ...formData, powder_charge: e.target.value })}
-              className="flex-1 px-3 py-3 border border-border rounded-xl bg-background text-foreground text-base"
-              placeholder="40.0"
-              step="0.1"
-              required
-            />
-            <select
-              value={formData.powder_unit}
-              onChange={(e) => setFormData({ ...formData, powder_unit: e.target.value })}
-              className="px-3 py-3 border border-border rounded-xl bg-background text-foreground font-medium min-w-max text-base"
-            >
+               type="number"
+               inputMode="decimal"
+               value={formData.powder_charge}
+               onChange={(e) => setFormData({ ...formData, powder_charge: e.target.value })}
+               className={inputCls + " flex-1"}
+               placeholder="40.0"
+               step="0.1"
+               required
+             />
+             <select
+               value={formData.powder_unit}
+               onChange={(e) => setFormData({ ...formData, powder_unit: e.target.value })}
+               className={`${inputCls} reload-batch-select min-w-max font-medium`}
+             >
               <option value="grains">grains</option>
               <option value="grams">grams</option>
             </select>
@@ -597,7 +636,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               <select
                 value={formData.brass_is_used ? '' : formData.brass_id}
                 onChange={(e) => setFormData({ ...formData, brass_id: e.target.value, brass_is_used: false, used_brass_id: '' })}
-                className={`${inputCls} flex-1`}
+                className={`${inputCls} reload-batch-select flex-1`}
               >
                 <option value="">— Select new brass —</option>
                 {components.brass.filter(b => !b.is_used_brass).map(b => (
@@ -607,7 +646,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               <button
                 type="button"
                 onClick={() => setShowAddBrassModal(true)}
-                className="px-3 py-2 bg-secondary text-secondary-foreground rounded-lg hover:opacity-90 flex items-center gap-1 font-medium text-sm whitespace-nowrap"
+                className="px-3 py-2 rounded-lg hover:opacity-85 flex items-center gap-1.5 font-medium text-sm whitespace-nowrap transition-opacity" style={{ backgroundColor: accentBronze, color: '#0D0D0B' }}
                 title="Add new brass"
               >
                 <Plus className="w-4 h-4" />
@@ -615,22 +654,22 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               </button>
             </div>
             {!formData.brass_is_used && stockWarnings.brass && (
-              <p className="text-xs text-destructive font-semibold mt-1.5">{stockWarnings.brass}</p>
-            )}
+               <p className="text-xs font-semibold mt-2.5" style={{ color: '#E8A6A0' }}>{stockWarnings.brass}</p>
+             )}
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-            <div className="flex-1 border-t border-border" />
-            <span>or</span>
-            <div className="flex-1 border-t border-border" />
-          </div>
+          <div className="flex items-center gap-3 text-xs" style={{ color: secondaryText }}>
+             <div className="flex-1 border-t" style={{ borderColor }} />
+             <span>or</span>
+             <div className="flex-1 border-t" style={{ borderColor }} />
+           </div>
 
           <div>
             <label className={labelCls}>Used Brass (previously fired)</label>
             <select
               value={formData.brass_is_used ? formData.used_brass_id : ''}
               onChange={(e) => setFormData({ ...formData, used_brass_id: e.target.value, brass_is_used: !!e.target.value, brass_id: '', override_brass_limit: false })}
-              className={inputCls}
+              className={`${inputCls} reload-batch-select`}
             >
               <option value="">— Select used brass —</option>
               {components.brass.filter(b => b.is_used_brass).map(b => (
@@ -640,8 +679,8 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               ))}
             </select>
             {formData.brass_is_used && stockWarnings.brass && (
-              <p className="text-xs text-destructive font-semibold mt-1.5">{stockWarnings.brass}</p>
-            )}
+               <p className="text-xs font-semibold mt-2.5" style={{ color: '#E8A6A0' }}>{stockWarnings.brass}</p>
+             )}
               {formData.used_brass_id && (() => {
                 const selectedBrass = components.brass.find(b => b.id === formData.used_brass_id);
                 if (!selectedBrass) return null;
@@ -652,49 +691,49 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                 const willHitLimit = maxLimit > 0 && willBe >= maxLimit;
 
                 return (
-                  <div className="mt-2 space-y-1.5">
-                    {atLimit ? (
-                      <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-lg p-2.5 text-xs font-semibold flex items-start gap-2">
-                        <span className="text-base leading-none">⚠️</span>
-                        <div>
-                          <p>This brass has reached its reload limit ({reloaded}/{maxLimit}).</p>
-                          <p className="font-normal text-destructive/80 mt-0.5">Consider retiring or trimming it first, then reset the counter in Manage Components.</p>
-                          <label className="flex items-center gap-1.5 mt-2 cursor-pointer font-normal">
-                            <input
-                              type="checkbox"
-                              checked={formData.override_brass_limit}
-                              onChange={(e) => setFormData({ ...formData, override_brass_limit: e.target.checked })}
-                              className="w-3.5 h-3.5"
-                            />
-                            Use anyway (I know what I'm doing)
-                          </label>
-                        </div>
-                      </div>
-                    ) : willHitLimit ? (
-                      <p className="text-xs text-amber-600 dark:text-amber-400 font-semibold">
-                        ⚠️ This batch will bring brass to its limit ({willBe}/{maxLimit}). Consider trimming after this reload.
-                      </p>
-                    ) : (
-                      <p className="text-xs text-muted-foreground">
-                        Reloaded <span className="font-bold text-primary">{reloaded}</span>x
-                        {maxLimit > 0 ? ` / limit ${maxLimit}` : ''} → will be <span className="font-bold text-primary">{willBe}</span> after this batch.
-                      </p>
-                    )}
-                  </div>
-                );
+                   <div className="mt-3 space-y-2.5">
+                     {atLimit ? (
+                       <div className="border rounded-lg p-3.5 text-xs font-semibold flex items-start gap-2.5" style={{ backgroundColor: '#B84A3A20', borderColor: '#B84A3A40', color: '#E8A6A0' }}>
+                         <span className="text-base leading-none mt-0.5">⚠️</span>
+                         <div className="flex-1">
+                           <p>This brass has reached its reload limit ({reloaded}/{maxLimit}).</p>
+                           <p className="font-normal text-[#D4928A] mt-1">Consider retiring or trimming it first, then reset the counter in Manage Components.</p>
+                           <label className="flex items-center gap-2 mt-2.5 cursor-pointer font-normal hover:opacity-80 transition-opacity">
+                             <input
+                               type="checkbox"
+                               checked={formData.override_brass_limit}
+                               onChange={(e) => setFormData({ ...formData, override_brass_limit: e.target.checked })}
+                               className="w-3.5 h-3.5 rounded"
+                             />
+                             Use anyway (I know what I'm doing)
+                           </label>
+                         </div>
+                       </div>
+                     ) : willHitLimit ? (
+                       <p className="text-xs font-semibold" style={{ color: '#D99A32' }}>
+                         ⚠️ This batch will bring brass to its limit ({willBe}/{maxLimit}). Consider trimming after this reload.
+                       </p>
+                     ) : (
+                       <p className="text-xs" style={{ color: secondaryText }}>
+                         Reloaded <span className="font-bold" style={{ color: accentBronze }}>{reloaded}</span>x
+                         {maxLimit > 0 ? ` / limit ${maxLimit}` : ''} → will be <span className="font-bold" style={{ color: accentBronze }}>{willBe}</span> after this batch.
+                       </p>
+                     )}
+                   </div>
+                 );
               })()}
           </div>
         </div>
 
         <div>
           <label className={labelCls}>Bullet</label>
-          <select value={formData.bullet_id} onChange={(e) => setFormData({ ...formData, bullet_id: e.target.value })} className={inputCls} required>
+          <select value={formData.bullet_id} onChange={(e) => setFormData({ ...formData, bullet_id: e.target.value })} className={`${inputCls} reload-batch-select`} required>
             <option value="">Select bullet</option>
             {components.bullet.map(b => <option key={b.id} value={b.id}>{b.name} - {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
           </select>
           {stockWarnings.bullet && (
-            <p className="text-xs text-destructive font-semibold mt-1.5">{stockWarnings.bullet}</p>
-          )}
+             <p className="text-xs font-semibold mt-2.5" style={{ color: '#E8A6A0' }}>{stockWarnings.bullet}</p>
+           )}
         </div>
 
         <div>
@@ -709,38 +748,39 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
         </div>
 
         {/* Cost Breakdown */}
-        {costBreakdown && (
-          <div className="bg-secondary/30 rounded-lg p-4 space-y-2 border border-border">
-            <h4 className="font-bold mb-3">Cost Breakdown</h4>
-            <div className="grid grid-cols-2 gap-2 text-sm">
-              <div><span className="text-muted-foreground">Primers:</span> <span className="font-semibold">£{costBreakdown.primerCost.toFixed(2)}</span></div>
-              <div><span className="text-muted-foreground">Powder:</span> <span className="font-semibold">£{costBreakdown.powderCost.toFixed(2)}</span></div>
-              <div><span className="text-muted-foreground">Brass:</span> <span className="font-semibold">£{costBreakdown.brassCost.toFixed(2)}</span></div>
-              <div><span className="text-muted-foreground">Bullets:</span> <span className="font-semibold">£{costBreakdown.bulletCost.toFixed(2)}</span></div>
-            </div>
-            <div className="border-t border-border pt-2 mt-2">
-              <div className="text-lg font-bold">Total: £{costBreakdown.totalCost.toFixed(2)}</div>
-              <div className="text-xs text-muted-foreground">£{costBreakdown.costPerCartridge.toFixed(2)} per cartridge</div>
-            </div>
-          </div>
-        )}
+         {costBreakdown && (
+           <div className="rounded-lg p-5 space-y-3.5" style={{ backgroundColor: secondaryBg, border: `1px solid ${borderColor}` }}>
+             <h4 className="font-bold text-sm" style={{ color: mainText }}>Cost Breakdown</h4>
+             <div className="grid grid-cols-2 gap-3 text-sm">
+               <div><span style={{ color: secondaryText }}>Primers:</span> <span className="font-semibold ml-2" style={{ color: mainText }}>£{costBreakdown.primerCost.toFixed(2)}</span></div>
+               <div><span style={{ color: secondaryText }}>Powder:</span> <span className="font-semibold ml-2" style={{ color: mainText }}>£{costBreakdown.powderCost.toFixed(2)}</span></div>
+               <div><span style={{ color: secondaryText }}>Brass:</span> <span className="font-semibold ml-2" style={{ color: mainText }}>£{costBreakdown.brassCost.toFixed(2)}</span></div>
+               <div><span style={{ color: secondaryText }}>Bullets:</span> <span className="font-semibold ml-2" style={{ color: mainText }}>£{costBreakdown.bulletCost.toFixed(2)}</span></div>
+             </div>
+             <div className="border-t pt-3.5 mt-3.5" style={{ borderColor }}>
+               <div className="text-lg font-bold" style={{ color: accentBronze }}>Total: £{costBreakdown.totalCost.toFixed(2)}</div>
+               <div className="text-xs mt-1.5" style={{ color: secondaryText }}>£{costBreakdown.costPerCartridge.toFixed(2)} per cartridge</div>
+             </div>
+           </div>
+         )}
       </form>
       </div>
 
       {/* Footer */}
-      <div className="flex gap-3 px-5 py-4 border-t border-border flex-shrink-0"
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}>
+      <div className="flex gap-3 px-6 py-5 border-t flex-shrink-0 safe-area-bottom" style={{ borderColor, backgroundColor: darkBg, paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 20px)' }}>
         <button
           form="reload-batch-form"
           type="submit"
-          className="flex-1 py-3.5 bg-primary text-primary-foreground rounded-xl font-semibold text-base hover:opacity-90 active:scale-95 transition-transform"
+          className="flex-1 py-3.5 rounded-lg font-semibold text-base hover:opacity-90 active:scale-95 transition-all"
+          style={{ backgroundColor: accentBronze, color: '#0D0D0B' }}
         >
           Create Batch
         </button>
         <button
           type="button"
           onClick={onClose}
-          className="flex-1 py-3.5 border border-border rounded-xl font-semibold text-base hover:bg-secondary active:scale-95 transition-transform"
+          className="flex-1 py-3.5 border rounded-lg font-semibold text-base hover:opacity-70 active:scale-95 transition-all"
+          style={{ borderColor, color: secondaryText }}
         >
           Cancel
         </button>
