@@ -179,7 +179,7 @@ export default function Reports() {
   const filteredDeer = records.filter((r) => r.recordType === 'deer');
 
   return (
-    <div className="bg-[#f5f0ea] dark:bg-slate-900 min-h-screen">
+    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
       <main className="max-w-7xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-8">

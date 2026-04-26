@@ -213,7 +213,7 @@ export default function SunriseSunsetTracker() {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen mobile-page-padding">
+    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-white dark:bg-slate-800/80 border-b border-slate-200/60 dark:border-slate-700/60">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-3">
@@ -225,7 +225,7 @@ export default function SunriseSunsetTracker() {
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 mobile-page-padding">
         <LegalShootingHoursWidgetLarge />
         <SunriseSunsetForecast />
       </div>

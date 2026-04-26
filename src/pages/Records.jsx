@@ -113,8 +113,7 @@ export default function Records() {
     let filtered = allRecords;
 
     if (filters.category !== 'all') {
-      const typeMap = { 'target_shooting': 'target', 'clay_shooting': 'clay', 'deer_management': 'deer' };
-      filtered = filtered.filter((r) => r.recordType === typeMap[filters.category]);
+      filtered = filtered.filter((r) => r.recordType === filters.category);
     }
 
     if (filters.dateFrom) {
@@ -269,9 +268,9 @@ export default function Records() {
                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
                  >
                    <option value="all">All Records</option>
-                   <option value="target_shooting">Target Shooting</option>
-                   <option value="clay_shooting">Clay Shooting</option>
-                   <option value="deer_management">Deer Management</option>
+                   <option value="target">Target Shooting</option>
+                   <option value="clay">Clay Shooting</option>
+                   <option value="deer">Deer Management</option>
                  </select>
               </div>
               <div>
@@ -429,7 +428,7 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
               <Edit className="w-4 h-4" />
             </button>
             <button
-              onClick={() => onDelete(record.id, record.recordType)}
+              onClick={() => onDelete(record.id)}
               className="px-3 py-1 text-sm bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded transition-colors flex items-center gap-1"
             >
               <Trash2 className="w-4 h-4" />

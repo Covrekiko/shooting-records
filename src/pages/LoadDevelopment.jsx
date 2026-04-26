@@ -9,7 +9,7 @@ import CreateTestModal from '@/components/load-development/CreateTestModal';
 import TestDetailPage from '@/components/load-development/TestDetailPage';
 import TestViewModal from '@/components/load-development/TestViewModal';
 import { generateLoadTestPDF } from '@/utils/loadTestPDF';
-import { base44 as b44 } from '@/api/base44Client';
+
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 const STATUS_COLORS = {
@@ -57,8 +57,8 @@ export default function LoadDevelopment() {
     setViewLoading(true);
     try {
       const [variants, results] = await Promise.all([
-        b44.entities.ReloadingTestVariant.filter({ test_id: test.id }),
-        b44.entities.ReloadingTestResult.filter({ test_id: test.id }),
+        base44.entities.ReloadingTestVariant.filter({ test_id: test.id }),
+        base44.entities.ReloadingTestResult.filter({ test_id: test.id }),
       ]);
       setViewData({ variants, results });
     } catch (err) { console.error(err); }

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Trash2, Eye, FileText, X } from 'lucide-react';
+import { Trash2, Eye, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { createPortal } from 'react-dom';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 export default function RecordsSection({ category, title, emptyMessage = 'No records yet' }) {
    const [records, setRecords] = useState([]);
@@ -137,21 +138,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
 
 function SessionReportModal({ record, onClose, rifles, shotguns, clubs, locations, category }) {
    const [currentRecord, setCurrentRecord] = useState(record);
-   useEffect(() => {
-     const body = document.body;
-     const scrollY = window.scrollY;
-     body.style.overflow = 'hidden';
-     body.style.position = 'fixed';
-     body.style.top = `-${scrollY}px`;
-     body.style.width = '100%';
-     return () => {
-       body.style.overflow = '';
-       body.style.position = '';
-       body.style.top = '';
-       body.style.width = '';
-       window.scrollTo(0, scrollY);
-     };
-   }, []);
+   useBodyScrollLock(true);
 
    useEffect(() => {
      const refreshRecord = async () => {
