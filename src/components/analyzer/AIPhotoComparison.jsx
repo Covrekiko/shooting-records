@@ -46,11 +46,33 @@ export default function AIPhotoComparison({
   const [scalePoints, setScalePoints] = useState([]);
   const [expectedShots, setExpectedShots] = useState('');
   const [debugInfo, setDebugInfo] = useState(null);
+  const [coordMapping, setCoordMapping] = useState(null);
   const imgRef = useRef(null);
   const POSITIONS = ['benchrest', 'prone', 'sticks', 'high_seat', 'standing', 'other'];
 
   // Ensure scale is set before AI analysis
   const canRunAI = scalePx && distanceOverride && distanceUnit;
+
+  // Helper: Convert AI pixel coords to normalized (0-1) then to display
+  const aiPixelToDisplay = (aiPixelX, aiPixelY, aiImgWidth, aiImgHeight) => {
+    if (!imgRef.current || !coordMapping) return null;
+    
+    // AI returned pixel coords → normalize to 0-1
+    const normX = aiPixelX / aiImgWidth;
+    const normY = aiPixelY / aiImgHeight;
+    
+    // Display image rect
+    const rect = imgRef.current.getBoundingClientRect();
+    
+    // Convert normalized to display pixels
+    const displayX = rect.left + (normX * rect.width);
+    const displayY = rect.top + (normY * rect.height);
+    
+    return { 
+      x: displayX - rect.left, // relative to image
+      y: displayY - rect.top
+    };
+  };
 
   const convertToMm = (value, unit) => {
     const v = parseFloat(value);
@@ -157,6 +179,33 @@ export default function AIPhotoComparison({
       const imgRect = imgRef.current.getBoundingClientRect();
       const displayWidth = imgRect.width;
       const displayHeight = imgRect.height;
+      const displayX = imgRect.left;
+      const displayY = imgRect.top;
+      
+      // Calculate all mapping values
+      const mapping = {
+        image_natural_width: imgNaturalWidth,
+        image_natural_height: imgNaturalHeight,
+        image_display_width: Math.round(displayWidth),
+        image_display_height: Math.round(displayHeight),
+        image_display_offset_x: Math.round(displayX),
+        image_display_offset_y: Math.round(displayY),
+        scaleX: displayWidth / imgNaturalWidth,
+        scaleY: displayHeight / imgNaturalHeight,
+        device_pixel_ratio: window.devicePixelRatio || 1,
+        object_fit: window.getComputedStyle(imgRef.current).objectFit || 'contain',
+        warnings: []
+      };
+
+      // Validate mapping
+      if (!isFinite(mapping.scaleX) || !isFinite(mapping.scaleY) || mapping.scaleX <= 0 || mapping.scaleY <= 0) {
+        mapping.warnings.push('⚠️ CRITICAL: Invalid coordinate mapping detected');
+      }
+      if (Math.abs(mapping.scaleX - mapping.scaleY) > 0.05) {
+        mapping.warnings.push('⚠️ ScaleX and ScaleY differ - image may be stretched');
+      }
+
+      setCoordMapping(mapping);
       
       // Run AI analysis
       const aiRes = await base44.functions.invoke('analyzeTargetPhotoWithAI', {
@@ -168,22 +217,17 @@ export default function AIPhotoComparison({
         return;
       }
 
-      // Calculate debug mapping info
+      // Build debug info
       const debug = {
-        image_natural_width: imgNaturalWidth,
-        image_natural_height: imgNaturalHeight,
-        image_display_width: displayWidth,
-        image_display_height: displayHeight,
-        scaleX: displayWidth / imgNaturalWidth,
-        scaleY: displayHeight / imgNaturalHeight,
+        ai_image_width: aiRes.data.analysis?.image_width || 0,
+        ai_image_height: aiRes.data.analysis?.image_height || 0,
         ai_raw_candidates: (aiRes.data.analysis?.bullet_holes || []).length,
-        warnings: []
+        ai_validated_count: aiRes.data.analysis?.validated_count || 0,
+        splatter_detection_used: aiRes.data.analysis?.splatter_detection_used || false,
+        splatter_candidates: aiRes.data.analysis?.splatter_candidates_count || 0,
+        rejection_count: (aiRes.data.analysis?.rejection_log || []).length,
+        confidence: aiRes.data.analysis?.confidence || 0
       };
-
-      // Check for NaN/Infinity
-      if (!isFinite(debug.scaleX) || !isFinite(debug.scaleY)) {
-        debug.warnings.push('⚠️ Coordinate mapping error detected');
-      }
 
       setDebugInfo(debug);
       setAiAnalysis(aiRes.data.analysis);
@@ -586,19 +630,37 @@ export default function AIPhotoComparison({
                 )}
               </div>
 
-              {debugInfo && (
+              {coordMapping && debugInfo && (
                 <details className="bg-slate-100/50 dark:bg-slate-800/50 border border-slate-300/30 dark:border-slate-700/50 rounded-2xl p-3">
                   <summary className="text-xs font-semibold text-muted-foreground cursor-pointer hover:text-foreground">
-                    🔍 Coordinate Debug Info
+                    🔍 Coordinate & Detection Debug
                   </summary>
-                  <div className="mt-2 space-y-1 text-xs text-muted-foreground font-mono">
-                    <p>Natural: {debugInfo.image_natural_width}×{debugInfo.image_natural_height}</p>
-                    <p>Display: {Math.round(debugInfo.image_display_width)}×{Math.round(debugInfo.image_display_height)}</p>
-                    <p>ScaleX: {debugInfo.scaleX.toFixed(3)} | ScaleY: {debugInfo.scaleY.toFixed(3)}</p>
-                    <p>AI Candidates: {debugInfo.ai_raw_candidates}</p>
-                    {debugInfo.warnings.map((w, i) => (
-                      <p key={i} className="text-amber-600 dark:text-amber-400">{w}</p>
-                    ))}
+                  <div className="mt-2 space-y-1.5 text-xs text-muted-foreground font-mono">
+                    <div className="border-b border-slate-300/20 pb-1.5">
+                      <p className="font-semibold text-muted-foreground mb-0.5">Image Mapping:</p>
+                      <p>Natural: {coordMapping.image_natural_width}×{coordMapping.image_natural_height}</p>
+                      <p>Display: {coordMapping.image_display_width}×{coordMapping.image_display_height}</p>
+                      <p>Offset: ({coordMapping.image_display_offset_x}, {coordMapping.image_display_offset_y})</p>
+                      <p>Scale: X={coordMapping.scaleX.toFixed(3)}, Y={coordMapping.scaleY.toFixed(3)}</p>
+                      <p>DPR: {coordMapping.device_pixel_ratio}, ObjectFit: {coordMapping.object_fit}</p>
+                    </div>
+                    <div className="border-b border-slate-300/20 pb-1.5">
+                      <p className="font-semibold text-muted-foreground mb-0.5">AI Detection:</p>
+                      <p>AI Image: {debugInfo.ai_image_width}×{debugInfo.ai_image_height}</p>
+                      <p>Raw Candidates: {debugInfo.ai_raw_candidates}</p>
+                      <p>Validated: {debugInfo.ai_validated_count}</p>
+                      <p>Rejected: {debugInfo.rejection_count}</p>
+                      <p>Splatter Detection: {debugInfo.splatter_detection_used ? `Yes (${debugInfo.splatter_candidates} clusters)` : 'No'}</p>
+                      <p>Confidence: {(debugInfo.confidence * 100).toFixed(0)}%</p>
+                    </div>
+                    {coordMapping.warnings.length > 0 && (
+                      <div>
+                        <p className="font-semibold text-amber-600 dark:text-amber-400 mb-0.5">⚠️ Warnings:</p>
+                        {coordMapping.warnings.map((w, i) => (
+                          <p key={i} className="text-amber-600 dark:text-amber-400">{w}</p>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </details>
               )}
