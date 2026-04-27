@@ -7,7 +7,7 @@ import GpsPathViewer from '@/components/GpsPathViewer';
 import ManualRecordModal from '@/components/ManualRecordModal';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
-import { Download, Eye, Trash2, X, FileText, Map, Image, ChevronDown, Plus, Edit } from 'lucide-react';
+import { Download, Eye, Trash2, X, FileText, Map, Image, ChevronDown, Plus, Edit, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { exportRecordsToPdf, getRecordsPdfBlob } from '@/utils/recordsPdfExport';
 import { DESIGN } from '@/lib/designConstants';
@@ -263,46 +263,52 @@ export default function Records() {
           <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">All your shooting activity logs</p>
 
           {/* Filters */}
-          <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium mb-2">Record Type</label>
-                <select
-                   value={filters.category}
-                   onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                   className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                 >
-                   <option value="all">All Records</option>
-                   <option value="target">Target Shooting</option>
-                   <option value="clay">Clay Shooting</option>
-                   <option value="deer">Deer Management</option>
-                 </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">From Date</label>
-                <input
-                  type="date"
-                  value={filters.dateFrom}
-                  onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">To Date</label>
-                <input
-                  type="date"
-                  value={filters.dateTo}
-                  onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                />
-              </div>
-            </div>
-          </div>
+           <div className="bg-card border border-border rounded-xl p-4 shadow-sm mb-6">
+             <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
+               <div>
+                 <label className="block text-xs font-bold uppercase text-muted-foreground mb-2">Record Type</label>
+                 <select
+                    value={filters.category}
+                    onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                    className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="all">All Records</option>
+                    <option value="target">Target Shooting</option>
+                    <option value="clay">Clay Shooting</option>
+                    <option value="deer">Deer Management</option>
+                  </select>
+               </div>
+               <div>
+                 <label className="block text-xs font-bold uppercase text-muted-foreground mb-2">From Date</label>
+                 <input
+                   type="date"
+                   value={filters.dateFrom}
+                   onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+                   placeholder="From date"
+                   className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                 />
+               </div>
+               <div>
+                 <label className="block text-xs font-bold uppercase text-muted-foreground mb-2">To Date</label>
+                 <input
+                   type="date"
+                   value={filters.dateTo}
+                   onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+                   placeholder="To date"
+                   className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                 />
+               </div>
+             </div>
+           </div>
         </div>
 
         {filteredRecords.length === 0 ? (
-          <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-8 text-center shadow-sm">
-            <p className="text-muted-foreground">No records found</p>
+          <div className="bg-card border border-border rounded-xl p-8 text-center shadow-sm">
+            <div className="flex justify-center mb-3">
+              <Search className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <p className="font-semibold text-foreground mb-1">No records found</p>
+            <p className="text-sm text-muted-foreground">Try changing the filters or add a new record to get started</p>
           </div>
         ) : (
           <div className="space-y-3">
