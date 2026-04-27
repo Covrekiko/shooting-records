@@ -244,7 +244,7 @@ export default function ProfileSetup({ onComplete }) {
           <button
             type="submit"
             disabled={saving}
-            className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed select-none"
           >
             {saving ? 'Saving...' : 'Complete Registration →'}
           </button>

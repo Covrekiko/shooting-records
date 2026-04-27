@@ -126,7 +126,7 @@ export default function UserAmmoSelector({ onSelect, onClear, selectedId, filter
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className={`w-full flex items-center justify-between px-3 py-2.5 border rounded-xl bg-background text-sm transition-colors ${
+        className={`w-full flex items-center justify-between px-3 py-2.5 border rounded-xl bg-background text-sm transition-colors select-none ${
           selected ? 'border-primary/50 text-foreground' : 'border-border text-muted-foreground'
         }`}
       >
@@ -165,13 +165,13 @@ export default function UserAmmoSelector({ onSelect, onClear, selectedId, filter
             ) : (
               filtered.map(a => (
                 <button
-                  key={`${a.source}-${a.id}`}
-                  type="button"
-                  onClick={() => handleSelect(a)}
-                  className={`w-full text-left px-3 py-2.5 hover:bg-secondary transition-colors border-b border-border/50 last:border-0 ${
-                    selected?.id === a.id && selected?.source === a.source ? 'bg-primary/10' : ''
-                  }`}
-                >
+                   key={`${a.source}-${a.id}`}
+                   type="button"
+                   onClick={() => handleSelect(a)}
+                   className={`w-full text-left px-3 py-2.5 hover:bg-secondary transition-colors border-b border-border/50 last:border-0 select-none ${
+                     selected?.id === a.id && selected?.source === a.source ? 'bg-primary/10' : ''
+                   }`}
+                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="text-sm font-semibold truncate">

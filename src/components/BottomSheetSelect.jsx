@@ -32,7 +32,7 @@ export default function BottomSheetSelect({ value, onChange, options = [], place
         ref={buttonRef}
         type="button"
         onClick={handleClick}
-        className={`w-full flex items-center justify-between px-3 py-3 border border-border rounded-lg bg-background text-base text-left ${!selectedLabel ? 'text-muted-foreground' : ''} ${className}`}
+        className={`w-full flex items-center justify-between px-3 py-3 border border-border rounded-lg bg-background text-base text-left select-none ${!selectedLabel ? 'text-muted-foreground' : ''} ${className}`}
       >
         <span className="truncate">{selectedLabel || placeholder}</span>
         <ChevronDown className={`w-4 h-4 flex-shrink-0 text-muted-foreground ml-2 transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -61,7 +61,7 @@ export default function BottomSheetSelect({ value, onChange, options = [], place
                 key={opt.value}
                 type="button"
                 onClick={() => handleSelect(opt.value)}
-                className={`w-full flex items-center justify-between px-4 py-3 text-sm border-b border-border last:border-b-0 transition-colors
+                className={`w-full flex items-center justify-between px-4 py-3 text-sm border-b border-border last:border-b-0 transition-colors select-none
                   ${opt.value === value ? 'text-primary font-semibold bg-primary/10' : 'text-foreground hover:bg-secondary'}`}
               >
                 <span>{opt.label}</span>

@@ -166,8 +166,8 @@ function KpiRow({ stats }) {
 function PrimaryCard({ to, icon, label, sub }) {
   return (
     <Link to={to}>
-      <div className="bg-white dark:bg-slate-800/80 rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/60 shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-4">
-        <div className="w-11 h-11 rounded-xl bg-primary/10 dark:bg-primary/15 flex items-center justify-center flex-shrink-0 text-primary [&_svg]:w-5 [&_svg]:h-5">
+      <div className="bg-white dark:bg-slate-800/80 rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/60 shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-4 select-none">
+        <div className="w-11 h-11 rounded-xl bg-primary/10 dark:bg-primary/15 flex items-center justify-center flex-shrink-0 text-primary [&_svg]:w-5 [&_svg]:h-5 select-none">
           {icon}
         </div>
         <div className="flex-1 min-w-0">
@@ -198,8 +198,8 @@ function SecondaryGrid({ user }) {
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
         <Link key={item.to} to={item.to}>
-          <div className="bg-white dark:bg-slate-800/80 rounded-xl p-2.5 border border-slate-200/60 dark:border-slate-700/60 shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center">
-            <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center text-slate-500 dark:text-slate-400 [&_svg]:w-4 [&_svg]:h-4">
+          <div className="bg-white dark:bg-slate-800/80 rounded-xl p-2.5 border border-slate-200/60 dark:border-slate-700/60 shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none">
+            <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center text-slate-500 dark:text-slate-400 [&_svg]:w-4 [&_svg]:h-4 select-none">
               {item.icon}
             </div>
             <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 leading-tight tracking-wide">{item.label}</p>
@@ -216,7 +216,7 @@ function ChartsSection({ chartData }) {
     <div className="bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
+        className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors select-none"
       >
         <span className="flex items-center gap-2.5">
           <BarChart3 className="w-4 h-4 text-primary" />

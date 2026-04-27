@@ -61,7 +61,7 @@ export default function MobileTabBar() {
           <button
             onClick={syncPill.action || undefined}
             disabled={!syncPill.action}
-            className={`w-full flex items-center justify-center gap-1.5 py-1 text-white text-[10px] font-semibold ${syncPill.bg} ${syncPill.action ? 'active:opacity-80' : ''}`}
+            className={`w-full flex items-center justify-center gap-1.5 py-1 text-white text-[10px] font-semibold select-none ${syncPill.bg} ${syncPill.action ? 'active:opacity-80' : ''}`}
           >
             <PillIcon className={`w-3 h-3 flex-shrink-0 ${syncPill.spinning ? 'animate-spin' : ''}`} />
             {syncPill.label}
@@ -75,7 +75,7 @@ export default function MobileTabBar() {
             <button
               key={key}
               onClick={() => handleTabPress(key)}
-              className={`flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 transition-colors active:scale-90 transform-gpu ${
+              className={`flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 transition-colors active:scale-90 transform-gpu select-none ${
                 isActive ? 'text-primary' : 'text-slate-400 dark:text-slate-500'
               }`}
             >

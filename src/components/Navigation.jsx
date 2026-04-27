@@ -132,11 +132,11 @@ export default function Navigation() {
                 const active = isActive(item.path);
                 return (
                   <Link key={item.path} to={item.path}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 ${
-                      active
-                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/80'
-                    }`}>
+                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 select-none ${
+                     active
+                       ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                       : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/80'
+                   }`}>
                     <Icon className="w-3.5 h-3.5" />
                     {item.label}
                   </Link>
@@ -192,7 +192,7 @@ export default function Navigation() {
 
           <button
             onClick={() => setOpen(!open)}
-            className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center active:scale-90 transition-transform"
+            className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center active:scale-90 transition-transform select-none"
           >
             {open ? <X className="w-4.5 h-4.5 text-slate-700 dark:text-white" /> : <Menu className="w-4.5 h-4.5 text-slate-700 dark:text-white" />}
           </button>
@@ -219,7 +219,7 @@ export default function Navigation() {
                     const active = isActive(item.path);
                     return (
                       <Link key={item.path} to={item.path} onClick={() => setOpen(false)}
-                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95 mb-0.5 ${
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95 mb-0.5 select-none ${
                           active
                             ? 'bg-slate-900 text-white dark:bg-primary dark:text-white'
                             : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80'

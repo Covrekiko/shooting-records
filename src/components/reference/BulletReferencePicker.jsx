@@ -120,7 +120,7 @@ export default function BulletReferencePicker({ onSelect, onClear, selectedId, f
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className={`w-full flex items-center justify-between px-3 py-2.5 border rounded-xl bg-background text-sm transition-colors ${
+        className={`w-full flex items-center justify-between px-3 py-2.5 border rounded-xl bg-background text-sm transition-colors select-none ${
           selected ? 'border-primary/50 text-foreground' : 'border-border text-muted-foreground'
         }`}
       >
@@ -182,7 +182,7 @@ export default function BulletReferencePicker({ onSelect, onClear, selectedId, f
                   key={b.id}
                   type="button"
                   onClick={() => handleSelect(b)}
-                  className={`w-full text-left px-3 py-2.5 hover:bg-secondary transition-colors border-b border-border/50 last:border-0 ${
+                  className={`w-full text-left px-3 py-2.5 hover:bg-secondary transition-colors border-b border-border/50 last:border-0 select-none ${
                     selected?.id === b.id ? 'bg-primary/10' : ''
                   }`}
                 >

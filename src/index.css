@@ -101,6 +101,35 @@
   nav a, nav button {
     user-select: none;
     -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* iOS interactive elements */
+  button, [role="button"], [role="tab"], [role="menuitem"],
+  a:not(a[href*="copy"]):not(a[role="textbox"]),
+  input[type="checkbox"], input[type="radio"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Allow text selection only in content fields */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="date"],
+  input[type="number"],
+  textarea,
+  [contenteditable="true"],
+  .editable-content {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+
+  /* Icons and SVG in interactive elements don't select */
+  button svg, [role="button"] svg, a svg,
+  nav button svg, nav a svg {
+    user-select: none;
+    -webkit-user-select: none;
+    pointer-events: none;
   }
 }
 
