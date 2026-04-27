@@ -25,8 +25,7 @@ export default function BetaTesters() {
         return;
       }
       setUser(currentUser);
-      const allUsers = await base44.entities.User.list();
-      const betaTesters = allUsers.filter(u => u.role === 'beta_tester');
+      const betaTesters = await base44.entities.User.filter({ role: 'beta_tester' });
       setTesters(betaTesters.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
     } catch (error) {
       console.warn('Error loading testers:', error);
