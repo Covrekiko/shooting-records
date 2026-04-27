@@ -74,10 +74,12 @@ export default function AdminUsers() {
 
   const handleMakeBetaTester = async (userId) => {
     try {
-      await base44.entities.User.update(userId, { role: 'beta_tester', status: 'active' });
-      setUsers(users.map(u => u.id === userId ? { ...u, role: 'beta_tester', status: 'active' } : u));
-      invalidateUserCache();
-      setSelectedUserMenu(null);
+      const res = await base44.functions.invoke('updateUserRole', { userId, newRole: 'beta_tester' });
+      if (res.data.success) {
+        setUsers(users.map(u => u.id === userId ? { ...u, role: 'beta_tester', status: 'active' } : u));
+        invalidateUserCache();
+        setSelectedUserMenu(null);
+      }
     } catch (error) {
       console.error('Error making beta tester:', error);
     }
