@@ -299,10 +299,10 @@ export default function Dashboard() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const { pulling, progress, refreshing } = usePullToRefresh(loadData);
-
   // Memoize chart data to prevent re-calculation on every render
   const memoizedChartData = useMemo(() => chartData, [chartData]);
+
+  const { pulling, progress, refreshing } = usePullToRefresh(loadData);
 
   if (loading) {
     return (
