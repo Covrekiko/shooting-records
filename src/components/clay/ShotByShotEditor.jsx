@@ -46,8 +46,12 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
   /**
    * RECORD: Fill next empty shot (normal scoring mode)
    * Used by manual buttons and voice commands
+   * 
+   * @param {string} result - 'dead' | 'lost' | 'no_bird'
+   * @param {string} inputMethod - 'manual' | 'voice'
+   * @param {object} metadata - Optional {voice_timestamp, voice_confidence_score}
    */
-  const recordShotResult = useCallback((result, inputMethod = 'manual') => {
+  const recordShotResult = useCallback((result, inputMethod = 'manual', metadata = {}) => {
     // If in edit mode, use edit function instead
     if (editingIndex !== null) {
       editShotResult(editingIndex, result);
@@ -70,7 +74,7 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
       onChange(updated);
 
       const updatedMeta = [...(shotMeta || [])];
-      updatedMeta[nextEmpty] = { input_method: inputMethod };
+      updatedMeta[nextEmpty] = { input_method: inputMethod, ...metadata };
       onShotMeta?.(updatedMeta);
 
       setActiveShotIndex(nextEmpty);
@@ -82,7 +86,7 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
       onChange(updated);
 
       const updatedMeta = [...(shotMeta || [])];
-      updatedMeta[currentIdx] = { input_method: inputMethod };
+      updatedMeta[currentIdx] = { input_method: inputMethod, ...metadata };
       onShotMeta?.(updatedMeta);
 
       // Find next empty
@@ -114,6 +118,17 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
   // ─── VOICE HOOK ───────────────────────────────────────────────────
   const { isListening, lastHeard, error: voiceError, start: startVoice, stop: stopVoice } = useVoiceScoring({
     onResult: ({ result, input_method, voice_timestamp, voice_confidence_score }) => {
+      // Debug logging (development)
+      if (typeof window !== 'undefined' && window.__VOICE_DEBUG__) {
+        console.log('🎙 Voice result:', {
+          heard: lastHeard,
+          parsed: result,
+          confidence: voice_confidence_score,
+          targetShot: activeShotIndexRef.current + 1,
+          timestamp: voice_timestamp,
+        });
+      }
+
       if (result === 'no_bird') {
         // No bird: increment counter, don't take a shot slot
         onNoBirdsChange(noBirds + 1);
@@ -123,8 +138,8 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
         return;
       }
 
-      // Dead or Lost: record to next empty shot
-      recordShotResult(result, 'voice');
+      // Dead or Lost: record to next empty shot with full voice metadata
+      recordShotResult(result, 'voice', { voice_timestamp, voice_confidence_score });
       setVoiceFlash(activeShotIndexRef.current);
       setLastCommand(result);
       setTimeout(() => setVoiceFlash(null), 800);

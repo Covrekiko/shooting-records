@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
 
 // Maps spoken words to shot results
-// Voice accepts: hit/heat/dead → 'dead', miss/missed/lost → 'lost', no bird → 'no_bird'
+// Supports: dead/hit/killed/yes/broke → 'dead', lost/miss/no/away → 'lost', no bird → 'no_bird'
+// Also supports Portuguese: morto/acertou/acertado → 'dead', perdeu/falhou → 'lost'
 function parseVoiceResult(transcript) {
   const t = transcript.toLowerCase().trim();
   const words = t.split(/\s+/);
@@ -11,11 +12,22 @@ function parseVoiceResult(transcript) {
     return { result: 'no_bird', confidence: 1 };
   }
 
-  // Single word commands
+  // Dead commands (UK/US English + Portuguese)
+  const deadWords = [
+    'dead', 'hit', 'heat', 'killed', 'kill', 'yes', 'good', 'broken', 'broke', 'dusted',
+    'morto', 'acertou', 'acertado', 'sim' // Portuguese
+  ];
+  
+  // Lost commands (UK/US English + Portuguese)
+  const lostWords = [
+    'lost', 'miss', 'missed', 'no', 'away', 'gone',
+    'perdeu', 'falhou', 'erro' // Portuguese
+  ];
+
+  // Check each word for matches
   for (const word of words) {
-    if (['hit', 'heat', 'dead'].includes(word)) return { result: 'dead', confidence: 1 };
-    if (['miss', 'missed', 'lost'].includes(word)) return { result: 'lost', confidence: 1 };
-    if (['bird'].includes(word)) return { result: 'no_bird', confidence: 0.9 };
+    if (deadWords.includes(word)) return { result: 'dead', confidence: 1 };
+    if (lostWords.includes(word)) return { result: 'lost', confidence: 1 };
   }
 
   return null;
