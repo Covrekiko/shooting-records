@@ -1,0 +1,190 @@
+{
+  "name": "BallisticProfile",
+  "type": "object",
+  "properties": {
+    "profile_name": {
+      "type": "string",
+      "description": "Profile name (e.g., '6.5CM Factory - 140gr ABLR')"
+    },
+    "rifle_id": {
+      "type": "string",
+      "description": "Linked rifle ID from Rifle entity"
+    },
+    "rifle_name": {
+      "type": "string",
+      "description": "Cached rifle name"
+    },
+    "scope_id": {
+      "type": "string",
+      "description": "Linked scope profile ID"
+    },
+    "scope_name": {
+      "type": "string",
+      "description": "Cached scope name"
+    },
+    "ammunition_type": {
+      "type": "string",
+      "enum": [
+        "factory",
+        "hand_load"
+      ],
+      "description": "Factory load or hand load"
+    },
+    "ammunition_id": {
+      "type": "string",
+      "description": "Linked Ammunition entity ID (factory only)"
+    },
+    "hand_load_id": {
+      "type": "string",
+      "description": "Linked ReloadingSession ID (hand load only)"
+    },
+    "brand": {
+      "type": "string",
+      "description": "Ammunition/load brand"
+    },
+    "caliber": {
+      "type": "string",
+      "description": "Caliber (e.g., 6.5 Creedmoor)"
+    },
+    "bullet_name": {
+      "type": "string",
+      "description": "Bullet model name"
+    },
+    "bullet_weight_grams": {
+      "type": "number",
+      "description": "Bullet weight in grams"
+    },
+    "bullet_weight_grains": {
+      "type": "number",
+      "description": "Bullet weight in grains (auto-converted)"
+    },
+    "muzzle_velocity_ms": {
+      "type": "number",
+      "description": "Muzzle velocity in m/s"
+    },
+    "muzzle_velocity_fps": {
+      "type": "number",
+      "description": "Muzzle velocity in fps (auto-converted)"
+    },
+    "ballistic_coefficient_g1": {
+      "type": "number",
+      "description": "BC (G1 drag model)"
+    },
+    "ballistic_coefficient_g7": {
+      "type": "number",
+      "description": "BC (G7 drag model)"
+    },
+    "bc_type": {
+      "type": "string",
+      "enum": [
+        "G1",
+        "G7"
+      ],
+      "default": "G1",
+      "description": "Which BC model to use"
+    },
+    "zero_distance_meters": {
+      "type": "number",
+      "description": "Zero distance in meters"
+    },
+    "zero_distance_yards": {
+      "type": "number",
+      "description": "Zero distance in yards (auto-converted)"
+    },
+    "sight_height_cm": {
+      "type": "number",
+      "description": "Scope height above bore in cm"
+    },
+    "sight_height_inches": {
+      "type": "number",
+      "description": "Scope height in inches"
+    },
+    "scope_click_value": {
+      "type": "string",
+      "enum": [
+        "0.25_MOA",
+        "0.125_MOA",
+        "0.1_MRAD",
+        "custom"
+      ],
+      "description": "Scope click value for turret calculations"
+    },
+    "scope_click_value_custom": {
+      "type": "string",
+      "description": "Custom click value if selected (e.g., 1/8 MOA)"
+    },
+    "unit_system": {
+      "type": "string",
+      "enum": [
+        "metric",
+        "imperial"
+      ],
+      "default": "metric",
+      "description": "Primary unit system (metres/cm vs yards/inches)"
+    },
+    "environmental_temperature": {
+      "type": "number",
+      "description": "Reference temperature (Celsius)"
+    },
+    "environmental_pressure": {
+      "type": "number",
+      "description": "Barometric pressure (mb or inHg)"
+    },
+    "environmental_altitude": {
+      "type": "number",
+      "description": "Altitude in meters or feet"
+    },
+    "environmental_humidity": {
+      "type": "number",
+      "description": "Relative humidity percentage"
+    },
+    "wind_speed": {
+      "type": "number",
+      "description": "Reference wind speed (m/s or mph)"
+    },
+    "wind_direction": {
+      "type": "number",
+      "description": "Wind direction in degrees (0-360)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "User notes about this profile"
+    },
+    "shot_photos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "description": "Target photos linked to this profile"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this profile is active"
+    }
+  },
+  "required": [
+    "profile_name",
+    "rifle_id",
+    "scope_id",
+    "ammunition_type",
+    "caliber",
+    "ballistic_coefficient_g1",
+    "muzzle_velocity_fps",
+    "bullet_weight_grains",
+    "zero_distance_meters",
+    "scope_click_value"
+  ]
+}
