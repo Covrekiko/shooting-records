@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { Plus, Trash2, Edit2, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import AmmoSpendingBreakdown from '@/components/AmmoSpendingBreakdown';
 
 export default function AmmunitionInventory() {
   const [ammo, setAmmo] = useState([]);
@@ -241,6 +242,12 @@ export default function AmmunitionInventory() {
             </form>
           </div>
         )}
+
+        {/* Spending Breakdown */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold mb-4">Spending Breakdown</h2>
+          <AmmoSpendingBreakdown />
+        </div>
 
         {ammo.length === 0 ? (
            <div className="bg-card border border-border rounded-lg p-8 text-center">
