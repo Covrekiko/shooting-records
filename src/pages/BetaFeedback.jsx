@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Plus, Search, Filter, MessageSquare, AlertCircle, Lightbulb, Eye } from 'lucide-react';
+import { Plus, Search, Filter, MessageSquare, AlertCircle, Lightbulb, Eye, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 
@@ -233,6 +233,13 @@ export default function BetaFeedback() {
                       </div>
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">{post.description}</p>
+                    {post.screenshot_urls && post.screenshot_urls.length > 0 && (
+                      <div className="flex gap-2 mt-2">
+                        {post.screenshot_urls.map((url, idx) => (
+                          <img key={idx} src={url} alt="screenshot" className="w-10 h-10 rounded object-cover border border-border" />
+                        ))}
+                      </div>
+                    )}
                     <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
                       <span>{CATEGORIES[post.category]?.label}</span>
                       <span>{format(new Date(post.created_date), 'MMM d, yyyy')}</span>
@@ -260,7 +267,54 @@ function FeedbackForm({ onSubmit, onCancel }) {
     actual_result: '',
     device_info: '',
     browser_info: '',
+    screenshot_urls: [],
   });
+  const [uploadingScreenshots, setUploadingScreenshots] = useState(false);
+  const [previewImages, setPreviewImages] = useState([]);
+
+  const handleScreenshotUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    setUploadingScreenshots(true);
+    try {
+      const uploadedUrls = [];
+      const newPreviews = [];
+
+      for (const file of files) {
+        // Create preview
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          newPreviews.push(event.target.result);
+          setPreviewImages((prev) => [...prev, event.target.result]);
+        };
+        reader.readAsDataURL(file);
+
+        // Upload file
+        const res = await base44.integrations.Core.UploadFile({ file });
+        uploadedUrls.push(res.file_url);
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        screenshot_urls: [...prev.screenshot_urls, ...uploadedUrls],
+      }));
+    } catch (error) {
+      alert('Error uploading screenshot: ' + error.message);
+    } finally {
+      setUploadingScreenshots(false);
+      // Reset file input
+      e.target.value = '';
+    }
+  };
+
+  const removeScreenshot = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      screenshot_urls: prev.screenshot_urls.filter((_, i) => i !== index),
+    }));
+    setPreviewImages((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -399,6 +453,48 @@ function FeedbackForm({ onSubmit, onCancel }) {
           </div>
         </div>
 
+        <div>
+          <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase">Screenshots</label>
+          <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:bg-secondary/50 transition-colors cursor-pointer relative">
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleScreenshotUpload}
+              disabled={uploadingScreenshots}
+              className="absolute inset-0 opacity-0 cursor-pointer"
+            />
+            <div className="flex flex-col items-center gap-2">
+              <Upload className="w-5 h-5 text-muted-foreground" />
+              <p className="text-sm font-medium text-muted-foreground">
+                {uploadingScreenshots ? 'Uploading...' : 'Click or drag to upload screenshots'}
+              </p>
+              <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB each</p>
+            </div>
+          </div>
+
+          {previewImages.length > 0 && (
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {previewImages.map((preview, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={preview}
+                    alt="screenshot"
+                    className="w-full h-24 object-cover rounded-lg border border-border"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeScreenshot(index)}
+                    className="absolute top-1 right-1 bg-destructive text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="flex gap-3 pt-2">
           <button
             type="submit"
@@ -534,6 +630,19 @@ function PostDetail({ post, user, onClose, onStatusChange, onRefresh }) {
             <div className="bg-secondary/30 rounded-lg p-3 text-sm">
               {post.device_info && <p>Device: {post.device_info}</p>}
               {post.browser_info && <p>Browser: {post.browser_info}</p>}
+            </div>
+          )}
+
+          {post.screenshot_urls && post.screenshot_urls.length > 0 && (
+            <div>
+              <p className="text-sm font-semibold mb-3">Screenshots</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {post.screenshot_urls.map((url, idx) => (
+                  <a key={idx} href={url} target="_blank" rel="noopener noreferrer" className="group">
+                    <img src={url} alt="screenshot" className="w-full h-32 rounded-lg object-cover border border-border group-hover:opacity-80 transition-opacity" />
+                  </a>
+                ))}
+              </div>
             </div>
           )}
 
