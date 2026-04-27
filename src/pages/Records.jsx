@@ -228,7 +228,7 @@ export default function Records() {
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4 gap-3">
-            <h1 className="text-xl font-bold text-foreground tracking-tight">Records</h1>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Records</h1>
             <div className="flex gap-2">
               <button
                 onClick={() => setManualRecordModal({ isNew: true })}
@@ -260,10 +260,10 @@ export default function Records() {
               )}
             </div>
           </div>
-          <p className="text-xs text-muted-foreground mb-4">All your shooting activity logs</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mb-4">All your shooting activity logs</p>
 
           {/* Filters */}
-          <div className="bg-card border border-border rounded-2xl p-4 shadow-sm mb-6">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm mb-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-2">Record Type</label>
@@ -301,7 +301,7 @@ export default function Records() {
         </div>
 
         {filteredRecords.length === 0 ? (
-          <div className="bg-card border border-border rounded-2xl p-8 text-center shadow-sm">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-8 text-center shadow-sm">
             <p className="text-muted-foreground">No records found</p>
           </div>
         ) : (
@@ -362,7 +362,7 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
 
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
+    <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-lg break-words" style={{ overflowWrap: 'anywhere' }}>{getRecordTitle()}</h3>

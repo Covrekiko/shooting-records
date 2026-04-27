@@ -6,7 +6,6 @@ import GoalCard from '@/components/GoalCard';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
 import { Plus, Trophy } from 'lucide-react';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
-import { DESIGN } from '@/lib/designConstants';
 
 export default function Goals() {
   const [goals, setGoals] = useState([]);
@@ -48,7 +47,7 @@ export default function Goals() {
 
   if (loading) {
     return (
-      <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
+      <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
         <Navigation />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -58,7 +57,7 @@ export default function Goals() {
   }
 
   return (
-    <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
+    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-8 flex items-center justify-between">
@@ -80,7 +79,7 @@ export default function Goals() {
 
         {showForm && createPortal(
           <div className="fixed inset-0 z-[50001] bg-black/50 flex items-end sm:items-center justify-center">
-            <div className="bg-card w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl overflow-y-auto max-h-[90dvh] border border-border shadow-2xl" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+            <div className="bg-white dark:bg-slate-800 w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl overflow-y-auto max-h-[90dvh] border border-slate-200/70 dark:border-slate-700 shadow-2xl" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
               <div className="w-10 h-1 bg-border rounded-full mx-auto mt-3 mb-1 sm:hidden" />
               <GoalForm onSuccess={() => { loadGoals(); setShowForm(false); }} onCancel={() => setShowForm(false)} />
             </div>
@@ -89,7 +88,7 @@ export default function Goals() {
         )}
 
         {goals.length === 0 ? (
-          <div className="bg-card border border-border rounded-2xl p-12 text-center shadow-sm">
+          <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-12 text-center shadow-sm">
             <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-4 opacity-50" />
             <p className="text-muted-foreground mb-4">No goals yet. Create your first goal to get started!</p>
           </div>
@@ -186,7 +185,7 @@ function GoalForm({ onSuccess, onCancel }) {
               value={formData.target_value}
               onChange={(e) => setFormData({ ...formData, target_value: e.target.value })}
               placeholder="e.g., 85"
-              className="w-full px-3 py-2.5 border border-border rounded-xl bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/30"
               required
             />
           </div>
@@ -212,7 +211,7 @@ function GoalForm({ onSuccess, onCancel }) {
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             placeholder="Add notes about this goal..."
-            className="w-full px-3 py-2.5 border border-border rounded-xl bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
+            className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
             rows="2"
           />
         </div>
@@ -228,7 +227,7 @@ function GoalForm({ onSuccess, onCancel }) {
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2.5 bg-secondary text-foreground rounded-xl font-semibold text-sm hover:bg-secondary/80 transition-colors"
+            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-semibold text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
           >
             Cancel
           </button>

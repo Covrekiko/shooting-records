@@ -176,20 +176,20 @@ export default function DeerManagement() {
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-4 mobile-page-padding">
         <div className="mb-4 flex items-center justify-between">
           <div className="hidden md:block">
-            <h1 className="text-xl font-bold text-foreground tracking-tight">Deer Management</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Stalking outings & records</p>
+            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Deer Management</h1>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Stalking outings & records</p>
           </div>
 
         </div>
 
         {!activeOuting && (
           <div className={`${DESIGN.CARD} p-5 mb-4 flex flex-col items-center justify-center text-center gap-3`}>
-            <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center">
-              <Layers className="w-6 h-6 text-muted-foreground" />
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center">
+              <Layers className="w-6 h-6 text-slate-400 dark:text-slate-500" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground">No Active Outing</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Start an outing to enable GPS tracking</p>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No Active Outing</p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Start an outing to enable GPS tracking</p>
             </div>
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
               className={`${DESIGN.BUTTON_PRIMARY} flex items-center gap-2 w-full justify-center`}>
@@ -206,8 +206,8 @@ export default function DeerManagement() {
                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse mt-1.5 flex-shrink-0" />
                 <div>
                   <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Active Outing</p>
-                  <p className="text-sm font-bold text-foreground mt-0.5">{activeOuting.location_name}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5">{activeOuting.location_name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     Started {new Date(activeOuting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
@@ -222,7 +222,7 @@ export default function DeerManagement() {
         )}
 
         <div className="mt-4">
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-3">Recent Outings</p>
+          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Outings</p>
           <RecordsSection category="deer_management" title="Outing Records" emptyMessage="No deer management outings recorded yet" />
         </div>
 
