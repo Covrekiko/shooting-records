@@ -15,45 +15,52 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'photo_url required' }, { status: 400 });
     }
 
-    // Comprehensive AI analysis prompt
-    const analysisPrompt = `You are analyzing a target shooting photograph to detect bullet holes.
+    // Comprehensive AI analysis prompt with vision-specific instructions
+    const analysisPrompt = `You are analyzing a rifle or pistol TARGET SHOOTING photograph to detect ALL bullet holes.
 
-TASK:
-1. Find all bullet holes in the target (dark circles/punctures in paper)
-2. Identify the target center (bullseye, crosshairs, or center mark if visible)
-3. Identify the point of aim if visible (aiming mark, aim dot)
-4. Rate your confidence (0.0 = guessing, 1.0 = certain)
+CRITICAL TASK:
+1. Scan the ENTIRE target surface for ALL bullet holes (dark punctures/tears in paper)
+2. Bullet holes appear as: darker/black circular or oval penetrations where bullets passed through
+3. Find the target bullseye center (red circle, black dot, or crosshair center)
+4. Return NORMALIZED coordinates (0.0-1.0 range, not pixels)
 
-RULES:
-- Only detect ACTUAL bullet holes (dark penetrations), not:
-  - Target rings or scoring circles (printed lines)
-  - Text or numbers on target
-  - Shadows, reflections, or stains
-  - Corner marks or registration marks
-- Return coordinates as normalized (0.0 to 1.0 range)
-- 0,0 = top-left corner; 1,1 = bottom-right corner
-- If confidence < 0.5 for any detection, include warning in "warnings" array
-- If you see <2 bullet holes, still return what you detect
-- Confidence: rate overall confidence in detection accuracy
+WHAT TO DETECT - BULLET HOLES ARE:
+- Dark round/oval holes with torn/ragged edges
+- Darker than surrounding paper
+- Multiple holes clustered together = group
+- Even if edge is torn or slightly irregular
+- Small dark spots = likely bullet holes
 
-RESPONSE FORMAT (must be valid JSON):
+WHAT TO IGNORE - NOT BULLET HOLES:
+- Printed target rings (black circles, lines) - these are just drawn lines
+- Printed numbers (7, 8, 9, etc) - just printed text
+- Red/yellow/blue center aiming markers - painted on target
+- Crosshair lines - printed reference lines
+- Grid lines on background paper
+- Shadows under the target
+- Scratches or dirt marks
+- The backing/stand behind target
+
+DETECTION RULES:
+- Look for groups of 2+ holes near each other = typical shooting group
+- Each bullet makes ONE hole = count individual dark penetrations
+- If hole edges are ragged/irregular = still a bullet hole
+- Scan systematically from top to bottom, left to right
+- Find ALL visible holes, not just obvious ones
+- Confidence = how certain you are (0.1=uncertain, 0.9=very certain)
+
+RETURN FORMAT (valid JSON only):
 {
   "bullet_holes": [
-    {"x": 0.0-1.0, "y": 0.0-1.0, "confidence": 0.0-1.0}
+    {"x": 0.15, "y": 0.42, "confidence": 0.85},
+    {"x": 0.16, "y": 0.44, "confidence": 0.82},
+    {"x": 0.18, "y": 0.48, "confidence": 0.88}
   ],
-  "target_centre": {
-    "x": 0.0-1.0,
-    "y": 0.0-1.0,
-    "confidence": 0.0-1.0
-  },
-  "point_of_aim": {
-    "x": 0.0-1.0,
-    "y": 0.0-1.0,
-    "confidence": 0.0-1.0
-  },
-  "confidence": 0.0-1.0,
-  "notes": "brief description of what you detected",
-  "warnings": ["warning 1", "warning 2"]
+  "target_centre": {"x": 0.5, "y": 0.5, "confidence": 0.9},
+  "point_of_aim": {"x": 0.5, "y": 0.48, "confidence": 0.7},
+  "confidence": 0.85,
+  "notes": "Found 3 bullet holes in tight group. Target center is red bullseye.",
+  "warnings": []
 }`;
 
     const aiResult = await base44.integrations.Core.InvokeLLM({
