@@ -51,12 +51,12 @@ export default function AmmoStockWidget() {
     }}>
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-sm font-semibold flex items-center gap-2.5" style={{ color: 'var(--app-text)' }}>
-          <div className="w-6 h-6 rounded flex items-center justify-center" style={{ backgroundColor: 'var(--app-icon-bg)' }}>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--app-icon-bg)' }}>
             <Package className="w-4 h-4" style={{ color: 'var(--app-icon)' }} />
           </div>
           Ammunition Stock
         </h3>
-        <Link to="/settings/ammunition-inventory" className="text-xs font-medium hover:opacity-80" style={{ color: 'var(--app-accent)' }}>
+        <Link to="/settings/ammunition-inventory" className="text-xs font-medium hover:opacity-80 transition-opacity" style={{ color: 'var(--app-accent)' }}>
           Manage
         </Link>
       </div>
@@ -66,12 +66,14 @@ export default function AmmoStockWidget() {
       ) : (
         <div className="space-y-3">
           {lowStockItems.length > 0 && (
-            <div className="rounded p-3 mb-3" style={{
-              backgroundColor: 'rgba(239, 68, 68, 0.05)',
-              borderColor: 'rgba(239, 68, 68, 0.3)',
+            <div className="rounded-lg p-3 mb-3" style={{
+              backgroundColor: 'var(--app-danger)',
+              backgroundOpacity: '0.08',
+              borderColor: 'var(--app-danger)',
               borderWidth: '1px',
+              borderOpacity: '0.3',
             }}>
-              <div className="flex items-start gap-2" style={{ color: 'rgb(239, 68, 68)' }}>
+              <div className="flex items-start gap-2" style={{ color: 'var(--app-danger)' }}>
                 <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 <div className="text-sm">
                   <p className="font-semibold">{lowStockItems.length} items low</p>

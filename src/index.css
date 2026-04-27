@@ -277,65 +277,73 @@ body.modal-open {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   THEME: FIELD GREEN
+   THEME: FIELD GREEN (Premium UK Countryside)
    ───────────────────────────────────────────────────────────────────────────── */
 :root[data-theme="field-green"] {
-  --app-bg: #faf7f3;
-  --app-header: #1b4d2a;
-  --app-header-text: #ffffff;
-  --app-header-muted: rgba(255,255,255,0.7);
-  --app-card: #ffffff;
-  --app-card-elevated: #fefcfa;
-  --app-surface: #ffffff;
-  --app-surface-soft: #f4ede4;
-  --app-primary: #1b4d2a;
-  --app-primary-text: #ffffff;
-  --app-primary-hover: #0f3a1b;
-  --app-accent: #a67c52;
-  --app-accent-hover: #b68b63;
-  --app-accent-soft: #f0ede8;
-  --app-text: #2a1f1a;
-  --app-text-muted: #8b7770;
-  --app-border: #e5dcd1;
-  --app-icon-bg: #f4ede4;
-  --app-icon: #a67c52;
-  --app-input: #ffffff;
-  --app-input-border: #d9cfc5;
-  --app-nav: #ffffff;
-  --app-nav-active: #a67c52;
-  --app-nav-inactive: #a0938b;
-  --app-modal: #ffffff;
-  --app-shadow: 0 1px 3px rgba(27,77,42,0.1);
-  --app-overlay: rgba(27, 77, 42, 0.4);
+  --app-bg: #F4EFE4;
+  --app-header: #12382B;
+  --app-header-text: #FFFDF7;
+  --app-header-muted: #D8CDB8;
+  --app-card: #FFFDF8;
+  --app-card-elevated: #FFFFFF;
+  --app-surface: #FFFDF8;
+  --app-surface-soft: #EDE3D1;
+  --app-surface-warm: #F8F1E6;
+  --app-primary: #12382B;
+  --app-primary-text: #FFFDF7;
+  --app-primary-hover: #0B241C;
+  --app-accent: #B88746;
+  --app-accent-hover: #9A6C34;
+  --app-accent-soft: #F1E2C8;
+  --app-text: #1D1D1B;
+  --app-text-muted: #6F6A5F;
+  --app-border: #D8CDB8;
+  --app-border-strong: #C8B895;
+  --app-icon-bg: #F1E2C8;
+  --app-icon: #B88746;
+  --app-input: #FFFFFF;
+  --app-input-border: #D8CDB8;
+  --app-nav: #12382B;
+  --app-nav-active: #B88746;
+  --app-nav-inactive: #D8CDB8;
+  --app-modal: #FFFDF8;
+  --app-shadow: 0 2px 8px rgba(18, 56, 43, 0.08);
+  --app-overlay: rgba(18, 56, 43, 0.5);
+  --app-danger: #B42318;
+  --app-success: #2F855A;
 }
 
 :root[data-theme="field-green"].dark {
-  --app-bg: #1a1410;
-  --app-header: #0f3a1b;
-  --app-header-text: #ffffff;
-  --app-header-muted: rgba(255,255,255,0.6);
-  --app-card: #2a231b;
-  --app-card-elevated: #332b23;
-  --app-surface: #2a231b;
-  --app-surface-soft: #332b23;
-  --app-primary: #1b4d2a;
-  --app-primary-hover: #0f3a1b;
-  --app-accent: #c5956f;
-  --app-accent-hover: #d0a582;
-  --app-accent-soft: #3d3428;
-  --app-text: #f3ede7;
-  --app-text-muted: #a0938b;
-  --app-border: #453b32;
-  --app-icon-bg: #332b23;
-  --app-icon: #c5956f;
-  --app-input: #2a231b;
-  --app-input-border: #513e35;
-  --app-nav: #2a231b;
-  --app-nav-active: #c5956f;
-  --app-nav-inactive: #8b7770;
-  --app-modal: #2a231b;
-  --app-shadow: 0 4px 6px rgba(15,58,27,0.3);
-  --app-overlay: rgba(15, 58, 27, 0.5);
+  --app-bg: #0F1D1A;
+  --app-header: #0B241C;
+  --app-header-text: #FFFDF7;
+  --app-header-muted: #D8CDB8;
+  --app-card: #1A342D;
+  --app-card-elevated: #253831;
+  --app-surface: #1A342D;
+  --app-surface-soft: #253831;
+  --app-surface-warm: #1F3A33;
+  --app-primary: #0B241C;
+  --app-primary-hover: #051612;
+  --app-accent: #C9956F;
+  --app-accent-hover: #E0A87A;
+  --app-accent-soft: #3D2F1F;
+  --app-text: #F3F1ED;
+  --app-text-muted: #A8A399;
+  --app-border: #2F453E;
+  --app-border-strong: #3F5548;
+  --app-icon-bg: #253831;
+  --app-icon: #C9956F;
+  --app-input: #1A342D;
+  --app-input-border: #2F453E;
+  --app-nav: #0B241C;
+  --app-nav-active: #C9956F;
+  --app-nav-inactive: #8A9D97;
+  --app-modal: #1A342D;
+  --app-shadow: 0 4px 12px rgba(8, 19, 15, 0.3);
+  --app-overlay: rgba(8, 19, 15, 0.6);
+  --app-danger: #D85C52;
+  --app-success: #48A868;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

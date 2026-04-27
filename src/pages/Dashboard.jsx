@@ -153,7 +153,7 @@ function KpiRow({ stats }) {
   return (
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
-        <div key={item.label} className="rounded-2xl px-3 py-3 text-center shadow-sm" style={{
+        <div key={item.label} className="rounded-xl px-3 py-3 text-center shadow-sm" style={{
           backgroundColor: 'var(--app-card)',
           borderColor: 'var(--app-border)',
           borderWidth: '1px',
@@ -170,13 +170,13 @@ function KpiRow({ stats }) {
 function PrimaryCard({ to, icon, label, sub }) {
   return (
     <Link to={to}>
-      <div className="rounded-2xl p-4 shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-4 select-none" style={{
+      <div className="rounded-2xl p-4 shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-4 select-none hover:shadow-md" style={{
         backgroundColor: 'var(--app-card)',
         borderColor: 'var(--app-border)',
         borderWidth: '1px',
         boxShadow: 'var(--app-shadow)',
       }}>
-        <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 [&_svg]:w-6 [&_svg]:h-6 select-none" style={{
+        <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 [&_svg]:w-6 [&_svg]:h-6 select-none" style={{
           backgroundColor: 'var(--app-icon-bg)',
           color: 'var(--app-icon)',
         }}>
@@ -186,7 +186,7 @@ function PrimaryCard({ to, icon, label, sub }) {
           <p className="text-sm font-bold leading-snug tracking-tight" style={{ color: 'var(--app-text)' }}>{label}</p>
           {sub && <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--app-text-muted)' }}>{sub}</p>}
         </div>
-        <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--app-text-muted)' }} />
+        <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--app-icon)' }} />
       </div>
     </Link>
   );
@@ -210,19 +210,19 @@ function SecondaryGrid({ user }) {
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
         <Link key={item.to} to={item.to}>
-          <div className="rounded-xl p-2.5 shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none" style={{
+          <div className="rounded-2xl p-2.5 shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none" style={{
             backgroundColor: 'var(--app-card)',
             borderColor: 'var(--app-border)',
             borderWidth: '1px',
             boxShadow: 'var(--app-shadow)',
           }}>
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 select-none" style={{
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 select-none" style={{
               backgroundColor: 'var(--app-icon-bg)',
               color: 'var(--app-icon)',
             }}>
               {item.icon}
             </div>
-            <p className="text-[10px] font-semibold leading-tight tracking-wide" style={{ color: 'var(--app-text-muted)' }}>{item.label}</p>
+            <p className="text-[10px] font-semibold leading-tight tracking-wide" style={{ color: 'var(--app-text)' }}>{item.label}</p>
           </div>
         </Link>
       ))}
@@ -243,8 +243,8 @@ function ChartsSection({ chartData }) {
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold transition-colors select-none"
         style={{ color: 'var(--app-text)' }}
-        onMouseEnter={(e) => e.target.parentElement.style.backgroundColor = 'var(--app-surface-soft)'}
-        onMouseLeave={(e) => e.target.parentElement.style.backgroundColor = 'transparent'}
+        onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--app-surface-soft)'}
+        onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
       >
         <span className="flex items-center gap-2.5">
           <BarChart3 className="w-5 h-5" style={{ color: 'var(--app-accent)' }} />
