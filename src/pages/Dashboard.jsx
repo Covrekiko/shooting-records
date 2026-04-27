@@ -7,9 +7,9 @@ import { useOuting } from '@/context/OutingContext';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import {
-  Target, Crosshair, Map, BookOpen,
-  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck, Settings,
+  Map, BookOpen, BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, ChevronDown,
 } from 'lucide-react';
+import { TargetIcon, ClayIcon, DeerIcon, ReloadingIcon, LoadDevIcon, EquipmentIcon, ReportsIcon, AdminIcon } from '@/components/DashboardIcons';
 import {
   MonthlyActivityChart,
   RoundsPerFirearmChart,
@@ -183,14 +183,14 @@ function PrimaryCard({ to, icon, label, sub }) {
 function SecondaryGrid({ user }) {
   const { isEnabled } = useModules();
   const allItems = [
-    { to: '/target-shooting', icon: <Crosshair className="w-6 h-6" />, label: 'Target', module: 'target_shooting', color: 'bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400' },
-    { to: '/clay-shooting', icon: <Target className="w-6 h-6" />, label: 'Clay', module: 'clay_shooting', color: 'bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-400' },
-    { to: '/deer-management', icon: <Layers className="w-6 h-6" />, label: 'Deer', module: 'deer_management', color: 'bg-green-100 text-green-600 dark:bg-green-950 dark:text-green-400' },
-    { to: '/reloading', icon: <RefreshCw className="w-6 h-6" />, label: 'Reloading', module: 'reloading', color: 'bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400' },
-    { to: '/load-development', icon: <FlaskConical className="w-6 h-6" />, label: 'Load Dev', module: 'reloading', color: 'bg-cyan-100 text-cyan-600 dark:bg-cyan-950 dark:text-cyan-400' },
-    { to: '/settings/rifles', icon: <Settings className="w-6 h-6" />, label: 'Equipment', color: 'bg-gray-100 text-gray-600 dark:bg-gray-900 dark:text-gray-400' },
-    { to: '/reports', icon: <BarChart3 className="w-6 h-6" />, label: 'Reports', color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400' },
-    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <Shield className="w-6 h-6" />, label: 'Admin', color: 'bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400' }] : []),
+    { to: '/target-shooting', icon: <TargetIcon />, label: 'Target', module: 'target_shooting', color: 'bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400' },
+    { to: '/clay-shooting', icon: <ClayIcon />, label: 'Clay', module: 'clay_shooting', color: 'bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-400' },
+    { to: '/deer-management', icon: <DeerIcon />, label: 'Deer', module: 'deer_management', color: 'bg-green-100 text-green-600 dark:bg-green-950 dark:text-green-400' },
+    { to: '/reloading', icon: <ReloadingIcon />, label: 'Reloading', module: 'reloading', color: 'bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400' },
+    { to: '/load-development', icon: <LoadDevIcon />, label: 'Load Dev', module: 'reloading', color: 'bg-cyan-100 text-cyan-600 dark:bg-cyan-950 dark:text-cyan-400' },
+    { to: '/settings/rifles', icon: <EquipmentIcon />, label: 'Equipment', color: 'bg-gray-100 text-gray-600 dark:bg-gray-900 dark:text-gray-400' },
+    { to: '/reports', icon: <ReportsIcon />, label: 'Reports', color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400' },
+    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <AdminIcon />, label: 'Admin', color: 'bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400' }] : []),
   ];
   const items = allItems.filter(item => !item.module || isEnabled(item.module));
 
