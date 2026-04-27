@@ -293,7 +293,9 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
         </button>
         <div>
           <h2 className="text-xl font-bold">Analyze Target Photo</h2>
-          <p className="text-xs text-muted-foreground">{session.distance}{session.distance_unit || 'm'} · {session.rifle_name}</p>
+          <p className="text-xs text-muted-foreground">
+            {[session.distance ? `${session.distance}${session.distance_unit || 'm'}` : null, session.rifle_name].filter(Boolean).join(' · ')}
+          </p>
         </div>
       </div>
 
