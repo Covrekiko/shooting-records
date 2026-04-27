@@ -168,24 +168,15 @@ export default function AIPhotoComparison({
     setDebugInfo(null);
     
     try {
-      // Wait for image to be fully loaded
-      if (!imgRef.current || !imgRef.current.complete || imgRef.current.naturalWidth === 0) {
-        // Image not ready - wait a moment and retry
-        await new Promise(resolve => setTimeout(resolve, 500));
-        if (!imgRef.current || !imgRef.current.complete || imgRef.current.naturalWidth === 0) {
-          setAiError('Image not loaded. Please try again.');
-          setAiLoading(false);
-          return;
-        }
-      }
-
-      const imgNaturalWidth = imgRef.current.naturalWidth;
-      const imgNaturalHeight = imgRef.current.naturalHeight;
-      const imgRect = imgRef.current.getBoundingClientRect();
-      const displayWidth = imgRect.width;
-      const displayHeight = imgRect.height;
-      const displayX = imgRect.left;
-      const displayY = imgRect.top;
+      // Calculate mapping info from manual tab image (will be mounted when needed)
+      // Default values if image not yet mounted
+      const imgNaturalWidth = imgRef.current?.naturalWidth || 1920;
+      const imgNaturalHeight = imgRef.current?.naturalHeight || 1440;
+      const imgRect = imgRef.current?.getBoundingClientRect();
+      const displayWidth = imgRect?.width || 800;
+      const displayHeight = imgRect?.height || 600;
+      const displayX = imgRect?.left || 0;
+      const displayY = imgRect?.top || 0;
       
       // Calculate all mapping values
       const mapping = {
