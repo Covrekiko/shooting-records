@@ -44,9 +44,10 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const [aimPoint, setAimPoint] = useState(editGroup?.aim_mark || null);
   const [mode, setMode] = useState('bullets'); // bullets | centre | aim
   const [scaleRef, setScaleRef] = useState(editGroup?.scale_reference || '1cm grid');
-  const [scaleInput, setScaleInput] = useState('10'); // mm per ref unit
-  const [scaleUnit, setScaleUnit] = useState(editGroup?.scale_unit || 'mm'); // mm, cm, or inches
+  const [scaleInput, setScaleInput] = useState('1');
+  const [scaleUnit, setScaleUnit] = useState(editGroup?.scale_unit || 'cm'); // mm, cm, in
   const [scalePx, setScalePx] = useState(editGroup?.scale_mm_per_px || null);
+  const [calibPoints, setCalibPoints] = useState([]); // last two tapped calibration points (pixel coords)
   const [groupName, setGroupName] = useState(editGroup?.group_name || `Group ${nextGroupNumber}`);
   const [notes, setNotes] = useState(editGroup?.notes || '');
   const [confirmedZero, setConfirmedZero] = useState(editGroup?.confirmed || editGroup?.confirmed_zero || false);
@@ -172,11 +173,25 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   };
 
   const convertToMm = (value, unit) => {
-    if (unit === 'mm') return parseFloat(value);
-    if (unit === 'cm') return parseFloat(value) * 10;
-    if (unit === 'inches') return parseFloat(value) * 25.4;
-    return parseFloat(value);
+    const v = parseFloat(value);
+    if (unit === 'mm') return v;
+    if (unit === 'cm') return v * 10;
+    if (unit === 'in' || unit === 'inches') return v * 25.4;
+    return v;
   };
+
+  // Recalculate scalePx from stored calibration points whenever value/unit changes
+  useEffect(() => {
+    if (calibPoints.length !== 2) return;
+    const dist = Math.sqrt(
+      Math.pow(calibPoints[1].x - calibPoints[0].x, 2) +
+      Math.pow(calibPoints[1].y - calibPoints[0].y, 2)
+    );
+    if (dist === 0) return;
+    const refMm = convertToMm(scaleInput, scaleUnit);
+    if (!refMm || isNaN(refMm) || refMm <= 0) return;
+    setScalePx(refMm / dist);
+  }, [scaleInput, scaleUnit, calibPoints]);
 
   const handleImageTap = (e) => {
     if (!photo) return;
@@ -190,6 +205,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
         const valueInMm = convertToMm(scaleInput, scaleUnit);
         const mmPerPx = valueInMm / dist;
         setScalePx(mmPerPx);
+        setCalibPoints(newPts); // store for live recalibration
         setSetScaleMode(false);
         setScalePoints([]);
       }
@@ -352,22 +368,37 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           {/* Scale setup */}
           <div className="bg-card border border-border rounded-2xl p-4 mb-3">
             <p className="font-semibold text-sm mb-2">Scale Reference</p>
-            <div className="flex gap-2 mb-2">
-              <input value={scaleInput} onChange={e => setScaleInput(e.target.value)} placeholder="e.g. 10" className={`${inp} flex-1`} type="number" />
-              <select value={scaleUnit} onChange={e => setScaleUnit(e.target.value)} className={`${inp} w-20`}>
+            <div className="flex gap-2 mb-2 items-center">
+              <input
+                value={scaleInput}
+                onChange={e => setScaleInput(e.target.value)}
+                placeholder="e.g. 1"
+                className={`${inp} flex-1`}
+                type="number"
+                min="0"
+                step="any"
+              />
+              <select
+                value={scaleUnit}
+                onChange={e => setScaleUnit(e.target.value)}
+                className="w-20 flex-shrink-0 px-2 py-2.5 border border-border rounded-xl bg-background text-sm"
+              >
                 <option value="mm">mm</option>
                 <option value="cm">cm</option>
-                <option value="inches">in</option>
+                <option value="in">in</option>
               </select>
             </div>
             <div className="flex gap-2 mb-2 flex-wrap">
-              <button type="button" onClick={() => { setScaleInput('10'); setScaleUnit('mm'); setScaleRef('1cm grid'); }} className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold">1cm grid</button>
-              <button type="button" onClick={() => { setScaleInput('1'); setScaleUnit('inches'); setScaleRef('1in grid'); }} className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold">1in grid</button>
+              <button type="button" onClick={() => { setScaleInput('1'); setScaleUnit('cm'); setScaleRef('1cm grid'); }} className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold">1cm grid</button>
+              <button type="button" onClick={() => { setScaleInput('1'); setScaleUnit('in'); setScaleRef('1in grid'); }} className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold">1in grid</button>
             </div>
-            <input value={scaleRef} onChange={e => setScaleRef(e.target.value)} placeholder="e.g. 1cm grid" className={`${inp} mb-2`} />
             <button type="button" onClick={() => { setSetScaleMode(true); setScalePoints([]); }}
               className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all ${setScaleMode ? 'bg-amber-500 text-white' : 'bg-secondary hover:bg-secondary/80'}`}>
-              {setScaleMode ? `Tap 2 points on photo (${scalePoints.length}/2 placed)` : (scalePx ? `✓ Scale set (${Math.round(1/scalePx * 10)/10}px/mm) — Recalibrate` : 'Tap 2 known points to set scale')}
+              {setScaleMode
+                ? `Tap 2 points on photo (${scalePoints.length}/2 placed)`
+                : scalePx
+                  ? `✓ Scale set: ${scaleInput} ${scaleUnit} = ${Math.round(convertToMm(scaleInput, scaleUnit) / scalePx * 10) / 10}px — Recalibrate`
+                  : 'Tap 2 known points to set scale'}
             </button>
           </div>
 
@@ -468,7 +499,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           <p className="text-xs text-muted-foreground text-center mb-3">
             {marks.length} bullet hole{marks.length !== 1 ? 's' : ''} marked
             {centrePoint ? ' · Centre set ⊕' : ''}
-            {!scalePx ? ' · ⚠️ Set scale to calculate' : ` · Scale: ${Math.round(scalePx * 1000) / 1000}mm/px`}
+            {!scalePx ? ' · ⚠️ Set scale to calculate' : ` · Scale: ${scaleInput} ${scaleUnit} ref`}
           </p>
 
           {/* Extra context fields */}
