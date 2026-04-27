@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { compressImage } from '@/lib/imageUtils';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
@@ -469,15 +470,14 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
 }
 
 // ─── Photo upload helper ──────────────────────────────────────────
-async function handlePhotoUpload(files, data, onChange) {
-  if (!files || files.length === 0) return;
-  const maxFileSize = 5 * 1024 * 1024;
-  const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+async function uploadPhotos(files, existingPhotos, setUploading) {
+  if (!files || files.length === 0) return null;
+  setUploading(true);
   try {
-    const newPhotos = [...(data.photos || [])];
+    const newPhotos = [...(existingPhotos || [])];
     for (const file of files) {
-      if (file.size > maxFileSize || !validTypes.includes(file.type)) continue;
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const compressed = await compressImage(file);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: compressed });
       let photoData = { url: file_url };
       try {
         const result = await base44.functions.invoke('analyzeTargetPhoto', { photo_url: file_url });
@@ -485,15 +485,20 @@ async function handlePhotoUpload(files, data, onChange) {
       } catch {}
       newPhotos.push(photoData);
     }
-    onChange('photos', newPhotos);
+    return newPhotos;
   } catch (error) {
     console.error('Photo upload error:', error);
+    alert('Upload failed: ' + (error.message || 'Unknown error'));
+    return null;
+  } finally {
+    setUploading(false);
   }
 }
 
 // ─── Check-out Modal ──────────────────────────────────────────────
 function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onViewTrack, sessionRecordId }) {
   const [errors, setErrors] = useState({});
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [data, setData] = useState({
     checkout_time: new Date().toTimeString().slice(0, 5),
     rifles_used: [{ rifle_id: '', rounds_fired: '', meters_range: '', ammunition_id: '', ammunition_brand: '', caliber: '', bullet_type: '', grain: '' }],
@@ -609,13 +614,21 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
         <div>
           <label className={labelCls}>Photos</label>
           <div className="flex gap-2 mb-2">
-            <label className="flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-slate-600 dark:text-slate-300 transition-colors">
-              Choose File
-              <input type="file" accept="image/*" multiple onChange={(e) => handlePhotoUpload(e.target.files, data, (f, v) => setData(prev => ({ ...prev, [f]: v })))} className="hidden" />
+            <label className={`flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-slate-600 dark:text-slate-300 transition-colors ${photoUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+              {photoUploading ? 'Uploading...' : 'Choose File'}
+              <input type="file" accept="image/*" multiple className="hidden" disabled={photoUploading} onChange={async (e) => {
+                const result = await uploadPhotos(Array.from(e.target.files || []), data.photos, setPhotoUploading);
+                e.target.value = '';
+                if (result) setData(prev => ({ ...prev, photos: result }));
+              }} />
             </label>
-            <label className="flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-slate-600 dark:text-slate-300 transition-colors">
-              Camera
-              <input type="file" accept="image/*" capture="environment" multiple onChange={(e) => handlePhotoUpload(e.target.files, data, (f, v) => setData(prev => ({ ...prev, [f]: v })))} className="hidden" />
+            <label className={`flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-slate-600 dark:text-slate-300 transition-colors ${photoUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+              {photoUploading ? 'Uploading...' : 'Camera'}
+              <input type="file" accept="image/*" capture="environment" className="hidden" disabled={photoUploading} onChange={async (e) => {
+                const result = await uploadPhotos(Array.from(e.target.files || []), data.photos, setPhotoUploading);
+                e.target.value = '';
+                if (result) setData(prev => ({ ...prev, photos: result }));
+              }} />
             </label>
           </div>
           {data.photos && data.photos.length > 0 && (

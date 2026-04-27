@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { X, Calculator, Camera, ImagePlus, Trash2, CloudSun } from 'lucide-react';
+import { compressImage } from '@/lib/imageUtils';
 
 const Field = ({ label, children }) => (
   <div>
@@ -51,20 +52,22 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   const handlePhotoUpload = async (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files || []);
     if (!files.length) return;
+    e.target.value = '';
     setUploadingPhoto(true);
     try {
-      const uploaded = await Promise.all(
-        files.map(file => base44.integrations.Core.UploadFile({ file }))
-      );
-      const urls = uploaded.map(r => r.file_url);
+      const urls = [];
+      for (const file of files) {
+        const compressed = await compressImage(file);
+        const result = await base44.integrations.Core.UploadFile({ file: compressed });
+        urls.push(result.file_url);
+      }
       setForm(f => ({ ...f, photos: [...(f.photos || []), ...urls] }));
     } catch (err) {
-      alert('Upload failed: ' + err.message);
+      alert('Upload failed: ' + (err.message || 'Unknown error'));
     } finally {
       setUploadingPhoto(false);
-      e.target.value = '';
     }
   };
 

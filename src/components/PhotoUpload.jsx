@@ -1,22 +1,27 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Upload, X, Image } from 'lucide-react';
+import { compressImage } from '@/lib/imageUtils';
 
 export default function PhotoUpload({ photos = [], onPhotosChange }) {
   const [uploading, setUploading] = useState(false);
 
   const handleFileSelect = async (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files || []);
     if (!files.length) return;
-
+    e.target.value = '';
     setUploading(true);
     try {
+      const newUrls = [];
       for (const file of files) {
-        const response = await base44.integrations.Core.UploadFile({ file });
-        onPhotosChange([...photos, response.file_url]);
+        const compressed = await compressImage(file);
+        const response = await base44.integrations.Core.UploadFile({ file: compressed });
+        newUrls.push(response.file_url);
       }
+      onPhotosChange([...photos, ...newUrls]);
     } catch (error) {
       console.error('Error uploading photo:', error);
+      alert('Upload failed: ' + (error.message || 'Unknown error'));
     } finally {
       setUploading(false);
     }

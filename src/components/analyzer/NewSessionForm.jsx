@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { compressImage } from '@/lib/imageUtils';
 
 const DISTANCES = [25, 50, 100, 200, 300, 400, 600];
 const POSITIONS = [
@@ -103,16 +104,25 @@ export default function NewSessionForm({ editSession, onSaved, onBack }) {
     }
   };
 
-  const handlePhotos = async (files) => {
-    if (!files?.length) return;
+  const handlePhotos = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    e.target.value = '';
     setUploading(true);
-    const urls = [...(form.photos || [])];
-    for (const file of files) {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      urls.push(file_url);
+    try {
+      const urls = [...(form.photos || [])];
+      for (const file of files) {
+        const compressed = await compressImage(file);
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: compressed });
+        urls.push(file_url);
+      }
+      set('photos', urls);
+    } catch (error) {
+      console.error('Photo upload error:', error);
+      alert('Upload failed: ' + (error.message || 'Unknown error'));
+    } finally {
+      setUploading(false);
     }
-    set('photos', urls);
-    setUploading(false);
   };
 
   const handleSubmit = async (e) => {
@@ -300,11 +310,11 @@ export default function NewSessionForm({ editSession, onSaved, onBack }) {
             <div className="flex gap-2 mb-2">
               <label className="flex-1 py-3 bg-secondary hover:bg-secondary/80 rounded-xl text-center cursor-pointer text-sm font-semibold transition-colors">
                 {uploading ? <Loader2 className="w-4 h-4 animate-spin inline" /> : '📁 Choose Files'}
-                <input type="file" accept="image/*" multiple className="hidden" onChange={e => handlePhotos(e.target.files)} />
-              </label>
-              <label className="flex-1 py-3 bg-secondary hover:bg-secondary/80 rounded-xl text-center cursor-pointer text-sm font-semibold transition-colors">
-                📷 Camera
-                <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => handlePhotos(e.target.files)} />
+                <input type="file" accept="image/*" multiple className="hidden" onChange={handlePhotos} />
+                </label>
+                <label className="flex-1 py-3 bg-secondary hover:bg-secondary/80 rounded-xl text-center cursor-pointer text-sm font-semibold transition-colors">
+                 📷 Camera
+                <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhotos} />
               </label>
             </div>
             {form.photos?.length > 0 && (

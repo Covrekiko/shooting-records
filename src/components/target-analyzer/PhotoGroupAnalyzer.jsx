@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Upload, Trash2, Target, X } from 'lucide-react';
+import { compressImage } from '@/lib/imageUtils';
 
 const MM_PER_PX_DEFAULT = 0.5; // fallback
 
@@ -57,17 +58,18 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack }) {
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (fileInputRef.current) fileInputRef.current.value = '';
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const compressed = await compressImage(file);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: compressed });
       setPhotoUrl(file_url);
       setHoles([]);
       setCentre(null);
     } catch (err) {
-      alert('Upload failed: ' + err.message);
+      alert('Upload failed: ' + (err.message || 'Unknown error'));
     } finally {
       setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
