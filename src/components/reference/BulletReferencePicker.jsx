@@ -42,7 +42,7 @@ export default function BulletReferencePicker({ onSelect, onClear, selectedId, f
   const loadBullets = async () => {
     setLoading(true);
     try {
-      const list = await base44.entities.BulletReference.list('-updated_date', 1000);
+      const list = await base44.entities.BulletReference.list('-updated_date', 9999);
       const sorted = [...list].sort((a, b) => {
         const mfr = (a.manufacturer || '').localeCompare(b.manufacturer || '');
         if (mfr !== 0) return mfr;
