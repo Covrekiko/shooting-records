@@ -147,8 +147,9 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     const rect = e.currentTarget.getBoundingClientRect();
     const scaleX = imgRef.current.naturalWidth / rect.width;
     const scaleY = imgRef.current.naturalHeight / rect.height;
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const touch = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
+    const clientX = touch ? touch.clientX : e.clientX;
+    const clientY = touch ? touch.clientY : e.clientY;
     return {
       x: (clientX - rect.left) * scaleX,
       y: (clientY - rect.top) * scaleY,
