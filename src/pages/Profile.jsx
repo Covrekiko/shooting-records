@@ -191,8 +191,9 @@ function SettingsPanel() {
       <div>
         <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3">Reference Databases</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <SettingCard title="🔵 Bullet Database" description="Reference library of bullets with BC, weight & specs" link="/settings/bullet-reference" />
-          <SettingCard title="🔭 Scope Database" description="Reference library of scopes with click values & reticles" link="/settings/scope-reference" />
+          <SettingCard title="📚 Reference Database" description="Full bullet & scope library — search, filter, import CSV/JSON, manage all records" link="/settings/reference-database" />
+          <SettingCard title="🔵 Bullet Library" description="Quick access to bullet reference records" link="/settings/bullet-reference" />
+          <SettingCard title="🔭 Scope Library" description="Quick access to scope reference records" link="/settings/scope-reference" />
         </div>
       </div>
 

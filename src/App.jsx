@@ -44,6 +44,7 @@ import ScopeClickCard from './pages/ScopeClickCard';
 import AppModules from './pages/AppModules';
 import BulletReferenceDB from './pages/settings/BulletReferenceDB';
 import ScopeReferenceDB from './pages/settings/ScopeReferenceDB';
+import ReferenceDatabase from './pages/settings/ReferenceDatabase';
 
 
 // Sync dark mode with system preference
@@ -153,6 +154,7 @@ const AuthenticatedApp = () => {
             <Route path="/scope-click-card" element={<ModuleGate module="target_shooting"><ScopeClickCard /></ModuleGate>} />
             <Route path="/settings/bullet-reference" element={<BulletReferenceDB />} />
             <Route path="/settings/scope-reference" element={<ScopeReferenceDB />} />
+            <Route path="/settings/reference-database" element={<ReferenceDatabase />} />
 
             <Route path="*" element={<PageNotFound />} />
           </Routes>

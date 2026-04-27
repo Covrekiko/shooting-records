@@ -8,19 +8,27 @@
     },
     "bullet_name": {
       "type": "string",
-      "description": "Bullet product name/family (e.g. ELD-M, Hybrid, MatchKing)"
+      "description": "Bullet product name (e.g. ELD-M, Hybrid, MatchKing)"
+    },
+    "bullet_family": {
+      "type": "string",
+      "description": "Product family (e.g. ELD, VLD, BTHP)"
     },
     "caliber": {
       "type": "string",
       "description": "Caliber designation (e.g. .308, 6.5mm, .243)"
     },
+    "cartridge_compatibility_notes": {
+      "type": "string",
+      "description": "e.g. '308 Win, .30-06, .300 Win Mag'"
+    },
     "diameter_inch": {
       "type": "number",
-      "description": "Bullet diameter in inches"
+      "description": "Bullet diameter in inches (e.g. 0.308)"
     },
     "diameter_mm": {
       "type": "number",
-      "description": "Bullet diameter in mm"
+      "description": "Bullet diameter in mm (e.g. 7.82)"
     },
     "weight_grains": {
       "type": "number",
@@ -39,17 +47,38 @@
         "Plinking",
         "Lead-Free",
         "Solid",
+        "Rimfire",
+        "Slug",
         "Other"
       ],
       "description": "Bullet type/purpose"
     },
     "bullet_construction": {
       "type": "string",
-      "description": "Construction type (e.g. BTHP, FMJBT, Polymer Tip, Bonded)"
+      "description": "e.g. BTHP, FMJBT, Polymer Tip, Bonded, Monolithic"
+    },
+    "bullet_material": {
+      "type": "string",
+      "description": "e.g. Jacketed Lead, Copper, Brass, Polymer"
     },
     "lead_free": {
       "type": "boolean",
       "default": false
+    },
+    "hunting_or_match": {
+      "type": "string",
+      "enum": [
+        "Hunting",
+        "Match",
+        "Both",
+        "Varmint",
+        "Other"
+      ],
+      "description": "Primary use"
+    },
+    "recommended_use": {
+      "type": "string",
+      "description": "e.g. Long Range Match, Deer Hunting, Varmint"
     },
     "ballistic_coefficient_g1": {
       "type": "number",
@@ -59,8 +88,32 @@
       "type": "number",
       "description": "G7 ballistic coefficient"
     },
+    "bc_model": {
+      "type": "string",
+      "enum": [
+        "G1",
+        "G7",
+        "G1+G7",
+        "Radar/CDM",
+        "Unknown"
+      ],
+      "description": "Which BC model(s) manufacturer publishes"
+    },
+    "bc_velocity_band_notes": {
+      "type": "string",
+      "description": "Notes on velocity-dependent BC values from manufacturer"
+    },
+    "drag_model_notes": {
+      "type": "string",
+      "description": "Notes on drag model, CDM or radar data if available"
+    },
     "sectional_density": {
-      "type": "number"
+      "type": "number",
+      "description": "Sectional density"
+    },
+    "bullet_length_inch": {
+      "type": "number",
+      "description": "Bullet length in inches"
     },
     "bullet_length_mm": {
       "type": "number",
@@ -68,7 +121,79 @@
     },
     "minimum_twist_rate": {
       "type": "string",
-      "description": "Minimum recommended twist rate (e.g. 1:10)"
+      "description": "Minimum recommended twist rate (e.g. 1:10, 1:8)"
+    },
+    "cannelure": {
+      "type": "boolean",
+      "default": false
+    },
+    "boat_tail": {
+      "type": "boolean",
+      "default": false
+    },
+    "flat_base": {
+      "type": "boolean",
+      "default": false
+    },
+    "polymer_tip": {
+      "type": "boolean",
+      "default": false
+    },
+    "hollow_point": {
+      "type": "boolean",
+      "default": false
+    },
+    "soft_point": {
+      "type": "boolean",
+      "default": false
+    },
+    "bonded": {
+      "type": "boolean",
+      "default": false
+    },
+    "monolithic": {
+      "type": "boolean",
+      "default": false
+    },
+    "tipped": {
+      "type": "boolean",
+      "default": false
+    },
+    "manufacturer_sku": {
+      "type": "string",
+      "description": "Manufacturer SKU / part number"
+    },
+    "barcode": {
+      "type": "string",
+      "description": "EAN/UPC barcode if known"
+    },
+    "official_product_url": {
+      "type": "string",
+      "description": "Official manufacturer product page URL"
+    },
+    "official_pdf_url": {
+      "type": "string",
+      "description": "Official manufacturer PDF/catalogue URL"
+    },
+    "source_name": {
+      "type": "string",
+      "description": "Source of data (e.g. Hornady Official, Berger PDF 2024)"
+    },
+    "source_date_checked": {
+      "type": "string",
+      "format": "date",
+      "description": "Date data was verified against source"
+    },
+    "data_confidence": {
+      "type": "string",
+      "enum": [
+        "High",
+        "Medium",
+        "Low",
+        "Unverified"
+      ],
+      "default": "Medium",
+      "description": "High = official manufacturer; Medium = trusted distributor; Low = user/unknown"
     },
     "notes": {
       "type": "string"

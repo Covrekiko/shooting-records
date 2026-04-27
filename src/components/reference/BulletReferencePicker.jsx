@@ -129,12 +129,25 @@ export default function BulletReferencePicker({ onSelect, onClear, selectedId, f
                     selected?.id === b.id ? 'bg-primary/10' : ''
                   }`}
                 >
-                  <p className="text-sm font-semibold">
-                    {b.manufacturer} {b.bullet_name || ''} — {b.weight_grains}gr
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {b.caliber}{b.bullet_type ? ` · ${b.bullet_type}` : ''}{b.ballistic_coefficient_g1 ? ` · G1: ${b.ballistic_coefficient_g1}` : ''}{b.ballistic_coefficient_g7 ? ` · G7: ${b.ballistic_coefficient_g7}` : ''}
-                  </p>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold truncate">
+                        {b.manufacturer} {b.bullet_name || ''} {b.bullet_family && b.bullet_family !== b.bullet_name ? `(${b.bullet_family})` : ''} — {b.weight_grains}gr
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {b.caliber}{b.bullet_type ? ` · ${b.bullet_type}` : ''}
+                        {b.lead_free ? ' · Lead-Free' : ''}
+                        {b.ballistic_coefficient_g1 ? ` · G1: ${b.ballistic_coefficient_g1}` : ''}
+                        {b.ballistic_coefficient_g7 ? ` · G7: ${b.ballistic_coefficient_g7}` : ''}
+                        {!b.ballistic_coefficient_g1 && !b.ballistic_coefficient_g7 ? ' · No BC data' : ''}
+                      </p>
+                    </div>
+                    <div className="flex gap-1 flex-shrink-0 mt-0.5">
+                      {b.ballistic_coefficient_g7 && <span className="text-[9px] bg-primary/10 text-primary rounded px-1 font-bold">G7</span>}
+                      {b.ballistic_coefficient_g1 && !b.ballistic_coefficient_g7 && <span className="text-[9px] bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded px-1 font-bold">G1 only</span>}
+                      {b.data_confidence === 'High' && <span className="text-[9px] bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded px-1 font-bold">✓</span>}
+                    </div>
+                  </div>
                 </button>
               ))
             )}
