@@ -185,14 +185,22 @@ function PrimaryCard({ to, icon, label, sub }) {
 function DeerIcon() {
   return (
     <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      {/* Antlers */}
-      <path d="M8 6L5 3M8 6L5 9M16 6L19 3M16 6L19 9M8 6H16M12 6V10" />
+      {/* Left antler branches */}
+      <path d="M9 4L7 2M9 4L7 6M9 4L6 5" />
+      {/* Right antler branches */}
+      <path d="M15 4L17 2M15 4L17 6M15 4L18 5" />
       {/* Head */}
-      <circle cx="12" cy="13" r="3" />
+      <circle cx="12" cy="9" r="3.5" />
+      {/* Ears */}
+      <path d="M10 6L9.5 4.5M14 6L14.5 4.5" />
+      {/* Snout */}
+      <circle cx="12" cy="11" r="1.5" />
       {/* Body */}
-      <path d="M12 16V22" />
-      {/* Legs */}
-      <path d="M10 22V20M14 22V20" />
+      <ellipse cx="12" cy="16" rx="3" ry="4" />
+      {/* Front legs */}
+      <path d="M10.5 19V22M13.5 19V22" />
+      {/* Rear legs hint */}
+      <path d="M11 19V21.5M13 19V21.5" />
     </svg>
   );
 }
