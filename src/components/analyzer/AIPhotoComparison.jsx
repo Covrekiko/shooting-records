@@ -168,10 +168,15 @@ export default function AIPhotoComparison({
     setDebugInfo(null);
     
     try {
-      // Get image dimensions for coordinate mapping
-      if (!imgRef.current) {
-        setAiError('Image not loaded');
-        return;
+      // Wait for image to be fully loaded
+      if (!imgRef.current || !imgRef.current.complete || imgRef.current.naturalWidth === 0) {
+        // Image not ready - wait a moment and retry
+        await new Promise(resolve => setTimeout(resolve, 500));
+        if (!imgRef.current || !imgRef.current.complete || imgRef.current.naturalWidth === 0) {
+          setAiError('Image not loaded. Please try again.');
+          setAiLoading(false);
+          return;
+        }
       }
 
       const imgNaturalWidth = imgRef.current.naturalWidth;
