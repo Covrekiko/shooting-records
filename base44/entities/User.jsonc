@@ -11,6 +11,16 @@
       ],
       "default": "active"
     },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "normal_user",
+        "beta_tester"
+      ],
+      "default": "normal_user",
+      "description": "User role: admin, normal_user, or beta_tester"
+    },
     "firstName": {
       "type": "string",
       "description": "User's first name"
@@ -56,6 +66,23 @@
       "type": "boolean",
       "default": false,
       "description": "Whether the user has completed their profile setup"
+    },
+    "beta_tester_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "description": "Beta tester status (only for beta_tester role)"
+    },
+    "beta_tester_notes": {
+      "type": "string",
+      "description": "Notes about the beta tester"
+    },
+    "beta_tester_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the beta tester access expires (optional)"
     }
   },
   "required": []

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { UserPlus, MoreVertical, Ban, Pause } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { UserPlus, MoreVertical, Ban, Pause, MessageCircle, Users } from 'lucide-react';
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
@@ -84,18 +85,34 @@ export default function AdminUsers() {
     <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
       <main className="max-w-6xl mx-auto px-4 py-8 mobile-page-padding">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">User Management</h1>
-          <p className="text-muted-foreground">Manage users, roles, and permissions</p>
-        </div>
+         <div className="mb-8">
+           <h1 className="text-3xl font-bold mb-2">User Management</h1>
+           <p className="text-muted-foreground">Manage users, roles, and permissions</p>
+         </div>
 
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 mb-6"
-        >
-          <UserPlus className="w-5 h-5" />
-          Invite New User
-        </button>
+         <div className="flex gap-3 mb-6 flex-wrap">
+           <button
+             onClick={() => setShowForm(!showForm)}
+             className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+           >
+             <UserPlus className="w-5 h-5" />
+             Invite New User
+           </button>
+           <Link
+             to="/admin/beta-testers"
+             className="px-6 py-3 bg-secondary text-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+           >
+             <Users className="w-5 h-5" />
+             Beta Testers
+           </Link>
+           <Link
+             to="/admin/beta-feedback"
+             className="px-6 py-3 bg-secondary text-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+           >
+             <MessageCircle className="w-5 h-5" />
+             Feedback
+           </Link>
+           </div>
 
         {showForm && (
           <div className="bg-card border border-border rounded-lg p-6 mb-6">

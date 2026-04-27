@@ -1,0 +1,25 @@
+{
+  "name": "BetaFeedbackComment",
+  "type": "object",
+  "properties": {
+    "post_id": {
+      "type": "string",
+      "description": "ID of the feedback post"
+    },
+    "comment": {
+      "type": "string",
+      "description": "Comment text"
+    },
+    "attachment_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Attached files/images"
+    }
+  },
+  "required": [
+    "post_id",
+    "comment"
+  ]
+}

@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 import React from 'react';
 import {
   Target, Crosshair, Map, BookOpen,
-  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck,
+  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck, MessageCircle,
 } from 'lucide-react';
 import {
   MonthlyActivityChart,
@@ -343,11 +343,27 @@ export default function Dashboard() {
         <SecondaryGrid user={user} />
 
         {/* ── Widgets ── */}
-        <AmmoStockWidget />
-        {isEnabled('reloading') && <ReloadingWidget />}
+         <AmmoStockWidget />
+         {isEnabled('reloading') && <ReloadingWidget />}
 
-        {/* ── Analytics (collapsible) ── */}
-         {memoizedChartData && <ChartsSection chartData={memoizedChartData} />}
+         {/* ── Beta Tester Feedback (if beta tester) ── */}
+         {user?.role === 'beta_tester' && (
+           <Link to="/beta-feedback" className="block">
+             <div className="bg-primary/10 border border-primary/30 rounded-2xl p-4 hover:bg-primary/15 transition-colors">
+               <div className="flex items-center gap-3">
+                 <MessageCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                 <div>
+                   <p className="font-semibold text-sm text-foreground">Help Improve the App</p>
+                   <p className="text-xs text-muted-foreground mt-0.5">Share bugs and ideas in the feedback forum</p>
+                 </div>
+                 <ChevronRight className="w-4 h-4 text-primary flex-shrink-0 ml-auto" />
+               </div>
+             </div>
+           </Link>
+         )}
+
+         {/* ── Analytics (collapsible) ── */}
+          {memoizedChartData && <ChartsSection chartData={memoizedChartData} />}
 
       </main>
     </div>

@@ -1,0 +1,98 @@
+{
+  "name": "BetaFeedbackPost",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Feedback title"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "bug_report",
+        "improvement",
+        "confusing",
+        "design",
+        "performance",
+        "missing_feature",
+        "other"
+      ],
+      "description": "Feedback category"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed feedback description"
+    },
+    "screen_name": {
+      "type": "string",
+      "description": "Which screen/page the feedback is about"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "default": "medium",
+      "description": "Severity level"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "reviewed",
+        "in_progress",
+        "fixed",
+        "not_planned",
+        "need_more_info",
+        "closed"
+      ],
+      "default": "new",
+      "description": "Feedback status"
+    },
+    "steps_to_reproduce": {
+      "type": "string",
+      "description": "Steps to reproduce (for bug reports)"
+    },
+    "expected_result": {
+      "type": "string",
+      "description": "What was expected to happen"
+    },
+    "actual_result": {
+      "type": "string",
+      "description": "What actually happened"
+    },
+    "device_info": {
+      "type": "string",
+      "description": "Device type/model (e.g., iPhone 13, iPad Pro)"
+    },
+    "browser_info": {
+      "type": "string",
+      "description": "Browser/app type (e.g., Safari, Chrome, iOS App)"
+    },
+    "screenshot_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs of attached screenshots"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Internal notes from admin"
+    },
+    "closed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the feedback was closed"
+    }
+  },
+  "required": [
+    "title",
+    "category",
+    "description",
+    "screen_name"
+  ]
+}

@@ -46,7 +46,9 @@ import AppModules from './pages/AppModules';
 import BulletReferenceDB from './pages/settings/BulletReferenceDB';
 import ScopeReferenceDB from './pages/settings/ScopeReferenceDB';
 import ReferenceDatabase from './pages/settings/ReferenceDatabase';
-
+import BetaFeedback from './pages/BetaFeedback';
+import BetaTesters from './pages/admin/BetaTesters';
+import BetaFeedbackAdmin from './pages/admin/BetaFeedbackAdmin';
 
 // Sync dark mode with system preference
 function ThemeSync() {
@@ -157,6 +159,9 @@ const AuthenticatedApp = () => {
             <Route path="/settings/bullet-reference" element={<BulletReferenceDB />} />
             <Route path="/settings/scope-reference" element={<ScopeReferenceDB />} />
             <Route path="/settings/reference-database" element={<ReferenceDatabase />} />
+            <Route path="/beta-feedback" element={<BetaFeedback />} />
+            <Route path="/admin/beta-testers" element={<BetaTesters />} />
+            <Route path="/admin/beta-feedback" element={<BetaFeedbackAdmin />} />
 
             <Route path="*" element={<PageNotFound />} />
           </Routes>
