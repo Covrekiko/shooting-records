@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Loader2, AlertCircle, CheckCircle2, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, CheckCircle2, Save, Trash2, X } from 'lucide-react';
 import { calcGroupSizePixels, convertGroupSize } from '@/lib/groupSizeCalculations';
 
 const inp = 'w-full px-3 py-2.5 border border-border rounded-xl bg-background text-sm';
@@ -524,16 +524,21 @@ export default function AIPhotoComparison({
             <>
               <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4">
                 <p className="text-xs font-bold text-primary uppercase tracking-wide mb-3">AI Detection Results</p>
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                  <div className="bg-background rounded-xl p-3 text-center">
-                    <p className="text-2xl font-black">{aiAnalysis.bullet_holes?.length || 0}</p>
-                    <p className="text-xs text-muted-foreground">Bullet Holes</p>
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    <div className="bg-background rounded-xl p-3 text-center">
+                      <p className="text-2xl font-black">{aiAnalysis.validated_count !== undefined ? aiAnalysis.validated_count : (aiAnalysis.bullet_holes?.length || 0)}</p>
+                      <p className="text-xs text-muted-foreground">Validated Marks</p>
+                    </div>
+                    <div className="bg-background rounded-xl p-3 text-center">
+                      <p className="text-lg font-semibold">{(aiAnalysis.confidence * 100).toFixed(0)}%</p>
+                      <p className="text-xs text-muted-foreground">Confidence</p>
+                    </div>
                   </div>
-                  <div className="bg-background rounded-xl p-3 text-center">
-                    <p className="text-lg font-semibold">{(aiAnalysis.confidence * 100).toFixed(0)}%</p>
-                    <p className="text-xs text-muted-foreground">Confidence</p>
-                  </div>
-                </div>
+                  {aiAnalysis.validated_count !== undefined && aiAnalysis.raw_count !== undefined && aiAnalysis.raw_count > aiAnalysis.validated_count && (
+                    <p className="text-xs text-muted-foreground bg-background/50 rounded-lg p-2 mb-2">
+                      🔍 AI filtered {aiAnalysis.raw_count - aiAnalysis.validated_count} low-confidence marks ({aiAnalysis.raw_count} raw → {aiAnalysis.validated_count} validated)
+                    </p>
+                  )}
                 {aiAnalysis.warnings?.length > 0 && (
                   <div className="bg-amber-500/20 border border-amber-500/30 rounded-lg p-2 mt-2">
                     <p className="text-xs font-semibold text-amber-700 dark:text-amber-200 mb-1">Warnings:</p>
@@ -620,20 +625,22 @@ export default function AIPhotoComparison({
             />
             {/* AI marks (clickable) - with confidence-based styling */}
             {aiAnalysis?.bullet_holes?.map((mark, i) => {
-              const d = normalizedToDisplay(mark);
-              if (!d) return null;
-              const conf = mark.confidence || 0.5;
-              const isHighConf = conf >= 0.75;
-              const isMedConf = conf >= 0.55;
-              return (
-                <button
-                  key={`ai-${i}`}
-                  type="button"
-                  onClick={() => handleAddAIMark(mark)}
-                  className="absolute transition-all hover:scale-125 cursor-pointer"
-                  style={{ left: d.x - 12, top: d.y - 12 }}
-                  title={`AI detected (${(conf * 100).toFixed(0)}% confident). Click to confirm. ${mark.reason || ''}`}
-                >
+            const d = normalizedToDisplay(mark);
+            if (!d) return null;
+            const conf = mark.confidence || 0.5;
+            const isHighConf = conf >= 0.75;
+            const isMedConf = conf >= 0.55;
+            const isAlreadyConfirmed = userConfirmedMarks.some(m => m.x === mark.x && m.y === mark.y && m.source === 'ai');
+            return (
+              <button
+                key={`ai-${i}`}
+                type="button"
+                onClick={() => { if (!isAlreadyConfirmed) handleAddAIMark(mark); }}
+                className={`absolute transition-all hover:scale-125 cursor-pointer ${isAlreadyConfirmed ? 'opacity-50' : ''}`}
+                style={{ left: d.x - 12, top: d.y - 12 }}
+                disabled={isAlreadyConfirmed}
+                title={isAlreadyConfirmed ? 'Already confirmed' : `AI detected (${(conf * 100).toFixed(0)}% confident). Click to confirm. ${mark.reason || ''}`}
+              >
                   {isHighConf && (
                     <div className="w-6 h-6 rounded-full border-2 border-blue-600 bg-blue-500/60 flex items-center justify-center shadow-lg">
                       <div className="w-2 h-2 bg-blue-200 rounded-full" />
@@ -672,8 +679,39 @@ export default function AIPhotoComparison({
             🔵 Solid = High confidence · 🔵 Dashed = Medium · 🔵 Faint = Low · 🟢 Green = Confirmed (from AI) · 🟩 Lime = Confirmed (manual)
           </p>
 
+          {/* AI Mark Control Buttons */}
+          {aiAnalysis?.bullet_holes?.length > 0 && (
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setUserConfirmedMarks([])}
+                className="py-2 bg-destructive/10 text-destructive hover:bg-destructive/20 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
+              >
+                <X className="w-3.5 h-3.5" /> Reject All AI
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const aiMarks = (aiAnalysis.bullet_holes || [])
+                    .filter(h => h.confidence >= 0.7) // only high confidence
+                    .map(h => ({
+                      x: h.x,
+                      y: h.y,
+                      confidence: h.confidence,
+                      source: 'ai'
+                    }));
+                  setUserConfirmedMarks(aiMarks);
+                }}
+                className="py-2 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
+              >
+                ✓ Confirm High Confidence Only
+              </button>
+            </div>
+          )}
+
           {userConfirmedMarks.length > 0 && (
             <button
+              type="button"
               onClick={() => setUserConfirmedMarks(prev => prev.slice(0, -1))}
               className="w-full py-2 bg-secondary rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
             >
@@ -683,10 +721,11 @@ export default function AIPhotoComparison({
 
           {userConfirmedMarks.length > 0 && (
             <button
+              type="button"
               onClick={() => setUserConfirmedMarks([])}
               className="w-full py-2 bg-secondary rounded-xl text-sm font-semibold flex items-center justify-center gap-2"
             >
-              <Trash2 className="w-3.5 h-3.5" /> Clear All
+              <Trash2 className="w-3.5 h-3.5" /> Clear All Marks
             </button>
           )}
 

@@ -15,62 +15,53 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'photo_url required' }, { status: 400 });
     }
 
-    // Advanced AI prompt for target analysis with splatter/impact detection
-    const analysisPrompt = `You are a professional target analyst detecting ALL bullet impacts in a shooting target photograph.
+    // Advanced AI prompt with splatter detection and target region filtering
+    const analysisPrompt = `You are a professional target analyst detecting ONLY REAL bullet impacts in a shooting target photograph.
 
-TASK: Find every bullet hole/impact in this target photo, no matter how small or faint.
+CRITICAL RULES:
+1. REJECT marks that are ONLY on grid lines, rings, or text - these are NOT bullet holes
+2. REJECT marks above or far from the main target face without clear impact evidence
+3. PRIORITIZE splatter marks: bright green, yellow, lime fluorescent colors = HIGH CONFIDENCE
+4. Real impacts show: torn paper, dark hole, discolored area, fresh crisp damage edges
+5. CLUSTER marks together - if marks form a tight group near bullseye, confidence increases
+6. REJECT isolated marks on plain white paper far from any splatter
 
-KEY DETECTION TARGETS:
-A) BULLET HOLES on white/light paper:
-   - Dark circular or irregular holes/tears
-   - Ragged edges where bullet penetrated
-   - Multiple holes clustered = tight group
-   - Even small or partially torn holes
-
-B) BULLET IMPACTS on black bullseye:
-   - Bright green, yellow, or white splatter marks
-   - Holes punched through black area
-   - Secondary splatter around impact zone
-   - Look for ANY color change from pure black
-
-C) BULLET MARKS on red center:
-   - Dark holes or tears
-   - Green/yellow splatter
-   - Irregular impact marks
-   - Scuff or bright marks
-
-CRITICAL - DO NOT MARK (False Positives):
-- Printed target rings (concentric black circles) = measurement guides, NOT bullet holes
-- Printed numbers (5, 7, 8, 9, 10) = text labels
-- Grid lines on background paper = reference grid
-- Crosshair center mark = aiming guide (not a hole)
-- Dirt, dust, or stains without clear impact signature
-- Shadows or shading gradients
-- Target edge marks or tape
+TARGET REGIONS:
+- RED/BLACK CENTER AREA: Primary impact zone - most real bullets hit here
+- SURROUNDING PAPER: Secondary zone - acceptable if splatter/hole visible
+- ABOVE TARGET: ONLY accept if bright green/yellow splatter or torn hole present
+- EDGE/GRID AREAS: REJECT unless clear splatter evidence
 
 DETECTION PROCESS:
-1. Identify white paper background - look for dark holes here first
-2. Identify black bullseye area - look for bright splatter/impacts
-3. Identify red center area - look for any deviation from pure red
-4. Look for tight clusters (groups of 2-5 holes close together)
-5. Rate confidence for each hole independently
-6. Include LOW confidence candidates (0.4+) with confidence value
+1. Find target centre (red bullseye or aiming mark)
+2. Scan near target centre FIRST for green/yellow splatter or holes
+3. Check each candidate: Is it near splatter? Is it on grid/text only? Is it clustered?
+4. DOWNGRADE or REJECT candidates:
+   - Alone on white paper, no splatter nearby → confidence < 0.5
+   - On grid/ring line only → confidence < 0.4
+   - Above target with no splatter → confidence < 0.3
+   - Print text or number marks → REJECT
+5. UPGRADE confidence for:
+   - Clear green/yellow splatter → +0.2
+   - Part of tight cluster (2-4 holes) → +0.1
+   - Dark hole with ragged edges → +0.15
 
-OUTPUT: Return EVERY possible bullet impact, sorted by confidence.
-Include candidates even if uncertain - confidence value is key!
+FINAL CHECK:
+Before returning, verify:
+- Most high-confidence marks cluster together or show splatter
+- No stray marks above target without splatter evidence
+- Grid intersections and printed marks are low/rejected
 
-Return PIXEL COORDINATES relative to image dimensions (not normalized 0-1).
-Include image_width and image_height so frontend can normalize correctly.
+Return PIXEL COORDINATES. Include target_centre and point_of_aim.
 
 JSON FORMAT:
 {
   "image_width": 1920,
   "image_height": 1440,
   "bullet_holes": [
-    {"x": 450, "y": 320, "confidence": 0.95, "reason": "dark hole on white"},
-    {"x": 480, "y": 315, "confidence": 0.92, "reason": "ragged edge impact"},
-    {"x": 320, "y": 450, "confidence": 0.65, "reason": "green splatter on black"},
-    {"x": 880, "y": 590, "confidence": 0.45, "reason": "possible faint splatter"}
+    {"x": 450, "y": 320, "confidence": 0.95, "reason": "green splatter on red center"},
+    {"x": 480, "y": 315, "confidence": 0.92, "reason": "ragged edge impact clustered"},
+    {"x": 475, "y": 325, "confidence": 0.88, "reason": "torn hole near splatter"}
   ],
   "target_centre": {
     "x": 960,
@@ -81,12 +72,12 @@ JSON FORMAT:
   "point_of_aim": {
     "x": 960,
     "y": 700,
-    "confidence": 0.7,
-    "reason": "crosshair or aiming mark"
+    "confidence": 0.8,
+    "reason": "crosshair visible"
   },
-  "confidence": 0.82,
-  "notes": "Found 4 holes in tight vertical group on white paper. Black bullseye has 2 green splatter marks",
-  "warnings": ["Low confidence on splatter marks - verify visually", "Grid lines may be confusing detection"]
+  "confidence": 0.88,
+  "notes": "3 high-confidence impacts in tight cluster near bullseye, all with green splatter evidence",
+  "warnings": []
 }`;
 
     const aiResult = await base44.integrations.Core.InvokeLLM({
@@ -138,32 +129,50 @@ JSON FORMAT:
       }
     });
 
-    // Validate and deduplicate bullet holes with relaxed clustering
-    const validateAndClean = (holes, imgWidth, imgHeight) => {
+    // Validate, filter, and deduplicate bullet holes with target region awareness
+    const validateAndClean = (holes, imgWidth, imgHeight, targetCentre) => {
       if (!Array.isArray(holes)) return [];
       
-      // AI returns pixel coords, convert to normalized for storage + validation
+      // Define acceptable target region (rough bounds around bullseye)
+      const targetRadius = Math.min(imgWidth, imgHeight) * 0.35; // ~35% of image from center
+      const centreX = targetCentre?.x || imgWidth * 0.5;
+      const centreY = targetCentre?.y || imgHeight * 0.5;
+      
       return holes
         .filter(h => {
-          // Validate pixel ranges
+          // Basic validation
           if (typeof h.x !== 'number' || typeof h.y !== 'number') return false;
-          if (h.x < 0 || h.y < 0) return false;
-          if (imgWidth && h.x > imgWidth) return false;
-          if (imgHeight && h.y > imgHeight) return false;
-          // Confidence must be 0-1
+          if (h.x < 0 || h.y < 0 || h.x > imgWidth || h.y > imgHeight) return false;
+          
           const conf = parseFloat(h.confidence || 0);
-          if (conf < 0.35) return false; // skip very low confidence
+          if (conf < 0.3) return false; // reject very low confidence
+          
+          // Region filtering: marks far from target with low confidence should be rejected
+          const distFromCentre = Math.sqrt(
+            Math.pow(h.x - centreX, 2) + Math.pow(h.y - centreY, 2)
+          );
+          
+          // If mark is far from target centre AND low confidence, reject it
+          if (distFromCentre > targetRadius && conf < 0.65) {
+            return false;
+          }
+          
+          // If mark is way outside target AND no splatter hint in reason, reject
+          if (distFromCentre > targetRadius * 1.5 && !h.reason?.includes('splatter')) {
+            return false;
+          }
+          
           return true;
         })
         .sort((a, b) => (b.confidence || 0) - (a.confidence || 0)) // sort by confidence desc
         .reduce((clean, hole) => {
-          // Deduplicate: only merge if < 20px apart AND confidence difference < 0.1
+          // Deduplicate: merge if < 25px apart AND high confidence match
           const isDuplicate = clean.some(c => {
             const pixelDist = Math.sqrt(
               Math.pow(c.x - hole.x, 2) + Math.pow(c.y - hole.y, 2)
             );
             const confDiff = Math.abs((c.confidence || 0) - (hole.confidence || 0));
-            return pixelDist < 20 && confDiff < 0.1;
+            return pixelDist < 25 && confDiff < 0.15;
           });
           return isDuplicate ? clean : [...clean, hole];
         }, []);
@@ -172,7 +181,14 @@ JSON FORMAT:
     const imgWidth = aiResult.image_width || 1920;
     const imgHeight = aiResult.image_height || 1440;
     
-    const validatedHoles = validateAndClean(aiResult.bullet_holes || [], imgWidth, imgHeight)
+    const centre = aiResult.target_centre && 
+                   aiResult.target_centre.x >= 0 && aiResult.target_centre.x <= imgWidth && 
+                   aiResult.target_centre.y >= 0 && aiResult.target_centre.y <= imgHeight
+                   ? aiResult.target_centre
+                   : null;
+    
+    // Validate holes with target region awareness
+    const validatedHoles = validateAndClean(aiResult.bullet_holes || [], imgWidth, imgHeight, centre)
       .map(h => ({
         x: h.x / imgWidth,      // normalize to 0-1
         y: h.y / imgHeight,
@@ -180,16 +196,12 @@ JSON FORMAT:
         reason: h.reason || ''
       }));
 
-    const centre = aiResult.target_centre && 
-                   aiResult.target_centre.x >= 0 && aiResult.target_centre.x <= imgWidth && 
-                   aiResult.target_centre.y >= 0 && aiResult.target_centre.y <= imgHeight
-                   ? {
-                       x: aiResult.target_centre.x / imgWidth,
-                       y: aiResult.target_centre.y / imgHeight,
-                       confidence: Math.max(0, Math.min(1, parseFloat(aiResult.target_centre.confidence) || 0)),
-                       reason: aiResult.target_centre.reason || ''
-                     }
-                   : null;
+    const normalisedCentre = centre ? {
+                        x: centre.x / imgWidth,
+                        y: centre.y / imgHeight,
+                        confidence: Math.max(0, Math.min(1, parseFloat(centre.confidence) || 0)),
+                        reason: centre.reason || ''
+                      } : null;
 
     const aim = aiResult.point_of_aim && 
                 aiResult.point_of_aim.x >= 0 && aiResult.point_of_aim.x <= imgWidth && 
@@ -204,13 +216,15 @@ JSON FORMAT:
 
     const analysis = {
       bullet_holes: validatedHoles,
-      target_centre: centre,
+      target_centre: normalisedCentre,
       point_of_aim: aim,
       confidence: Math.max(0, Math.min(1, aiResult.confidence || 0)),
       notes: aiResult.notes || '',
       warnings: Array.isArray(aiResult.warnings) ? aiResult.warnings : [],
       image_width: imgWidth,
       image_height: imgHeight,
+      validated_count: validatedHoles.length,
+      raw_count: (aiResult.bullet_holes || []).length,
       timestamp: new Date().toISOString()
     };
 
