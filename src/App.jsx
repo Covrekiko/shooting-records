@@ -9,6 +9,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { OutingProvider } from '@/context/OutingContext';
 import { OfflineProvider } from '@/context/OfflineContext';
 import { ModulesProvider, useModules } from '@/context/ModulesContext';
+import { ThemeProvider } from '@/context/ThemeContext';
 import ModuleOnboarding from '@/components/ModuleOnboarding';
 import ModuleGate from '@/components/ModuleGate';
 import OfflineStatusBar from '@/components/OfflineStatusBar';
@@ -133,6 +134,7 @@ const AuthenticatedApp = () => {
             <Route path="/deer-management" element={<ModuleGate module="deer_management"><DeerManagement /></ModuleGate>} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/settings" element={<Profile />} />
+            <Route path="/profile/theme" element={<Profile />} />
             <Route path="/profile/modules" element={<AppModules />} />
             <Route path="/records" element={<Records />} />
             <Route path="/goals" element={<Goals />} />
@@ -168,24 +170,26 @@ const AuthenticatedApp = () => {
 function App() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <QueryClientProvider client={queryClientInstance}>
-          <OfflineProvider>
-            <ModulesProvider>
-              <OutingProvider>
-                <Router>
-                  <TabHistoryProvider>
-                    <OfflineStatusBar />
-                    <AuthenticatedApp />
-                    <MobileTabBar />
-                    <Toaster />
-                  </TabHistoryProvider>
-                </Router>
-              </OutingProvider>
-            </ModulesProvider>
-          </OfflineProvider>
-        </QueryClientProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <QueryClientProvider client={queryClientInstance}>
+            <OfflineProvider>
+              <ModulesProvider>
+                <OutingProvider>
+                  <Router>
+                    <TabHistoryProvider>
+                      <OfflineStatusBar />
+                      <AuthenticatedApp />
+                      <MobileTabBar />
+                      <Toaster />
+                    </TabHistoryProvider>
+                  </Router>
+                </OutingProvider>
+              </ModulesProvider>
+            </OfflineProvider>
+          </QueryClientProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   )
 }

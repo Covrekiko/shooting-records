@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight, Trash2, Zap, Layers, Database } from 'lucide-react';
+import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight, Trash2, Zap, Layers, Database, Palette } from 'lucide-react';
 import AutoCheckinSettingToggle from '@/components/AutoCheckinSettingToggle';
+import ThemeSelector from '@/components/ThemeSelector';
 import { base44 } from '@/api/base44Client';
 import { DESIGN } from '@/lib/designConstants';
 
@@ -115,6 +116,17 @@ export default function Profile() {
                 <Layers className="w-4 h-4" />
                 App Modules
               </Link>
+              <Link
+                to="/profile/theme"
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                  isActive('/profile/theme')
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+              >
+                <Palette className="w-4 h-4" />
+                App Theme
+              </Link>
               <button
                 onClick={handleLogout}
                 disabled={loading}
@@ -127,9 +139,11 @@ export default function Profile() {
           </div>
 
           {/* Content */}
-          <div className="flex-1">
+           <div className="flex-1">
             <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700 shadow-sm p-5">
-              {isActive('/profile/settings') ? (
+              {isActive('/profile/theme') ? (
+                <ThemePanel />
+              ) : isActive('/profile/settings') ? (
                 <SettingsPanel />
               ) : (
                 <PersonalDetailsPanel />
@@ -435,6 +449,16 @@ function DeleteAccountSection() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function ThemePanel() {
+  return (
+    <div>
+      <h2 className="text-2xl font-bold mb-1">App Theme</h2>
+      <p className="text-muted-foreground text-sm mb-6">Choose the visual style for your app. Changes apply instantly.</p>
+      <ThemeSelector />
     </div>
   );
 }
