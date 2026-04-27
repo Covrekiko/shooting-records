@@ -189,7 +189,7 @@ export default function AIPhotoComparison({
         scaleX: displayWidth / imgNaturalWidth,
         scaleY: displayHeight / imgNaturalHeight,
         device_pixel_ratio: window.devicePixelRatio || 1,
-        object_fit: window.getComputedStyle(imgRef.current).objectFit || 'contain',
+        object_fit: (imgRef.current && window.getComputedStyle(imgRef.current).objectFit) || 'contain',
         warnings: []
       };
 
