@@ -36,7 +36,16 @@ export default function BetaTesters() {
 
   const handleCreateTester = async (formData) => {
     try {
-      await base44.users.inviteUser(formData.email, 'beta_tester');
+      await base44.users.inviteUser(formData.email, 'user');
+      // Find the newly created user and update their role to beta_tester
+      const users = await base44.entities.User.filter({ email: formData.email });
+      if (users.length > 0) {
+        await base44.entities.User.update(users[0].id, {
+          role: 'beta_tester',
+          beta_tester_notes: formData.beta_tester_notes || '',
+          beta_tester_status: 'active',
+        });
+      }
       setShowForm(false);
       loadTesters();
       alert('Beta tester created successfully. Invite sent to ' + formData.email);
