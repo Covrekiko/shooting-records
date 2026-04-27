@@ -17,6 +17,7 @@ export default function BulletReferencePicker({ onSelect, onClear, selectedId, f
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [manualInput, setManualInput] = useState('');
 
   useEffect(() => {
     loadBullets();
@@ -87,12 +88,25 @@ export default function BulletReferencePicker({ onSelect, onClear, selectedId, f
     e.stopPropagation();
     setSelected(null);
     setQuery('');
+    setManualInput('');
     if (onClear) onClear();
   };
 
+  const handleManualSubmit = () => {
+    if (manualInput.trim()) {
+      setSelected({ manual: true, bullet_name: manualInput });
+      setOpen(false);
+      setQuery('');
+      setManualInput('');
+      onSelect({ manual: true, bullet_name: manualInput });
+    }
+  };
+
   const label = selected
-    ? `${selected.manufacturer} ${selected.bullet_name || ''} ${selected.weight_grains}gr ${selected.caliber}`.trim()
-    : 'Select from bullet database (optional)';
+    ? selected.manual
+      ? selected.bullet_name
+      : `${selected.manufacturer} ${selected.bullet_name || ''} ${selected.weight_grains}gr ${selected.caliber}`.trim()
+    : 'Select bullet';
 
   return (
     <div className="relative">
@@ -132,9 +146,29 @@ export default function BulletReferencePicker({ onSelect, onClear, selectedId, f
             {loading ? (
               <p className="text-xs text-muted-foreground text-center py-4">Loading…</p>
             ) : filtered.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-4">
-                {bullets.length === 0 ? 'No bullets in database yet. Add some via Settings → Bullet Reference.' : 'No matches found'}
-              </p>
+              <div className="p-3 space-y-3 border-t border-border">
+                {bullets.length > 0 && (
+                  <p className="text-xs text-muted-foreground">No matches found. Type your own:</p>
+                )}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={manualInput}
+                    onChange={e => setManualInput(e.target.value)}
+                    onKeyPress={e => e.key === 'Enter' && handleManualSubmit()}
+                    placeholder="e.g. Hornady ELD-M 168gr"
+                    className="flex-1 px-2.5 py-2 text-sm bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleManualSubmit}
+                    disabled={!manualInput.trim()}
+                    className="px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
             ) : (
               filtered.map(b => (
                 <button
