@@ -577,7 +577,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                inputMode="decimal"
                value={formData.powder_charge}
                onChange={(e) => setFormData({ ...formData, powder_charge: e.target.value })}
-               className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none flex-1"
+               className="flex-1 min-w-0 px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
                placeholder="40.0"
                step="0.1"
                required
@@ -585,7 +585,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
              <select
                value={formData.powder_unit}
                onChange={(e) => setFormData({ ...formData, powder_unit: e.target.value })}
-               className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none min-w-max font-medium"
+               className="flex-shrink-0 w-28 px-3 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none font-medium"
              >
               <option value="grains">grains</option>
               <option value="grams">grams</option>
