@@ -54,7 +54,7 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   useEffect(() => {
-    if (editGroup) setForm(f => ({ ...f, ...editGroup, group_size_input: editGroup.group_size_mm || '', group_size_unit: 'mm', rifle_id: editGroup.rifle_id || session.rifle_id || '', ammunition_id: editGroup.ammunition_id || session.ammo_id || '' }));
+    if (editGroup) setForm(f => ({ ...f, ...editGroup, group_size_input: editGroup.group_size_mm || '', group_size_unit: 'mm', rifle_id: editGroup.rifle_id || session.rifle_id || '', ammunition_id: editGroup.ammunition_id || session.ammo_id || '', best_group: editGroup.best_group || false }));
   }, [editGroup]);
 
   useEffect(() => {
