@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import {
   Target, Crosshair, Map, BookOpen,
-  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck,
+  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck, Settings,
 } from 'lucide-react';
 import {
   MonthlyActivityChart,
@@ -183,26 +183,27 @@ function PrimaryCard({ to, icon, label, sub }) {
 function SecondaryGrid({ user }) {
   const { isEnabled } = useModules();
   const allItems = [
-    { to: '/target-shooting', icon: <Crosshair className="w-5 h-5" />, label: 'Target', module: 'target_shooting' },
-    { to: '/clay-shooting', icon: <Target className="w-5 h-5" />, label: 'Clay', module: 'clay_shooting' },
-    { to: '/deer-management', icon: <span className="text-lg">🦌</span>, label: 'Deer', module: 'deer_management' },
-    { to: '/reloading', icon: <RefreshCw className="w-5 h-5" />, label: 'Reloading', module: 'reloading' },
-    { to: '/load-development', icon: <FlaskConical className="w-5 h-5" />, label: 'Load Dev', module: 'reloading' },
-    { to: '/settings/rifles', icon: <span className="text-lg">🔧</span>, label: 'Equipment' },
-    { to: '/reports', icon: <BarChart3 className="w-5 h-5" />, label: 'Reports' },
-    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck className="w-5 h-5" />, label: 'Admin' }] : []),
+    { to: '/target-shooting', icon: <Crosshair className="w-6 h-6" />, label: 'Target', module: 'target_shooting', color: 'bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400' },
+    { to: '/clay-shooting', icon: <Target className="w-6 h-6" />, label: 'Clay', module: 'clay_shooting', color: 'bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-400' },
+    { to: '/deer-management', icon: <Layers className="w-6 h-6" />, label: 'Deer', module: 'deer_management', color: 'bg-green-100 text-green-600 dark:bg-green-950 dark:text-green-400' },
+    { to: '/reloading', icon: <RefreshCw className="w-6 h-6" />, label: 'Reloading', module: 'reloading', color: 'bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400' },
+    { to: '/load-development', icon: <FlaskConical className="w-6 h-6" />, label: 'Load Dev', module: 'reloading', color: 'bg-cyan-100 text-cyan-600 dark:bg-cyan-950 dark:text-cyan-400' },
+    { to: '/settings/rifles', icon: <Settings className="w-6 h-6" />, label: 'Equipment', color: 'bg-gray-100 text-gray-600 dark:bg-gray-900 dark:text-gray-400' },
+    { to: '/reports', icon: <BarChart3 className="w-6 h-6" />, label: 'Reports', color: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400' },
+    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <Shield className="w-6 h-6" />, label: 'Admin', color: 'bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400' }] : []),
   ];
   const items = allItems.filter(item => !item.module || isEnabled(item.module));
 
   return (
-    <div className="grid grid-cols-4 gap-2">
+    <div className="grid grid-cols-4 gap-3">
       {items.map((item) => (
         <Link key={item.to} to={item.to}>
-          <div className="bg-card rounded-xl p-2.5 border border-border shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none">
-            <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground [&_svg]:w-5 [&_svg]:h-5 select-none">
+          <div className="bg-card rounded-2xl p-4 border border-border shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-2.5 text-center select-none hover:shadow-md">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${item.color}`}>
               {item.icon}
             </div>
-            <p className="text-[10px] font-semibold text-muted-foreground leading-tight tracking-wide">{item.label}</p>
+            <p className="text-xs font-semibold text-foreground leading-tight tracking-wide">{item.label}</p>
+            <div className={`h-0.5 w-6 rounded-full ${item.color.split(' ')[0]}`}></div>
           </div>
         </Link>
       ))}
