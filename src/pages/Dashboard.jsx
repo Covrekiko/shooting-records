@@ -2,12 +2,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useOuting } from '@/context/OutingContext';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import {
-  Target, Crosshair, Map, BookOpen, Settings,
-  BarChart3, ChevronRight, Clock, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck,
+  Target, Crosshair, Map, BookOpen,
+  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck,
 } from 'lucide-react';
 import {
   MonthlyActivityChart,
@@ -153,14 +154,9 @@ function KpiRow({ stats }) {
   return (
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
-        <div key={item.label} className="rounded-xl px-3 py-3 text-center shadow-sm" style={{
-          backgroundColor: 'var(--app-card)',
-          borderColor: 'var(--app-border)',
-          borderWidth: '1px',
-          boxShadow: 'var(--app-shadow)',
-        }}>
-          <p className="text-base md:text-lg font-bold leading-none" style={{ color: 'var(--app-accent)' }}>{item.value}</p>
-          <p className="text-[10px] mt-1.5 font-semibold uppercase tracking-wide" style={{ color: 'var(--app-text-muted)' }}>{item.label}</p>
+        <div key={item.label} className="bg-card rounded-xl px-2 py-2.5 text-center border border-border shadow-sm">
+          <p className="text-base md:text-lg font-bold text-foreground leading-none">{item.value}</p>
+          <p className="text-[10px] text-muted-foreground mt-1 font-medium">{item.label}</p>
         </div>
       ))}
     </div>
@@ -170,23 +166,15 @@ function KpiRow({ stats }) {
 function PrimaryCard({ to, icon, label, sub }) {
   return (
     <Link to={to}>
-      <div className="rounded-2xl p-4 shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-4 select-none hover:shadow-md" style={{
-        backgroundColor: 'var(--app-card)',
-        borderColor: 'var(--app-border)',
-        borderWidth: '1px',
-        boxShadow: 'var(--app-shadow)',
-      }}>
-        <div className="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 [&_svg]:w-6 [&_svg]:h-6 select-none" style={{
-          backgroundColor: 'var(--app-icon-bg)',
-          color: 'var(--app-icon)',
-        }}>
+      <div className="bg-card rounded-2xl p-4 border border-border shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-4 select-none">
+        <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary [&_svg]:w-5 [&_svg]:h-5 select-none">
           {icon}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold leading-snug tracking-tight" style={{ color: 'var(--app-text)' }}>{label}</p>
-          {sub && <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--app-text-muted)' }}>{sub}</p>}
+          <p className="text-sm font-bold text-foreground leading-snug tracking-tight">{label}</p>
+          {sub && <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}
         </div>
-        <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--app-icon)' }} />
+        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
       </div>
     </Link>
   );
@@ -197,10 +185,10 @@ function SecondaryGrid({ user }) {
   const allItems = [
     { to: '/target-shooting', icon: <Crosshair className="w-5 h-5" />, label: 'Target', module: 'target_shooting' },
     { to: '/clay-shooting', icon: <Target className="w-5 h-5" />, label: 'Clay', module: 'clay_shooting' },
-    { to: '/deer-management', icon: <Layers className="w-5 h-5" />, label: 'Deer', module: 'deer_management' },
+    { to: '/deer-management', icon: <span className="text-lg">🦌</span>, label: 'Deer', module: 'deer_management' },
     { to: '/reloading', icon: <RefreshCw className="w-5 h-5" />, label: 'Reloading', module: 'reloading' },
     { to: '/load-development', icon: <FlaskConical className="w-5 h-5" />, label: 'Load Dev', module: 'reloading' },
-    { to: '/settings/rifles', icon: <Settings className="w-5 h-5" />, label: 'Equipment' },
+    { to: '/settings/rifles', icon: <span className="text-lg">🔧</span>, label: 'Equipment' },
     { to: '/reports', icon: <BarChart3 className="w-5 h-5" />, label: 'Reports' },
     ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck className="w-5 h-5" />, label: 'Admin' }] : []),
   ];
@@ -210,19 +198,11 @@ function SecondaryGrid({ user }) {
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
         <Link key={item.to} to={item.to}>
-          <div className="rounded-2xl p-2.5 shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none" style={{
-            backgroundColor: 'var(--app-card)',
-            borderColor: 'var(--app-border)',
-            borderWidth: '1px',
-            boxShadow: 'var(--app-shadow)',
-          }}>
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 select-none" style={{
-              backgroundColor: 'var(--app-icon-bg)',
-              color: 'var(--app-icon)',
-            }}>
+          <div className="bg-card rounded-xl p-2.5 border border-border shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none">
+            <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground [&_svg]:w-5 [&_svg]:h-5 select-none">
               {item.icon}
             </div>
-            <p className="text-[10px] font-semibold leading-tight tracking-wide" style={{ color: 'var(--app-text)' }}>{item.label}</p>
+            <p className="text-[10px] font-semibold text-muted-foreground leading-tight tracking-wide">{item.label}</p>
           </div>
         </Link>
       ))}
@@ -233,30 +213,19 @@ function SecondaryGrid({ user }) {
 function ChartsSection({ chartData }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-2xl shadow-sm overflow-hidden" style={{
-      backgroundColor: 'var(--app-card)',
-      borderColor: 'var(--app-border)',
-      borderWidth: '1px',
-      boxShadow: 'var(--app-shadow)',
-    }}>
+    <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold transition-colors select-none"
-        style={{ color: 'var(--app-text)' }}
-        onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--app-surface-soft)'}
-        onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+        className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-secondary/30 transition-colors select-none"
       >
         <span className="flex items-center gap-2.5">
-          <BarChart3 className="w-5 h-5" style={{ color: 'var(--app-accent)' }} />
+          <BarChart3 className="w-5 h-5 text-primary" />
           <span className="tracking-tight">Analytics</span>
         </span>
-        <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${open ? 'rotate-90' : ''}`} style={{ color: 'var(--app-text-muted)' }} />
+        <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${open ? 'rotate-90' : ''}`} />
       </button>
       {open && (
-        <div className="px-4 pb-4 space-y-4 pt-4" style={{
-        borderColor: 'var(--app-border)',
-        borderTopWidth: '1px',
-      }}>
+        <div className="px-4 pb-4 space-y-4 border-t border-border pt-4">
           <MonthlyActivityChart data={chartData.monthly} />
           <RoundsPerMonthChart data={chartData.roundsPerMonth} />
           <RoundsPerFirearmChart data={chartData.firearm} />
@@ -329,6 +298,8 @@ export default function Dashboard() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  const { pulling, progress, refreshing } = usePullToRefresh(loadData);
+
   if (loading) {
     return (
       <div className="bg-background min-h-screen">
@@ -341,10 +312,18 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ backgroundColor: 'var(--app-bg)' }} className="min-h-screen">
+    <div className="bg-background min-h-screen">
       <Navigation />
 
-
+      {/* Pull-to-refresh indicator */}
+      {(pulling || refreshing) && (
+        <div className="flex justify-center py-1">
+          <div
+            className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full"
+            style={{ animation: refreshing ? 'spin 0.6s linear infinite' : 'none', opacity: refreshing ? 1 : progress, transform: `rotate(${progress * 360}deg)` }}
+          />
+        </div>
+      )}
 
       <main className="max-w-2xl mx-auto px-3 pt-2 pb-8 mobile-page-padding space-y-3">
 

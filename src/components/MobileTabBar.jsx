@@ -51,13 +51,8 @@ export default function MobileTabBar() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-[9000] border-t"
-      style={{
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        backgroundColor: 'var(--app-nav)',
-        borderColor: 'var(--app-primary-hover)',
-        boxShadow: 'var(--app-shadow)',
-      }}
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[9000] bg-card/95 backdrop-blur-md border-t border-border"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       {/* Sync status strip */}
       {syncPill && (() => {
@@ -66,11 +61,7 @@ export default function MobileTabBar() {
           <button
             onClick={syncPill.action || undefined}
             disabled={!syncPill.action}
-            className={`w-full flex items-center justify-center gap-1.5 py-1 text-[10px] font-semibold select-none ${syncPill.action ? 'active:opacity-80' : ''}`}
-            style={{
-              backgroundColor: syncPill.bg === 'bg-amber-500' ? '#f59e0b' : syncPill.bg === 'bg-red-500' ? '#ef4444' : syncPill.bg === 'bg-blue-500' ? 'var(--app-accent)' : '#9ca3af',
-              color: '#ffffff',
-            }}
+            className={`w-full flex items-center justify-center gap-1.5 py-1 text-destructive-foreground text-[10px] font-semibold select-none ${syncPill.bg === 'bg-amber-500' ? 'bg-amber-500' : syncPill.bg === 'bg-red-500' ? 'bg-destructive' : syncPill.bg === 'bg-blue-500' ? 'bg-primary' : 'bg-muted'} ${syncPill.action ? 'active:opacity-80' : ''}`}
           >
             <PillIcon className={`w-3 h-3 flex-shrink-0 ${syncPill.spinning ? 'animate-spin' : ''}`} />
             {syncPill.label}
@@ -84,25 +75,18 @@ export default function MobileTabBar() {
             <button
               key={key}
               onClick={() => handleTabPress(key)}
-              className="flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 transition-colors active:scale-90 transform-gpu select-none"
-              style={{
-                color: isActive ? 'var(--app-nav-active)' : 'var(--app-nav-inactive)',
-              }}
+              className={`flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 transition-colors active:scale-90 transform-gpu select-none ${
+                isActive ? 'text-primary' : 'text-muted-foreground'
+              }`}
             >
-              <div
-                className="flex items-center justify-center w-7 h-7 rounded-xl transition-all"
-                style={{
-                  backgroundColor: isActive ? 'color-mix(in srgb, var(--app-nav-active) 10%, transparent)' : 'transparent',
-                }}
-              >
+              <div className={`flex items-center justify-center w-7 h-7 rounded-xl transition-all ${
+                isActive ? 'bg-primary/10' : ''
+              }`}>
                 <Icon style={{ width: isActive ? 20 : 18, height: isActive ? 20 : 18 }} />
               </div>
-              <span
-                className="text-[9px] font-semibold tracking-tight leading-none"
-                style={{
-                  color: isActive ? 'var(--app-nav-active)' : 'var(--app-nav-inactive)',
-                }}
-              >
+              <span className={`text-[9px] font-semibold tracking-tight leading-none ${
+                isActive ? 'text-primary' : 'text-muted-foreground'
+              }`}>
                 {label}
               </span>
             </button>

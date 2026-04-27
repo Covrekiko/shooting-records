@@ -30,20 +30,15 @@ export default function Profile() {
   };
 
   return (
-    <div style={{ backgroundColor: 'var(--app-bg)' }} className="min-h-screen">
+    <div className="bg-background min-h-screen">
       <Navigation />
-      <main className="max-w-5xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding" style={{ color: 'var(--app-text)' }}>
+      <main className="max-w-5xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <h1 className="text-xl font-bold mb-4 hidden md:block text-foreground">Profile</h1>
 
         <div className="flex flex-col md:flex-row gap-4">
           {/* Sidebar */}
           <div className="w-full md:w-52">
-            <div className="rounded-2xl shadow-sm p-2 space-y-0.5" style={{
-              backgroundColor: 'var(--app-card)',
-              borderColor: 'var(--app-border)',
-              borderWidth: '1px',
-              boxShadow: 'var(--app-shadow)',
-            }}>
+            <div className="bg-card rounded-2xl border border-border shadow-sm p-2 space-y-0.5">
               <Link
                 to="/profile"
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
@@ -145,12 +140,7 @@ export default function Profile() {
 
           {/* Content */}
            <div className="flex-1">
-           <div className="rounded-2xl shadow-sm p-5" style={{
-             backgroundColor: 'var(--app-card)',
-             borderColor: 'var(--app-border)',
-             borderWidth: '1px',
-             boxShadow: 'var(--app-shadow)',
-           }}>
+           <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
               {isActive('/profile/theme') ? (
                 <ThemePanel />
               ) : isActive('/profile/settings') ? (
@@ -169,22 +159,14 @@ export default function Profile() {
 function CollapsibleSection({ title, children }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-xl overflow-hidden" style={{
-      backgroundColor: 'var(--app-card)',
-      borderColor: 'var(--app-border)',
-      borderWidth: '1px',
-      boxShadow: 'var(--app-shadow)',
-    }}>
+    <div className="bg-card border border-border rounded-xl overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-5 py-4 text-left transition-colors"
-        style={{ color: 'var(--app-text)' }}
-        onMouseEnter={(e) => e.target.parentElement.style.backgroundColor = 'var(--app-surface-soft)'}
-        onMouseLeave={(e) => e.target.parentElement.style.backgroundColor = 'transparent'}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-secondary/50 transition-colors"
       >
-        <span className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--app-text-muted)' }}>{title}</span>
-        {open ? <ChevronDown className="w-4 h-4" style={{ color: 'var(--app-text-muted)' }} /> : <ChevronRight className="w-4 h-4" style={{ color: 'var(--app-text-muted)' }} />}
+        <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">{title}</span>
+        {open ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
       </button>
       {open && <div className="px-5 pb-5">{children}</div>}
     </div>
@@ -194,7 +176,7 @@ function CollapsibleSection({ title, children }) {
 function Field({ label, error, required, children }) {
   return (
     <div>
-      <label className="block text-sm font-medium mb-1" style={{ color: 'var(--app-text)' }}>
+      <label className="block text-sm font-medium mb-1">
         {label}{required && <span className="text-destructive ml-1">*</span>}
       </label>
       {children}
@@ -247,15 +229,9 @@ function SettingsPanel() {
 
 function SettingCard({ title, description, link }) {
   return (
-    <Link to={link} className="rounded-2xl p-5 hover:shadow-md transition-all block shadow-sm" style={{
-      backgroundColor: 'var(--app-card)',
-      borderColor: 'var(--app-border)',
-      borderWidth: '1px',
-      boxShadow: 'var(--app-shadow)',
-      color: 'var(--app-text)',
-    }}>
-      <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--app-text)' }}>{title}</h3>
-      <p className="text-sm" style={{ color: 'var(--app-text-muted)' }}>{description}</p>
+    <Link to={link} className="bg-card border border-border rounded-2xl p-5 hover:shadow-md transition-all block shadow-sm">
+      <h3 className="text-lg font-semibold mb-2 text-foreground">{title}</h3>
+      <p className="text-sm text-muted-foreground">{description}</p>
     </Link>
   );
 }
@@ -264,18 +240,9 @@ function RecordsPanel() {
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4">Records</h2>
-      <div className="rounded-lg p-8 text-center" style={{
-        backgroundColor: 'var(--app-card)',
-        borderColor: 'var(--app-border)',
-        borderWidth: '1px',
-        boxShadow: 'var(--app-shadow)',
-        color: 'var(--app-text)',
-      }}>
-        <p style={{ color: 'var(--app-text-muted)' }}>View and manage all your shooting records</p>
-        <Link to="/records" className="mt-4 inline-block px-6 py-2 rounded-lg hover:opacity-90 transition-opacity" style={{
-          backgroundColor: 'var(--app-accent)',
-          color: 'var(--app-primary-text)',
-        }}>
+      <div className="bg-card border border-border rounded-lg p-8 text-center">
+        <p className="text-muted-foreground">View and manage all your shooting records</p>
+        <Link to="/records" className="mt-4 inline-block px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">
           View All Records
         </Link>
       </div>
@@ -351,16 +318,9 @@ function PersonalDetailsPanel() {
   if (!form) return <div className="flex justify-center py-12"><div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
 
   const inputClass = (field) =>
-  `w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors ${
-  errors[field] ? 'border-destructive focus:ring-destructive' : 'focus:ring-2'
-  }`;
-
-  const getInputStyle = (field) => ({
-  backgroundColor: 'var(--app-input)',
-  borderColor: errors[field] ? '#ef4444' : 'var(--app-input-border)',
-  color: 'var(--app-text)',
-  focusRingColor: 'var(--app-accent)',
-  });
+    `w-full px-3 py-2 border rounded-lg bg-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-colors ${
+      errors[field] ? 'border-destructive focus:ring-destructive' : 'border-border focus:ring-primary'
+    }`;
 
   return (
     <div>
@@ -372,19 +332,19 @@ function PersonalDetailsPanel() {
         <CollapsibleSection title="Personal Details">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="First Name" error={errors.firstName} required>
-              <input type="text" value={form.firstName} onChange={e => set('firstName', e.target.value)} placeholder="First name" className={inputClass('firstName')} style={getInputStyle('firstName')} autoComplete="given-name" />
+              <input type="text" value={form.firstName} onChange={e => set('firstName', e.target.value)} placeholder="First name" className={inputClass('firstName')} autoComplete="given-name" />
             </Field>
             <Field label="Middle Name" error={errors.middleName}>
-              <input type="text" value={form.middleName} onChange={e => set('middleName', e.target.value)} placeholder="Optional" className={inputClass('middleName')} style={getInputStyle('middleName')} autoComplete="additional-name" />
+              <input type="text" value={form.middleName} onChange={e => set('middleName', e.target.value)} placeholder="Optional" className={inputClass('middleName')} autoComplete="additional-name" />
             </Field>
             <Field label="Surname / Last Name" error={errors.lastName} required>
-              <input type="text" value={form.lastName} onChange={e => set('lastName', e.target.value)} placeholder="Last name" className={inputClass('lastName')} style={getInputStyle('lastName')} autoComplete="family-name" />
+              <input type="text" value={form.lastName} onChange={e => set('lastName', e.target.value)} placeholder="Last name" className={inputClass('lastName')} autoComplete="family-name" />
             </Field>
             <Field label="Date of Birth" error={errors.dateOfBirth} required>
-              <input type="date" value={form.dateOfBirth} onChange={e => set('dateOfBirth', e.target.value)} max={new Date().toISOString().split('T')[0]} className={inputClass('dateOfBirth')} style={getInputStyle('dateOfBirth')} autoComplete="bday" />
+              <input type="date" value={form.dateOfBirth} onChange={e => set('dateOfBirth', e.target.value)} max={new Date().toISOString().split('T')[0]} className={inputClass('dateOfBirth')} autoComplete="bday" />
             </Field>
             <Field label="Phone Number" error={errors.phone}>
-              <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="e.g. 07700 900000" className={inputClass('phone')} style={getInputStyle('phone')} autoComplete="tel" />
+              <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="e.g. 07700 900000" className={inputClass('phone')} autoComplete="tel" />
             </Field>
           </div>
         </CollapsibleSection>
@@ -393,20 +353,20 @@ function PersonalDetailsPanel() {
         <CollapsibleSection title="Address">
           <div className="space-y-4">
             <Field label="Address Line 1" error={errors.addressLine1} required>
-              <input type="text" value={form.addressLine1} onChange={e => set('addressLine1', e.target.value)} placeholder="e.g. 12 High Street" className={inputClass('addressLine1')} style={getInputStyle('addressLine1')} autoComplete="address-line1" />
+              <input type="text" value={form.addressLine1} onChange={e => set('addressLine1', e.target.value)} placeholder="e.g. 12 High Street" className={inputClass('addressLine1')} autoComplete="address-line1" />
             </Field>
             <Field label="Address Line 2" error={errors.addressLine2}>
-              <input type="text" value={form.addressLine2} onChange={e => set('addressLine2', e.target.value)} placeholder="Flat, suite (optional)" className={inputClass('addressLine2')} style={getInputStyle('addressLine2')} autoComplete="address-line2" />
+              <input type="text" value={form.addressLine2} onChange={e => set('addressLine2', e.target.value)} placeholder="Flat, suite (optional)" className={inputClass('addressLine2')} autoComplete="address-line2" />
             </Field>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Field label="City / Town" error={errors.city}>
-                <input type="text" value={form.city} onChange={e => set('city', e.target.value)} placeholder="e.g. London" className={inputClass('city')} style={getInputStyle('city')} autoComplete="address-level2" />
+                <input type="text" value={form.city} onChange={e => set('city', e.target.value)} placeholder="e.g. London" className={inputClass('city')} autoComplete="address-level2" />
               </Field>
               <Field label="Postcode" error={errors.postcode}>
-                <input type="text" value={form.postcode} onChange={e => set('postcode', e.target.value.toUpperCase())} placeholder="e.g. SW1A 1AA" className={inputClass('postcode')} style={getInputStyle('postcode')} autoComplete="postal-code" />
+                <input type="text" value={form.postcode} onChange={e => set('postcode', e.target.value.toUpperCase())} placeholder="e.g. SW1A 1AA" className={inputClass('postcode')} autoComplete="postal-code" />
               </Field>
               <Field label="Country" error={errors.country}>
-                <select value={form.country} onChange={e => set('country', e.target.value)} className={inputClass('country')} style={getInputStyle('country')} autoComplete="country-name">
+                <select value={form.country} onChange={e => set('country', e.target.value)} className={inputClass('country')} autoComplete="country-name">
                   {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </Field>
@@ -418,15 +378,11 @@ function PersonalDetailsPanel() {
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-2 font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
-            style={{
-              backgroundColor: 'var(--app-accent)',
-              color: 'var(--app-primary-text)',
-            }}
+            className="px-6 py-2 bg-primary text-primary-foreground font-medium rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
-          {saved && <span className="text-sm font-medium" style={{ color: 'var(--app-accent)' }}>✓ Saved successfully</span>}
+          {saved && <span className="text-sm text-primary font-medium">✓ Saved successfully</span>}
         </div>
       </form>
 
@@ -452,12 +408,7 @@ function DeleteAccountSection() {
   };
 
   return (
-    <div className="mt-10 rounded-xl p-5" style={{
-      backgroundColor: 'rgba(239, 68, 68, 0.05)',
-      borderColor: 'rgba(239, 68, 68, 0.3)',
-      borderWidth: '1px',
-      boxShadow: '0 1px 2px rgba(239, 68, 68, 0.1)',
-    }}>
+    <div className="mt-10 border border-destructive/30 rounded-xl p-5 bg-destructive/5">
       <h3 className="text-sm font-semibold text-destructive uppercase tracking-wide mb-2 flex items-center gap-2">
         <Trash2 className="w-4 h-4" /> Delete Account
       </h3>
@@ -479,11 +430,7 @@ function DeleteAccountSection() {
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
             placeholder="DELETE"
-            className="w-full px-3 py-2 border border-destructive rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-destructive"
-            style={{
-              backgroundColor: 'var(--app-bg)',
-              color: 'var(--app-text)',
-            }}
+            className="w-full px-3 py-2 border border-destructive rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-destructive"
           />
           <div className="flex gap-3">
             <button
@@ -495,13 +442,7 @@ function DeleteAccountSection() {
             </button>
             <button
               onClick={() => { setConfirming(false); setConfirmText(''); }}
-              className="px-4 py-2 border rounded-lg text-sm transition-colors"
-              style={{
-                borderColor: 'var(--app-border)',
-                color: 'var(--app-text)',
-              }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--app-surface-soft)'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+              className="px-4 py-2 border border-border rounded-lg text-sm hover:bg-secondary transition-colors"
             >
               Cancel
             </button>

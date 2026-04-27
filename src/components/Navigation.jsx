@@ -112,15 +112,10 @@ export default function Navigation() {
   return (
     <>
       {/* ── DESKTOP NAV ─────────────────────────────────────────────── */}
-      <div className="hidden md:block sticky top-0 z-[30]" style={{ backgroundColor: 'var(--app-header)' }}>
+      <div className="hidden md:block sticky top-0 z-[30] bg-background">
         <div className="max-w-7xl mx-auto px-4 pt-3 pb-2">
-          <div className="rounded-2xl shadow-sm px-5 py-3 flex items-center justify-between" style={{
-            backgroundColor: 'var(--app-header)',
-            borderColor: 'var(--app-accent)',
-            borderWidth: '1px',
-            boxShadow: 'var(--app-shadow)',
-          }}>
-            <Link to="/" className="text-sm font-bold flex items-center gap-2.5" style={{ color: 'var(--app-header-text)' }}>
+          <div className="bg-card rounded-2xl shadow-sm border border-border px-5 py-3 flex items-center justify-between">
+            <Link to="/" className="text-sm font-bold text-foreground flex items-center gap-2.5">
               <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-8 h-8 rounded-xl object-cover" />
               <span className="tracking-tight">Shooting Records</span>
               {/* Connectivity dot */}
@@ -137,14 +132,11 @@ export default function Navigation() {
                 const active = isActive(item.path);
                 return (
                   <Link key={item.path} to={item.path}
-                   className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 select-none"
-                   style={{
-                     backgroundColor: active ? 'var(--app-accent)' : 'transparent',
-                     color: active ? 'white' : 'var(--app-header-muted)',
-                   }}
-                   onMouseEnter={(e) => !active && (e.target.style.backgroundColor = 'rgba(255,255,255,0.15)') && (e.target.style.color = 'white')}
-                   onMouseLeave={(e) => !active && (e.target.style.backgroundColor = 'transparent') && (e.target.style.color = 'var(--app-header-muted)')}
-                  >
+                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 select-none ${
+                          active
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                        }`}>
                     <Icon className="w-3.5 h-3.5" />
                     {item.label}
                   </Link>
@@ -152,26 +144,20 @@ export default function Navigation() {
               })}
               {user?.role === 'admin' && (
                 <Link to="/admin/users"
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100"
-                  style={{
-                    backgroundColor: isActive('/admin/users') ? 'var(--app-accent)' : 'transparent',
-                    color: isActive('/admin/users') ? 'white' : 'var(--app-header-muted)',
-                  }}
-                  onMouseEnter={(e) => !isActive('/admin/users') && (e.target.style.backgroundColor = 'rgba(255,255,255,0.15)') && (e.target.style.color = 'white')}
-                  onMouseLeave={(e) => !isActive('/admin/users') && (e.target.style.backgroundColor = 'transparent') && (e.target.style.color = 'var(--app-header-muted)')}
-                >
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 ${
+                    isActive('/admin/users')
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                  }`}>
                   <Settings className="w-3.5 h-3.5" />Admin
                 </Link>
               )}
               <Link to="/profile"
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100"
-                style={{
-                  backgroundColor: isActive('/profile') ? 'var(--app-accent)' : 'transparent',
-                  color: isActive('/profile') ? 'var(--app-primary-text)' : 'var(--app-text-muted)',
-                }}
-                onMouseEnter={(e) => !isActive('/profile') && (e.target.style.backgroundColor = 'var(--app-surface-soft)') && (e.target.style.color = 'var(--app-text)')}
-                onMouseLeave={(e) => !isActive('/profile') && (e.target.style.backgroundColor = 'transparent') && (e.target.style.color = 'var(--app-text-muted)')}
-              >
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 ${
+                  isActive('/profile')
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                }`}>
                 <User className="w-3.5 h-3.5" />Profile
               </Link>
             </div>
@@ -180,15 +166,10 @@ export default function Navigation() {
       </div>
 
       {/* ── MOBILE TOP BAR ──────────────────────────────────────────── */}
-      <div className="md:hidden sticky top-0 z-[30]" style={{ backgroundColor: 'var(--app-header)' }}>
-        <div className="mx-3 mt-2 mb-1.5 rounded-2xl shadow-sm px-4 py-2.5 flex items-center justify-between" style={{
-          backgroundColor: 'var(--app-header)',
-          borderColor: 'var(--app-accent)',
-          borderWidth: '1px',
-          boxShadow: 'var(--app-shadow)',
-        }}>
+      <div className="md:hidden sticky top-0 z-[30] bg-background">
+        <div className="mx-3 mt-2 mb-1.5 bg-card rounded-2xl shadow-sm border border-border px-4 py-2.5 flex items-center justify-between">
           {isDashboard ? (
-            <Link to="/" className="text-sm font-bold flex items-center gap-2" style={{ color: 'var(--app-header-text)' }}>
+            <Link to="/" className="text-sm font-bold text-foreground flex items-center gap-2">
               <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-7 h-7 rounded-lg object-cover" />
               <span className="tracking-tight">Shooting Records</span>
               <span
@@ -202,23 +183,18 @@ export default function Navigation() {
             <motion.button
               onClick={handleBack}
               whileTap={{ scale: 0.9 }}
-              className="flex items-center gap-1.5"
-              style={{ color: 'var(--app-header-text)' }}
+              className="flex items-center gap-1.5 text-foreground"
             >
-              <ArrowLeft className="w-4 h-4" style={{ color: 'var(--app-header-muted)' }} />
+              <ArrowLeft className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-semibold">{pageTitle || 'Back'}</span>
             </motion.button>
           )}
 
           <button
             onClick={() => setOpen(!open)}
-            className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-90 transition-transform select-none"
-            style={{
-              backgroundColor: 'var(--app-accent)',
-              color: 'white',
-            }}
+            className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center active:scale-90 transition-transform select-none hover:bg-secondary/80"
           >
-            {open ? <X className="w-4.5 h-4.5" /> : <Menu className="w-4.5 h-4.5" />}
+            {open ? <X className="w-4.5 h-4.5 text-foreground" /> : <Menu className="w-4.5 h-4.5 text-foreground" />}
           </button>
         </div>
 
@@ -230,33 +206,24 @@ export default function Navigation() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.97 }}
               transition={{ duration: 0.15 }}
-              className="mx-3 mb-1 rounded-2xl shadow-xl overflow-hidden"
-              style={{
-                backgroundColor: 'var(--app-card)',
-                borderColor: 'var(--app-border)',
-                borderWidth: '1px',
-                boxShadow: 'var(--app-shadow)',
-              }}
+              className="mx-3 mb-1 bg-card rounded-2xl shadow-xl border border-border overflow-hidden"
             >
               {NAV_SECTIONS.map((section) => {
                 const visibleItems = section.items.filter(item => !item.module || isEnabled(item.module));
                 if (visibleItems.length === 0) return null;
                 return (
                 <div key={section.label} className="px-2 pt-2 pb-1">
-                  <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--app-text-muted)' }}>{section.label}</p>
+                  <p className="px-3 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{section.label}</p>
                   {visibleItems.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item.path);
                     return (
                       <Link key={item.path} to={item.path} onClick={() => setOpen(false)}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95 mb-0.5 select-none"
-                        style={{
-                          backgroundColor: active ? 'var(--app-accent)' : 'transparent',
-                          color: active ? 'var(--app-primary-text)' : 'var(--app-text)',
-                        }}
-                        onMouseEnter={(e) => !active && (e.target.style.backgroundColor = 'var(--app-surface-soft)')}
-                        onMouseLeave={(e) => !active && (e.target.style.backgroundColor = 'transparent')}
-                      >
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95 mb-0.5 select-none ${
+                          active
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-foreground hover:bg-secondary'
+                        }`}>
                         <Icon className="w-4 h-4 flex-shrink-0" />
                         <span className="flex-1">{item.label}</span>
                         {active && <div className="w-1.5 h-1.5 rounded-full bg-white/60" />}
@@ -268,30 +235,18 @@ export default function Navigation() {
                 })}
 
                 {/* Profile + Admin */}
-                <div className="px-2 pt-1 pb-2 mt-1" style={{
-                  borderTopColor: 'var(--app-border)',
-                  borderTopWidth: '1px',
-                }}>
+                <div className="px-2 pt-1 pb-2 border-t border-border mt-1">
                 {user?.role === 'admin' && (
                   <Link to="/admin/users" onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-0.5 transition-colors"
-                    style={{ color: 'var(--app-text)' }}
-                    onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--app-surface-soft)'}
-                    onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
-                  >
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-secondary mb-0.5">
                     <Settings className="w-4 h-4" />
                     <span>Admin</span>
                   </Link>
                 )}
                 <Link to="/profile" onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
-                  style={{
-                    backgroundColor: isActive('/profile') ? 'var(--app-accent)' : 'transparent',
-                    color: isActive('/profile') ? 'var(--app-primary-text)' : 'var(--app-text)',
-                  }}
-                  onMouseEnter={(e) => !isActive('/profile') && (e.target.style.backgroundColor = 'var(--app-surface-soft)') && (e.target.style.color = 'var(--app-text)')}
-                  onMouseLeave={(e) => !isActive('/profile') && (e.target.style.backgroundColor = 'transparent') && (e.target.style.color = 'var(--app-text)')}
-                >
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    isActive('/profile') ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-secondary'
+                  }`}>
                   <User className="w-4 h-4" />
                   <span>Profile</span>
                 </Link>
