@@ -101,6 +101,7 @@ export default function BallisticCalculator({ session, onBack }) {
   const [windSpeed, setWindSpeed] = useState('10'); // mph
   const [windAngle, setWindAngle] = useState('90'); // degrees — full crosswind
   const [zeroDistance, setZeroDistance] = useState('100');
+  const [showPresets, setShowPresets] = useState(false);
 
   const bc = parseFloat(bcInput) || null;
   const mvFps = parseFloat(mvInput) || null;
@@ -147,7 +148,12 @@ export default function BallisticCalculator({ session, onBack }) {
 
       {/* Manual entry */}
        <div className="bg-card border border-border rounded-2xl p-4 mb-4 space-y-3">
-         <p className="font-semibold text-sm">Bullet Setup</p>
+         <div className="flex items-center justify-between mb-2">
+           <p className="font-semibold text-sm">Bullet Setup</p>
+           <button onClick={() => setShowPresets(!showPresets)} className="text-xs text-primary hover:underline">
+             {showPresets ? 'Hide' : 'Show'} presets
+           </button>
+         </div>
          <div className="grid grid-cols-3 gap-3">
            <div>
              <label className={lbl}>BC (G1)</label>
@@ -168,6 +174,21 @@ export default function BallisticCalculator({ session, onBack }) {
                placeholder="e.g. 168" className={inp} />
            </div>
          </div>
+         
+         {showPresets && (
+           <div className="mt-4 pt-3 border-t border-border">
+             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">Common Presets</p>
+             <div className="grid grid-cols-2 gap-2 text-xs">
+               {Object.entries(BC_PRESETS).map(([name, data]) => (
+                 <button key={name} onClick={() => { setBcInput(String(data.bc)); setMvInput(String(Math.round(data.mv * 3.28084))); setMassInput(String(data.mass_gr)); }}
+                   className="text-left px-2 py-1.5 rounded-lg border border-border hover:bg-secondary transition-colors">
+                   <p className="font-medium">{name}</p>
+                   <p className="text-muted-foreground">BC {data.bc} · MV {Math.round(data.mv * 3.28084)}fps</p>
+                 </button>
+               ))}
+             </div>
+           </div>
+         )}
        </div>
 
       {/* Conditions */}
