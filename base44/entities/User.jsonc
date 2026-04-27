@@ -2,15 +2,6 @@
   "name": "User",
   "type": "object",
   "properties": {
-    "status": {
-      "type": "string",
-      "enum": [
-        "active",
-        "suspended",
-        "banned"
-      ],
-      "default": "active"
-    },
     "role": {
       "type": "string",
       "enum": [
@@ -20,6 +11,15 @@
       ],
       "default": "normal_user",
       "description": "User role: admin, normal_user, or beta_tester"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "suspended",
+        "banned"
+      ],
+      "default": "active"
     },
     "firstName": {
       "type": "string",
@@ -38,6 +38,10 @@
       "format": "date",
       "description": "User's date of birth"
     },
+    "phone": {
+      "type": "string",
+      "description": "Phone number (optional)"
+    },
     "addressLine1": {
       "type": "string",
       "description": "Address line 1"
@@ -50,6 +54,10 @@
       "type": "string",
       "description": "City or town"
     },
+    "county": {
+      "type": "string",
+      "description": "County or state"
+    },
     "postcode": {
       "type": "string",
       "description": "Postcode / ZIP code"
@@ -58,14 +66,37 @@
       "type": "string",
       "description": "Country"
     },
-    "phone": {
-      "type": "string",
-      "description": "Phone number (optional)"
-    },
     "profileComplete": {
       "type": "boolean",
       "default": false,
       "description": "Whether the user has completed their profile setup"
+    },
+    "forcePasswordChange": {
+      "type": "boolean",
+      "default": false,
+      "description": "Force user to change password on first login"
+    },
+    "facNumber": {
+      "type": "string",
+      "description": "FAC (Firearms Certificate) number (optional)"
+    },
+    "shotgunCertificate": {
+      "type": "string",
+      "description": "Shotgun certificate number (optional)"
+    },
+    "certificateExpiryDate": {
+      "type": "string",
+      "format": "date",
+      "description": "Certificate expiry date (optional)"
+    },
+    "dscLevel": {
+      "type": "string",
+      "enum": [
+        "DSC1",
+        "DSC2",
+        "PDS1"
+      ],
+      "description": "Deerstalking certificate level (optional)"
     },
     "beta_tester_status": {
       "type": "string",
@@ -83,6 +114,11 @@
       "type": "string",
       "format": "date-time",
       "description": "When the beta tester access expires (optional)"
+    },
+    "createdByAdmin": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this user was created by an admin"
     }
   },
   "required": []
