@@ -44,6 +44,7 @@ export default function AIPhotoComparison({
   const [selectedAmmoId, setSelectedAmmoId] = useState(editGroup?.ammunition_id || '');
   const [scaleMode, setScaleMode] = useState(false);
   const [scalePoints, setScalePoints] = useState([]);
+  const [expectedShots, setExpectedShots] = useState('');
   const imgRef = useRef(null);
   const POSITIONS = ['benchrest', 'prone', 'sticks', 'high_seat', 'standing', 'other'];
 
@@ -58,26 +59,53 @@ export default function AIPhotoComparison({
     return v;
   };
 
-  // Normalize AI coordinates from (0-1) to pixel coordinates
-  const normalizedToPixel = (normCoord) => {
+  /**
+   * Convert normalized (0-1) coordinates to display coordinates
+   * Accounts for actual image size vs displayed size
+   */
+  const normalizedToDisplay = (normCoord) => {
     if (!imgRef.current || !normCoord) return null;
     const img = imgRef.current;
     const rect = img.getBoundingClientRect();
-    return {
-      x: normCoord.x * img.naturalWidth,
-      y: normCoord.y * img.naturalHeight
-    };
+    
+    // Display dimensions
+    const displayWidth = rect.width;
+    const displayHeight = rect.height;
+    
+    // Natural dimensions
+    const naturalWidth = img.naturalWidth;
+    const naturalHeight = img.naturalHeight;
+    
+    // Convert: normalized -> natural coords -> display coords
+    const naturalX = normCoord.x * naturalWidth;
+    const naturalY = normCoord.y * naturalHeight;
+    
+    const displayX = (naturalX / naturalWidth) * displayWidth;
+    const displayY = (naturalY / naturalHeight) * displayHeight;
+    
+    return { x: displayX, y: displayY };
   };
 
-  // Pixel to display coordinates
+  /**
+   * Convert pixel coordinates (from image) to display coordinates
+   * Used for scale calibration points which are stored as pixel coords
+   */
   const pixelToDisplay = (pixelCoord) => {
     if (!imgRef.current || !pixelCoord) return null;
     const img = imgRef.current;
     const rect = img.getBoundingClientRect();
-    return {
-      x: pixelCoord.x / img.naturalWidth * rect.width,
-      y: pixelCoord.y / img.naturalHeight * rect.height
-    };
+    
+    // Display size vs natural size
+    const displayWidth = rect.width;
+    const displayHeight = rect.height;
+    const naturalWidth = img.naturalWidth;
+    const naturalHeight = img.naturalHeight;
+    
+    // Convert: pixel (natural) -> display pixel
+    const displayX = (pixelCoord.x / naturalWidth) * displayWidth;
+    const displayY = (pixelCoord.y / naturalHeight) * displayHeight;
+    
+    return { x: displayX, y: displayY };
   };
 
   const handleScaleTap = (e) => {
@@ -147,7 +175,19 @@ export default function AIPhotoComparison({
     }
 
     const distM = distanceUnit === 'yards' ? rawDist * 0.9144 : rawDist;
-    const groupPx = calcGroupSizePixels(userConfirmedMarks);
+    
+    // Convert normalized marks to pixel coordinates for calculation
+    if (!imgRef.current) {
+      setComparison(null);
+      return;
+    }
+    
+    const pixelMarks = userConfirmedMarks.map(m => ({
+      x: m.x * imgRef.current.naturalWidth,
+      y: m.y * imgRef.current.naturalHeight
+    }));
+    
+    const groupPx = calcGroupSizePixels(pixelMarks);
     const metrics = convertGroupSize(groupPx, scalePx, distM);
 
     if (!metrics) {
@@ -165,20 +205,37 @@ export default function AIPhotoComparison({
   }, [userConfirmedMarks, scalePx, distanceOverride, distanceUnit]);
 
   const handleAddAIMark = (aiMark) => {
-    const pixelCoord = normalizedToPixel(aiMark);
-    if (pixelCoord) {
-      setUserConfirmedMarks(prev => [...prev, pixelCoord]);
-    }
+    if (!imgRef.current) return;
+    
+    // AI mark is already in normalized coords (0-1)
+    // Store as normalized for consistency
+    setUserConfirmedMarks(prev => [...prev, {
+      x: aiMark.x,
+      y: aiMark.y,
+      confidence: aiMark.confidence,
+      source: 'ai'
+    }]);
   };
 
   const handleAddManualMark = (e) => {
     if (!imgRef.current) return;
     const rect = imgRef.current.getBoundingClientRect();
-    const scaleX = imgRef.current.naturalWidth / rect.width;
-    const scaleY = imgRef.current.naturalHeight / rect.height;
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
-    setUserConfirmedMarks(prev => [...prev, { x, y }]);
+    const naturalWidth = imgRef.current.naturalWidth;
+    const naturalHeight = imgRef.current.naturalHeight;
+    
+    // Convert display coords to natural image coords, then normalize
+    const displayX = e.clientX - rect.left;
+    const displayY = e.clientY - rect.top;
+    
+    const normalizedX = (displayX / rect.width);
+    const normalizedY = (displayY / rect.height);
+    
+    setUserConfirmedMarks(prev => [...prev, {
+      x: normalizedX,
+      y: normalizedY,
+      confidence: 1.0,
+      source: 'manual'
+    }]);
   };
 
   const handleSave = async () => {
@@ -195,20 +252,28 @@ export default function AIPhotoComparison({
     setSaving(true);
     
     try {
+      // Convert normalized marks to pixel marks for storage
+      const pixelMarks = userConfirmedMarks.map(m => ({
+        x: m.x * imgRef.current.naturalWidth,
+        y: m.y * imgRef.current.naturalHeight
+      }));
+      
       const payload = {
         group_name: groupName,
         entry_method: 'ai_confirmed',
         photo_url: photo,
         
-        // AI detected marks (raw, unconfirmed)
+        // AI detected marks (raw, unconfirmed - for reference/audit)
         ai_detected_marks_json: aiAnalysis ? JSON.stringify({
           bullet_holes: aiAnalysis.bullet_holes,
           target_centre: aiAnalysis.target_centre,
-          point_of_aim: aiAnalysis.point_of_aim
+          point_of_aim: aiAnalysis.point_of_aim,
+          confidence: aiAnalysis.confidence
         }) : null,
         ai_analysis_confirmed: true,
+        ai_expected_shots: expectedShots ? parseInt(expectedShots) : null,
         
-        // User confirmed marks (final)
+        // User confirmed marks (FINAL - what counts)
         number_of_shots: userConfirmedMarks.length,
         group_size_mm: comparison.groupMm,
         group_size_moa: comparison.groupMoa,
@@ -217,10 +282,10 @@ export default function AIPhotoComparison({
         user_confirmed_group_size_mm: comparison.groupMm,
         user_confirmed_group_size_moa: comparison.groupMoa,
         user_confirmed_group_size_mrad: comparison.groupMrad,
-        manual_marks_json: JSON.stringify(userConfirmedMarks),
+        manual_marks_json: JSON.stringify(pixelMarks),
         
         // Metadata
-        bullet_holes: userConfirmedMarks,
+        bullet_holes: pixelMarks,
         centre_x: centrePoint?.x || null,
         centre_y: centrePoint?.y || null,
         scale_mm_per_px: scalePx,
@@ -229,6 +294,7 @@ export default function AIPhotoComparison({
         notes,
         shooting_position: shootingPosition || null,
         distance_override: distanceOverride ? parseFloat(distanceOverride) : null,
+        distance_unit: distanceUnit,
         rifle_id: selectedRifleId || null,
         rifle_name: rifles.find(r => r.id === selectedRifleId)?.name || null,
         ammunition_id: selectedAmmoId || null,
@@ -383,24 +449,34 @@ export default function AIPhotoComparison({
           </div>
 
           <div className="bg-card border border-border rounded-2xl p-4">
-            <p className="font-semibold text-sm mb-3">3. Enter Distance</p>
-            <div className="flex gap-2">
-              <input
-                type="number"
-                value={distanceOverride}
-                onChange={e => setDistanceOverride(e.target.value)}
-                placeholder="e.g. 100"
-                className={`${inp} flex-1`}
-              />
-              <select
-                value={distanceUnit}
-                onChange={e => setDistanceUnit(e.target.value)}
-                className="w-16 px-2 py-2.5 border border-border rounded-xl bg-background text-sm"
-              >
-                <option value="meters">m</option>
-                <option value="yards">yd</option>
-              </select>
-            </div>
+           <p className="font-semibold text-sm mb-3">3. Enter Distance & Expected Shots</p>
+           <div className="flex gap-2 mb-2">
+             <input
+               type="number"
+               value={distanceOverride}
+               onChange={e => setDistanceOverride(e.target.value)}
+               placeholder="e.g. 100"
+               className={`${inp} flex-1`}
+             />
+             <select
+               value={distanceUnit}
+               onChange={e => setDistanceUnit(e.target.value)}
+               className="w-16 px-2 py-2.5 border border-border rounded-xl bg-background text-sm"
+             >
+               <option value="meters">m</option>
+               <option value="yards">yd</option>
+             </select>
+           </div>
+           <input
+             type="number"
+             value={expectedShots}
+             onChange={e => setExpectedShots(e.target.value)}
+             placeholder="Expected # of shots (optional)"
+             className={`${inp}`}
+             min="1"
+             step="1"
+           />
+           <p className="text-xs text-muted-foreground mt-1">If you fired 3 shots, enter 3. AI will show warning if counts don't match.</p>
           </div>
 
           {canRunAI && (
@@ -472,12 +548,46 @@ export default function AIPhotoComparison({
               </div>
 
               {aiAnalysis.confidence < 0.7 && (
-                <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4">
-                  <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">⚠️ Low Confidence Detection</p>
-                  <p className="text-xs text-amber-800 dark:text-amber-300 mt-1">
-                    Please carefully review and confirm all marks manually before saving.
-                  </p>
-                </div>
+               <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4">
+                 <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">⚠️ Low Confidence Detection</p>
+                 <p className="text-xs text-amber-800 dark:text-amber-300 mt-1">
+                   Please carefully review and confirm all marks manually before saving.
+                 </p>
+               </div>
+              )}
+
+              {expectedShots && parseInt(expectedShots) > 0 && (
+               (() => {
+                 const expected = parseInt(expectedShots);
+                 const detected = aiAnalysis.bullet_holes?.length || 0;
+                 const diff = detected - expected;
+                 return diff !== 0 ? (
+                   <div className={`border rounded-2xl p-4 ${
+                     diff > 0
+                       ? 'bg-amber-500/10 border-amber-500/30'
+                       : 'bg-red-500/10 border-red-500/30'
+                   }`}>
+                     <p className={`text-sm font-semibold ${
+                       diff > 0
+                         ? 'text-amber-900 dark:text-amber-200'
+                         : 'text-red-900 dark:text-red-200'
+                     }`}>
+                       {diff > 0
+                         ? `⚠️ Found ${detected} marks, expected ${expected}`
+                         : `❌ Found only ${detected} of ${expected} expected shots`}
+                     </p>
+                     <p className={`text-xs mt-1 ${
+                       diff > 0
+                         ? 'text-amber-800 dark:text-amber-300'
+                         : 'text-red-800 dark:text-red-300'
+                     }`}>
+                       {diff > 0
+                         ? 'Some detected marks may be target artifacts. Please verify.'
+                         : 'Please manually add the missing bullet holes before saving.'}
+                     </p>
+                   </div>
+                 ) : null;
+               })()
               )}
 
               <button
@@ -508,32 +618,49 @@ export default function AIPhotoComparison({
                 handleAddManualMark(e);
               }}
             />
-            {/* AI marks (clickable) */}
+            {/* AI marks (clickable) - with confidence-based styling */}
             {aiAnalysis?.bullet_holes?.map((mark, i) => {
-              const d = pixelToDisplay(normalizedToPixel(mark));
+              const d = normalizedToDisplay(mark);
               if (!d) return null;
+              const conf = mark.confidence || 0.5;
+              const isHighConf = conf >= 0.75;
+              const isMedConf = conf >= 0.55;
               return (
                 <button
                   key={`ai-${i}`}
                   type="button"
                   onClick={() => handleAddAIMark(mark)}
-                  className="absolute transition-all hover:scale-125"
+                  className="absolute transition-all hover:scale-125 cursor-pointer"
                   style={{ left: d.x - 12, top: d.y - 12 }}
-                  title="Click to confirm this AI mark"
+                  title={`AI detected (${(conf * 100).toFixed(0)}% confident). Click to confirm. ${mark.reason || ''}`}
                 >
-                  <div className={`w-6 h-6 rounded-full border-2 border-blue-500 flex items-center justify-center ${mark.confidence < 0.6 ? 'bg-blue-500/20' : 'bg-blue-500/40'}`}>
-                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
-                  </div>
+                  {isHighConf && (
+                    <div className="w-6 h-6 rounded-full border-2 border-blue-600 bg-blue-500/60 flex items-center justify-center shadow-lg">
+                      <div className="w-2 h-2 bg-blue-200 rounded-full" />
+                    </div>
+                  )}
+                  {isMedConf && !isHighConf && (
+                    <div className="w-6 h-6 rounded-full border-2 border-dashed border-blue-500 bg-blue-500/30 flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                    </div>
+                  )}
+                  {!isMedConf && (
+                    <div className="w-6 h-6 rounded-full border-2 border-blue-400 bg-blue-500/10 flex items-center justify-center opacity-70">
+                      <div className="w-1 h-1 bg-blue-400 rounded-full" />
+                    </div>
+                  )}
                 </button>
               );
             })}
             {/* User confirmed marks */}
             {userConfirmedMarks.map((m, i) => {
-              const d = pixelToDisplay(m);
+              const d = normalizedToDisplay(m);
               if (!d) return null;
               return (
                 <div key={`user-${i}`} className="absolute" style={{ left: d.x - 10, top: d.y - 10 }}>
-                  <div className="w-5 h-5 rounded-full bg-green-500 border-2 border-white flex items-center justify-center text-white text-[8px] font-bold shadow-lg">
+                  <div className={`w-5 h-5 rounded-full border-2 border-white flex items-center justify-center text-white text-[8px] font-bold shadow-lg ${
+                    m.source === 'manual' ? 'bg-green-500' : 'bg-lime-500'
+                  }`}>
                     {i + 1}
                   </div>
                 </div>
@@ -542,7 +669,7 @@ export default function AIPhotoComparison({
           </div>
 
           <p className="text-xs text-muted-foreground text-center">
-            🔵 Blue = AI detected · 🟢 Green = Confirmed marks
+            🔵 Solid = High confidence · 🔵 Dashed = Medium · 🔵 Faint = Low · 🟢 Green = Confirmed (from AI) · 🟩 Lime = Confirmed (manual)
           </p>
 
           {userConfirmedMarks.length > 0 && (
