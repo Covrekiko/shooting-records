@@ -30,15 +30,15 @@ export default function Profile() {
   };
 
   return (
-    <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
+    <div className="bg-background min-h-screen">
       <Navigation />
       <main className="max-w-5xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
-        <h1 className="text-xl font-bold mb-4 hidden md:block text-slate-900 dark:text-slate-100">Profile</h1>
+        <h1 className="text-xl font-bold mb-4 hidden md:block text-foreground">Profile</h1>
 
         <div className="flex flex-col md:flex-row gap-4">
           {/* Sidebar */}
           <div className="w-full md:w-52">
-            <div className="bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm p-2 space-y-0.5">
+            <div className="bg-card rounded-2xl border border-border shadow-sm p-2 space-y-0.5">
               <Link
                 to="/profile"
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
@@ -140,7 +140,7 @@ export default function Profile() {
 
           {/* Content */}
            <div className="flex-1">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/70 dark:border-slate-700 shadow-sm p-5">
+           <div className="bg-card rounded-2xl border border-border shadow-sm p-5">
               {isActive('/profile/theme') ? (
                 <ThemePanel />
               ) : isActive('/profile/settings') ? (
@@ -229,8 +229,8 @@ function SettingsPanel() {
 
 function SettingCard({ title, description, link }) {
   return (
-    <Link to={link} className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-5 hover:shadow-md transition-all block shadow-sm">
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
+    <Link to={link} className="bg-card border border-border rounded-2xl p-5 hover:shadow-md transition-all block shadow-sm">
+      <h3 className="text-lg font-semibold mb-2 text-foreground">{title}</h3>
       <p className="text-sm text-muted-foreground">{description}</p>
     </Link>
   );
@@ -318,8 +318,8 @@ function PersonalDetailsPanel() {
   if (!form) return <div className="flex justify-center py-12"><div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>;
 
   const inputClass = (field) =>
-    `w-full px-3 py-2 border rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-colors ${
-      errors[field] ? 'border-destructive' : 'border-border'
+    `w-full px-3 py-2 border rounded-lg bg-input text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring transition-colors ${
+      errors[field] ? 'border-destructive focus:ring-destructive' : 'border-border focus:ring-primary'
     }`;
 
   return (
@@ -418,7 +418,7 @@ function DeleteAccountSection() {
       {!confirming ? (
         <button
           onClick={() => setConfirming(true)}
-          className="px-4 py-2 border border-destructive text-destructive rounded-lg text-sm font-medium hover:bg-destructive hover:text-destructive-foreground transition-colors"
+          className="px-4 py-2 border border-destructive text-destructive rounded-lg text-sm font-medium hover:bg-destructive hover:text-destructive-foreground transition-colors active:scale-95"
         >
           Delete My Account
         </button>

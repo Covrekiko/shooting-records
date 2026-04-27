@@ -154,9 +154,9 @@ function KpiRow({ stats }) {
   return (
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
-        <div key={item.label} className="bg-white dark:bg-slate-800 rounded-xl px-2 py-2.5 text-center border border-slate-200/70 dark:border-slate-700 shadow-sm">
-          <p className="text-base md:text-lg font-bold text-slate-900 dark:text-slate-100 leading-none">{item.value}</p>
-          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-medium">{item.label}</p>
+        <div key={item.label} className="bg-card rounded-xl px-2 py-2.5 text-center border border-border shadow-sm">
+          <p className="text-base md:text-lg font-bold text-foreground leading-none">{item.value}</p>
+          <p className="text-[10px] text-muted-foreground mt-1 font-medium">{item.label}</p>
         </div>
       ))}
     </div>
@@ -166,15 +166,15 @@ function KpiRow({ stats }) {
 function PrimaryCard({ to, icon, label, sub }) {
   return (
     <Link to={to}>
-      <div className="bg-white dark:bg-slate-800/80 rounded-2xl p-4 border border-slate-200/60 dark:border-slate-700/60 shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-4 select-none">
-        <div className="w-11 h-11 rounded-xl bg-primary/10 dark:bg-primary/15 flex items-center justify-center flex-shrink-0 text-primary [&_svg]:w-5 [&_svg]:h-5 select-none">
+      <div className="bg-card rounded-2xl p-4 border border-border shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-4 select-none">
+        <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary [&_svg]:w-5 [&_svg]:h-5 select-none">
           {icon}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug tracking-tight">{label}</p>
-          {sub && <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 truncate">{sub}</p>}
+          <p className="text-sm font-bold text-foreground leading-snug tracking-tight">{label}</p>
+          {sub && <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}
         </div>
-        <ChevronRight className="w-4 h-4 text-slate-300 dark:text-slate-600 flex-shrink-0" />
+        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
       </div>
     </Link>
   );
@@ -183,14 +183,14 @@ function PrimaryCard({ to, icon, label, sub }) {
 function SecondaryGrid({ user }) {
   const { isEnabled } = useModules();
   const allItems = [
-    { to: '/target-shooting', icon: <Crosshair />, label: 'Target', module: 'target_shooting' },
-    { to: '/clay-shooting', icon: <Target />, label: 'Clay', module: 'clay_shooting' },
+    { to: '/target-shooting', icon: <Crosshair className="w-5 h-5" />, label: 'Target', module: 'target_shooting' },
+    { to: '/clay-shooting', icon: <Target className="w-5 h-5" />, label: 'Clay', module: 'clay_shooting' },
     { to: '/deer-management', icon: <span className="text-lg">🦌</span>, label: 'Deer', module: 'deer_management' },
-    { to: '/reloading', icon: <RefreshCw />, label: 'Reloading', module: 'reloading' },
-    { to: '/load-development', icon: <FlaskConical />, label: 'Load Dev', module: 'reloading' },
+    { to: '/reloading', icon: <RefreshCw className="w-5 h-5" />, label: 'Reloading', module: 'reloading' },
+    { to: '/load-development', icon: <FlaskConical className="w-5 h-5" />, label: 'Load Dev', module: 'reloading' },
     { to: '/settings/rifles', icon: <span className="text-lg">🔧</span>, label: 'Equipment' },
-    { to: '/reports', icon: <BarChart3 />, label: 'Reports' },
-    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck />, label: 'Admin' }] : []),
+    { to: '/reports', icon: <BarChart3 className="w-5 h-5" />, label: 'Reports' },
+    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck className="w-5 h-5" />, label: 'Admin' }] : []),
   ];
   const items = allItems.filter(item => !item.module || isEnabled(item.module));
 
@@ -198,11 +198,11 @@ function SecondaryGrid({ user }) {
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
         <Link key={item.to} to={item.to}>
-          <div className="bg-white dark:bg-slate-800/80 rounded-xl p-2.5 border border-slate-200/60 dark:border-slate-700/60 shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none">
-            <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center text-slate-500 dark:text-slate-400 [&_svg]:w-4 [&_svg]:h-4 select-none">
+          <div className="bg-card rounded-xl p-2.5 border border-border shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none">
+            <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground [&_svg]:w-5 [&_svg]:h-5 select-none">
               {item.icon}
             </div>
-            <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 leading-tight tracking-wide">{item.label}</p>
+            <p className="text-[10px] font-semibold text-muted-foreground leading-tight tracking-wide">{item.label}</p>
           </div>
         </Link>
       ))}
@@ -213,19 +213,19 @@ function SecondaryGrid({ user }) {
 function ChartsSection({ chartData }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="bg-white dark:bg-slate-800/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm overflow-hidden">
+    <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors select-none"
+        className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-secondary/30 transition-colors select-none"
       >
         <span className="flex items-center gap-2.5">
-          <BarChart3 className="w-4 h-4 text-primary" />
+          <BarChart3 className="w-5 h-5 text-primary" />
           <span className="tracking-tight">Analytics</span>
         </span>
-        <ChevronRight className={`w-4 h-4 text-slate-300 dark:text-slate-600 transition-transform duration-200 ${open ? 'rotate-90' : ''}`} />
+        <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${open ? 'rotate-90' : ''}`} />
       </button>
       {open && (
-        <div className="px-4 pb-4 space-y-4 border-t border-slate-100 dark:border-slate-700/60 pt-4">
+        <div className="px-4 pb-4 space-y-4 border-t border-border pt-4">
           <MonthlyActivityChart data={chartData.monthly} />
           <RoundsPerMonthChart data={chartData.roundsPerMonth} />
           <RoundsPerFirearmChart data={chartData.firearm} />
@@ -302,7 +302,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
+      <div className="bg-background min-h-screen">
         <Navigation />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -312,7 +312,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
+    <div className="bg-background min-h-screen">
       <Navigation />
 
       {/* Pull-to-refresh indicator */}

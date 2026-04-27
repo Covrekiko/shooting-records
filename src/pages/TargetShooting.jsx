@@ -292,7 +292,7 @@ export default function TargetShooting() {
 
   if (loading) {
     return (
-      <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
+      <div className="bg-background min-h-screen">
         <Navigation />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
@@ -302,7 +302,7 @@ export default function TargetShooting() {
   }
 
   return (
-    <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
+    <div className="bg-background min-h-screen">
       <Navigation />
       {nearbyClub && (
         <CheckinBanner location={nearbyClub.name} distance={nearbyClub.distance} onDismiss={() => setNearbyClub(null)} onCheckin={() => setShowCheckin(true)} />
@@ -325,16 +325,16 @@ export default function TargetShooting() {
         </div>
 
         {!activeSession && (
-          <div className={`${DESIGN.CARD} p-5 mb-4 flex flex-col items-center justify-center text-center gap-3`}>
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center">
-              <Crosshair className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+          <div className="bg-card rounded-2xl border border-border p-5 mb-4 flex flex-col items-center justify-center text-center gap-3 shadow-sm">
+            <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center">
+              <Crosshair className="w-6 h-6 text-muted-foreground" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No Active Session</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Start a session to begin tracking</p>
+              <p className="text-sm font-semibold text-foreground">No Active Session</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Start a session to begin tracking</p>
             </div>
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
-              className={`${DESIGN.BUTTON_PRIMARY} flex items-center gap-2 w-full justify-center`}>
+              className="w-full px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 justify-center">
               <Plus className="w-4 h-4" />
               Start Session
             </motion.button>
@@ -342,32 +342,32 @@ export default function TargetShooting() {
         )}
 
         {activeSession && (
-          <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-2xl p-4 mb-4">
+          <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 mb-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
                 <div>
                   <p className="text-xs font-bold text-primary uppercase tracking-widest">Active Session</p>
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mt-0.5">
+                  <p className="text-sm font-semibold text-foreground mt-0.5">
                     {activeSession.location_name || 'Target Range'}
                   </p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Started {activeSession.checkin_time}</p>
+                  <p className="text-xs text-muted-foreground">Started {activeSession.checkin_time}</p>
                   {activeSession.check_in_method === 'auto_geolocation' && (
                     <p className="text-[10px] text-primary font-medium mt-0.5">📍 Auto by Geolocation</p>
                   )}
                 </div>
               </div>
               <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowCheckout(true)}
-                className={DESIGN.BUTTON_PRIMARY}>
+                className="px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition-opacity">
                 Check Out
               </motion.button>
             </div>
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => setShowTargetAnalysis(true)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-background dark:bg-slate-800 border border-primary/30 rounded-xl text-sm font-semibold text-primary hover:bg-primary/5 transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-background border border-primary/30 rounded-xl text-sm font-semibold text-primary hover:bg-primary/5 transition-colors"
             >
-              <Microscope className="w-4 h-4" />
+              <Microscope className="w-5 h-5" />
               Open Target Analysis
             </motion.button>
           </div>
