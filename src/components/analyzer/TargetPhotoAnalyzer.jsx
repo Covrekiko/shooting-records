@@ -504,9 +504,9 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               <div className="flex gap-2">
                 <input type="number" value={distanceOverride} onChange={e => setDistanceOverride(e.target.value)}
                   placeholder={session.distance ? `${session.distance}` : 'e.g. 100'} className={`${inp} flex-1`} />
-                <select value={distanceUnit} onChange={e => setDistanceUnit(e.target.value)} className={`${inp} w-24 flex-shrink-0`}>
-                  <option value="meters">meters</option>
-                  <option value="yards">yards</option>
+                <select value={distanceUnit} onChange={e => setDistanceUnit(e.target.value)} className="w-16 flex-shrink-0 px-2 py-2.5 border border-border rounded-xl bg-background text-sm">
+                  <option value="meters">m</option>
+                  <option value="yards">yd</option>
                 </select>
               </div>
             </div>
