@@ -42,6 +42,8 @@ import AmmoSummary from './pages/AmmoSummary';
 import LoadDevelopment from './pages/LoadDevelopment';
 import ScopeClickCard from './pages/ScopeClickCard';
 import AppModules from './pages/AppModules';
+import BulletReferenceDB from './pages/settings/BulletReferenceDB';
+import ScopeReferenceDB from './pages/settings/ScopeReferenceDB';
 
 
 // Sync dark mode with system preference
@@ -149,6 +151,8 @@ const AuthenticatedApp = () => {
             <Route path="/reloading" element={<ModuleGate module="reloading"><ReloadingManagement /></ModuleGate>} />
             <Route path="/load-development" element={<ModuleGate module="reloading"><LoadDevelopment /></ModuleGate>} />
             <Route path="/scope-click-card" element={<ModuleGate module="target_shooting"><ScopeClickCard /></ModuleGate>} />
+            <Route path="/settings/bullet-reference" element={<BulletReferenceDB />} />
+            <Route path="/settings/scope-reference" element={<ScopeReferenceDB />} />
 
             <Route path="*" element={<PageNotFound />} />
           </Routes>

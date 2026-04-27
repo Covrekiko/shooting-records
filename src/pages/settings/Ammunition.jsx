@@ -4,6 +4,7 @@ import ChildScreenHeader from '@/components/ChildScreenHeader';
 import { Plus, Trash2, Edit2, Download } from 'lucide-react';
 import AmmoEditModal from '@/components/AmmoEditModal';
 import { generateAmmunitionInventoryPDF } from '@/utils/pdfGenerators';
+import BulletReferencePicker from '@/components/reference/BulletReferencePicker';
 
 export default function Ammunition() {
   const [ammunition, setAmmunition] = useState([]);
@@ -131,6 +132,19 @@ export default function Ammunition() {
           <div className="bg-card border border-border rounded-lg p-6 mb-6">
             <h2 className="text-xl font-bold mb-4">Add New Ammunition</h2>
             <form onSubmit={handleAddAmmunition} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Bullet Reference Database <span className="font-normal text-muted-foreground text-xs">(optional autofill)</span></label>
+                <BulletReferencePicker
+                  onSelect={(b) => setFormData(f => ({
+                    ...f,
+                    brand: b.manufacturer,
+                    caliber: b.caliber || f.caliber,
+                    bullet_type: b.bullet_construction || b.bullet_type || f.bullet_type,
+                    grain: b.weight_grains ? String(b.weight_grains) : f.grain,
+                  }))}
+                  onClear={() => {}}
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Brand</label>
                 <input

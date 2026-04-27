@@ -1,0 +1,86 @@
+{
+  "name": "ScopeReference",
+  "type": "object",
+  "properties": {
+    "manufacturer": {
+      "type": "string",
+      "description": "Scope manufacturer (e.g. Zeiss, Schmidt & Bender, Nightforce)"
+    },
+    "model": {
+      "type": "string",
+      "description": "Scope model name (e.g. Victory V8, PM II, ATACR)"
+    },
+    "magnification_min": {
+      "type": "number",
+      "description": "Minimum magnification (e.g. 1 for 1-8x)"
+    },
+    "magnification_max": {
+      "type": "number",
+      "description": "Maximum magnification (e.g. 8 for 1-8x)"
+    },
+    "objective_diameter_mm": {
+      "type": "number",
+      "description": "Objective lens diameter in mm"
+    },
+    "tube_diameter_mm": {
+      "type": "number",
+      "description": "Main tube diameter in mm (30, 34, 35, 36)"
+    },
+    "focal_plane": {
+      "type": "string",
+      "enum": [
+        "FFP",
+        "SFP"
+      ],
+      "description": "First or Second Focal Plane"
+    },
+    "reticle_name": {
+      "type": "string",
+      "description": "Reticle name (e.g. MIL-DOT, MRAD, Christmas Tree, BDC)"
+    },
+    "turret_unit": {
+      "type": "string",
+      "enum": [
+        "MOA",
+        "MRAD"
+      ],
+      "description": "Turret adjustment unit"
+    },
+    "click_value": {
+      "type": "string",
+      "description": "Click value (e.g. 1/4 MOA, 0.1 MRAD)"
+    },
+    "clicks_per_turn": {
+      "type": "number",
+      "description": "Number of clicks per full turret revolution"
+    },
+    "elevation_travel_mrad": {
+      "type": "number",
+      "description": "Total elevation travel in MRAD"
+    },
+    "windage_travel_mrad": {
+      "type": "number",
+      "description": "Total windage travel in MRAD"
+    },
+    "zero_stop": {
+      "type": "boolean",
+      "default": false,
+      "description": "Has zero stop feature"
+    },
+    "parallax_adjustable": {
+      "type": "boolean",
+      "default": true
+    },
+    "weight_grams": {
+      "type": "number",
+      "description": "Scope weight in grams"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "manufacturer",
+    "model"
+  ]
+}

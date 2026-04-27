@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { X, Upload, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import BulletReferencePicker from '@/components/reference/BulletReferencePicker';
+import ScopeReferencePicker from '@/components/reference/ScopeReferencePicker';
 
 const CLICK_VALUES = ['1/4 MOA', '1/8 MOA', '1/2 MOA', '1 MOA', '0.1 MRAD', '0.05 MRAD'];
 const SETUP_TYPES = [
@@ -79,6 +81,21 @@ export default function ScopeProfileForm({ profile, rifles, onSave, onClose }) {
           <input value={form.caliber} onChange={e => set('caliber', e.target.value)} placeholder="e.g. .308 Win" className={inp} />
         </div>
 
+        {/* Scope Reference Picker */}
+        <div>
+          <label className={lbl}>Scope Reference Database <span className="normal-case font-normal text-muted-foreground">(optional autofill)</span></label>
+          <ScopeReferencePicker
+            onSelect={(s) => {
+              set('scope_brand', s.manufacturer);
+              set('scope_model', s.model);
+              if (s.reticle_name) set('reticle_type', s.reticle_name);
+              if (s.turret_unit) set('turret_type', s.turret_unit);
+              if (s.click_value) set('click_value', s.click_value);
+            }}
+            onClear={() => {}}
+          />
+        </div>
+
         {/* Scope */}
         <div className="grid grid-cols-2 gap-3">
           <div>
@@ -128,6 +145,19 @@ export default function ScopeProfileForm({ profile, rifles, onSave, onClose }) {
             <label className={lbl}>Zero Ammo</label>
             <input value={form.zero_ammo} onChange={e => set('zero_ammo', e.target.value)} placeholder="e.g. Federal 168gr" className={inp} />
           </div>
+        </div>
+
+        {/* Bullet Reference Picker */}
+        <div>
+          <label className={lbl}>Bullet Reference Database <span className="normal-case font-normal text-muted-foreground">(optional autofill)</span></label>
+          <BulletReferencePicker
+            filterCaliber={form.caliber}
+            onSelect={(b) => {
+              set('bullet_brand', b.manufacturer);
+              set('bullet_weight', b.weight_grains ? `${b.weight_grains}gr` : '');
+            }}
+            onClear={() => {}}
+          />
         </div>
 
         {/* Bullet */}

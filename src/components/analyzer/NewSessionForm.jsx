@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { compressImage } from '@/lib/imageUtils';
+import BulletReferencePicker from '@/components/reference/BulletReferencePicker';
 
 const DISTANCES = [25, 50, 100, 200, 300, 400, 600];
 const POSITIONS = [
@@ -198,6 +199,17 @@ export default function NewSessionForm({ editSession, onSaved, onBack }) {
               </select>
             </div>
           )}
+          <div>
+            <label className={lbl}>Bullet Reference Database <span className="normal-case font-normal text-muted-foreground">(optional autofill)</span></label>
+            <BulletReferencePicker
+              filterCaliber={form.caliber}
+              onSelect={(b) => {
+                if (b.caliber) set('caliber', b.caliber);
+                if (b.weight_grains) set('bullet_weight', `${b.weight_grains}gr`);
+              }}
+              onClear={() => {}}
+            />
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={lbl}>Calibre</label>

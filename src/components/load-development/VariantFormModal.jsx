@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { X } from 'lucide-react';
+import BulletReferencePicker from '@/components/reference/BulletReferencePicker';
 
 export default function VariantFormModal({ test, variant, variantCount, onClose, onSaved }) {
   const [components, setComponents] = useState({ powder: [], bullet: [], brass: [], primer: [] });
@@ -220,6 +221,15 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
         {/* Bullet */}
         <div className="bg-secondary/30 rounded-xl p-3 space-y-2">
           <p className="text-xs font-bold text-muted-foreground uppercase">Bullet</p>
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Bullet Reference Database <span className="normal-case font-normal">(optional autofill)</span></label>
+            <BulletReferencePicker
+              onSelect={(b) => {
+                set('bullet_brand', b.manufacturer + (b.bullet_name ? ` ${b.bullet_name}` : ''));
+              }}
+              onClear={() => {}}
+            />
+          </div>
           <div>
             <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Select Bullet from Stock</label>
             <select value={form.bullet_component_id} onChange={e => handleComponentSelect('bullet', e.target.value)}

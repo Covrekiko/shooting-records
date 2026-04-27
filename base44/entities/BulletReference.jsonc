@@ -1,0 +1,82 @@
+{
+  "name": "BulletReference",
+  "type": "object",
+  "properties": {
+    "manufacturer": {
+      "type": "string",
+      "description": "Bullet manufacturer (e.g. Hornady, Berger, Sierra)"
+    },
+    "bullet_name": {
+      "type": "string",
+      "description": "Bullet product name/family (e.g. ELD-M, Hybrid, MatchKing)"
+    },
+    "caliber": {
+      "type": "string",
+      "description": "Caliber designation (e.g. .308, 6.5mm, .243)"
+    },
+    "diameter_inch": {
+      "type": "number",
+      "description": "Bullet diameter in inches"
+    },
+    "diameter_mm": {
+      "type": "number",
+      "description": "Bullet diameter in mm"
+    },
+    "weight_grains": {
+      "type": "number",
+      "description": "Bullet weight in grains"
+    },
+    "weight_grams": {
+      "type": "number",
+      "description": "Bullet weight in grams"
+    },
+    "bullet_type": {
+      "type": "string",
+      "enum": [
+        "Match/Target",
+        "Hunting",
+        "Varmint",
+        "Plinking",
+        "Lead-Free",
+        "Solid",
+        "Other"
+      ],
+      "description": "Bullet type/purpose"
+    },
+    "bullet_construction": {
+      "type": "string",
+      "description": "Construction type (e.g. BTHP, FMJBT, Polymer Tip, Bonded)"
+    },
+    "lead_free": {
+      "type": "boolean",
+      "default": false
+    },
+    "ballistic_coefficient_g1": {
+      "type": "number",
+      "description": "G1 ballistic coefficient"
+    },
+    "ballistic_coefficient_g7": {
+      "type": "number",
+      "description": "G7 ballistic coefficient"
+    },
+    "sectional_density": {
+      "type": "number"
+    },
+    "bullet_length_mm": {
+      "type": "number",
+      "description": "Bullet length in mm"
+    },
+    "minimum_twist_rate": {
+      "type": "string",
+      "description": "Minimum recommended twist rate (e.g. 1:10)"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "manufacturer",
+    "caliber",
+    "weight_grains"
+  ]
+}

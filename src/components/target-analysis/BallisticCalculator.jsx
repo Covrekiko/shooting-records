@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { ArrowLeft, Wind, Target, ChevronDown, ChevronUp } from 'lucide-react';
+import BulletReferencePicker from '@/components/reference/BulletReferencePicker';
 
 // ─── Physics ──────────────────────────────────────────────────────────────────
 // G1 drag model — simplified point-mass trajectory
@@ -160,7 +161,19 @@ export default function BallisticCalculator({ session, onBack }) {
       <div className="bg-card border border-border rounded-2xl p-4 mb-4 space-y-3">
         <p className="font-semibold text-sm">Bullet / Caliber</p>
         <div>
-          <label className={lbl}>Quick-select preset</label>
+          <label className={lbl}>From bullet database <span className="normal-case font-normal text-muted-foreground">(optional)</span></label>
+          <BulletReferencePicker
+            onSelect={(b) => {
+              setPreset('');
+              if (b.ballistic_coefficient_g1) setBcInput(String(b.ballistic_coefficient_g1));
+              else if (b.ballistic_coefficient_g7) setBcInput(String(b.ballistic_coefficient_g7));
+              if (b.weight_grains) setMassInput(String(b.weight_grains));
+            }}
+            onClear={() => {}}
+          />
+        </div>
+        <div>
+          <label className={lbl}>Or quick-select preset</label>
           <select value={preset} onChange={e => applyPreset(e.target.value)} className={inp}>
             <option value="">— Select or enter manually below —</option>
             {Object.keys(BC_PRESETS).map(name => (

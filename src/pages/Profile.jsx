@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight, Trash2, Zap, Layers } from 'lucide-react';
+import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight, Trash2, Zap, Layers, Database } from 'lucide-react';
 import AutoCheckinSettingToggle from '@/components/AutoCheckinSettingToggle';
 import { base44 } from '@/api/base44Client';
 import { DESIGN } from '@/lib/designConstants';
@@ -186,6 +186,14 @@ function SettingsPanel() {
         <SettingCard title="Deer Locations" description="Manage deer hunting locations" link="/settings/locations" />
         <SettingCard title="Ammunition" description="Manage ammunition" link="/settings/ammunition" />
         <SettingCard title="Ammunition Inventory" description="Track stock levels & costs" link="/settings/ammunition-inventory" />
+      </div>
+
+      <div>
+        <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3">Reference Databases</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <SettingCard title="🔵 Bullet Database" description="Reference library of bullets with BC, weight & specs" link="/settings/bullet-reference" />
+          <SettingCard title="🔭 Scope Database" description="Reference library of scopes with click values & reticles" link="/settings/scope-reference" />
+        </div>
       </div>
 
       <div>
