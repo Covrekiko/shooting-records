@@ -3,9 +3,15 @@ import { ArrowLeft, Save, Loader2, Trash2, Plus, RotateCcw } from 'lucide-react'
 import { base44 } from '@/api/base44Client';
 import AIPhotoComparison from './AIPhotoComparison';
 
-// MOA/MRAD calculations
-function mmToMoa(mm, distanceM) { return mm / (distanceM / 100) / 29.088; }
-function mmToMrad(mm, distanceM) { return mm / distanceM; }
+// MOA/MRAD calculations — distanceM must be > 0
+function mmToMoa(mm, distanceM) {
+  if (!distanceM || distanceM <= 0) return null;
+  return mm / (distanceM / 100) / 29.088;
+}
+function mmToMrad(mm, distanceM) {
+  if (!distanceM || distanceM <= 0) return null;
+  return mm / distanceM;
+}
 
 function calcGroupSize(marks) {
   if (marks.length < 2) return 0;
@@ -46,6 +52,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const [confirmedZero, setConfirmedZero] = useState(editGroup?.confirmed || editGroup?.confirmed_zero || false);
   const [shootingPosition, setShootingPosition] = useState(editGroup?.shooting_position || session.shooting_position || '');
   const [distanceOverride, setDistanceOverride] = useState(editGroup?.distance_override || '');
+  const [distanceUnit, setDistanceUnit] = useState(editGroup?.distance_unit || 'meters');
   const [selectedRifleId, setSelectedRifleId] = useState(editGroup?.rifle_id || session.rifle_id || '');
   const [selectedAmmoId, setSelectedAmmoId] = useState(editGroup?.ammunition_id || session.ammo_id || '');
   const POSITIONS = ['benchrest', 'prone', 'sticks', 'high_seat', 'standing', 'other'];
@@ -59,13 +66,21 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const imgRef = useRef(null);
   const [imgSize, setImgSize] = useState(null);
 
-  useEffect(() => { if (marks.length >= 2 || centrePoint) recalculate(); }, [marks, centrePoint, aimPoint, scalePx]);
+  useEffect(() => { if (marks.length >= 2 || centrePoint) recalculate(); }, [marks, centrePoint, aimPoint, scalePx, distanceOverride, distanceUnit]);
 
   const recalculate = () => {
     if (!scalePx || marks.length < 2) return;
     const groupPx = calcGroupSize(marks);
     const groupMm = groupPx * scalePx;
-    const distM = session.distance_unit === 'yards' ? session.distance * 0.9144 : session.distance;
+
+    // Effective distance in meters for MOA/MRAD
+    let distM = null;
+    const rawDist = distanceOverride !== '' ? parseFloat(distanceOverride) : parseFloat(session.distance);
+    if (rawDist > 0) {
+      const unit = distanceOverride !== '' ? distanceUnit : (session.distance_unit || 'meters');
+      distM = unit === 'yards' ? rawDist * 0.9144 : rawDist;
+    }
+
     const moa = mmToMoa(groupMm, distM);
     const mrad = mmToMrad(groupMm, distM);
 
@@ -74,18 +89,20 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
       const centroid = calcCentroid(marks);
       const dxPx = centroid.x - centrePoint.x;
       const dyPx = centroid.y - centrePoint.y;
-      poiX = dxPx * scalePx; // mm, positive = right
-      poiY = -dyPx * scalePx; // mm, positive = up (canvas Y is inverted)
+      poiX = dxPx * scalePx;
+      poiY = -dyPx * scalePx;
     }
 
     setResults({
       shots: marks.length,
       groupMm: Math.round(groupMm * 10) / 10,
-      groupMoa: Math.round(moa * 100) / 100,
-      groupMrad: Math.round(mrad * 1000) / 1000,
+      groupMoa: moa !== null ? Math.round(moa * 100) / 100 : null,
+      groupMrad: mrad !== null ? Math.round(mrad * 1000) / 1000 : null,
       groupInches: Math.round(groupMm / 25.4 * 100) / 100,
+      groupCm: Math.round(groupMm / 10 * 10) / 10,
       poiX: Math.round(poiX * 10) / 10,
       poiY: Math.round(poiY * 10) / 10,
+      hasDistance: distM !== null,
     });
   };
 
@@ -215,6 +232,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
       scale_reference: scaleRef,
       shooting_position: shootingPosition || null,
       distance_override: distanceOverride ? parseFloat(distanceOverride) : null,
+      distance_unit: distanceUnit,
       rifle_id: selectedRifleId || null,
       rifle_name: rifles.find(r => r.id === selectedRifleId)?.name || null,
       ammunition_id: selectedAmmoId || null,
@@ -390,31 +408,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             </label>
           </div>
 
-          {/* Results Summary */}
-          {results && (
-            <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 mb-3">
-              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-2">Results Preview</p>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-background rounded-xl p-2 text-center">
-                  <p className="text-xl font-black">{results.groupMm}mm</p>
-                  <p className="text-xs text-muted-foreground">Group Size</p>
-                </div>
-                <div className="bg-background rounded-xl p-2 text-center">
-                  <p className="text-xl font-black">{results.groupMoa}</p>
-                  <p className="text-xs text-muted-foreground">MOA</p>
-                </div>
-                <div className="bg-background rounded-xl p-2 text-center">
-                  <p className="text-lg font-bold">{results.shots}</p>
-                  <p className="text-xs text-muted-foreground">Shots</p>
-                </div>
-                <div className="bg-background rounded-xl p-2 text-center">
-                  <p className="text-lg font-bold">{results.groupInches}"</p>
-                  <p className="text-xs text-muted-foreground">Inches</p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Interactive Image */}
           <div className="relative mb-3 rounded-2xl overflow-hidden border border-border bg-black select-none"
             style={{ touchAction: 'none' }}>
@@ -480,38 +473,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             {!scalePx ? ' · ⚠️ Set scale to calculate' : ` · Scale: ${Math.round(scalePx * 1000) / 1000}mm/px`}
           </p>
 
-          {/* Results */}
-          {results && (
-            <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 mb-3">
-              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-3">Results</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-background rounded-xl p-3 text-center">
-                  <p className="text-2xl font-black">{results.groupMoa}</p>
-                  <p className="text-xs text-muted-foreground">MOA</p>
-                </div>
-                <div className="bg-background rounded-xl p-3 text-center">
-                  <p className="text-2xl font-black">{results.groupMrad}</p>
-                  <p className="text-xs text-muted-foreground">MRAD</p>
-                </div>
-                <div className="bg-background rounded-xl p-3 text-center">
-                  <p className="text-xl font-bold">{results.groupMm}mm</p>
-                  <p className="text-xs text-muted-foreground">Group Size</p>
-                </div>
-                <div className="bg-background rounded-xl p-3 text-center">
-                  <p className="text-xl font-bold">{results.shots} shots</p>
-                  <p className="text-xs text-muted-foreground">Number of Shots</p>
-                </div>
-              </div>
-              {(results.poiX !== 0 || results.poiY !== 0) && (
-                <div className="mt-3 bg-background rounded-xl p-3 text-sm">
-                  <p className="font-semibold mb-1">Impact vs Centre</p>
-                  <p>{results.poiX > 0 ? `${results.poiX}mm right` : results.poiX < 0 ? `${Math.abs(results.poiX)}mm left` : 'centred'}</p>
-                  <p>{results.poiY > 0 ? `${results.poiY}mm high` : results.poiY < 0 ? `${Math.abs(results.poiY)}mm low` : 'centred'}</p>
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Extra context fields */}
           <div className="bg-card border border-border rounded-2xl p-4 mb-3 space-y-3">
             {rifles.length > 0 && (
@@ -539,9 +500,15 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               </div>
             )}
             <div>
-              <label className={lbl}>Distance override (m)</label>
-              <input type="number" value={distanceOverride} onChange={e => setDistanceOverride(e.target.value)}
-                placeholder={session.distance ? `${session.distance}m` : 'e.g. 100'} className={inp} />
+              <label className={lbl}>Distance</label>
+              <div className="flex gap-2">
+                <input type="number" value={distanceOverride} onChange={e => setDistanceOverride(e.target.value)}
+                  placeholder={session.distance ? `${session.distance}` : 'e.g. 100'} className={`${inp} flex-1`} />
+                <select value={distanceUnit} onChange={e => setDistanceUnit(e.target.value)} className={`${inp} w-24 flex-shrink-0`}>
+                  <option value="meters">meters</option>
+                  <option value="yards">yards</option>
+                </select>
+              </div>
             </div>
             <div>
               <label className={lbl}>Shooting Position</label>
@@ -560,6 +527,55 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             <input type="checkbox" checked={confirmedZero} onChange={e => setConfirmedZero(e.target.checked)} className="w-5 h-5" />
             <span className="font-semibold">Mark as Confirmed Zero</span>
           </label>
+
+          {/* Results — below Notes, above Save */}
+          {results && (
+            <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 mb-4">
+              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-3">Results</p>
+              <div className="grid grid-cols-3 gap-2 mb-2">
+                <div className="bg-background rounded-xl p-2.5 text-center">
+                  <p className="text-lg font-black">{results.groupMm}mm</p>
+                  <p className="text-xs text-muted-foreground">mm</p>
+                </div>
+                <div className="bg-background rounded-xl p-2.5 text-center">
+                  <p className="text-lg font-black">{results.groupCm}cm</p>
+                  <p className="text-xs text-muted-foreground">cm</p>
+                </div>
+                <div className="bg-background rounded-xl p-2.5 text-center">
+                  <p className="text-lg font-black">{results.groupInches}"</p>
+                  <p className="text-xs text-muted-foreground">inches</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-background rounded-xl p-2.5 text-center">
+                  {results.groupMoa !== null ? (
+                    <p className="text-2xl font-black">{results.groupMoa}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic py-2">Enter distance</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">MOA</p>
+                </div>
+                <div className="bg-background rounded-xl p-2.5 text-center">
+                  {results.groupMrad !== null ? (
+                    <p className="text-2xl font-black">{results.groupMrad}</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic py-2">Enter distance</p>
+                  )}
+                  <p className="text-xs text-muted-foreground">MRAD</p>
+                </div>
+              </div>
+              {!results.hasDistance && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-2 text-center">Enter distance above to calculate MOA/MRAD</p>
+              )}
+              {(results.poiX !== 0 || results.poiY !== 0) && (
+                <div className="mt-2 bg-background rounded-xl p-3 text-sm">
+                  <p className="font-semibold mb-1">Impact vs Centre</p>
+                  <p>{results.poiX > 0 ? `${results.poiX}mm right` : results.poiX < 0 ? `${Math.abs(results.poiX)}mm left` : 'centred'}</p>
+                  <p>{results.poiY > 0 ? `${results.poiY}mm high` : results.poiY < 0 ? `${Math.abs(results.poiY)}mm low` : 'centred'}</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {uploading && (
             <div className="flex items-center justify-center gap-2 py-2 mb-2 text-sm text-muted-foreground">
