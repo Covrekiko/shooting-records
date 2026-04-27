@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
-import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
+import { calculateDistance } from '@/hooks/useGeolocation';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import RecordsSection from '@/components/RecordsSection';
 import { Plus, Map, Crosshair, ScanLine, Microscope } from 'lucide-react';
@@ -29,8 +29,18 @@ export default function TargetShooting() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const { location } = useGeolocation();
   const [nearbyClub, setNearbyClub] = useState(null);
+  const [location, setLocation] = useState(null);
+
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    const id = navigator.geolocation.watchPosition(
+      (pos) => setLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+    );
+    return () => navigator.geolocation.clearWatch(id);
+  }, []);
   const [gpsTrack, setGpsTrack] = useState([]);
   const [viewingTrack, setViewingTrack] = useState(null);
   const [showTargetAnalysis, setShowTargetAnalysis] = useState(false);
