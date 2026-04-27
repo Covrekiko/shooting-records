@@ -34,8 +34,15 @@ export default function BulletReferencePicker({ onSelect, onClear, selectedId, f
   const loadBullets = async () => {
     setLoading(true);
     const list = await base44.entities.BulletReference.list('-updated_date', 500);
-    setBullets(list);
-    setFiltered(list);
+    const sorted = [...list].sort((a, b) => {
+      const mfr = (a.manufacturer || '').localeCompare(b.manufacturer || '');
+      if (mfr !== 0) return mfr;
+      const name = (a.bullet_name || '').localeCompare(b.bullet_name || '');
+      if (name !== 0) return name;
+      return (a.weight_grains || 0) - (b.weight_grains || 0);
+    });
+    setBullets(sorted);
+    setFiltered(sorted);
     setLoading(false);
   };
 

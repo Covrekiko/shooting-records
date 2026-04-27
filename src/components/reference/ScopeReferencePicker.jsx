@@ -32,8 +32,13 @@ export default function ScopeReferencePicker({ onSelect, onClear, selectedId }) 
   const loadScopes = async () => {
     setLoading(true);
     const list = await base44.entities.ScopeReference.list('-updated_date', 500);
-    setScopes(list);
-    setFiltered(list);
+    const sorted = [...list].sort((a, b) => {
+      const mfr = (a.manufacturer || '').localeCompare(b.manufacturer || '');
+      if (mfr !== 0) return mfr;
+      return (a.model || '').localeCompare(b.model || '');
+    });
+    setScopes(sorted);
+    setFiltered(sorted);
     setLoading(false);
   };
 
