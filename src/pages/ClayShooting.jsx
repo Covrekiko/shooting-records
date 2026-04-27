@@ -40,6 +40,7 @@ export default function ClayShooting() {
   const [stands, setStands] = useState([]);
   const [allSessions, setAllSessions] = useState([]);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [analyticsRefreshKey, setAnalyticsRefreshKey] = useState(0);
 
   const [checkinData, setCheckinData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -86,24 +87,40 @@ export default function ClayShooting() {
     setAutoCheckinMatch(null);
   };
 
-  useEffect(() => {
-    sessionManager.clearExpiredSessions();
-    async function loadData() {
-      try {
-        const currentUser = await base44.auth.me();
-        const [clubsList, shotgunsList, ammoList, activeSessions, standsList, allSessionsList] = await Promise.all([
-          base44.entities.Club.filter({ created_by: currentUser.email }),
-          base44.entities.Shotgun.filter({ created_by: currentUser.email }),
-          base44.entities.Ammunition.filter({ created_by: currentUser.email }),
-          base44.entities.SessionRecord.filter({ created_by: currentUser.email, category: 'clay_shooting', status: 'active' }),
-          base44.entities.ClayStand.filter({ created_by: currentUser.email }),
-          base44.entities.SessionRecord.filter({ created_by: currentUser.email, category: 'clay_shooting', status: 'completed' }),
-        ]);
-        setClubs(clubsList);
-        setShotguns(shotgunsList);
-        setAmmunition(ammoList);
-        setStands(standsList);
-        setAllSessions(allSessionsList);
+  const reloadAnalytics = useCallback(async () => {
+    try {
+      const currentUser = await base44.auth.me();
+      const [standsList, allSessionsList] = await Promise.all([
+        base44.entities.ClayStand.filter({ created_by: currentUser.email }),
+        base44.entities.SessionRecord.filter({ created_by: currentUser.email, category: 'clay_shooting', status: 'completed' }),
+      ]);
+      setStands(standsList);
+      setAllSessions(allSessionsList);
+      setAnalyticsRefreshKey(k => k + 1);
+    } catch (error) {
+      console.error('Error reloading analytics:', error);
+    }
+  }, []);
+
+   useEffect(() => {
+     sessionManager.clearExpiredSessions();
+     async function loadData() {
+       try {
+         const currentUser = await base44.auth.me();
+         const [clubsList, shotgunsList, ammoList, activeSessions, standsList, allSessionsList] = await Promise.all([
+           base44.entities.Club.filter({ created_by: currentUser.email }),
+           base44.entities.Shotgun.filter({ created_by: currentUser.email }),
+           base44.entities.Ammunition.filter({ created_by: currentUser.email }),
+           base44.entities.SessionRecord.filter({ created_by: currentUser.email, category: 'clay_shooting', status: 'active' }),
+           base44.entities.ClayStand.filter({ created_by: currentUser.email }),
+           base44.entities.SessionRecord.filter({ created_by: currentUser.email, category: 'clay_shooting', status: 'completed' }),
+         ]);
+         setClubs(clubsList);
+         setShotguns(shotgunsList);
+         setAmmunition(ammoList);
+         setStands(standsList);
+         setAllSessions(allSessionsList);
+         setAnalyticsRefreshKey(0);
         if (activeSessions.length > 0) {
           const session = activeSessions[0];
           // Validate session health - detect orphaned sessions from app restarts
@@ -353,20 +370,20 @@ export default function ClayShooting() {
         )}
 
         {/* Analytics Section */}
-        {(stands.length > 0 || allSessions.length > 0) && (
-          <div className="mt-6">
-            <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowAnalytics(!showAnalytics)}
-              className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-colors ${showAnalytics ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}>
-              📊 Analytics
-            </motion.button>
-            {showAnalytics && <div className="mt-4"><ClayAnalyticsDashboard sessions={allSessions} stands={stands} /></div>}
-          </div>
-        )}
+         {(stands.length > 0 || allSessions.length > 0) && (
+           <div className="mt-6">
+             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowAnalytics(!showAnalytics)}
+               className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-colors ${showAnalytics ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}>
+               📊 Analytics
+             </motion.button>
+             {showAnalytics && <div className="mt-4" key={analyticsRefreshKey}><ClayAnalyticsDashboard sessions={allSessions} stands={stands} onRefresh={reloadAnalytics} /></div>}
+           </div>
+         )}
 
         <div className="mt-6">
-          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Sessions</p>
-          <RecordsSection category="clay_shooting" title="Session Records" emptyMessage="No clay shooting sessions recorded yet" />
-        </div>
+           <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Sessions</p>
+           <RecordsSection category="clay_shooting" title="Session Records" emptyMessage="No clay shooting sessions recorded yet" onRecordDeleted={reloadAnalytics} />
+         </div>
 
         {viewingTrack && createPortal(
           <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />,

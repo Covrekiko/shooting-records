@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
-export default function RecordsSection({ category, title, emptyMessage = 'No records yet' }) {
+export default function RecordsSection({ category, title, emptyMessage = 'No records yet', onRecordDeleted }) {
    const [records, setRecords] = useState([]);
    const [loading, setLoading] = useState(true);
    const [user, setUser] = useState(null);
@@ -61,6 +61,16 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
         await base44.functions.invoke('restoreSessionStock', { sessionId: id });
       }
 
+      // For clay shooting, delete all related stands and shots
+      if (category === 'clay_shooting' && isOnline) {
+        try {
+          await base44.functions.invoke('deleteClaySessionStands', { sessionId: id });
+        } catch (e) {
+          console.warn('⚠️ Warning: Could not delete clay stands/shots via backend:', e.message);
+          // Continue with session deletion anyway
+        }
+      }
+
       // Delete the record from the database
       await base44.entities.SessionRecord.delete(id);
 
@@ -72,6 +82,9 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
         status: 'completed',
       });
       setRecords(updatedRecords);
+
+      // Notify parent to refresh analytics
+      if (onRecordDeleted) onRecordDeleted();
     } catch (error) {
       console.error('❌ DELETE ERROR:', error);
       alert('Error deleting record: ' + error.message);

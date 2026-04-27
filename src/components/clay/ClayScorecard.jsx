@@ -514,18 +514,27 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
 
   const handleDeleteStand = async (standId) => {
     if (!confirm('Are you sure you want to delete this stand? This will remove all shot results for this stand.')) return;
-    
-    // Delete all shots linked to this stand
-    const shots = shotsMap[standId] || [];
-    await Promise.all(shots.map(s => base44.entities.ClayShot.delete(s.id).catch(() => {})));
-    
-    // Delete the stand
-    await base44.entities.ClayStand.delete(standId);
-    
-    const newStands = stands.filter(s => s.id !== standId);
-    setStands(newStands);
-    setShotsMap(prev => { const m = { ...prev }; delete m[standId]; return m; });
-    await saveScorecard(newStands);
+
+    try {
+      // Delete all shots linked to this stand first
+      const shots = shotsMap[standId] || [];
+      await Promise.all(shots.map(s => base44.entities.ClayShot.delete(s.id).catch(() => {})));
+
+      // Delete the stand
+      await base44.entities.ClayStand.delete(standId);
+
+      // Update local state
+      const newStands = stands.filter(s => s.id !== standId);
+      setStands(newStands);
+      setShotsMap(prev => { const m = { ...prev }; delete m[standId]; return m; });
+
+      // Recalculate and save scorecard stats
+      await saveScorecard(newStands);
+      console.log('✓ Stand deleted successfully with all child shots');
+    } catch (error) {
+      console.error('Error deleting stand:', error);
+      alert('Error deleting stand: ' + error.message);
+    }
   };
 
   // ── Shot-by-Shot handlers ──

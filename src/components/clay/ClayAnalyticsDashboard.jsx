@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, Target, Zap } from 'lucide-react';
 
-export default function ClayAnalyticsDashboard({ sessions, stands }) {
+export default function ClayAnalyticsDashboard({ sessions, stands, onRefresh }) {
   // Calculate monthly trends
   const monthlyData = useMemo(() => {
     const months = {};
@@ -53,7 +53,7 @@ export default function ClayAnalyticsDashboard({ sessions, stands }) {
       .slice(0, 5);
   }, [stands]);
 
-  // Hit distribution
+  // Hit distribution with clearer labels
   const hitDistribution = useMemo(() => {
     const excellent = stands.filter(s => {
       const v = (s.hits || 0) + (s.misses || 0);
@@ -63,23 +63,24 @@ export default function ClayAnalyticsDashboard({ sessions, stands }) {
       const v = (s.hits || 0) + (s.misses || 0);
       return v > 0 && ((s.hits || 0) / v) >= 0.50 && ((s.hits || 0) / v) < 0.75;
     }).length;
-    const fair = stands.filter(s => {
+    const needsPractice = stands.filter(s => {
       const v = (s.hits || 0) + (s.misses || 0);
       return v > 0 && ((s.hits || 0) / v) < 0.50;
     }).length;
 
     return [
       { name: 'Excellent (75%+)', value: excellent, color: '#22c55e' },
-      { name: 'Good (50-75%)', value: good, color: '#eab308' },
-      { name: 'Fair (<50%)', value: fair, color: '#ef4444' },
+      { name: 'Good (50–75%)', value: good, color: '#eab308' },
+      { name: 'Needs Practice (<50%)', value: needsPractice, color: '#ef4444' },
     ].filter(d => d.value > 0);
   }, [stands]);
 
-  // Summary stats
+  // Summary stats with guards against zero/NaN
   const totalHits = stands.reduce((s, st) => s + (st.hits || 0), 0);
   const totalValid = stands.reduce((s, st) => s + ((st.hits || 0) + (st.misses || 0)), 0);
   const overallPercentage = totalValid > 0 ? Math.round((totalHits / totalValid) * 100) : 0;
-  const avgClaysPerSession = stands.length > 0 ? Math.round(stands.reduce((s, st) => s + (st.clays_total || 0), 0) / sessions.length) : 0;
+  const totalClaysSum = stands.reduce((s, st) => s + (st.clays_total || 0), 0);
+  const avgClaysPerSession = sessions.length > 0 && totalClaysSum > 0 ? Math.round(totalClaysSum / sessions.length) : 0;
 
   return (
     <div className="space-y-4">
@@ -207,10 +208,18 @@ export default function ClayAnalyticsDashboard({ sessions, stands }) {
       )}
 
       {stands.length === 0 && (
-        <div className="bg-secondary/30 border border-border rounded-xl p-6 text-center">
-          <p className="text-sm text-muted-foreground">No stand data available yet. Complete a clay shooting session to see analytics.</p>
-        </div>
-      )}
+         <div className="bg-secondary/30 border border-border rounded-xl p-6 text-center">
+           <p className="text-sm text-muted-foreground">No stand data available yet. Complete a clay shooting session to see analytics.</p>
+         </div>
+       )}
+
+       {/* Empty state for deleted records */}
+       {stands.length === 0 && sessions.length === 0 && (
+         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 rounded-xl p-6 text-center">
+           <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">Analytics cleared</p>
+           <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">All clay shooting records have been deleted.</p>
+         </div>
+       )}
     </div>
   );
 }
