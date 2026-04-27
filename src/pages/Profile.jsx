@@ -42,6 +42,7 @@ export default function Profile() {
               backgroundColor: 'var(--app-card)',
               borderColor: 'var(--app-border)',
               borderWidth: '1px',
+              boxShadow: 'var(--app-shadow)',
             }}>
               <Link
                 to="/profile"
@@ -148,6 +149,7 @@ export default function Profile() {
              backgroundColor: 'var(--app-card)',
              borderColor: 'var(--app-border)',
              borderWidth: '1px',
+             boxShadow: 'var(--app-shadow)',
            }}>
               {isActive('/profile/theme') ? (
                 <ThemePanel />
@@ -171,6 +173,7 @@ function CollapsibleSection({ title, children }) {
       backgroundColor: 'var(--app-card)',
       borderColor: 'var(--app-border)',
       borderWidth: '1px',
+      boxShadow: 'var(--app-shadow)',
     }}>
       <button
         type="button"
@@ -248,6 +251,7 @@ function SettingCard({ title, description, link }) {
       backgroundColor: 'var(--app-card)',
       borderColor: 'var(--app-border)',
       borderWidth: '1px',
+      boxShadow: 'var(--app-shadow)',
       color: 'var(--app-text)',
     }}>
       <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--app-text)' }}>{title}</h3>
@@ -264,6 +268,7 @@ function RecordsPanel() {
         backgroundColor: 'var(--app-card)',
         borderColor: 'var(--app-border)',
         borderWidth: '1px',
+        boxShadow: 'var(--app-shadow)',
         color: 'var(--app-text)',
       }}>
         <p style={{ color: 'var(--app-text-muted)' }}>View and manage all your shooting records</p>
@@ -451,6 +456,7 @@ function DeleteAccountSection() {
       backgroundColor: 'rgba(239, 68, 68, 0.05)',
       borderColor: 'rgba(239, 68, 68, 0.3)',
       borderWidth: '1px',
+      boxShadow: '0 1px 2px rgba(239, 68, 68, 0.1)',
     }}>
       <h3 className="text-sm font-semibold text-destructive uppercase tracking-wide mb-2 flex items-center gap-2">
         <Trash2 className="w-4 h-4" /> Delete Account

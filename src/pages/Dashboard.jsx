@@ -2,13 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useOuting } from '@/context/OutingContext';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import {
   Target, Crosshair, Map, BookOpen, Settings,
-  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck,
+  BarChart3, ChevronRight, Clock, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck,
 } from 'lucide-react';
 import {
   MonthlyActivityChart,

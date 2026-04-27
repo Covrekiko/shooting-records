@@ -116,8 +116,9 @@ export default function Navigation() {
         <div className="max-w-7xl mx-auto px-4 pt-3 pb-2">
           <div className="rounded-2xl shadow-sm px-5 py-3 flex items-center justify-between" style={{
             backgroundColor: 'var(--app-header)',
-            borderColor: 'var(--app-header)',
+            borderColor: 'var(--app-accent)',
             borderWidth: '1px',
+            boxShadow: 'var(--app-shadow)',
           }}>
             <Link to="/" className="text-sm font-bold flex items-center gap-2.5" style={{ color: 'var(--app-header-text)' }}>
               <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-8 h-8 rounded-xl object-cover" />
@@ -182,8 +183,9 @@ export default function Navigation() {
       <div className="md:hidden sticky top-0 z-[30]" style={{ backgroundColor: 'var(--app-header)' }}>
         <div className="mx-3 mt-2 mb-1.5 rounded-2xl shadow-sm px-4 py-2.5 flex items-center justify-between" style={{
           backgroundColor: 'var(--app-header)',
-          borderColor: 'var(--app-header)',
+          borderColor: 'var(--app-accent)',
           borderWidth: '1px',
+          boxShadow: 'var(--app-shadow)',
         }}>
           {isDashboard ? (
             <Link to="/" className="text-sm font-bold flex items-center gap-2" style={{ color: 'var(--app-header-text)' }}>
@@ -200,18 +202,23 @@ export default function Navigation() {
             <motion.button
               onClick={handleBack}
               whileTap={{ scale: 0.9 }}
-              className="flex items-center gap-1.5 text-foreground"
+              className="flex items-center gap-1.5"
+              style={{ color: 'var(--app-header-text)' }}
             >
-              <ArrowLeft className="w-4 h-4 text-muted-foreground" />
+              <ArrowLeft className="w-4 h-4" style={{ color: 'var(--app-header-muted)' }} />
               <span className="text-sm font-semibold">{pageTitle || 'Back'}</span>
             </motion.button>
           )}
 
           <button
             onClick={() => setOpen(!open)}
-            className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center active:scale-90 transition-transform select-none hover:bg-secondary/80"
+            className="w-9 h-9 rounded-xl flex items-center justify-center active:scale-90 transition-transform select-none"
+            style={{
+              backgroundColor: 'var(--app-accent)',
+              color: 'white',
+            }}
           >
-            {open ? <X className="w-4.5 h-4.5 text-foreground" /> : <Menu className="w-4.5 h-4.5 text-foreground" />}
+            {open ? <X className="w-4.5 h-4.5" /> : <Menu className="w-4.5 h-4.5" />}
           </button>
         </div>
 
@@ -225,9 +232,10 @@ export default function Navigation() {
               transition={{ duration: 0.15 }}
               className="mx-3 mb-1 rounded-2xl shadow-xl overflow-hidden"
               style={{
-                backgroundColor: 'var(--app-surface)',
+                backgroundColor: 'var(--app-card)',
                 borderColor: 'var(--app-border)',
                 borderWidth: '1px',
+                boxShadow: 'var(--app-shadow)',
               }}
             >
               {NAV_SECTIONS.map((section) => {

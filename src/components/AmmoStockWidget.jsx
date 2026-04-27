@@ -51,7 +51,9 @@ export default function AmmoStockWidget() {
     }}>
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-sm font-semibold flex items-center gap-2.5" style={{ color: 'var(--app-text)' }}>
-          <Package className="w-5 h-5" style={{ color: 'var(--app-accent)' }} />
+          <div className="w-6 h-6 rounded flex items-center justify-center" style={{ backgroundColor: 'var(--app-icon-bg)' }}>
+            <Package className="w-4 h-4" style={{ color: 'var(--app-icon)' }} />
+          </div>
           Ammunition Stock
         </h3>
         <Link to="/settings/ammunition-inventory" className="text-xs font-medium hover:opacity-80" style={{ color: 'var(--app-accent)' }}>
