@@ -50,6 +50,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const [selectedAmmoId, setSelectedAmmoId] = useState(editGroup?.ammunition_id || session.ammo_id || '');
   const POSITIONS = ['benchrest', 'prone', 'sticks', 'high_seat', 'standing', 'other'];
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [results, setResults] = useState(null);
   const [setScaleMode, setSetScaleMode] = useState(false);
@@ -90,15 +91,56 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
 
   const handlePhotoUpload = async (file) => {
     if (!file) return;
-    setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setPhoto(file_url);
+
+    console.log('[TargetPhotoAnalyzer] File selected:', file.name, file.type || '(no type)', file.size, 'bytes');
+
+    // Show local preview immediately so user sees something
+    const localPreviewUrl = URL.createObjectURL(file);
+    setPhoto(localPreviewUrl);
     setMarks([]);
     setCentrePoint(null);
     setAimPoint(null);
     setScalePx(null);
     setResults(null);
-    setUploading(false);
+    setUploading(true);
+
+    // 30-second timeout safety net
+    let timedOut = false;
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      setUploading(false);
+      console.error('[TargetPhotoAnalyzer] Upload timed out after 30s');
+      alert('Upload timed out. Try choosing a smaller photo or select from gallery.');
+    }, 30000);
+
+    try {
+      console.log('[TargetPhotoAnalyzer] Starting image compression…');
+      const { compressImage } = await import('@/lib/imageUtils');
+      const compressed = await compressImage(file, { maxDimension: 1600, quality: 0.8 });
+      console.log('[TargetPhotoAnalyzer] Compression done. Size:', compressed.size, 'bytes, type:', compressed.type);
+
+      if (timedOut) return;
+
+      console.log('[TargetPhotoAnalyzer] Starting upload…');
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: compressed });
+      console.log('[TargetPhotoAnalyzer] Upload success:', file_url);
+
+      if (timedOut) return;
+
+      URL.revokeObjectURL(localPreviewUrl);
+      setPhoto(file_url);
+    } catch (error) {
+      console.error('[TargetPhotoAnalyzer] Upload failed:', error);
+      // Keep the local preview and show a retry option
+      setUploadError(error.message || 'Upload failed');
+      alert('Photo upload failed. Please try again or choose from gallery.\n\nError: ' + (error.message || 'Unknown error'));
+    } finally {
+      clearTimeout(timeout);
+      if (!timedOut) {
+        setUploading(false);
+        console.log('[TargetPhotoAnalyzer] Loading stopped.');
+      }
+    }
   };
 
   const getRelativeCoords = (e) => {
@@ -227,17 +269,37 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
         <div className="bg-card border-2 border-dashed border-border rounded-2xl p-8 text-center mb-4">
           <p className="text-4xl mb-3">🎯</p>
           <p className="font-semibold mb-4">Upload your target photo</p>
-          <div className="flex gap-3 justify-center">
-            <label className="px-5 py-3 bg-primary text-primary-foreground rounded-xl font-semibold cursor-pointer text-sm">
-              📁 Choose Photo
-              <input type="file" accept="image/*" className="hidden" onChange={e => handlePhotoUpload(e.target.files[0])} />
-            </label>
-            <label className="px-5 py-3 bg-secondary rounded-xl font-semibold cursor-pointer text-sm">
-              📷 Take Photo
-              <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => handlePhotoUpload(e.target.files[0])} />
-            </label>
-          </div>
-          {uploading && <p className="mt-3 text-sm text-muted-foreground flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" />Uploading…</p>}
+          {uploading ? (
+            <div className="flex flex-col items-center gap-2 mt-2">
+              <Loader2 className="w-7 h-7 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Processing photo…</p>
+            </div>
+          ) : (
+            <div className="flex gap-3 justify-center flex-wrap">
+              <label className="px-5 py-3 bg-primary text-primary-foreground rounded-xl font-semibold cursor-pointer text-sm">
+                📁 Choose from Gallery
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/heic,image/heif,image/*"
+                  className="hidden"
+                  onChange={e => { setUploadError(null); handlePhotoUpload(e.target.files[0]); e.target.value = ''; }}
+                />
+              </label>
+              <label className="px-5 py-3 bg-secondary rounded-xl font-semibold cursor-pointer text-sm">
+                📷 Take Photo
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/heic,image/heif,image/*"
+                  capture="environment"
+                  className="hidden"
+                  onChange={e => { setUploadError(null); handlePhotoUpload(e.target.files[0]); e.target.value = ''; }}
+                />
+              </label>
+            </div>
+          )}
+          {uploadError && (
+            <p className="mt-3 text-xs text-destructive font-medium">{uploadError}</p>
+          )}
         </div>
       )}
 
@@ -318,7 +380,12 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             </button>
             <label className="flex-1 py-2 bg-secondary rounded-xl text-sm font-semibold flex items-center justify-center gap-1 cursor-pointer">
               🔄 New Photo
-              <input type="file" accept="image/*" className="hidden" onChange={e => handlePhotoUpload(e.target.files[0])} />
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/heic,image/heif,image/*"
+                className="hidden"
+                onChange={e => { setUploadError(null); setPhoto(null); handlePhotoUpload(e.target.files[0]); e.target.value = ''; }}
+              />
             </label>
           </div>
 
@@ -493,6 +560,11 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             <span className="font-semibold">Mark as Confirmed Zero</span>
           </label>
 
+          {uploading && (
+            <div className="flex items-center justify-center gap-2 py-2 mb-2 text-sm text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" /> Uploading photo…
+            </div>
+          )}
           <button onClick={handleSave} disabled={saving || uploading}
             className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold text-base flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60">
             {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}

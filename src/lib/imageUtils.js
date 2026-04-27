@@ -6,25 +6,38 @@
  * Returns a File (JPEG) ready for upload.
  */
 export async function compressImage(file, { maxDimension = 1600, quality = 0.82 } = {}) {
-  const SUPPORTED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
   const HEIC_TYPES = ['image/heic', 'image/heif', 'image/heic-sequence', 'image/heif-sequence'];
 
   const isHeic = HEIC_TYPES.includes(file.type?.toLowerCase()) ||
     /\.(heic|heif)$/i.test(file.name);
 
-  // If not a known image type and not HEIC, return as-is (let server handle it)
-  if (!isHeic && !SUPPORTED.includes(file.type?.toLowerCase())) {
+  // Treat blank type (common with iPhone camera) as an image — always try to compress
+  const isImage = file.type?.startsWith('image/') || !file.type || isHeic;
+
+  if (!isImage) {
+    console.warn('[compressImage] Unknown file type, returning as-is:', file.type, file.name);
     return file;
   }
 
-  return new Promise((resolve, reject) => {
+  console.log('[compressImage] Processing:', file.name, file.type || '(blank type)', file.size, 'bytes');
+
+  return new Promise((resolve) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
 
+    // Add a per-decode timeout in case img.onload never fires (e.g. broken HEIC on non-Safari)
+    const decodeTimeout = setTimeout(() => {
+      URL.revokeObjectURL(url);
+      console.warn('[compressImage] Image decode timed out, returning original file');
+      resolve(file);
+    }, 15000);
+
     img.onload = () => {
+      clearTimeout(decodeTimeout);
       URL.revokeObjectURL(url);
       try {
         let { width, height } = img;
+        if (!width || !height) { resolve(file); return; }
 
         // Resize if needed
         if (width > maxDimension || height > maxDimension) {
@@ -45,26 +58,30 @@ export async function compressImage(file, { maxDimension = 1600, quality = 0.82 
 
         canvas.toBlob(
           (blob) => {
-            if (!blob) { reject(new Error('Canvas toBlob failed')); return; }
-            const compressed = new File(
-              [blob],
-              file.name.replace(/\.(heic|heif)$/i, '.jpg'),
-              { type: 'image/jpeg' }
-            );
+            if (!blob) {
+              console.warn('[compressImage] canvas.toBlob returned null, returning original file');
+              resolve(file);
+              return;
+            }
+            const safeName = file.name.replace(/\.(heic|heif)$/i, '.jpg');
+            const compressed = new File([blob], safeName, { type: 'image/jpeg' });
+            console.log('[compressImage] Done:', compressed.size, 'bytes');
             resolve(compressed);
           },
           'image/jpeg',
           quality
         );
       } catch (err) {
-        reject(err);
+        console.warn('[compressImage] Canvas error, returning original:', err);
+        resolve(file);
       }
     };
 
-    img.onerror = () => {
+    img.onerror = (err) => {
+      clearTimeout(decodeTimeout);
       URL.revokeObjectURL(url);
-      // If we can't decode it (shouldn't happen on iOS Safari for HEIC), 
-      // fall back to original file and let server handle it
+      console.warn('[compressImage] img.onerror — returning original file. Error:', err);
+      // Still resolve (not reject) so upload can proceed with original
       resolve(file);
     };
 
