@@ -31,12 +31,21 @@ export default function BulletReferencePicker({ onSelect, onClear, selectedId, f
     if (!selectedId) setSelected(null);
   }, [selectedId, bullets]);
 
+  // Extract numeric caliber for sorting (e.g., ".308" → 0.308, "6.5mm" → 6.5)
+  const getCaliberNumeric = (cal) => {
+    if (!cal) return 0;
+    const match = cal.match(/[\d.]+/);
+    return match ? parseFloat(match[0]) : 0;
+  };
+
   const loadBullets = async () => {
     setLoading(true);
     const list = await base44.entities.BulletReference.list('-updated_date', 500);
     const sorted = [...list].sort((a, b) => {
       const mfr = (a.manufacturer || '').localeCompare(b.manufacturer || '');
       if (mfr !== 0) return mfr;
+      const cal = getCaliberNumeric(a.caliber) - getCaliberNumeric(b.caliber);
+      if (cal !== 0) return cal;
       const name = (a.bullet_name || '').localeCompare(b.bullet_name || '');
       if (name !== 0) return name;
       return (a.weight_grains || 0) - (b.weight_grains || 0);
