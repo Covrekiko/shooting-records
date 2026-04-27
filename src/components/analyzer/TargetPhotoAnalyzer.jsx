@@ -4,6 +4,10 @@ import { base44 } from '@/api/base44Client';
 import AIPhotoComparison from './AIPhotoComparison';
 import { mmToMoa, mmToMrad, calcGroupSizePixels, convertGroupSize } from '@/lib/groupSizeCalculations';
 
+// FEATURE FLAG: AI Target Photo Analysis is currently disabled because detection accuracy needs further work.
+// Manual marking remains the active production workflow. Keep AIPhotoComparison code for future AI improvements.
+const FEATURE_AI_TARGET_ANALYSIS = false;
+
 function calcCentroid(marks) {
   if (!marks.length) return { x: 0, y: 0 };
   const x = marks.reduce((s, m) => s + m.x, 0) / marks.length;
@@ -255,8 +259,8 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     };
   };
 
-  // If user chose AI mode, show AI comparison
-  if (analysisMode === 'ai' && photo) {
+  // If user chose AI mode, show AI comparison (disabled via feature flag)
+  if (analysisMode === 'ai' && photo && FEATURE_AI_TARGET_ANALYSIS) {
     return (
       <AIPhotoComparison
         session={session}
@@ -268,6 +272,11 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
         onSave={(payload) => { onSave(payload); }}
       />
     );
+  }
+
+  // Auto-route to manual mode if AI is disabled
+  if (analysisMode === 'ai' && !FEATURE_AI_TARGET_ANALYSIS) {
+    setAnalysisMode('manual');
   }
 
   return (
@@ -323,8 +332,8 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
         </div>
       )}
 
-      {/* Analysis Mode Choice */}
-      {photo && !analysisMode && (
+      {/* Analysis Mode Choice - AI disabled via feature flag */}
+      {photo && !analysisMode && FEATURE_AI_TARGET_ANALYSIS && (
         <div className="space-y-4 mb-4">
           <p className="font-semibold text-sm">How would you like to analyze this photo?</p>
           <div className="grid grid-cols-2 gap-3">
@@ -341,6 +350,13 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               <p className="text-xs text-muted-foreground mt-1">Full control</p>
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Auto-start manual mode when AI is disabled */}
+      {photo && !analysisMode && !FEATURE_AI_TARGET_ANALYSIS && (
+        <div className="text-sm text-muted-foreground mb-4 text-center">
+          Opening manual marking mode…
         </div>
       )}
 

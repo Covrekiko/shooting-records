@@ -3,6 +3,10 @@ import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Loader2, AlertCircle, CheckCircle2, Save, Trash2, X } from 'lucide-react';
 import { calcGroupSizePixels, convertGroupSize } from '@/lib/groupSizeCalculations';
 
+// FEATURE DISABLED: AI Target Photo Analysis is currently disabled because detection accuracy needs further work.
+// Manual marking remains the active production workflow. Keep this code for future AI improvements.
+// All AI data fields and logs are preserved in the database for later recovery.
+
 const inp = 'w-full px-3 py-2.5 border border-border rounded-xl bg-background text-sm';
 const lbl = 'block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1';
 
