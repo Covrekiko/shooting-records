@@ -172,6 +172,22 @@ export default function Rifles() {
                <p className="text-sm text-muted-foreground">{rifle.make} {rifle.model}</p>
                <p className="text-sm text-muted-foreground">{rifle.caliber}</p>
                {rifle.serial_number && <p className="text-sm text-muted-foreground font-mono">S/N: {rifle.serial_number}</p>}
+
+               {/* Cleaning Status and Rounds */}
+               {(() => {
+                 const roundsSinceClean = (rifle.total_rounds_fired || 0) - (rifle.rounds_at_last_cleaning || 0);
+                 const cleaningThreshold = rifle.cleaning_reminder_threshold || 100;
+                 const needsCleaning = roundsSinceClean >= cleaningThreshold;
+                 return (
+                   <div className="mt-3 pt-3 border-t border-border space-y-2">
+                     <p className="text-xs text-slate-500">Lifetime: {rifle.total_rounds_fired || 0} rounds</p>
+                     <div className={`text-xs font-semibold ${needsCleaning ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                       {needsCleaning ? '⚠️ Needs Cleaning' : '✓ Clean'} ({roundsSinceClean}R)
+                     </div>
+                   </div>
+                 );
+               })()}
+
                <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => startEdit(rifle)}
