@@ -28,14 +28,14 @@ export default function GroupCard({ group, session, isBest, onEdit, onDelete, on
           </div>
         </div>
         <div className="flex gap-1">
-          <button onClick={onMarkBest} title="Mark as best group" className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
+          <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onMarkBest(); }} title="Mark as best group" className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
             <Star className={`w-4 h-4 ${isBest ? 'text-primary fill-primary' : 'text-muted-foreground'}`} />
           </button>
-          <button onClick={onSaveToScope} title="Save to Scope Click Card" className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
+          <button type="button" onClick={onSaveToScope} title="Save to Scope Click Card" className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
             <ScanLine className="w-4 h-4 text-muted-foreground" />
           </button>
           {onDuplicate && (
-            <button onClick={onDuplicate} title="Duplicate group" className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
+            <button type="button" onClick={onDuplicate} title="Duplicate group" className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
               <Copy className="w-4 h-4 text-muted-foreground" />
             </button>
           )}
@@ -45,13 +45,13 @@ export default function GroupCard({ group, session, isBest, onEdit, onDelete, on
               <Image className="w-4 h-4 text-muted-foreground" />
             </a>
           )}
-          <button onClick={() => setShowDetail(true)} className="p-1.5 hover:bg-secondary rounded-lg transition-colors" title="View details">
+          <button type="button" onClick={() => setShowDetail(true)} className="p-1.5 hover:bg-secondary rounded-lg transition-colors" title="View details">
             <Eye className="w-4 h-4 text-muted-foreground" />
           </button>
-          <button onClick={onEdit} className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
+          <button type="button" onClick={onEdit} className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
             <Edit2 className="w-4 h-4 text-muted-foreground" />
           </button>
-          <button onClick={onDelete} className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors">
+          <button type="button" onClick={onDelete} className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
             <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
           </button>
         </div>

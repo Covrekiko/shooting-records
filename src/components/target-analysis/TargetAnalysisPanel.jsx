@@ -108,12 +108,18 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
   };
 
   const handleMarkBest = async (group) => {
-    for (const g of groups) {
-      if (g.id !== group.id && g.best_group) {
-        await base44.entities.TargetGroup.update(g.id, { best_group: false });
+    // If already best, just unmark it
+    if (group.best_group) {
+      await base44.entities.TargetGroup.update(group.id, { best_group: false });
+    } else {
+      // Mark this one as best, unmark all others
+      for (const g of groups) {
+        if (g.id !== group.id && g.best_group) {
+          await base44.entities.TargetGroup.update(g.id, { best_group: false });
+        }
       }
+      await base44.entities.TargetGroup.update(group.id, { best_group: true });
     }
-    await base44.entities.TargetGroup.update(group.id, { best_group: !group.best_group });
     loadAll();
   };
 
@@ -142,8 +148,8 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
     alert(`✓ Saved to scope click card: ${scopeProfile.scope_brand} at ${distance}m`);
   };
 
-  const bestGroup = groups.filter(g => g.group_size_moa).reduce((best, g) =>
-    !best || g.group_size_moa < best.group_size_moa ? g : best, null);
+  // Find the group marked as best by user (NOT auto-calculated from MOA)
+  const bestGroup = groups.find(g => g.best_group) || null;
 
   // Sub-screens — full-screen overlays
   if (showBallisticCalc) {
@@ -247,12 +253,12 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
             </div>
           )}
 
-          {/* Best Group Summary */}
+          {/* Best Group Summary — only show if user explicitly selected one */}
           {bestGroup && (
             <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 mb-4">
-              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">Best Group</p>
+              <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">⭐ Best Group (Selected by User)</p>
               <div className="flex items-center gap-4 flex-wrap">
-                <span className="text-2xl font-black">{bestGroup.group_size_moa?.toFixed(2)} MOA</span>
+                <span className="text-2xl font-black">{bestGroup.group_size_moa?.toFixed(2) || '—'} MOA</span>
                 {bestGroup.group_size_mm && <span className="text-muted-foreground">{bestGroup.group_size_mm}mm</span>}
                 {bestGroup.group_size_mrad && <span className="text-muted-foreground">{bestGroup.group_size_mrad?.toFixed(3)} MRAD</span>}
               </div>
@@ -266,6 +272,7 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
                   {' '}clicks
                 </p>
               )}
+              <p className="text-xs text-primary/70 mt-2">Click the star icon to unselect</p>
             </div>
           )}
 
