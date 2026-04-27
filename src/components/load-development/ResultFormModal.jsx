@@ -72,37 +72,64 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
     setForm(f => ({ ...f, photos: f.photos.filter((_, i) => i !== idx) }));
   };
 
-  const autoFillWeather = () => {
-    if (!navigator.geolocation) return;
-    setFetchingWeather(true);
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const { latitude, longitude } = pos.coords;
-          const res = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,surface_pressure&wind_speed_unit=mph`
-          );
-          const data = await res.json();
-          const current = data?.current;
-          if (current) {
-            setForm(f => ({
-              ...f,
-              air_pressure_value: Math.round(current.surface_pressure) ?? f.air_pressure_value,
-              air_pressure_unit: 'hPa',
-              temperature_value: current.temperature_2m ?? f.temperature_value,
-              temperature_unit: '°C',
-              humidity: current.relative_humidity_2m ?? f.humidity,
-            }));
-          }
-        } catch {
-          // silently fail
-        } finally {
-          setFetchingWeather(false);
-        }
-      },
-      () => { setFetchingWeather(false); },
-      { timeout: 8000 }
+  const fetchWeatherForCoords = async (latitude, longitude) => {
+    const res = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,surface_pressure`
     );
+    const data = await res.json();
+    const current = data?.current;
+    if (current) {
+      setForm(f => ({
+        ...f,
+        air_pressure_value: current.surface_pressure != null ? Math.round(current.surface_pressure) : f.air_pressure_value,
+        air_pressure_unit: 'hPa',
+        temperature_value: current.temperature_2m != null ? current.temperature_2m : f.temperature_value,
+        temperature_unit: '°C',
+        humidity: current.relative_humidity_2m != null ? current.relative_humidity_2m : f.humidity,
+      }));
+    }
+  };
+
+  const autoFillWeather = async () => {
+    setFetchingWeather(true);
+    try {
+      // Try geolocation first
+      if (navigator.geolocation) {
+        await new Promise((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+              await fetchWeatherForCoords(pos.coords.latitude, pos.coords.longitude);
+              resolve();
+            },
+            async () => {
+              // Geolocation denied — fall back to IP-based location
+              try {
+                const ipRes = await fetch('https://ipapi.co/json/');
+                const ipData = await ipRes.json();
+                if (ipData.latitude && ipData.longitude) {
+                  await fetchWeatherForCoords(ipData.latitude, ipData.longitude);
+                }
+              } catch {
+                // silently fail
+              }
+              resolve();
+            },
+            { timeout: 6000 }
+          );
+        });
+      } else {
+        // No geolocation API — use IP fallback
+        const ipRes = await fetch('https://ipapi.co/json/');
+        const ipData = await ipRes.json();
+        if (ipData.latitude && ipData.longitude) {
+          await fetchWeatherForCoords(ipData.latitude, ipData.longitude);
+        }
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setFetchingWeather(false);
+    }
   };
 
   const calcVelocityStats = () => {
