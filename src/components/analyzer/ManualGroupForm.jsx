@@ -40,6 +40,7 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
     point_of_impact_x: 0,
     point_of_impact_y: 0,
     confirmed: false,
+    best_group: editGroup?.best_group || false,
     notes: '',
     entry_method: 'manual',
     shooting_position: session.shooting_position || '',
@@ -122,6 +123,7 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
       clicks_up_down: (calculated?.clicksUp || 0) - (calculated?.clicksDown || 0),
       clicks_left_right: (calculated?.clicksRight || 0) - (calculated?.clicksLeft || 0),
       confirmed: form.confirmed,
+      best_group: form.best_group,
       notes: form.notes,
       entry_method: 'manual',
       shooting_position: form.shooting_position,
@@ -277,6 +279,10 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
           <label className="flex items-center gap-3 cursor-pointer">
             <input type="checkbox" checked={form.confirmed} onChange={e => set('confirmed', e.target.checked)} className="w-5 h-5" />
             <span className="font-semibold">Confirmed Zero ✓</span>
+          </label>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" checked={form.best_group} onChange={e => set('best_group', e.target.checked)} className="w-5 h-5" />
+            <span className="font-semibold">Mark as Best Group ⭐</span>
           </label>
           <div>
             <label className={lbl}>Notes</label>

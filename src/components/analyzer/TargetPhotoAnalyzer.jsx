@@ -61,6 +61,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const [uploadError, setUploadError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [results, setResults] = useState(null);
+  const [bestGroup, setBestGroup] = useState(editGroup?.best_group || false);
   const [setScaleMode, setSetScaleMode] = useState(false);
   const [scalePoints, setScalePoints] = useState([]);
   const canvasRef = useRef(null);
@@ -236,6 +237,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
       clicks_up_down: 0,
       clicks_left_right: 0,
       confirmed: confirmedZero,
+      best_group: bestGroup,
       entry_method: 'photo',
       photo_url: photo,
       bullet_holes: marks,
@@ -555,9 +557,13 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             <textarea value={notes} onChange={e => setNotes(e.target.value)} rows="2" placeholder="Notes about this group…" className={inp} />
           </div>
           <label className="flex items-center gap-3 mb-4 cursor-pointer">
-            <input type="checkbox" checked={confirmedZero} onChange={e => setConfirmedZero(e.target.checked)} className="w-5 h-5" />
-            <span className="font-semibold">Mark as Confirmed Zero</span>
-          </label>
+             <input type="checkbox" checked={confirmedZero} onChange={e => setConfirmedZero(e.target.checked)} className="w-5 h-5" />
+             <span className="font-semibold">Mark as Confirmed Zero</span>
+           </label>
+           <label className="flex items-center gap-3 mb-4 cursor-pointer">
+             <input type="checkbox" checked={bestGroup} onChange={e => setBestGroup(e.target.checked)} className="w-5 h-5" />
+             <span className="font-semibold">Mark as Best Group ⭐</span>
+           </label>
 
           {/* Results — below Notes, above Save */}
           {results && (

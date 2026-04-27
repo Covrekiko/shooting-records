@@ -43,6 +43,7 @@ export default function AIPhotoComparison({
   const [scalePx, setScalePx] = useState(null);
   const [groupName, setGroupName] = useState(editGroup?.group_name || `Group ${(editGroup?.id || 0) + 1}`);
   const [confirmedZero, setConfirmedZero] = useState(editGroup?.confirmed || false);
+  const [bestGroup, setBestGroup] = useState(editGroup?.best_group || false);
   const [notes, setNotes] = useState(editGroup?.notes || '');
   const [tab, setTab] = useState('ai'); // ai | manual | compare
   const [comparison, setComparison] = useState(null);
@@ -168,21 +169,22 @@ export default function AIPhotoComparison({
         ai_analysis_confirmed: true,
         
         bullet_holes: userMarks,
-        centre_x: centrePoint?.x || null,
-        centre_y: centrePoint?.y || null,
-        scale_mm_per_px: scalePx,
-        confirmed: confirmedZero,
-        notes,
-        shooting_position: shootingPosition || null,
-        distance_override: distanceOverride ? parseFloat(distanceOverride) : null,
-        rifle_id: selectedRifleId || null,
-        rifle_name: rifles.find(r => r.id === selectedRifleId)?.name || null,
-        ammunition_id: selectedAmmoId || null,
-        ammo_override: (() => {
-          const a = ammunition.find(x => x.id === selectedAmmoId);
-          return a ? `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.grain ? ` ${a.grain}gr` : ''}` : null;
-        })(),
-      };
+         centre_x: centrePoint?.x || null,
+         centre_y: centrePoint?.y || null,
+         scale_mm_per_px: scalePx,
+         confirmed: confirmedZero,
+         best_group: bestGroup,
+         notes,
+         shooting_position: shootingPosition || null,
+         distance_override: distanceOverride ? parseFloat(distanceOverride) : null,
+         rifle_id: selectedRifleId || null,
+         rifle_name: rifles.find(r => r.id === selectedRifleId)?.name || null,
+         ammunition_id: selectedAmmoId || null,
+         ammo_override: (() => {
+           const a = ammunition.find(x => x.id === selectedAmmoId);
+           return a ? `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.grain ? ` ${a.grain}gr` : ''}` : null;
+         })(),
+        };
       setSaving(false);
       onSave(payload);
     } catch (err) {
@@ -336,11 +338,18 @@ export default function AIPhotoComparison({
           </button>
 
           <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-            <div>
-              <label className={lbl}>Group Name</label>
-              <input value={groupName} onChange={e => setGroupName(e.target.value)} className={inp} />
-            </div>
-            {/* Additional fields would go here */}
+           <div>
+             <label className={lbl}>Group Name</label>
+             <input value={groupName} onChange={e => setGroupName(e.target.value)} className={inp} />
+           </div>
+           <label className="flex items-center gap-3 cursor-pointer">
+             <input type="checkbox" checked={confirmedZero} onChange={e => setConfirmedZero(e.target.checked)} className="w-5 h-5" />
+             <span className="font-semibold text-sm">Confirmed Zero</span>
+           </label>
+           <label className="flex items-center gap-3 cursor-pointer">
+             <input type="checkbox" checked={bestGroup} onChange={e => setBestGroup(e.target.checked)} className="w-5 h-5" />
+             <span className="font-semibold text-sm">Mark as Best Group ⭐</span>
+           </label>
           </div>
         </div>
       )}
