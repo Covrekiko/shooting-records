@@ -29,18 +29,18 @@ export default function AmmoSpendingBreakdown() {
         records = records.filter(r => new Date(r.date_used) >= ninetyDaysAgo);
       }
 
-      // Group by ammunition type
-      const grouped = {};
-      records.forEach(r => {
-        const key = `${r.brand} ${r.caliber}`;
-        if (!grouped[key]) {
-          grouped[key] = { brand: r.brand, caliber: r.caliber, total: 0, quantity: 0, sessions: 0, dates: [] };
-        }
-        grouped[key].total += r.total_cost || 0;
-        grouped[key].quantity += r.quantity_used || 0;
-        grouped[key].sessions += 1;
-        grouped[key].dates.push(r.date_used);
-      });
+      // Group by ammunition type (brand + caliber + bullet_type to avoid duplicates)
+       const grouped = {};
+       records.forEach(r => {
+         const key = `${r.brand}|${r.caliber}|${r.bullet_type || ''}`;
+         if (!grouped[key]) {
+           grouped[key] = { brand: r.brand, caliber: r.caliber, bullet_type: r.bullet_type, total: 0, quantity: 0, sessions: 0, dates: [] };
+         }
+         grouped[key].total += r.total_cost || 0;
+         grouped[key].quantity += r.quantity_used || 0;
+         grouped[key].sessions += 1;
+         grouped[key].dates.push(r.date_used);
+       });
 
       const sorted = Object.values(grouped).sort((a, b) => b.total - a.total);
       setSpending(sorted);
@@ -108,11 +108,11 @@ export default function AmmoSpendingBreakdown() {
             {spending.map((item, idx) => (
               <tr key={idx} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
                 <td className="py-3 px-3">
-                  <div>
-                    <p className="font-semibold text-foreground">{item.brand}</p>
-                    <p className="text-xs text-muted-foreground">{item.caliber}</p>
-                  </div>
-                </td>
+                   <div>
+                     <p className="font-semibold text-foreground">{item.brand}</p>
+                     <p className="text-xs text-muted-foreground">{item.caliber} {item.bullet_type && `• ${item.bullet_type}`}</p>
+                   </div>
+                 </td>
                 <td className="text-right py-3 px-3 text-foreground">{item.quantity}</td>
                 <td className="text-right py-3 px-3 text-foreground">{item.sessions}</td>
                 <td className="text-right py-3 px-3">
