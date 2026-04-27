@@ -42,7 +42,7 @@ export const RADIUS = {
   md: 'rounded-md',
   lg: 'rounded-lg',
   xl: 'rounded-xl',
-  2xl: 'rounded-2xl',
+  '2xl': 'rounded-2xl',
   full: 'rounded-full',
 };
 

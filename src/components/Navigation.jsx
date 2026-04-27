@@ -206,14 +206,14 @@ export default function Navigation() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.97 }}
               transition={{ duration: 0.15 }}
-              className="mx-3 mb-1 bg-white dark:bg-slate-800/95 rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-700/60 overflow-hidden"
+              className="mx-3 mb-1 bg-card rounded-2xl shadow-xl border border-border overflow-hidden"
             >
               {NAV_SECTIONS.map((section) => {
                 const visibleItems = section.items.filter(item => !item.module || isEnabled(item.module));
                 if (visibleItems.length === 0) return null;
                 return (
                 <div key={section.label} className="px-2 pt-2 pb-1">
-                  <p className="px-3 py-1 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{section.label}</p>
+                  <p className="px-3 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{section.label}</p>
                   {visibleItems.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item.path);
@@ -221,8 +221,8 @@ export default function Navigation() {
                       <Link key={item.path} to={item.path} onClick={() => setOpen(false)}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all active:scale-95 mb-0.5 select-none ${
                           active
-                            ? 'bg-slate-900 text-white dark:bg-primary dark:text-white'
-                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-foreground hover:bg-secondary'
                         }`}>
                         <Icon className="w-4 h-4 flex-shrink-0" />
                         <span className="flex-1">{item.label}</span>
@@ -235,17 +235,17 @@ export default function Navigation() {
                 })}
 
                 {/* Profile + Admin */}
-                <div className="px-2 pt-1 pb-2 border-t border-slate-100 dark:border-slate-700/60 mt-1">
+                <div className="px-2 pt-1 pb-2 border-t border-border mt-1">
                 {user?.role === 'admin' && (
                   <Link to="/admin/users" onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80 mb-0.5">
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-foreground hover:bg-secondary mb-0.5">
                     <Settings className="w-4 h-4" />
                     <span>Admin</span>
                   </Link>
                 )}
                 <Link to="/profile" onClick={() => setOpen(false)}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                    isActive('/profile') ? 'bg-slate-900 text-white' : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/80'
+                    isActive('/profile') ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-secondary'
                   }`}>
                   <User className="w-4 h-4" />
                   <span>Profile</span>
