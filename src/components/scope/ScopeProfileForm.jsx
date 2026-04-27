@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { X, Upload, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import BulletReferencePicker from '@/components/reference/BulletReferencePicker';
 import ScopeReferencePicker from '@/components/reference/ScopeReferencePicker';
+import UserAmmoSelector from '@/components/scope/UserAmmoSelector';
 
 const CLICK_VALUES = ['1/4 MOA', '1/8 MOA', '1/2 MOA', '1 MOA', '0.1 MRAD', '0.05 MRAD'];
 const SETUP_TYPES = [
@@ -15,7 +15,8 @@ export default function ScopeProfileForm({ profile, rifles, onSave, onClose }) {
   const [form, setForm] = useState({
     rifle_id: '', rifle_name: '', caliber: '', scope_brand: '', scope_model: '',
     reticle_type: '', turret_type: 'MOA', click_value: '1/4 MOA',
-    zero_distance: '', zero_ammo: '', bullet_brand: '', bullet_weight: '',
+    zero_distance: '', zero_ammo_id: '', zero_ammo_source: '',
+    zero_ammo: '', bullet_brand: '', bullet_weight: '',
     setup_type: 'standard', notes: '', photos: [], active: true,
   });
   const [uploading, setUploading] = useState(false);
@@ -135,39 +136,40 @@ export default function ScopeProfileForm({ profile, rifles, onSave, onClose }) {
             placeholder="Enter custom click value" className={inp} />
         )}
 
-        {/* Zero */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className={lbl}>Zero Distance</label>
-            <input value={form.zero_distance} onChange={e => set('zero_distance', e.target.value)} placeholder="e.g. 100m" className={inp} />
-          </div>
-          <div>
-            <label className={lbl}>Zero Ammo</label>
-            <input value={form.zero_ammo} onChange={e => set('zero_ammo', e.target.value)} placeholder="e.g. Federal 168gr" className={inp} />
-          </div>
+        {/* Zero Distance */}
+        <div>
+          <label className={lbl}>Zero Distance</label>
+          <input value={form.zero_distance} onChange={e => set('zero_distance', e.target.value)} placeholder="e.g. 100m" className={inp} />
         </div>
 
-        {/* Bullet Reference Picker */}
+        {/* User Ammo Selector */}
         <div>
-          <label className={lbl}>Bullet Reference Database <span className="normal-case font-normal text-muted-foreground">(optional autofill)</span></label>
-          <BulletReferencePicker
+          <label className={lbl}>Zero Ammunition <span className="normal-case font-normal text-muted-foreground">(from your inventory)</span></label>
+          <UserAmmoSelector
             filterCaliber={form.caliber}
-            onSelect={(b) => {
-              set('bullet_brand', b.manufacturer);
-              set('bullet_weight', b.weight_grains ? `${b.weight_grains}gr` : '');
+            onSelect={(a) => {
+              set('zero_ammo_id', a.id);
+              set('zero_ammo_source', a.source);
+              set('zero_ammo', a.name);
+              set('bullet_brand', a.brand);
+              if (a.weight_grains) set('bullet_weight', `${a.weight_grains}gr`);
             }}
-            onClear={() => {}}
+            onClear={() => {
+              set('zero_ammo_id', '');
+              set('zero_ammo_source', '');
+              set('zero_ammo', '');
+            }}
           />
         </div>
 
-        {/* Bullet */}
+        {/* Manual Bullet Override */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={lbl}>Bullet Brand</label>
+            <label className={lbl}>Bullet Brand <span className="normal-case font-normal text-muted-foreground">(manual override)</span></label>
             <input value={form.bullet_brand} onChange={e => set('bullet_brand', e.target.value)} placeholder="e.g. Hornady" className={inp} />
           </div>
           <div>
-            <label className={lbl}>Bullet Weight / Grains</label>
+            <label className={lbl}>Bullet Weight / Grains <span className="normal-case font-normal text-muted-foreground">(manual override)</span></label>
             <input value={form.bullet_weight} onChange={e => set('bullet_weight', e.target.value)} placeholder="e.g. 168gr" className={inp} />
           </div>
         </div>

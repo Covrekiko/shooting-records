@@ -11,16 +11,20 @@
       "description": "Cached rifle name"
     },
     "caliber": {
-      "type": "string"
+      "type": "string",
+      "description": "Rifle caliber"
     },
     "scope_brand": {
-      "type": "string"
+      "type": "string",
+      "description": "Scope manufacturer"
     },
     "scope_model": {
-      "type": "string"
+      "type": "string",
+      "description": "Scope model"
     },
     "reticle_type": {
-      "type": "string"
+      "type": "string",
+      "description": "Reticle type or name"
     },
     "turret_type": {
       "type": "string",
@@ -28,26 +32,40 @@
         "MOA",
         "MRAD"
       ],
-      "default": "MOA"
+      "default": "MOA",
+      "description": "Turret adjustment unit"
     },
     "click_value": {
       "type": "string",
-      "description": "e.g. 1/4 MOA, 0.1 MRAD"
+      "description": "Click value, e.g. 1/4 MOA, 0.1 MRAD"
     },
     "zero_distance": {
       "type": "string",
-      "description": "e.g. 100m, 100 yards"
+      "description": "Zero distance, e.g. 100m, 100 yards"
+    },
+    "zero_ammo_id": {
+      "type": "string",
+      "description": "ID of user's ammunition from Ammunition entity"
+    },
+    "zero_ammo_source": {
+      "type": "string",
+      "enum": [
+        "ammunition",
+        "reloading"
+      ],
+      "description": "Source of zero ammunition: user inventory or reloading load"
     },
     "zero_ammo": {
       "type": "string",
-      "description": "Ammunition used for zero"
+      "description": "Description of ammunition used for zero"
     },
     "bullet_brand": {
-      "type": "string"
+      "type": "string",
+      "description": "Bullet/ammo brand (manual or from linked ammo)"
     },
     "bullet_weight": {
       "type": "string",
-      "description": "Weight in grains or grams"
+      "description": "Bullet weight in grains or grams"
     },
     "setup_type": {
       "type": "string",
@@ -56,20 +74,24 @@
         "main_hunting",
         "target_shooting"
       ],
-      "default": "standard"
+      "default": "standard",
+      "description": "Setup classification"
     },
     "notes": {
-      "type": "string"
+      "type": "string",
+      "description": "User notes about the setup"
     },
     "photos": {
       "type": "array",
       "items": {
         "type": "string"
-      }
+      },
+      "description": "Photo URLs of rifle, scope, turret, zero target"
     },
     "active": {
       "type": "boolean",
-      "default": true
+      "default": true,
+      "description": "Whether this scope profile is active"
     }
   },
   "required": [
