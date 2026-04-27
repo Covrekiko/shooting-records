@@ -154,14 +154,14 @@ function KpiRow({ stats }) {
   return (
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
-        <div key={item.label} className="rounded-xl px-2 py-2.5 text-center shadow-sm" style={{
+        <div key={item.label} className="rounded-2xl px-3 py-3 text-center shadow-sm" style={{
           backgroundColor: 'var(--app-card)',
           borderColor: 'var(--app-border)',
           borderWidth: '1px',
           boxShadow: 'var(--app-shadow)',
         }}>
-          <p className="text-base md:text-lg font-bold leading-none" style={{ color: 'var(--app-text)' }}>{item.value}</p>
-          <p className="text-[10px] mt-1 font-medium" style={{ color: 'var(--app-text-muted)' }}>{item.label}</p>
+          <p className="text-base md:text-lg font-bold leading-none" style={{ color: 'var(--app-accent)' }}>{item.value}</p>
+          <p className="text-[10px] mt-1.5 font-semibold uppercase tracking-wide" style={{ color: 'var(--app-text-muted)' }}>{item.label}</p>
         </div>
       ))}
     </div>
@@ -177,9 +177,9 @@ function PrimaryCard({ to, icon, label, sub }) {
         borderWidth: '1px',
         boxShadow: 'var(--app-shadow)',
       }}>
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 select-none" style={{
-          backgroundColor: 'var(--app-accent-soft)',
-          color: 'var(--app-accent)',
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 [&_svg]:w-6 [&_svg]:h-6 select-none" style={{
+          backgroundColor: 'var(--app-icon-bg)',
+          color: 'var(--app-icon)',
         }}>
           {icon}
         </div>
@@ -198,7 +198,7 @@ function SecondaryGrid({ user }) {
   const allItems = [
     { to: '/target-shooting', icon: <Crosshair className="w-5 h-5" />, label: 'Target', module: 'target_shooting' },
     { to: '/clay-shooting', icon: <Target className="w-5 h-5" />, label: 'Clay', module: 'clay_shooting' },
-    { to: '/deer-management', icon: <Crosshair className="w-5 h-5" />, label: 'Deer', module: 'deer_management' },
+    { to: '/deer-management', icon: <Layers className="w-5 h-5" />, label: 'Deer', module: 'deer_management' },
     { to: '/reloading', icon: <RefreshCw className="w-5 h-5" />, label: 'Reloading', module: 'reloading' },
     { to: '/load-development', icon: <FlaskConical className="w-5 h-5" />, label: 'Load Dev', module: 'reloading' },
     { to: '/settings/rifles', icon: <Settings className="w-5 h-5" />, label: 'Equipment' },
@@ -217,9 +217,9 @@ function SecondaryGrid({ user }) {
             borderWidth: '1px',
             boxShadow: 'var(--app-shadow)',
           }}>
-            <div className="w-9 h-9 rounded-lg flex items-center justify-center [&_svg]:w-5 [&_svg]:h-5 select-none" style={{
-              backgroundColor: 'var(--app-accent-soft)',
-              color: 'var(--app-accent)',
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 select-none" style={{
+              backgroundColor: 'var(--app-icon-bg)',
+              color: 'var(--app-icon)',
             }}>
               {item.icon}
             </div>
