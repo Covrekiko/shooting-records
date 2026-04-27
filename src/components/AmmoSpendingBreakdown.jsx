@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
-import { TrendingUp, Calendar } from 'lucide-react';
+import { TrendingUp, Calendar, Trash2 } from 'lucide-react';
 
 export default function AmmoSpendingBreakdown() {
   const [spending, setSpending] = useState([]);
@@ -13,11 +13,27 @@ export default function AmmoSpendingBreakdown() {
     loadSpending();
   }, [timeframe]);
 
-  const loadSpending = async () => {
+  const handleDeleteSpending = async (brand, caliber, bulletType) => {
+    if (!confirm(`Delete all spending records for ${brand} ${caliber}${bulletType ? ` (${bulletType})` : ''}?`)) return;
     try {
-      setLoading(true);
       const user = await base44.auth.me();
-      let records = await base44.entities.AmmoSpending.filter({ created_by: user.email });
+      const records = await base44.entities.AmmoSpending.filter({ created_by: user.email, brand, caliber });
+      const filtered = bulletType ? records.filter(r => r.bullet_type === bulletType) : records.filter(r => !r.bullet_type || r.bullet_type === '');
+      for (const record of filtered) {
+        await base44.entities.AmmoSpending.delete(record.id);
+      }
+      loadSpending();
+    } catch (error) {
+      console.error('Error deleting spending:', error);
+      alert('Error deleting records');
+    }
+  };
+
+  const loadSpending = async () => {
+     try {
+       setLoading(true);
+       const user = await base44.auth.me();
+       let records = await base44.entities.AmmoSpending.filter({ created_by: user.email });
 
       // Filter by timeframe
       const now = new Date();
@@ -102,6 +118,7 @@ export default function AmmoSpendingBreakdown() {
               <th className="text-right py-2 px-3 font-semibold text-slate-600 dark:text-slate-300">Rounds Used</th>
               <th className="text-right py-2 px-3 font-semibold text-slate-600 dark:text-slate-300">Sessions</th>
               <th className="text-right py-2 px-3 font-semibold text-slate-600 dark:text-slate-300">Cost</th>
+              <th className="text-right py-2 px-3"></th>
             </tr>
           </thead>
           <tbody>
@@ -116,9 +133,18 @@ export default function AmmoSpendingBreakdown() {
                 <td className="text-right py-3 px-3 text-foreground">{item.quantity}</td>
                 <td className="text-right py-3 px-3 text-foreground">{item.sessions}</td>
                 <td className="text-right py-3 px-3">
-                  <p className="font-semibold text-primary">£{item.total.toFixed(2)}</p>
-                </td>
-              </tr>
+                   <p className="font-semibold text-primary">£{item.total.toFixed(2)}</p>
+                 </td>
+                 <td className="text-right py-3 px-3">
+                   <button
+                     onClick={() => handleDeleteSpending(item.brand, item.caliber, item.bullet_type)}
+                     className="p-1 text-destructive hover:bg-destructive/10 rounded transition-colors"
+                     title="Delete this spending record"
+                   >
+                     <Trash2 className="w-4 h-4" />
+                   </button>
+                 </td>
+                </tr>
             ))}
           </tbody>
         </table>
