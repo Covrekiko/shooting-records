@@ -7,8 +7,9 @@ import CheckinBanner from '@/components/CheckinBanner';
 import { calculateDistance } from '@/hooks/useGeolocation';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import RecordsSection from '@/components/RecordsSection';
-import { Plus, Map, Crosshair, ScanLine, Microscope } from 'lucide-react';
+import { Plus, Map, Crosshair, ScanLine, Microscope, Calculator } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import BallisticCalculator from '@/components/target-analysis/BallisticCalculator';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
@@ -45,6 +46,7 @@ export default function TargetShooting() {
   const [gpsTrack, setGpsTrack] = useState([]);
   const [viewingTrack, setViewingTrack] = useState(null);
   const [showTargetAnalysis, setShowTargetAnalysis] = useState(false);
+  const [showBallisticCalc, setShowBallisticCalc] = useState(false);
   const [autoCheckinMatch, setAutoCheckinMatch] = useState(null);
   const [autoCheckinEnabled, setAutoCheckinEnabled] = useState(false);
 
@@ -371,20 +373,29 @@ export default function TargetShooting() {
           </div>
         )}
 
-        {/* Scope Click Card Banner */}
-        <Link
-          to="/scope-click-card"
-          className="flex items-center justify-between gap-3 bg-primary/10 border border-primary/30 rounded-xl px-5 py-4 mb-4 hover:bg-primary/15 transition-colors group"
-        >
-          <div className="flex items-center gap-3">
-            <ScanLine className="w-5 h-5 text-primary flex-shrink-0" />
-            <div>
-              <p className="font-semibold text-sm">Scope Click Cards / Ballistic DOPE</p>
-              <p className="text-xs text-muted-foreground">Manage scope profiles, click data & range confirmations</p>
+        {/* Quick tools row */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <Link
+            to="/scope-click-card"
+            className="flex flex-col gap-1.5 bg-primary/10 border border-primary/30 rounded-xl px-4 py-3.5 hover:bg-primary/15 transition-colors group"
+          >
+            <div className="flex items-center gap-2">
+              <ScanLine className="w-4 h-4 text-primary flex-shrink-0" />
+              <p className="font-semibold text-sm">Scope / DOPE</p>
             </div>
-          </div>
-          <span className="text-xs font-semibold text-primary group-hover:underline whitespace-nowrap">Open →</span>
-        </Link>
+            <p className="text-xs text-muted-foreground">Click cards & range data</p>
+          </Link>
+          <button
+            onClick={() => setShowBallisticCalc(true)}
+            className="flex flex-col gap-1.5 bg-primary/10 border border-primary/30 rounded-xl px-4 py-3.5 hover:bg-primary/15 transition-colors text-left w-full"
+          >
+            <div className="flex items-center gap-2">
+              <Calculator className="w-4 h-4 text-primary flex-shrink-0" />
+              <p className="font-semibold text-sm">Ballistic Calc</p>
+            </div>
+            <p className="text-xs text-muted-foreground">Drop & drift tables</p>
+          </button>
+        </div>
 
         <div className="mt-4">
           <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Sessions</p>
@@ -399,6 +410,18 @@ export default function TargetShooting() {
           sessionRecord={activeSession}
           onClose={() => setShowTargetAnalysis(false)}
         />
+      )}
+
+      {showBallisticCalc && createPortal(
+        <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto">
+          <div className="max-w-2xl mx-auto px-4 pt-4 pb-8">
+            <BallisticCalculator
+              session={null}
+              onBack={() => setShowBallisticCalc(false)}
+            />
+          </div>
+        </div>,
+        document.body
       )}
 
       {createPortal(
