@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import Navigation from '@/components/Navigation';
 import { Link } from 'react-router-dom';
 import { UserPlus, MoreVertical, Ban, Pause, MessageCircle, Users, Zap } from 'lucide-react';
@@ -8,6 +9,7 @@ export default function AdminUsers() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const { invalidateUserCache } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     firstName: '',
@@ -72,8 +74,9 @@ export default function AdminUsers() {
 
   const handleMakeBetaTester = async (userId) => {
     try {
-      await base44.entities.User.update(userId, { role: 'beta_tester', beta_tester_status: 'active' });
-      setUsers(users.map(u => u.id === userId ? { ...u, role: 'beta_tester' } : u));
+      await base44.entities.User.update(userId, { role: 'beta_tester', status: 'active' });
+      setUsers(users.map(u => u.id === userId ? { ...u, role: 'beta_tester', status: 'active' } : u));
+      invalidateUserCache();
       setSelectedUserMenu(null);
     } catch (error) {
       console.error('Error making beta tester:', error);
@@ -269,7 +272,11 @@ export default function AdminUsers() {
                   <td className="px-6 py-4 text-sm text-muted-foreground">{user.email}</td>
                   <td className="px-6 py-4 text-sm text-muted-foreground">{user.phone || '-'}</td>
                   <td className="px-6 py-4 text-sm">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${user.role === 'admin' ? 'bg-primary/20 text-primary' : 'bg-secondary'}`}>
+                    <span className={`px-2 py-1 rounded text-xs font-medium ${
+                      user.role === 'admin' ? 'bg-primary/20 text-primary' : 
+                      user.role === 'beta_tester' ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200' : 
+                      'bg-secondary'
+                    }`}>
                       {user.role}
                     </span>
                   </td>

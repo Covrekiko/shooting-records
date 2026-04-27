@@ -163,8 +163,14 @@ export const AuthProvider = ({ children }) => {
   const refreshUser = async () => {
     const currentUser = await base44.auth.me();
     setUser(currentUser);
+    // Always refresh cache to ensure role/status changes are picked up
     cacheUserProfile(currentUser).catch(() => {});
     return currentUser;
+  };
+
+  const invalidateUserCache = () => {
+    // Force a fresh fetch on next auth check (for when admin changes user role)
+    localStorage.removeItem('cachedUserProfile');
   };
 
   return (
@@ -179,7 +185,8 @@ export const AuthProvider = ({ children }) => {
       logout,
       navigateToLogin,
       checkAppState,
-      refreshUser
+      refreshUser,
+      invalidateUserCache
     }}>
       {children}
     </AuthContext.Provider>
