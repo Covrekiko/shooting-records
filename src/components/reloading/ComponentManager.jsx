@@ -6,6 +6,7 @@ import { searchCalibers } from '@/utils/caliberCatalog';
 import BrassLifecycleManager from './BrassLifecycleManager';
 import { downloadBrassBatchPdf } from '@/utils/brassPdfExport';
 import AddBrassModal from './AddBrassModal';
+import AddComponentModal from './AddComponentModal';
 
 const COMPONENT_TYPES = [
   { value: 'primer', label: 'Primer', units: ['pieces'] },
@@ -26,6 +27,8 @@ export default function ComponentManager() {
   const [showCaliberDropdown, setShowCaliberDropdown] = useState(false);
   const [caliberResults, setCaliberResults] = useState([]);
   const [showAddBrassModal, setShowAddBrassModal] = useState(false);
+  const [showAddComponentModal, setShowAddComponentModal] = useState(false);
+  const [addComponentType, setAddComponentType] = useState(null);
   const [formData, setFormData] = useState({
     component_type: 'primer',
     name: '',
@@ -292,6 +295,18 @@ export default function ComponentManager() {
     }
   };
 
+  const handleSaveComponent = async (componentData) => {
+    try {
+      await base44.entities.ReloadingComponent.create(componentData);
+      setShowAddComponentModal(false);
+      setAddComponentType(null);
+      await loadComponents();
+    } catch (error) {
+      console.error('Error saving component:', error);
+      alert('Error saving component: ' + error.message);
+    }
+  };
+
   const handleCaliberSearch = (query) => {
     if (!query) {
       setCaliberResults([]);
@@ -342,6 +357,12 @@ export default function ComponentManager() {
         isOpen={showAddBrassModal}
         onClose={() => setShowAddBrassModal(false)}
         onSave={handleSaveBrass}
+      />
+      <AddComponentModal
+        isOpen={showAddComponentModal}
+        onClose={() => { setShowAddComponentModal(false); setAddComponentType(null); }}
+        onSave={handleSaveComponent}
+        componentType={addComponentType}
       />
       {/* Form */}
       {showForm && (
@@ -679,22 +700,21 @@ export default function ComponentManager() {
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-bold text-lg">{type.label}s ({typeComponents.length})</h3>
                 {!showForm && (
-                   <button
-                     onClick={() => {
-                       if (type.value === 'brass') {
-                         setShowAddBrassModal(true);
-                       } else {
-                         setFormData({ ...formData, component_type: type.value, unit: type.units[0], caliber: '', brand: '', bullet_name: '', weight: '', weight_unit: 'gr' });
-                         setShowForm(true);
-                         setLockedComponentType(type.value);
-                       }
-                     }}
-                     className="px-3 py-1 bg-primary text-primary-foreground rounded-lg text-sm font-medium flex items-center gap-1 hover:opacity-90"
-                   >
-                     <Plus className="w-4 h-4" />
-                     Add
-                   </button>
-                 )}
+                    <button
+                      onClick={() => {
+                        if (type.value === 'brass') {
+                          setShowAddBrassModal(true);
+                        } else {
+                          setAddComponentType(type.value);
+                          setShowAddComponentModal(true);
+                        }
+                      }}
+                      className="px-3 py-1 bg-primary text-primary-foreground rounded-lg text-sm font-medium flex items-center gap-1 hover:opacity-90"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add
+                    </button>
+                  )}
               </div>
 
               {typeComponents.length === 0 ? (
