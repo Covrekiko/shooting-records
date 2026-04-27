@@ -56,19 +56,23 @@ export default function ReferenceDatabase() {
 
   const filteredBullets = bullets.filter(b => {
     const q = search.toLowerCase();
-    const matchSearch = !q || [b.manufacturer, b.bullet_name, b.caliber, b.bullet_type, b.bullet_construction]
+    const matchSearch = !q || [b.manufacturer, b.bullet_name, b.caliber, b.bullet_type, b.bullet_construction, b.bullet_family]
       .some(v => v?.toLowerCase().includes(q));
     const matchMfr = !filters.manufacturer || b.manufacturer === filters.manufacturer;
     const matchCal = !filters.caliber || b.caliber === filters.caliber;
     const matchType = !filters.bullet_type || b.bullet_type === filters.bullet_type;
+    const matchHuntMatch = !filters.hunting_or_match || b.hunting_or_match === filters.hunting_or_match;
     const matchLeadFree = !filters.lead_free || b.lead_free === true;
     const matchG1 = !filters.has_g1 || b.ballistic_coefficient_g1;
     const matchG7 = !filters.has_g7 || b.ballistic_coefficient_g7;
-    return matchSearch && matchMfr && matchCal && matchType && matchLeadFree && matchG1 && matchG7;
+    const matchDia = !filters.diameter || (b.diameter_inch && Math.abs(b.diameter_inch - parseFloat(filters.diameter)) < 0.002);
+    return matchSearch && matchMfr && matchCal && matchType && matchHuntMatch && matchLeadFree && matchG1 && matchG7 && matchDia;
   });
 
   // Scope filters
   const scopeManufacturers = [...new Set(scopes.map(s => s.manufacturer).filter(Boolean))].sort();
+
+  const scopeTubeDiameters = [...new Set(scopes.map(s => s.tube_diameter_mm).filter(Boolean))].sort((a,b) => a-b);
 
   const filteredScopes = scopes.filter(s => {
     const q = search.toLowerCase();
@@ -77,7 +81,10 @@ export default function ReferenceDatabase() {
     const matchMfr = !filters.scope_manufacturer || s.manufacturer === filters.scope_manufacturer;
     const matchTurret = !filters.turret_unit || s.turret_unit === filters.turret_unit;
     const matchFP = !filters.focal_plane || s.focal_plane === filters.focal_plane;
-    return matchSearch && matchMfr && matchTurret && matchFP;
+    const matchTube = !filters.tube_diameter_mm || s.tube_diameter_mm === parseFloat(filters.tube_diameter_mm);
+    const matchMagMin = !filters.mag_min || s.magnification_max >= parseFloat(filters.mag_min);
+    const matchReticle = !filters.reticle || s.reticle_name?.toLowerCase().includes(filters.reticle.toLowerCase());
+    return matchSearch && matchMfr && matchTurret && matchFP && matchTube && matchMagMin && matchReticle;
   });
 
   const setFilter = (key, val) => setFilters(prev => ({ ...prev, [key]: val || undefined }));
@@ -132,13 +139,16 @@ export default function ReferenceDatabase() {
 
         {/* Filter panel */}
         {showFilters && (
-          <div className="bg-card border border-border rounded-2xl p-4 mb-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="bg-card border border-border rounded-2xl p-4 mb-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             {tab === 'bullets' ? (
               <>
                 <FilterSelect label="Manufacturer" value={filters.manufacturer} onChange={v => setFilter('manufacturer', v)} options={bulletManufacturers} />
                 <FilterSelect label="Caliber" value={filters.caliber} onChange={v => setFilter('caliber', v)} options={bulletCalibers} />
                 <FilterSelect label="Type" value={filters.bullet_type} onChange={v => setFilter('bullet_type', v)} options={['Match/Target','Hunting','Varmint','Plinking','Lead-Free','Solid','Rimfire','Slug','Other']} />
-                <div className="flex flex-col gap-2 justify-end">
+                <FilterSelect label="Use" value={filters.hunting_or_match} onChange={v => setFilter('hunting_or_match', v)} options={['Hunting','Match','Both','Varmint','Other']} />
+                <FilterSelect label="Diameter (inch)" value={filters.diameter} onChange={v => setFilter('diameter', v)}
+                  options={[...new Set(bullets.map(b => b.diameter_inch).filter(Boolean))].sort((a,b)=>a-b).map(d => String(d))} />
+                <div className="flex flex-col gap-2 justify-end col-span-2 md:col-span-1">
                   <label className="flex items-center gap-2 text-sm cursor-pointer">
                     <input type="checkbox" checked={!!filters.lead_free} onChange={e => setFilter('lead_free', e.target.checked || undefined)} className="w-4 h-4" />
                     Lead-Free only
@@ -152,12 +162,24 @@ export default function ReferenceDatabase() {
                     Has G7 BC
                   </label>
                 </div>
+                <button onClick={() => setFilters({})} className="text-xs text-destructive hover:underline self-end pb-1">Clear all</button>
               </>
             ) : (
               <>
                 <FilterSelect label="Manufacturer" value={filters.scope_manufacturer} onChange={v => setFilter('scope_manufacturer', v)} options={scopeManufacturers} />
                 <FilterSelect label="Turret Unit" value={filters.turret_unit} onChange={v => setFilter('turret_unit', v)} options={['MOA','MRAD']} />
                 <FilterSelect label="Focal Plane" value={filters.focal_plane} onChange={v => setFilter('focal_plane', v)} options={['FFP','SFP']} />
+                <FilterSelect label="Tube Ø (mm)" value={filters.tube_diameter_mm} onChange={v => setFilter('tube_diameter_mm', v)} options={scopeTubeDiameters.map(String)} />
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-1">Min Magnification</label>
+                  <input type="number" min="1" max="50" value={filters.mag_min || ''} onChange={e => setFilter('mag_min', e.target.value)}
+                    placeholder="e.g. 5" className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-muted-foreground uppercase tracking-wide mb-1">Reticle contains</label>
+                  <input type="text" value={filters.reticle || ''} onChange={e => setFilter('reticle', e.target.value)}
+                    placeholder="e.g. MRAD" className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm" />
+                </div>
                 <button onClick={() => setFilters({})} className="text-xs text-destructive hover:underline self-end pb-1">Clear all</button>
               </>
             )}
