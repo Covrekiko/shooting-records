@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 /**
  * Custom pull-to-refresh hook.
@@ -9,6 +9,12 @@ export function usePullToRefresh(onRefresh, threshold = 80) {
   const [state, setState] = useState({ pulling: false, progress: 0, refreshing: false });
   const startY = useRef(null);
   const currentY = useRef(null);
+  const callbackRef = useRef(onRefresh);
+
+  // Update callback ref whenever onRefresh changes
+  useEffect(() => {
+    callbackRef.current = onRefresh;
+  }, [onRefresh]);
 
   useEffect(() => {
     const onTouchStart = (e) => {
@@ -31,7 +37,7 @@ export function usePullToRefresh(onRefresh, threshold = 80) {
       const delta = (currentY.current || 0) - startY.current;
       if (delta >= threshold) {
         setState({ pulling: false, progress: 0, refreshing: true });
-        Promise.resolve(onRefresh()).finally(() => {
+        Promise.resolve(callbackRef.current()).finally(() => {
           setState({ pulling: false, progress: 0, refreshing: false });
         });
       } else {
@@ -50,7 +56,7 @@ export function usePullToRefresh(onRefresh, threshold = 80) {
       document.removeEventListener('touchmove', onTouchMove);
       document.removeEventListener('touchend', onTouchEnd);
     };
-  }, [onRefresh, threshold]);
+  }, [threshold]);
 
   return state;
 }
