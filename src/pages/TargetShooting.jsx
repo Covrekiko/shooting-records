@@ -57,6 +57,10 @@ export default function TargetShooting() {
     notes: '',
   });
 
+  useEffect(() => {
+    base44.auth.me().then(u => setAutoCheckinEnabled(u?.autoCheckinEnabled === true));
+  }, []);
+
   useAutoCheckin({
     enabled: autoCheckinEnabled,
     clubs: clubs.filter(c => c.type === 'Target Shooting' || c.type === 'Both'),
@@ -64,10 +68,6 @@ export default function TargetShooting() {
     hasActiveSession: !!activeSession,
     onAutoCheckin: (match) => setAutoCheckinMatch(match),
   });
-
-  useEffect(() => {
-    base44.auth.me().then(u => setAutoCheckinEnabled(u?.autoCheckinEnabled === true));
-  }, []);
 
   const handleAutoCheckinConfirm = async () => {
     if (!autoCheckinMatch || activeSession) return;
