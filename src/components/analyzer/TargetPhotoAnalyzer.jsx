@@ -66,14 +66,14 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const imgRef = useRef(null);
   const [imgSize, setImgSize] = useState(null);
 
-  useEffect(() => { if (marks.length >= 2 || centrePoint) recalculate(); }, [marks, centrePoint, aimPoint, scalePx, distanceOverride, distanceUnit]);
-
-  const recalculate = () => {
-    if (!scalePx || marks.length < 2) return;
+  useEffect(() => {
+    if (!scalePx || marks.length < 2) {
+      if (marks.length < 2) setResults(null);
+      return;
+    }
     const groupPx = calcGroupSize(marks);
     const groupMm = groupPx * scalePx;
 
-    // Effective distance in meters for MOA/MRAD
     let distM = null;
     const rawDist = distanceOverride !== '' ? parseFloat(distanceOverride) : parseFloat(session.distance);
     if (rawDist > 0) {
@@ -87,10 +87,8 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     let poiX = 0, poiY = 0;
     if (centrePoint && marks.length) {
       const centroid = calcCentroid(marks);
-      const dxPx = centroid.x - centrePoint.x;
-      const dyPx = centroid.y - centrePoint.y;
-      poiX = dxPx * scalePx;
-      poiY = -dyPx * scalePx;
+      poiX = (centroid.x - centrePoint.x) * scalePx;
+      poiY = -(centroid.y - centrePoint.y) * scalePx;
     }
 
     setResults({
@@ -104,7 +102,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
       poiY: Math.round(poiY * 10) / 10,
       hasDistance: distM !== null,
     });
-  };
+  }, [marks, centrePoint, aimPoint, scalePx, distanceOverride, distanceUnit]);
 
   const handlePhotoUpload = async (file) => {
     if (!file) return;
