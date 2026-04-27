@@ -172,6 +172,12 @@ function Field({ label, error, required, children }) {
 }
 
 function SettingsPanel() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(setUser).catch(() => {});
+  }, []);
+
   return (
     <div className="space-y-6">
       <div>
@@ -188,14 +194,16 @@ function SettingsPanel() {
         <SettingCard title="Ammunition Inventory" description="Track stock levels & costs" link="/settings/ammunition-inventory" />
       </div>
 
-      <div>
-        <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3">Reference Databases</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          <SettingCard title="📚 Reference Database" description="Full bullet & scope library — search, filter, import CSV/JSON, manage all records" link="/settings/reference-database" />
-          <SettingCard title="🔵 Bullet Library" description="Quick access to bullet reference records" link="/settings/bullet-reference" />
-          <SettingCard title="🔭 Scope Library" description="Quick access to scope reference records" link="/settings/scope-reference" />
+      {user?.role === 'admin' && (
+        <div>
+          <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3">Reference Databases</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <SettingCard title="📚 Reference Database" description="Full bullet & scope library — search, filter, import CSV/JSON, manage all records" link="/settings/reference-database" />
+            <SettingCard title="🔵 Bullet Library" description="Quick access to bullet reference records" link="/settings/bullet-reference" />
+            <SettingCard title="🔭 Scope Library" description="Quick access to scope reference records" link="/settings/scope-reference" />
+          </div>
         </div>
-      </div>
+      )}
 
       <div>
         <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3">App Settings</h3>
