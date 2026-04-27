@@ -1,32 +1,62 @@
 import { useEffect } from 'react';
 
 /**
- * Locks document.body scroll when `isLocked` is true.
- * Restores the original overflow and position on cleanup.
- * Prevents the iOS "rubber-band" scroll-through bug by fixing body position.
+ * Prevents body scroll when a modal/sheet is open
+ * Handles iOS Safari overscroll behavior
  */
-export function useBodyScrollLock(isLocked) {
+export function useBodyScrollLock(isLocked = true) {
   useEffect(() => {
-    if (!isLocked) return;
+    if (!isLocked) {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      return;
+    }
 
-    const body = document.body;
-    const originalOverflow = body.style.overflow;
-    const originalPosition = body.style.position;
-    const originalTop = body.style.top;
-    const originalWidth = body.style.width;
-    const scrollY = window.scrollY;
+    // Lock scroll
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
 
-    body.style.overflow = 'hidden';
-    body.style.position = 'fixed';
-    body.style.top = `-${scrollY}px`;
-    body.style.width = '100%';
+    // Prevent iOS Safari bounce scroll
+    const preventScroll = (e) => {
+      if (e.target.closest('[data-scrollable]')) {
+        return; // Allow scroll inside modal
+      }
+      e.preventDefault();
+    };
+
+    document.addEventListener('touchmove', preventScroll, { passive: false });
 
     return () => {
-      body.style.overflow = originalOverflow;
-      body.style.position = originalPosition;
-      body.style.top = originalTop;
-      body.style.width = originalWidth;
-      window.scrollTo(0, scrollY);
+      document.removeEventListener('touchmove', preventScroll);
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     };
   }, [isLocked]);
+}
+
+/**
+ * Hook to manage inert attribute on background elements
+ * Makes background elements non-interactive when modal is open
+ */
+export function useBackgroundInert(isInert = true, selector = 'main, nav') {
+  useEffect(() => {
+    const elements = document.querySelectorAll(selector);
+    
+    elements.forEach((el) => {
+      if (isInert) {
+        el.setAttribute('inert', '');
+        el.setAttribute('aria-hidden', 'true');
+      } else {
+        el.removeAttribute('inert');
+        el.removeAttribute('aria-hidden');
+      }
+    });
+
+    return () => {
+      elements.forEach((el) => {
+        el.removeAttribute('inert');
+        el.removeAttribute('aria-hidden');
+      });
+    };
+  }, [isInert, selector]);
 }
