@@ -72,61 +72,62 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
     setForm(f => ({ ...f, photos: f.photos.filter((_, i) => i !== idx) }));
   };
 
+  const applyWeatherData = (current) => {
+    if (!current) return false;
+    setForm(f => ({
+      ...f,
+      air_pressure_value: current.surface_pressure != null ? Math.round(current.surface_pressure) : f.air_pressure_value,
+      air_pressure_unit: 'hPa',
+      temperature_value: current.temperature_2m != null ? current.temperature_2m : f.temperature_value,
+      temperature_unit: '°C',
+      humidity: current.relative_humidity_2m != null ? current.relative_humidity_2m : f.humidity,
+    }));
+    return true;
+  };
+
   const fetchWeatherForCoords = async (latitude, longitude) => {
     const res = await fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,surface_pressure`
     );
     const data = await res.json();
-    const current = data?.current;
-    if (current) {
-      setForm(f => ({
-        ...f,
-        air_pressure_value: current.surface_pressure != null ? Math.round(current.surface_pressure) : f.air_pressure_value,
-        air_pressure_unit: 'hPa',
-        temperature_value: current.temperature_2m != null ? current.temperature_2m : f.temperature_value,
-        temperature_unit: '°C',
-        humidity: current.relative_humidity_2m != null ? current.relative_humidity_2m : f.humidity,
-      }));
-    }
+    return applyWeatherData(data?.current);
   };
 
   const autoFillWeather = async () => {
     setFetchingWeather(true);
     try {
-      // Try geolocation first
-      if (navigator.geolocation) {
-        await new Promise((resolve) => {
-          navigator.geolocation.getCurrentPosition(
-            async (pos) => {
-              await fetchWeatherForCoords(pos.coords.latitude, pos.coords.longitude);
-              resolve();
-            },
-            async () => {
-              // Geolocation denied — fall back to IP-based location
-              try {
-                const ipRes = await fetch('https://ipapi.co/json/');
-                const ipData = await ipRes.json();
-                if (ipData.latitude && ipData.longitude) {
-                  await fetchWeatherForCoords(ipData.latitude, ipData.longitude);
-                }
-              } catch {
-                // silently fail
-              }
-              resolve();
-            },
-            { timeout: 6000 }
-          );
-        });
-      } else {
-        // No geolocation API — use IP fallback
-        const ipRes = await fetch('https://ipapi.co/json/');
-        const ipData = await ipRes.json();
-        if (ipData.latitude && ipData.longitude) {
-          await fetchWeatherForCoords(ipData.latitude, ipData.longitude);
+      // First try: browser geolocation
+      const geoSuccess = await new Promise((resolve) => {
+        if (!navigator.geolocation) { resolve(false); return; }
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            const ok = await fetchWeatherForCoords(pos.coords.latitude, pos.coords.longitude);
+            resolve(ok);
+          },
+          () => resolve(false),
+          { timeout: 6000, maximumAge: 60000 }
+        );
+      });
+
+      if (!geoSuccess) {
+        // Fallback: Open-Meteo doesn't support auto-IP, so use wttr.in JSON API instead
+        const res = await fetch('https://wttr.in/?format=j1');
+        const data = await res.json();
+        const cur = data?.current_condition?.[0];
+        if (cur) {
+          setForm(f => ({
+            ...f,
+            temperature_value: parseFloat(cur.temp_C) || f.temperature_value,
+            temperature_unit: '°C',
+            humidity: parseFloat(cur.humidity) || f.humidity,
+            air_pressure_value: parseFloat(cur.pressure) || f.air_pressure_value,
+            air_pressure_unit: 'hPa',
+          }));
         }
       }
-    } catch {
-      // silently fail
+    } catch (err) {
+      console.error('Weather fetch failed:', err);
+      alert('Could not fetch weather data. Please enter values manually.');
     } finally {
       setFetchingWeather(false);
     }
