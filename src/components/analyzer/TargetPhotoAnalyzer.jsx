@@ -532,6 +532,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           {results && (
             <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 mb-4">
               <p className="text-xs font-bold text-primary uppercase tracking-wide mb-3">Results</p>
+              <p className="text-xs font-semibold text-muted-foreground mb-1.5">Group Size</p>
               <div className="grid grid-cols-3 gap-2 mb-2">
                 <div className="bg-background rounded-xl p-2.5 text-center">
                   <p className="text-lg font-black">{results.groupMm}mm</p>
@@ -546,6 +547,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
                   <p className="text-xs text-muted-foreground">inches</p>
                 </div>
               </div>
+              <p className="text-xs font-semibold text-muted-foreground mb-1.5 mt-2">Accuracy</p>
               <div className="grid grid-cols-2 gap-2">
                 <div className="bg-background rounded-xl p-2.5 text-center">
                   {results.groupMoa !== null ? (
