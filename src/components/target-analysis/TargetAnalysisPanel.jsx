@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { X, Download, ScanLine } from 'lucide-react';
+import { X, Download, Calculator } from 'lucide-react';
 import GroupCard from '@/components/analyzer/GroupCard';
 import ManualGroupForm from '@/components/analyzer/ManualGroupForm';
 import TargetPhotoAnalyzer from '@/components/analyzer/TargetPhotoAnalyzer';
+import BallisticCalculator from '@/components/target-analysis/BallisticCalculator';
 import { exportSessionPDF } from '@/utils/analyzerPdfExport';
 import { createPortal } from 'react-dom';
 
@@ -38,6 +39,7 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
   const [loading, setLoading] = useState(true);
   const [showManualForm, setShowManualForm] = useState(false);
   const [showPhotoAnalyzer, setShowPhotoAnalyzer] = useState(false);
+  const [showBallisticCalc, setShowBallisticCalc] = useState(false);
   const [editGroup, setEditGroup] = useState(null);
   const [scopeProfiles, setScopeProfiles] = useState([]);
   const [rifles, setRifles] = useState([]);
@@ -144,6 +146,20 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
     !best || g.group_size_moa < best.group_size_moa ? g : best, null);
 
   // Sub-screens — full-screen overlays
+  if (showBallisticCalc) {
+    return createPortal(
+      <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto">
+        <div className="max-w-2xl mx-auto px-4 pt-4 pb-8">
+          <BallisticCalculator
+            session={analyzerSession}
+            onBack={() => setShowBallisticCalc(false)}
+          />
+        </div>
+      </div>,
+      document.body
+    );
+  }
+
   if (showPhotoAnalyzer) {
     return createPortal(
       <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto">
@@ -291,7 +307,7 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
           )}
 
           {/* Add Group Buttons */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 mb-3">
             <button
               onClick={() => { setEditGroup(null); setShowPhotoAnalyzer(true); }}
               className="py-4 bg-card border border-border rounded-2xl font-semibold text-sm flex flex-col items-center gap-1.5 hover:border-primary/40 transition-all active:scale-95"
@@ -307,6 +323,13 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
               Enter Manually
             </button>
           </div>
+          <button
+            onClick={() => setShowBallisticCalc(true)}
+            className="w-full py-3.5 bg-card border border-border rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 hover:border-primary/40 transition-all active:scale-95"
+          >
+            <Calculator className="w-4 h-4 text-primary" />
+            Ballistic Calculator
+          </button>
         </div>
       </div>
     </div>,
