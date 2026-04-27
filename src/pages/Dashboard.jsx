@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
@@ -6,6 +6,7 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useOuting } from '@/context/OutingContext';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
+import React from 'react';
 import {
   Target, Crosshair, Map, BookOpen,
   BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck,
@@ -144,7 +145,7 @@ function ActiveSessionBanner({ outing }) {
   );
 }
 
-function KpiRow({ stats }) {
+const KpiRow = React.memo(function KpiRow({ stats }) {
   const items = [
     { label: 'Target', value: stats?.targetSessions ?? stats?.targetRecords ?? 0 },
     { label: 'Clay', value: stats?.claySessions ?? stats?.clayRecords ?? 0 },
@@ -161,9 +162,9 @@ function KpiRow({ stats }) {
       ))}
     </div>
   );
-}
+});
 
-function PrimaryCard({ to, icon, label, sub }) {
+const PrimaryCard = React.memo(function PrimaryCard({ to, icon, label, sub }) {
   return (
     <Link to={to}>
       <div className="bg-card rounded-2xl p-4 border border-border shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-4 select-none">
@@ -178,9 +179,9 @@ function PrimaryCard({ to, icon, label, sub }) {
       </div>
     </Link>
   );
-}
+});
 
-function SecondaryGrid({ user }) {
+const SecondaryGrid = React.memo(function SecondaryGrid({ user }) {
   const { isEnabled } = useModules();
   const allItems = [
     { to: '/target-shooting', icon: <Crosshair className="w-5 h-5" />, label: 'Target', module: 'target_shooting' },
@@ -197,20 +198,20 @@ function SecondaryGrid({ user }) {
   return (
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
-        <Link key={item.to} to={item.to}>
-          <div className="bg-card rounded-xl p-2.5 border border-border shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none">
-            <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground [&_svg]:w-5 [&_svg]:h-5 select-none">
-              {item.icon}
-            </div>
-            <p className="text-[10px] font-semibold text-muted-foreground leading-tight tracking-wide">{item.label}</p>
-          </div>
-        </Link>
-      ))}
+         <Link key={item.to} to={item.to}>
+           <div className="bg-card rounded-xl p-2.5 border border-border shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none">
+             <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground [&_svg]:w-5 [&_svg]:h-5 select-none">
+               {item.icon}
+             </div>
+             <p className="text-[10px] font-semibold text-muted-foreground leading-tight tracking-wide">{item.label}</p>
+           </div>
+         </Link>
+       ))}
     </div>
   );
-}
+});
 
-function ChartsSection({ chartData }) {
+const ChartsSection = React.memo(function ChartsSection({ chartData }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
@@ -235,7 +236,7 @@ function ChartsSection({ chartData }) {
       )}
     </div>
   );
-}
+});
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function Dashboard() {
@@ -300,6 +301,9 @@ export default function Dashboard() {
 
   const { pulling, progress, refreshing } = usePullToRefresh(loadData);
 
+  // Memoize chart data to prevent re-calculation on every render
+  const memoizedChartData = useMemo(() => chartData, [chartData]);
+
   if (loading) {
     return (
       <div className="bg-background min-h-screen">
@@ -343,7 +347,7 @@ export default function Dashboard() {
         {isEnabled('reloading') && <ReloadingWidget />}
 
         {/* ── Analytics (collapsible) ── */}
-        {chartData && <ChartsSection chartData={chartData} />}
+         {memoizedChartData && <ChartsSection chartData={memoizedChartData} />}
 
       </main>
     </div>

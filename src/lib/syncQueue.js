@@ -143,15 +143,13 @@ export async function runSync(onProgress) {
       // If it was a CREATE, update local store with server id
       if (entry.action === SYNC_ACTIONS.CREATE && result.serverRecord) {
         const { ENTITY_STORE_MAP } = await import('./offlineDB');
-        const storeName = ENTITY_STORE_MAP[entry.entityName];
-        if (storeName) {
-          // Remove the temp local record
-          if (entry.localId && entry.localId !== result.serverRecord.id) {
-            await offlineDB.remove(storeName, entry.localId);
-          }
-          // Store the server record
-          await offlineDB.put(storeName, result.serverRecord);
-        }
+            const storeName = ENTITY_STORE_MAP[entry.entityName];
+            if (storeName && result.serverRecord) {
+              if (entry.localId && entry.localId !== result.serverRecord.id) {
+                await offlineDB.remove(storeName, entry.localId);
+              }
+              await offlineDB.put(storeName, result.serverRecord);
+            }
       } else if (entry.action === SYNC_ACTIONS.DELETE && result.serverRecord?._deleted) {
         // Already removed from local store at delete time — nothing extra needed
       }

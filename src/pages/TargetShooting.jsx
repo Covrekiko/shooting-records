@@ -36,10 +36,17 @@ export default function TargetShooting() {
 
   useEffect(() => {
     if (!navigator.geolocation) return;
+    let lastUpdate = 0;
     const id = navigator.geolocation.watchPosition(
-      (pos) => setLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude }),
+      (pos) => {
+        const now = Date.now();
+        if (now - lastUpdate > 30000) { // Throttle to 30 second updates
+          setLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+          lastUpdate = now;
+        }
+      },
       () => {},
-      { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+      { enableHighAccuracy: false, maximumAge: 30000, timeout: 5000 }
     );
     return () => navigator.geolocation.clearWatch(id);
   }, []);
@@ -170,7 +177,6 @@ export default function TargetShooting() {
         return;
       }
 
-      // Validate required fields
       if (!checkinData.club_id || !checkinData.date || !checkinData.checkin_time) {
         alert('All required fields must be filled');
         return;
@@ -199,10 +205,9 @@ export default function TargetShooting() {
       setGpsTrack([]);
       setShowCheckin(false);
       setCheckinData({ date: new Date().toISOString().split('T')[0], club_id: '', checkin_time: new Date().toTimeString().slice(0, 5), notes: '' });
-    } catch (error) {
-      console.error('Check-in failed:', error.message);
-      alert('Check-in failed: ' + error.message);
-    }
+      } catch (error) {
+      alert('Check-in failed: ' + (error.message || 'Unknown error'));
+      }
   };
 
   const handleCheckout = async (formData) => {
@@ -213,7 +218,6 @@ export default function TargetShooting() {
     try {
       // Collect GPS track BEFORE stopping tracking
       const finalTrack = trackingService.getTrack();
-      console.log('🟢 Checkout: Collected', finalTrack.length, 'GPS points before stop');
 
       // Update rifle round counts and decrement ammo
       // Accumulate rounds per ammo ID in case multiple rifles share the same ammo
@@ -259,7 +263,6 @@ export default function TargetShooting() {
             active_checkin: false,
             gps_track: finalTrack,
           });
-          console.log('🟢 SessionRecord updated and closed - GPS points saved:', finalTrack.length);
           updateSuccess = true;
           break;
         } catch (err) {
@@ -277,15 +280,13 @@ export default function TargetShooting() {
 
       // Only stop tracking AFTER successful database save
       trackingService.stopTracking();
-      console.log('🟢 Checkout complete - tracking stopped after database save');
 
       setActiveSession(null);
       setGpsTrack([]);
       setShowCheckout(false);
       setViewingTrack(null);
     } catch (error) {
-      console.error('🔴 Checkout failed:', error.message);
-      alert('Checkout failed: ' + error.message);
+      alert('Checkout failed: ' + (error.message || 'Unknown error'));
       // IMPORTANT: Don't stop tracking on error - allows user to retry
     }
   };
@@ -498,19 +499,33 @@ async function uploadPhotos(files, existingPhotos, setUploading) {
   setUploading(true);
   try {
     const newPhotos = [...(existingPhotos || [])];
-    for (const file of files) {
-      const compressed = await compressImage(file);
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: compressed });
-      let photoData = { url: file_url };
-      try {
-        const result = await base44.functions.invoke('analyzeTargetPhoto', { photo_url: file_url });
-        if (result?.data?.analysis) photoData.analysis = result.data.analysis;
-      } catch {}
+    // Compress all images first
+    const compressedFiles = await Promise.all(
+      Array.from(files).map(f => compressImage(f))
+    );
+    // Upload all images in parallel
+    const uploadPromises = compressedFiles.map(f =>
+      base44.integrations.Core.UploadFile({ file: f })
+    );
+    const uploadResults = await Promise.all(uploadPromises);
+    
+    // Add to photos array and queue analysis (non-blocking)
+    uploadResults.forEach(result => {
+      const photoData = { url: result.file_url };
       newPhotos.push(photoData);
-    }
+      // Analysis happens in background, don't block checkout
+      base44.functions.invoke('analyzeTargetPhoto', { photo_url: result.file_url })
+        .then(r => {
+          if (r?.data?.analysis) {
+            const idx = newPhotos.findIndex(p => p.url === result.file_url);
+            if (idx >= 0) newPhotos[idx].analysis = r.data.analysis;
+          }
+        })
+        .catch(() => {});
+    });
+    
     return newPhotos;
   } catch (error) {
-    console.error('Photo upload error:', error);
     alert('Upload failed: ' + (error.message || 'Unknown error'));
     return null;
   } finally {

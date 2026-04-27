@@ -80,8 +80,8 @@ connectivityManager.subscribe((online) => {
   }
 });
 
-// Poll pending count every 5s
-setInterval(updatePendingCount, 5000);
+// Poll pending count every 15s (reduced from 5s for performance)
+setInterval(updatePendingCount, 15000);
 
 // Initial count
 updatePendingCount();

@@ -17,7 +17,7 @@ export default function AmmoStockWidget() {
       const ammoList = await base44.entities.Ammunition.filter({ created_by: currentUser.email });
       setAmmo(ammoList);
     } catch (error) {
-      console.error('Error loading ammo:', error);
+      if (error) setLoading(false);
     } finally {
       setLoading(false);
     }

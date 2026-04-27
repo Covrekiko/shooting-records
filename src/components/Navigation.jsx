@@ -91,7 +91,9 @@ export default function Navigation() {
   const { isEnabled } = useModules();
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    let isMounted = true;
+    base44.auth.me().then(u => { if (isMounted) setUser(u); }).catch(() => {});
+    return () => { isMounted = false; };
   }, []);
 
   useEffect(() => { setOpen(false); }, [location.pathname]);
