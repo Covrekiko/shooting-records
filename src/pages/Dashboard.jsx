@@ -9,7 +9,6 @@ import { motion } from 'framer-motion';
 import {
   Target, Crosshair, Map, BookOpen,
   BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck,
-  Wrench, BarChart2,
 } from 'lucide-react';
 import {
   MonthlyActivityChart,
@@ -181,88 +180,31 @@ function PrimaryCard({ to, icon, label, sub }) {
   );
 }
 
-// SVG Deer icon component
-function DeerIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      {/* Left antler branches */}
-      <path d="M9 4L7 2M9 4L7 6M9 4L6 5" />
-      {/* Right antler branches */}
-      <path d="M15 4L17 2M15 4L17 6M15 4L18 5" />
-      {/* Head */}
-      <circle cx="12" cy="9" r="3.5" />
-      {/* Ears */}
-      <path d="M10 6L9.5 4.5M14 6L14.5 4.5" />
-      {/* Snout */}
-      <circle cx="12" cy="11" r="1.5" />
-      {/* Body */}
-      <ellipse cx="12" cy="16" rx="3" ry="4" />
-      {/* Front legs */}
-      <path d="M10.5 19V22M13.5 19V22" />
-      {/* Rear legs hint */}
-      <path d="M11 19V21.5M13 19V21.5" />
-    </svg>
-  );
-}
-
-// Icon badge card with color theming
-function IconCard({ to, Icon, label, color }) {
-  const colorMap = {
-    blue: { bg: 'bg-blue-100 dark:bg-blue-950', icon: 'text-blue-600 dark:text-blue-400', accent: 'bg-blue-600' },
-    orange: { bg: 'bg-orange-100 dark:bg-orange-950', icon: 'text-orange-600 dark:text-orange-400', accent: 'bg-orange-600' },
-    green: { bg: 'bg-green-100 dark:bg-green-950', icon: 'text-green-600 dark:text-green-400', accent: 'bg-green-600' },
-    purple: { bg: 'bg-purple-100 dark:bg-purple-950', icon: 'text-purple-600 dark:text-purple-400', accent: 'bg-purple-600' },
-    teal: { bg: 'bg-teal-100 dark:bg-teal-950', icon: 'text-teal-600 dark:text-teal-400', accent: 'bg-teal-600' },
-    slate: { bg: 'bg-slate-100 dark:bg-slate-900', icon: 'text-slate-600 dark:text-slate-400', accent: 'bg-slate-600' },
-  };
-
-  const colors = colorMap[color] || colorMap.slate;
-
-  return (
-    <Link to={to}>
-      <motion.div
-        whileTap={{ scale: 0.97 }}
-        className="bg-card rounded-[18px] p-5 border border-border/50 shadow-md active:shadow-lg transition-all duration-100 flex flex-col items-center gap-3.5 select-none h-full min-h-[140px] justify-center"
-      >
-        {/* Icon badge circle */}
-        <div className={`w-14 h-14 rounded-full ${colors.bg} flex items-center justify-center flex-shrink-0 ${colors.icon}`}>
-          {Icon === 'DeerIcon' ? <DeerIcon /> : <Icon className="w-7 h-7" />}
-        </div>
-
-        {/* Label with underline accent */}
-        <div className="flex flex-col items-center gap-1.5">
-          <p className="text-sm font-bold text-foreground leading-tight">{label}</p>
-          <div className={`h-1 w-6 rounded-full ${colors.accent}`}></div>
-        </div>
-      </motion.div>
-    </Link>
-  );
-}
-
 function SecondaryGrid({ user }) {
   const { isEnabled } = useModules();
   const allItems = [
-    { to: '/target-shooting', Icon: Crosshair, label: 'Target', color: 'blue', module: 'target_shooting' },
-    { to: '/clay-shooting', Icon: Target, label: 'Clay', color: 'orange', module: 'clay_shooting' },
-    { to: '/deer-management', Icon: 'DeerIcon', label: 'Deer', color: 'green', module: 'deer_management' },
-    { to: '/reloading', Icon: RefreshCw, label: 'Reloading', color: 'purple', module: 'reloading' },
-    { to: '/load-development', Icon: FlaskConical, label: 'Load Dev', color: 'teal', module: 'reloading' },
-    { to: '/settings/rifles', Icon: Wrench, label: 'Equipment', color: 'slate' },
-    { to: '/reports', Icon: BarChart2, label: 'Reports', color: 'green' },
-    ...(user?.role === 'admin' ? [{ to: '/admin/users', Icon: ShieldCheck, label: 'Admin', color: 'blue' }] : []),
+    { to: '/target-shooting', icon: <Crosshair className="w-5 h-5" />, label: 'Target', module: 'target_shooting' },
+    { to: '/clay-shooting', icon: <Target className="w-5 h-5" />, label: 'Clay', module: 'clay_shooting' },
+    { to: '/deer-management', icon: <span className="text-lg">🦌</span>, label: 'Deer', module: 'deer_management' },
+    { to: '/reloading', icon: <RefreshCw className="w-5 h-5" />, label: 'Reloading', module: 'reloading' },
+    { to: '/load-development', icon: <FlaskConical className="w-5 h-5" />, label: 'Load Dev', module: 'reloading' },
+    { to: '/settings/rifles', icon: <span className="text-lg">🔧</span>, label: 'Equipment' },
+    { to: '/reports', icon: <BarChart3 className="w-5 h-5" />, label: 'Reports' },
+    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck className="w-5 h-5" />, label: 'Admin' }] : []),
   ];
   const items = allItems.filter(item => !item.module || isEnabled(item.module));
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
-        <IconCard
-          key={item.to}
-          to={item.to}
-          Icon={item.Icon}
-          label={item.label}
-          color={item.color}
-        />
+        <Link key={item.to} to={item.to}>
+          <div className="bg-card rounded-xl p-2.5 border border-border shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none">
+            <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground [&_svg]:w-5 [&_svg]:h-5 select-none">
+              {item.icon}
+            </div>
+            <p className="text-[10px] font-semibold text-muted-foreground leading-tight tracking-wide">{item.label}</p>
+          </div>
+        </Link>
       ))}
     </div>
   );
