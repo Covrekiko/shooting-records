@@ -14,6 +14,16 @@ export default function OutingModal({ onClose, onSubmit, locations = [], selecte
     loadAreas();
   }, []);
 
+  useEffect(() => {
+    if (selectedArea) {
+      setData(prev => ({
+        ...prev,
+        location_id: selectedArea.id,
+        place_name: selectedArea.name,
+      }));
+    }
+  }, [selectedArea]);
+
   const loadAreas = async () => {
     try {
       const currentUser = await base44.auth.me();
