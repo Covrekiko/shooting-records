@@ -45,6 +45,7 @@ export default function AIPhotoComparison({
   const [scaleMode, setScaleMode] = useState(false);
   const [scalePoints, setScalePoints] = useState([]);
   const [expectedShots, setExpectedShots] = useState('');
+  const [debugInfo, setDebugInfo] = useState(null);
   const imgRef = useRef(null);
   const POSITIONS = ['benchrest', 'prone', 'sticks', 'high_seat', 'standing', 'other'];
 
@@ -142,18 +143,51 @@ export default function AIPhotoComparison({
     setAiLoading(true);
     setAiError(null);
     setAiAnalysis(null);
+    setDebugInfo(null);
     
     try {
-      const res = await base44.functions.invoke('analyzeTargetPhotoWithAI', {
+      // Get image dimensions for coordinate mapping
+      if (!imgRef.current) {
+        setAiError('Image not loaded');
+        return;
+      }
+
+      const imgNaturalWidth = imgRef.current.naturalWidth;
+      const imgNaturalHeight = imgRef.current.naturalHeight;
+      const imgRect = imgRef.current.getBoundingClientRect();
+      const displayWidth = imgRect.width;
+      const displayHeight = imgRect.height;
+      
+      // Run AI analysis
+      const aiRes = await base44.functions.invoke('analyzeTargetPhotoWithAI', {
         photo_url: photo
       });
       
-      if (res.data.success && res.data.analysis) {
-        setAiAnalysis(res.data.analysis);
-        setUserConfirmedMarks([]);
-      } else {
-        setAiError(res.data.error || 'AI analysis failed');
+      if (!aiRes.data.success) {
+        setAiError(aiRes.data.error || 'AI analysis failed');
+        return;
       }
+
+      // Calculate debug mapping info
+      const debug = {
+        image_natural_width: imgNaturalWidth,
+        image_natural_height: imgNaturalHeight,
+        image_display_width: displayWidth,
+        image_display_height: displayHeight,
+        scaleX: displayWidth / imgNaturalWidth,
+        scaleY: displayHeight / imgNaturalHeight,
+        ai_raw_candidates: (aiRes.data.analysis?.bullet_holes || []).length,
+        warnings: []
+      };
+
+      // Check for NaN/Infinity
+      if (!isFinite(debug.scaleX) || !isFinite(debug.scaleY)) {
+        debug.warnings.push('⚠️ Coordinate mapping error detected');
+      }
+
+      setDebugInfo(debug);
+      setAiAnalysis(aiRes.data.analysis);
+      setUserConfirmedMarks([]);
     } catch (err) {
       setAiError(err.message || 'Error running AI analysis');
     } finally {
@@ -552,11 +586,28 @@ export default function AIPhotoComparison({
                 )}
               </div>
 
+              {debugInfo && (
+                <details className="bg-slate-100/50 dark:bg-slate-800/50 border border-slate-300/30 dark:border-slate-700/50 rounded-2xl p-3">
+                  <summary className="text-xs font-semibold text-muted-foreground cursor-pointer hover:text-foreground">
+                    🔍 Coordinate Debug Info
+                  </summary>
+                  <div className="mt-2 space-y-1 text-xs text-muted-foreground font-mono">
+                    <p>Natural: {debugInfo.image_natural_width}×{debugInfo.image_natural_height}</p>
+                    <p>Display: {Math.round(debugInfo.image_display_width)}×{Math.round(debugInfo.image_display_height)}</p>
+                    <p>ScaleX: {debugInfo.scaleX.toFixed(3)} | ScaleY: {debugInfo.scaleY.toFixed(3)}</p>
+                    <p>AI Candidates: {debugInfo.ai_raw_candidates}</p>
+                    {debugInfo.warnings.map((w, i) => (
+                      <p key={i} className="text-amber-600 dark:text-amber-400">{w}</p>
+                    ))}
+                  </div>
+                </details>
+              )}
+
               {aiAnalysis.confidence < 0.7 && (
                <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4">
                  <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">⚠️ Low Confidence Detection</p>
                  <p className="text-xs text-amber-800 dark:text-amber-300 mt-1">
-                   Please carefully review and confirm all marks manually before saving.
+                   AI confidence is low. Please confirm marks manually before saving.
                  </p>
                </div>
               )}
