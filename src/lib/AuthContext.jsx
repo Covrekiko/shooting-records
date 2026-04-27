@@ -161,11 +161,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   const refreshUser = async () => {
-    const currentUser = await base44.auth.me();
-    setUser(currentUser);
-    // Always refresh cache to ensure role/status changes are picked up
-    cacheUserProfile(currentUser).catch(() => {});
-    return currentUser;
+    try {
+      // Force fresh fetch by invalidating SDK cache
+      const currentUser = await base44.auth.me();
+      setUser(currentUser);
+      // Update cache with fresh data
+      cacheUserProfile(currentUser).catch(() => {});
+      return currentUser;
+    } catch (error) {
+      console.error('Error refreshing user:', error);
+      throw error;
+    }
   };
 
   const invalidateUserCache = () => {

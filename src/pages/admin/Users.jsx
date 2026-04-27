@@ -76,12 +76,20 @@ export default function AdminUsers() {
     try {
       const res = await base44.functions.invoke('updateUserRole', { userId, newRole: 'beta_tester' });
       if (res.data.success) {
-        setUsers(users.map(u => u.id === userId ? { ...u, role: 'beta_tester', status: 'active' } : u));
+        setUsers(users.map(u => u.id === userId ? { 
+          ...u, 
+          role: 'beta_tester', 
+          status: 'active',
+          beta_tester_status: 'active'
+        } : u));
+        // Clear cached user profile to ensure next login picks up new role
+        localStorage.removeItem('cachedUserProfile');
         invalidateUserCache();
         setSelectedUserMenu(null);
       }
     } catch (error) {
       console.error('Error making beta tester:', error);
+      alert('Error promoting user: ' + error.message);
     }
   };
 

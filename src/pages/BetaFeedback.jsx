@@ -42,15 +42,16 @@ export default function BetaFeedback() {
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      
-      // Beta testers see only their own posts
-      if (currentUser.role === 'beta_tester') {
-        const userPosts = await base44.entities.BetaFeedbackPost.filter({ created_by: currentUser.email });
-        setPosts(userPosts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
-      } else if (currentUser.role === 'admin') {
-        // Admins see all posts
+
+      // Admins see all posts
+      if (currentUser.role === 'admin') {
         const allPosts = await base44.entities.BetaFeedbackPost.list();
         setPosts(allPosts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
+      } 
+      // Beta testers see only their own posts (and only if status is active)
+      else if (currentUser.role === 'beta_tester' && currentUser.beta_tester_status !== 'inactive') {
+        const userPosts = await base44.entities.BetaFeedbackPost.filter({ created_by: currentUser.email });
+        setPosts(userPosts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
       }
     } catch (error) {
       console.warn('Error loading feedback posts:', error);
@@ -103,7 +104,19 @@ export default function BetaFeedback() {
       <div className="bg-background min-h-screen">
         <Navigation />
         <div className="max-w-2xl mx-auto px-3 pt-6 pb-8">
-          <p className="text-center text-muted-foreground">Access denied</p>
+          <p className="text-center text-muted-foreground">Access denied. Beta testers and admins only.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Beta tester access is denied if status is inactive
+  if (user?.role === 'beta_tester' && user?.beta_tester_status === 'inactive') {
+    return (
+      <div className="bg-background min-h-screen">
+        <Navigation />
+        <div className="max-w-2xl mx-auto px-3 pt-6 pb-8">
+          <p className="text-center text-muted-foreground">Your beta tester access is currently inactive.</p>
         </div>
       </div>
     );

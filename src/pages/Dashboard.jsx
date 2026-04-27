@@ -253,12 +253,15 @@ export default function Dashboard() {
 
   const loadData = useCallback(async () => {
     try {
+      // Always fetch fresh user data (not cached)
+      // This ensures role changes from admin page are picked up
       const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      // Refresh auth context and wait for it to complete
+      
+      // Refresh auth context to ensure role is up-to-date
       const refreshedUser = await refreshUser?.();
-
       const user = refreshedUser || currentUser;
+      
+      // Ensure state is updated with latest user data
       setUser(user);
       
       if (user.role === 'admin') {
@@ -353,15 +356,19 @@ export default function Dashboard() {
          <AmmoStockWidget />
          {isEnabled('reloading') && <ReloadingWidget />}
 
-         {/* ── Beta Tester Feedback (if beta tester) ── */}
-         {user?.role === 'beta_tester' && (
+         {/* ── Beta Tester Feedback (if beta tester or admin) ── */}
+         {(user?.role === 'beta_tester' || user?.role === 'admin') && (
            <Link to="/beta-feedback" className="block">
              <div className="bg-primary/10 border border-primary/30 rounded-2xl p-4 hover:bg-primary/15 transition-colors">
                <div className="flex items-center gap-3">
                  <MessageCircle className="w-5 h-5 text-primary flex-shrink-0" />
                  <div>
-                   <p className="font-semibold text-sm text-foreground">Help Improve the App</p>
-                   <p className="text-xs text-muted-foreground mt-0.5">Share bugs and ideas in the feedback forum</p>
+                   <p className="font-semibold text-sm text-foreground">
+                     {user?.role === 'admin' ? 'Manage Feedback Forum' : 'Help Improve the App'}
+                   </p>
+                   <p className="text-xs text-muted-foreground mt-0.5">
+                     {user?.role === 'admin' ? 'Review beta tester feedback' : 'Share bugs and ideas in the feedback forum'}
+                   </p>
                  </div>
                  <ChevronRight className="w-4 h-4 text-primary flex-shrink-0 ml-auto" />
                </div>

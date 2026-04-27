@@ -40,15 +40,23 @@ export default function BetaTesters() {
       // Find the newly created user and update their role to beta_tester
       const users = await base44.entities.User.filter({ email: formData.email });
       if (users.length > 0) {
-        await base44.entities.User.update(users[0].id, {
-          role: 'beta_tester',
-          beta_tester_notes: formData.beta_tester_notes || '',
-          beta_tester_status: 'active',
+        // Use backend function for consistency with admin Users page
+        const res = await base44.functions.invoke('updateUserRole', { 
+          userId: users[0].id, 
+          newRole: 'beta_tester' 
         });
+        if (res.data.success) {
+          // Also add notes if provided
+          if (formData.beta_tester_notes) {
+            await base44.entities.User.update(users[0].id, {
+              beta_tester_notes: formData.beta_tester_notes
+            });
+          }
+          setShowForm(false);
+          loadTesters();
+          alert('Beta tester created successfully. Invite sent to ' + formData.email);
+        }
       }
-      setShowForm(false);
-      loadTesters();
-      alert('Beta tester created successfully. Invite sent to ' + formData.email);
     } catch (error) {
       alert('Error creating beta tester: ' + (error.message || 'Unknown error'));
     }
