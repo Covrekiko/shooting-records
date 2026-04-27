@@ -46,6 +46,7 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack }) {
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
   const containerRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const mmPerPx = scaleRef && scalePixels ? parseFloat(scaleRef) / parseFloat(scalePixels) : MM_PER_PX_DEFAULT;
 
@@ -53,12 +54,36 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack }) {
     ? parseFloat(session?.distance) * 0.9144
     : parseFloat(session?.distance);
 
+  const compressImage = (file) => new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 1920;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          const scale = MAX / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => resolve(new File([blob], 'target.jpg', { type: 'image/jpeg' })), 'image/jpeg', 0.85);
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
   const handleUpload = async (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const compressed = await compressImage(file);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: compressed });
       setPhotoUrl(file_url);
       setHoles([]);
       setCentre(null);
@@ -66,7 +91,7 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack }) {
       alert('Upload failed: ' + err.message);
     } finally {
       setUploading(false);
-      e.target.value = '';
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -212,11 +237,24 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack }) {
 
       {/* Upload */}
       {!photoUrl && (
-        <label className="flex flex-col items-center justify-center gap-3 p-10 bg-card border-2 border-dashed border-border rounded-2xl cursor-pointer">
-          <Upload className="w-10 h-10 text-muted-foreground" />
-          <span className="font-semibold">{uploading ? 'Uploading...' : 'Upload Target Photo'}</span>
-          <input type="file" accept="image/*" className="hidden" onChange={handleUpload} />
-        </label>
+        <div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,image/heic,image/heif"
+            className="hidden"
+            onChange={handleUpload}
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="w-full flex flex-col items-center justify-center gap-3 p-10 bg-card border-2 border-dashed border-border rounded-2xl cursor-pointer hover:border-primary/40 transition-colors disabled:opacity-60"
+          >
+            <Upload className="w-10 h-10 text-muted-foreground" />
+            <span className="font-semibold">{uploading ? 'Uploading...' : 'Upload Target Photo'}</span>
+            {uploading && <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />}
+          </button>
+        </div>
       )}
 
       {photoUrl && (
