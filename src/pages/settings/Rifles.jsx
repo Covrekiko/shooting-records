@@ -166,13 +166,29 @@ export default function Rifles() {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {rifles.map((rifle) => (
-            <div key={rifle.id} className="bg-card border border-border rounded-lg p-4">
-              <h3 className="font-semibold text-lg">{rifle.name}</h3>
-              <p className="text-sm text-muted-foreground">{rifle.make} {rifle.model}</p>
-              <p className="text-sm text-muted-foreground">{rifle.caliber}</p>
-              {rifle.serial_number && <p className="text-sm text-muted-foreground font-mono">S/N: {rifle.serial_number}</p>}
-              <div className="flex gap-2 mt-4">
+           {rifles.map((rifle) => {
+             const roundsSinceClean = (rifle.total_rounds_fired || 0) - (rifle.rounds_at_last_cleaning || 0);
+             const cleaningThreshold = rifle.cleaning_reminder_threshold || 100;
+             const needsCleaning = roundsSinceClean >= cleaningThreshold;
+             return (
+             <div key={rifle.id} className="bg-card border border-border rounded-lg p-4">
+               <h3 className="font-semibold text-lg">{rifle.name}</h3>
+               <p className="text-sm text-muted-foreground">{rifle.make} {rifle.model}</p>
+               <p className="text-sm text-muted-foreground">{rifle.caliber}</p>
+               {rifle.serial_number && <p className="text-sm text-muted-foreground font-mono">S/N: {rifle.serial_number}</p>}
+
+               {/* Rounds and Cleaning Status */}
+               <div className="mt-3 pt-3 border-t border-border space-y-1.5">
+                 <p className="text-xs text-slate-500">Lifetime: {rifle.total_rounds_fired || 0} rounds</p>
+                 <div className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 ${needsCleaning ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
+                   <span className={`text-xs font-semibold ${needsCleaning ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                     {needsCleaning ? '⚠️ Needs Cleaning' : '✓ Clean'}
+                   </span>
+                   <span className="text-xs text-slate-500">{roundsSinceClean}R</span>
+                 </div>
+               </div>
+
+               <div className="flex gap-2 mt-4">
                 <button
                   onClick={() => startEdit(rifle)}
                   className="flex-1 px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center justify-center gap-1"
@@ -185,10 +201,11 @@ export default function Rifles() {
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
-              </div>
-            </div>
-          ))}
-        </div>
+                </div>
+                </div>
+                );
+                })}
+                </div>
       </main>
     </div>
   );
