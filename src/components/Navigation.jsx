@@ -112,16 +112,16 @@ export default function Navigation() {
   return (
     <>
       {/* ── DESKTOP NAV ─────────────────────────────────────────────── */}
-      <div className="hidden md:block sticky top-0 z-[30] bg-background">
+      <div className="hidden md:block sticky top-0 z-[30]" style={{ backgroundColor: 'var(--app-header)' }}>
         <div className="max-w-7xl mx-auto px-4 pt-3 pb-2">
           <div className="rounded-2xl shadow-sm px-5 py-3 flex items-center justify-between" style={{
-            backgroundColor: 'var(--app-card)',
-            borderColor: 'var(--app-border)',
+            backgroundColor: 'var(--app-header)',
+            borderColor: 'var(--app-header)',
             borderWidth: '1px',
           }}>
-            <Link to="/" className="text-sm font-bold text-foreground flex items-center gap-2.5">
+            <Link to="/" className="text-sm font-bold flex items-center gap-2.5" style={{ color: 'var(--app-header-text)' }}>
               <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-8 h-8 rounded-xl object-cover" />
-              <span className="tracking-tight" style={{ color: 'var(--app-text)' }}>Shooting Records</span>
+              <span className="tracking-tight">Shooting Records</span>
               {/* Connectivity dot */}
               <span
                 title={!isOnline ? 'Offline' : isSyncing ? 'Syncing…' : hasPending ? 'Changes pending' : 'Online'}
@@ -139,10 +139,10 @@ export default function Navigation() {
                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 select-none"
                    style={{
                      backgroundColor: active ? 'var(--app-accent)' : 'transparent',
-                     color: active ? 'var(--app-primary-text)' : 'var(--app-text-muted)',
+                     color: active ? 'white' : 'var(--app-header-muted)',
                    }}
-                   onMouseEnter={(e) => !active && (e.target.style.backgroundColor = 'var(--app-surface-soft)') && (e.target.style.color = 'var(--app-text)')}
-                   onMouseLeave={(e) => !active && (e.target.style.backgroundColor = 'transparent') && (e.target.style.color = 'var(--app-text-muted)')}
+                   onMouseEnter={(e) => !active && (e.target.style.backgroundColor = 'rgba(255,255,255,0.15)') && (e.target.style.color = 'white')}
+                   onMouseLeave={(e) => !active && (e.target.style.backgroundColor = 'transparent') && (e.target.style.color = 'var(--app-header-muted)')}
                   >
                     <Icon className="w-3.5 h-3.5" />
                     {item.label}
@@ -154,10 +154,10 @@ export default function Navigation() {
                   className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100"
                   style={{
                     backgroundColor: isActive('/admin/users') ? 'var(--app-accent)' : 'transparent',
-                    color: isActive('/admin/users') ? 'var(--app-primary-text)' : 'var(--app-text-muted)',
+                    color: isActive('/admin/users') ? 'white' : 'var(--app-header-muted)',
                   }}
-                  onMouseEnter={(e) => !isActive('/admin/users') && (e.target.style.backgroundColor = 'var(--app-surface-soft)') && (e.target.style.color = 'var(--app-text)')}
-                  onMouseLeave={(e) => !isActive('/admin/users') && (e.target.style.backgroundColor = 'transparent') && (e.target.style.color = 'var(--app-text-muted)')}
+                  onMouseEnter={(e) => !isActive('/admin/users') && (e.target.style.backgroundColor = 'rgba(255,255,255,0.15)') && (e.target.style.color = 'white')}
+                  onMouseLeave={(e) => !isActive('/admin/users') && (e.target.style.backgroundColor = 'transparent') && (e.target.style.color = 'var(--app-header-muted)')}
                 >
                   <Settings className="w-3.5 h-3.5" />Admin
                 </Link>
@@ -179,14 +179,14 @@ export default function Navigation() {
       </div>
 
       {/* ── MOBILE TOP BAR ──────────────────────────────────────────── */}
-      <div className="md:hidden sticky top-0 z-[30] bg-background">
+      <div className="md:hidden sticky top-0 z-[30]" style={{ backgroundColor: 'var(--app-header)' }}>
         <div className="mx-3 mt-2 mb-1.5 rounded-2xl shadow-sm px-4 py-2.5 flex items-center justify-between" style={{
-          backgroundColor: 'var(--app-card)',
-          borderColor: 'var(--app-border)',
+          backgroundColor: 'var(--app-header)',
+          borderColor: 'var(--app-header)',
           borderWidth: '1px',
         }}>
           {isDashboard ? (
-            <Link to="/" className="text-sm font-bold flex items-center gap-2" style={{ color: 'var(--app-text)' }}>
+            <Link to="/" className="text-sm font-bold flex items-center gap-2" style={{ color: 'var(--app-header-text)' }}>
               <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-7 h-7 rounded-lg object-cover" />
               <span className="tracking-tight">Shooting Records</span>
               <span
@@ -225,7 +225,7 @@ export default function Navigation() {
               transition={{ duration: 0.15 }}
               className="mx-3 mb-1 rounded-2xl shadow-xl overflow-hidden"
               style={{
-                backgroundColor: 'var(--app-card)',
+                backgroundColor: 'var(--app-surface)',
                 borderColor: 'var(--app-border)',
                 borderWidth: '1px',
               }}

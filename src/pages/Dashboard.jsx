@@ -7,7 +7,7 @@ import { useOuting } from '@/context/OutingContext';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import {
-  Target, Crosshair, Map, BookOpen,
+  Target, Crosshair, Map, BookOpen, Settings,
   BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck,
 } from 'lucide-react';
 import {
@@ -158,9 +158,10 @@ function KpiRow({ stats }) {
           backgroundColor: 'var(--app-card)',
           borderColor: 'var(--app-border)',
           borderWidth: '1px',
+          boxShadow: 'var(--app-shadow)',
         }}>
-          <p className="text-base md:text-lg font-bold text-foreground leading-none">{item.value}</p>
-          <p className="text-[10px] text-muted-foreground mt-1 font-medium">{item.label}</p>
+          <p className="text-base md:text-lg font-bold leading-none" style={{ color: 'var(--app-text)' }}>{item.value}</p>
+          <p className="text-[10px] mt-1 font-medium" style={{ color: 'var(--app-text-muted)' }}>{item.label}</p>
         </div>
       ))}
     </div>
@@ -174,18 +175,19 @@ function PrimaryCard({ to, icon, label, sub }) {
         backgroundColor: 'var(--app-card)',
         borderColor: 'var(--app-border)',
         borderWidth: '1px',
+        boxShadow: 'var(--app-shadow)',
       }}>
         <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 select-none" style={{
-          backgroundColor: 'color-mix(in srgb, var(--app-accent) 10%, transparent)',
+          backgroundColor: 'var(--app-accent-soft)',
           color: 'var(--app-accent)',
         }}>
           {icon}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-foreground leading-snug tracking-tight">{label}</p>
-          {sub && <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}
+          <p className="text-sm font-bold leading-snug tracking-tight" style={{ color: 'var(--app-text)' }}>{label}</p>
+          {sub && <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--app-text-muted)' }}>{sub}</p>}
         </div>
-        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+        <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--app-text-muted)' }} />
       </div>
     </Link>
   );
@@ -196,10 +198,10 @@ function SecondaryGrid({ user }) {
   const allItems = [
     { to: '/target-shooting', icon: <Crosshair className="w-5 h-5" />, label: 'Target', module: 'target_shooting' },
     { to: '/clay-shooting', icon: <Target className="w-5 h-5" />, label: 'Clay', module: 'clay_shooting' },
-    { to: '/deer-management', icon: <span className="text-lg">🦌</span>, label: 'Deer', module: 'deer_management' },
+    { to: '/deer-management', icon: <Crosshair className="w-5 h-5" />, label: 'Deer', module: 'deer_management' },
     { to: '/reloading', icon: <RefreshCw className="w-5 h-5" />, label: 'Reloading', module: 'reloading' },
     { to: '/load-development', icon: <FlaskConical className="w-5 h-5" />, label: 'Load Dev', module: 'reloading' },
-    { to: '/settings/rifles', icon: <span className="text-lg">🔧</span>, label: 'Equipment' },
+    { to: '/settings/rifles', icon: <Settings className="w-5 h-5" />, label: 'Equipment' },
     { to: '/reports', icon: <BarChart3 className="w-5 h-5" />, label: 'Reports' },
     ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck className="w-5 h-5" />, label: 'Admin' }] : []),
   ];
@@ -210,17 +212,18 @@ function SecondaryGrid({ user }) {
       {items.map((item) => (
         <Link key={item.to} to={item.to}>
           <div className="rounded-xl p-2.5 shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none" style={{
-          backgroundColor: 'var(--app-card)',
-          borderColor: 'var(--app-border)',
-          borderWidth: '1px',
-        }}>
+            backgroundColor: 'var(--app-card)',
+            borderColor: 'var(--app-border)',
+            borderWidth: '1px',
+            boxShadow: 'var(--app-shadow)',
+          }}>
             <div className="w-9 h-9 rounded-lg flex items-center justify-center [&_svg]:w-5 [&_svg]:h-5 select-none" style={{
-              backgroundColor: 'var(--app-surface-soft)',
-              color: 'var(--app-text-muted)',
+              backgroundColor: 'var(--app-accent-soft)',
+              color: 'var(--app-accent)',
             }}>
               {item.icon}
             </div>
-            <p className="text-[10px] font-semibold text-muted-foreground leading-tight tracking-wide">{item.label}</p>
+            <p className="text-[10px] font-semibold leading-tight tracking-wide" style={{ color: 'var(--app-text-muted)' }}>{item.label}</p>
           </div>
         </Link>
       ))}
@@ -235,6 +238,7 @@ function ChartsSection({ chartData }) {
       backgroundColor: 'var(--app-card)',
       borderColor: 'var(--app-border)',
       borderWidth: '1px',
+      boxShadow: 'var(--app-shadow)',
     }}>
       <button
         onClick={() => setOpen(!open)}
@@ -347,8 +351,14 @@ export default function Dashboard() {
       {(pulling || refreshing) && (
         <div className="flex justify-center py-1">
           <div
-            className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full"
-            style={{ animation: refreshing ? 'spin 0.6s linear infinite' : 'none', opacity: refreshing ? 1 : progress, transform: `rotate(${progress * 360}deg)` }}
+            className="w-5 h-5 border-2 rounded-full"
+            style={{
+              borderColor: 'var(--app-accent)',
+              borderTopColor: 'transparent',
+              animation: refreshing ? 'spin 0.6s linear infinite' : 'none',
+              opacity: refreshing ? 1 : progress,
+              transform: `rotate(${progress * 360}deg)`
+            }}
           />
         </div>
       )}
