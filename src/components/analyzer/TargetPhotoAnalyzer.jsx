@@ -1,29 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Save, Loader2, Trash2, Plus, RotateCcw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import AIPhotoComparison from './AIPhotoComparison';
-
-// MOA/MRAD calculations — distanceM must be > 0
-function mmToMoa(mm, distanceM) {
-  if (!distanceM || distanceM <= 0) return null;
-  return mm / (distanceM / 100) / 29.088;
-}
-function mmToMrad(mm, distanceM) {
-  if (!distanceM || distanceM <= 0) return null;
-  return mm / distanceM;
-}
-
-function calcGroupSize(marks) {
-  if (marks.length < 2) return 0;
-  let maxDist = 0;
-  for (let i = 0; i < marks.length; i++) {
-    for (let j = i + 1; j < marks.length; j++) {
-      const d = Math.sqrt(Math.pow(marks[i].x - marks[j].x, 2) + Math.pow(marks[i].y - marks[j].y, 2));
-      if (d > maxDist) maxDist = d;
-    }
-  }
-  return maxDist;
-}
+import { mmToMoa, mmToMrad, calcGroupSizePixels, convertGroupSize } from '@/lib/groupSizeCalculations';
 
 function calcCentroid(marks) {
   if (!marks.length) return { x: 0, y: 0 };
@@ -73,8 +53,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
       if (marks.length < 2) setResults(null);
       return;
     }
-    const groupPx = calcGroupSize(marks);
-    const groupMm = groupPx * scalePx;
 
     let distM = null;
     const rawDist = distanceOverride !== '' ? parseFloat(distanceOverride) : parseFloat(session.distance);
@@ -83,8 +61,14 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
       distM = unit === 'yards' ? rawDist * 0.9144 : rawDist;
     }
 
-    const moa = mmToMoa(groupMm, distM);
-    const mrad = mmToMrad(groupMm, distM);
+    // Use shared calculation
+    const groupPx = calcGroupSizePixels(marks);
+    const metrics = convertGroupSize(groupPx, scalePx, distM);
+
+    if (!metrics) {
+      setResults(null);
+      return;
+    }
 
     let poiX = 0, poiY = 0;
     if (centrePoint && marks.length) {
@@ -95,11 +79,11 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
 
     setResults({
       shots: marks.length,
-      groupMm: Math.round(groupMm * 10) / 10,
-      groupMoa: moa !== null ? Math.round(moa * 100) / 100 : null,
-      groupMrad: mrad !== null ? Math.round(mrad * 1000) / 1000 : null,
-      groupInches: Math.round(groupMm / 25.4 * 100) / 100,
-      groupCm: Math.round(groupMm / 10 * 10) / 10,
+      groupMm: metrics.mm,
+      groupMoa: metrics.moa,
+      groupMrad: metrics.mrad,
+      groupInches: metrics.inches,
+      groupCm: Math.round(metrics.mm / 10 * 10) / 10,
       poiX: Math.round(poiX * 10) / 10,
       poiY: Math.round(poiY * 10) / 10,
       hasDistance: distM !== null,

@@ -1,30 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Loader2, AlertCircle, CheckCircle2, Save } from 'lucide-react';
 import { format } from 'date-fns';
+import { mmToMoa, mmToMrad, calcGroupSizePixels, convertGroupSize } from '@/lib/groupSizeCalculations';
 
 const inp = 'w-full px-3 py-2.5 border border-border rounded-xl bg-background text-sm';
 const lbl = 'block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1';
-
-function mmToMoa(mm, distanceM) {
-  return mm / (distanceM / 100) / 29.088;
-}
-
-function mmToMrad(mm, distanceM) {
-  return mm / distanceM;
-}
-
-function calcGroupSize(marks) {
-  if (marks.length < 2) return 0;
-  let maxDist = 0;
-  for (let i = 0; i < marks.length; i++) {
-    for (let j = i + 1; j < marks.length; j++) {
-      const d = Math.sqrt(Math.pow(marks[i].x - marks[j].x, 2) + Math.pow(marks[i].y - marks[j].y, 2));
-      if (d > maxDist) maxDist = d;
-    }
-  }
-  return maxDist;
-}
 
 export default function AIPhotoComparison({
   session,
@@ -99,34 +81,37 @@ export default function AIPhotoComparison({
     }
 
     const distM = session.distance_unit === 'yards' ? session.distance * 0.9144 : session.distance;
-    const aiGroupPx = calcGroupSize(aiAnalysis.detected_bullets);
-    const aiGroupMm = aiGroupPx * scalePx;
-    const aiMoa = mmToMoa(aiGroupMm, distM);
-    const aiMrad = mmToMrad(aiGroupMm, distM);
+    
+    // Use shared calculation function
+    const aiGroupPx = calcGroupSizePixels(aiAnalysis.detected_bullets);
+    const aiMetrics = convertGroupSize(aiGroupPx, scalePx, distM);
 
-    const userGroupPx = calcGroupSize(userMarks);
-    const userGroupMm = userGroupPx * scalePx;
-    const userMoa = mmToMoa(userGroupMm, distM);
-    const userMrad = mmToMrad(userGroupMm, distM);
+    const userGroupPx = calcGroupSizePixels(userMarks);
+    const userMetrics = convertGroupSize(userGroupPx, scalePx, distM);
+
+    if (!aiMetrics || !userMetrics) {
+      setComparison(null);
+      return;
+    }
 
     setComparison({
       ai: {
         shots: aiAnalysis.detected_bullets?.length || 0,
-        groupMm: Math.round(aiGroupMm * 10) / 10,
-        groupMoa: Math.round(aiMoa * 100) / 100,
-        groupMrad: Math.round(aiMrad * 1000) / 1000,
+        groupMm: aiMetrics.mm,
+        groupMoa: aiMetrics.moa,
+        groupMrad: aiMetrics.mrad,
       },
       user: {
         shots: userMarks.length,
-        groupMm: Math.round(userGroupMm * 10) / 10,
-        groupMoa: Math.round(userMoa * 100) / 100,
-        groupMrad: Math.round(userMrad * 1000) / 1000,
+        groupMm: userMetrics.mm,
+        groupMoa: userMetrics.moa,
+        groupMrad: userMetrics.mrad,
       },
       diff: {
         shots: userMarks.length - (aiAnalysis.detected_bullets?.length || 0),
-        groupMm: Math.round((userGroupMm - aiGroupMm) * 10) / 10,
-        groupMoa: Math.round((userMoa - aiMoa) * 100) / 100,
-        groupMrad: Math.round((userMrad - aiMrad) * 1000) / 1000,
+        groupMm: Math.round((userMetrics.mm - aiMetrics.mm) * 10) / 10,
+        groupMoa: Math.round((userMetrics.moa - aiMetrics.moa) * 100) / 100,
+        groupMrad: Math.round((userMetrics.mrad - aiMetrics.mrad) * 1000) / 1000,
       }
     });
   };
