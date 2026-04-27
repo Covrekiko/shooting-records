@@ -233,30 +233,60 @@ function BulletTable({ bullets, onEdit, onDelete }) {
       <p className="text-sm mt-1">Add bullets manually or import from CSV/JSON</p>
     </div>
   );
+
+  // Sort: manufacturer → bullet_name → weight_grains
+  const sorted = [...bullets].sort((a, b) => {
+    const mfr = (a.manufacturer || '').localeCompare(b.manufacturer || '');
+    if (mfr !== 0) return mfr;
+    const name = (a.bullet_name || '').localeCompare(b.bullet_name || '');
+    if (name !== 0) return name;
+    return (a.weight_grains || 0) - (b.weight_grains || 0);
+  });
+
+  // Group by manufacturer
+  const groups = [];
+  let currentMfr = null;
+  sorted.forEach(b => {
+    if (b.manufacturer !== currentMfr) {
+      currentMfr = b.manufacturer;
+      groups.push({ manufacturer: currentMfr, items: [] });
+    }
+    groups[groups.length - 1].items.push(b);
+  });
+
   return (
-    <div className="space-y-2">
-      {bullets.map(b => (
-        <div key={b.id} className="bg-card border border-border rounded-xl px-4 py-3 flex items-start justify-between gap-4">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-sm">{b.manufacturer}</span>
-              {b.bullet_name && <span className="text-sm text-muted-foreground">— {b.bullet_name}</span>}
-              {b.caliber && <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{b.caliber}</span>}
-              {b.weight_grains && <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{b.weight_grains}gr</span>}
-              {b.bullet_type && <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{b.bullet_type}</span>}
-              {b.lead_free && <span className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full">Lead-Free</span>}
-            </div>
-            <div className="flex gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
-              {b.ballistic_coefficient_g1 && <span>G1: {b.ballistic_coefficient_g1}</span>}
-              {b.ballistic_coefficient_g7 && <span>G7: {b.ballistic_coefficient_g7}</span>}
-              {b.bullet_construction && <span>{b.bullet_construction}</span>}
-              {b.diameter_inch && <span>Ø {b.diameter_inch}"</span>}
-              {b.data_confidence && <span className={`font-semibold ${b.data_confidence === 'High' ? 'text-green-600' : b.data_confidence === 'Low' ? 'text-amber-500' : ''}`}>{b.data_confidence} confidence</span>}
-            </div>
+    <div className="space-y-4">
+      {groups.map(group => (
+        <div key={group.manufacturer} className="bg-card border border-border rounded-2xl overflow-hidden">
+          <div className="px-4 py-2.5 bg-secondary/50 border-b border-border flex items-center justify-between">
+            <span className="font-bold text-sm">{group.manufacturer}</span>
+            <span className="text-xs text-muted-foreground">{group.items.length} bullet{group.items.length !== 1 ? 's' : ''}</span>
           </div>
-          <div className="flex gap-1 flex-shrink-0">
-            <button onClick={() => onEdit(b)} className="p-2 hover:bg-secondary rounded-lg transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-            <button onClick={() => onDelete(b.id)} className="p-2 hover:bg-destructive/10 text-destructive rounded-lg transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+          <div className="divide-y divide-border/50">
+            {group.items.map(b => (
+              <div key={b.id} className="px-4 py-3 flex items-start justify-between gap-4 hover:bg-secondary/20 transition-colors">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold text-sm">{b.bullet_name || '—'}</span>
+                    {b.caliber && <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{b.caliber}</span>}
+                    {b.weight_grains && <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{b.weight_grains}gr</span>}
+                    {b.bullet_type && <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{b.bullet_type}</span>}
+                    {b.lead_free && <span className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full">Lead-Free</span>}
+                  </div>
+                  <div className="flex gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
+                    {b.ballistic_coefficient_g1 && <span>G1: {b.ballistic_coefficient_g1}</span>}
+                    {b.ballistic_coefficient_g7 && <span>G7: {b.ballistic_coefficient_g7}</span>}
+                    {b.bullet_construction && <span>{b.bullet_construction}</span>}
+                    {b.diameter_inch && <span>Ø {b.diameter_inch}"</span>}
+                    {b.data_confidence && <span className={`font-semibold ${b.data_confidence === 'High' ? 'text-green-600' : b.data_confidence === 'Low' ? 'text-amber-500' : ''}`}>{b.data_confidence}</span>}
+                  </div>
+                </div>
+                <div className="flex gap-1 flex-shrink-0">
+                  <button onClick={() => onEdit(b)} className="p-2 hover:bg-secondary rounded-lg transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => onDelete(b.id)} className="p-2 hover:bg-destructive/10 text-destructive rounded-lg transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       ))}
