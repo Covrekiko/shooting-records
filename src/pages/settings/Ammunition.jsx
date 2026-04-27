@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import ChildScreenHeader from '@/components/ChildScreenHeader';
-import { Plus, Trash2, Edit2, Download } from 'lucide-react';
+import { Plus, Trash2, Edit2, Download, FileUp } from 'lucide-react';
 import AmmoEditModal from '@/components/AmmoEditModal';
 import { generateAmmunitionInventoryPDF } from '@/utils/pdfGenerators';
 import BulletReferencePicker from '@/components/reference/BulletReferencePicker';
+import BulletReferenceImporter from '@/components/reference/BulletReferenceImporter';
 
 export default function Ammunition() {
   const [ammunition, setAmmunition] = useState([]);
@@ -14,6 +15,7 @@ export default function Ammunition() {
   const [showForm, setShowForm] = useState(false);
   const [editingAmmo, setEditingAmmo] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showImporter, setShowImporter] = useState(false);
   const [formData, setFormData] = useState({
     brand: '',
     caliber: '',
@@ -117,6 +119,13 @@ export default function Ammunition() {
             <Plus className="w-5 h-5" />
             Add Ammunition
           </button>
+          <button
+            onClick={() => setShowImporter(true)}
+            className="px-6 py-3 bg-secondary text-secondary-foreground rounded-lg hover:opacity-90 flex items-center gap-2"
+          >
+            <FileUp className="w-5 h-5" />
+            Import Reference Feed
+          </button>
           {ammunition.length > 0 && (
             <button
               onClick={handleExportPDF}
@@ -135,15 +144,15 @@ export default function Ammunition() {
               <div>
                 <label className="block text-sm font-medium mb-1">Bullet Reference Database <span className="font-normal text-muted-foreground text-xs">(optional autofill)</span></label>
                 <BulletReferencePicker
-                  onSelect={(b) => setFormData(f => ({
-                    ...f,
-                    brand: b.manufacturer,
-                    caliber: b.caliber || f.caliber,
-                    bullet_type: b.bullet_construction || b.bullet_type || f.bullet_type,
-                    grain: b.weight_grains ? String(b.weight_grains) : f.grain,
-                  }))}
-                  onClear={() => {}}
-                />
+                   onSelect={(b) => setFormData(f => ({
+                     ...f,
+                     brand: b.manufacturer,
+                     caliber: b.calibre || f.caliber,
+                     bullet_type: b.bullet_type || f.bullet_type,
+                     grain: b.weight_grains ? String(b.weight_grains) : f.grain,
+                   }))}
+                   onClear={() => {}}
+                 />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Brand</label>
@@ -309,6 +318,16 @@ export default function Ammunition() {
           }}
           onSave={handleSaveEdit}
         />
+
+        {/* Import Modal */}
+        {showImporter && (
+          <BulletReferenceImporter
+            onClose={() => setShowImporter(false)}
+            onImportComplete={() => {
+              // Importer handles its own confirmation
+            }}
+          />
+        )}
       </main>
     </div>
   );

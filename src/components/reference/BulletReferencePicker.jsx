@@ -41,18 +41,24 @@ export default function BulletReferencePicker({ onSelect, onClear, selectedId, f
 
   const loadBullets = async () => {
     setLoading(true);
-    const list = await base44.entities.BulletReference.list('-updated_date', 500);
-    const sorted = [...list].sort((a, b) => {
-      const mfr = (a.manufacturer || '').localeCompare(b.manufacturer || '');
-      if (mfr !== 0) return mfr;
-      const cal = getCaliberNumeric(a.caliber) - getCaliberNumeric(b.caliber);
-      if (cal !== 0) return cal;
-      const name = (a.bullet_name || '').localeCompare(b.bullet_name || '');
-      if (name !== 0) return name;
-      return (a.weight_grains || 0) - (b.weight_grains || 0);
-    });
-    setBullets(sorted);
-    setFiltered(sorted);
+    try {
+      const list = await base44.entities.BulletReference.list('-updated_date', 1000);
+      const sorted = [...list].sort((a, b) => {
+        const mfr = (a.manufacturer || '').localeCompare(b.manufacturer || '');
+        if (mfr !== 0) return mfr;
+        const cal = getCaliberNumeric(a.calibre) - getCaliberNumeric(b.calibre);
+        if (cal !== 0) return cal;
+        const fam = (a.bullet_family || '').localeCompare(b.bullet_family || '');
+        if (fam !== 0) return fam;
+        return (a.weight_grains || 0) - (b.weight_grains || 0);
+      });
+      setBullets(sorted);
+      setFiltered(sorted);
+    } catch (error) {
+      console.error('Error loading bullet reference:', error);
+      setBullets([]);
+      setFiltered([]);
+    }
     setLoading(false);
   };
 
@@ -60,18 +66,19 @@ export default function BulletReferencePicker({ onSelect, onClear, selectedId, f
     let list = bullets;
     if (filterCaliber) {
       list = list.filter(b =>
-        b.caliber?.toLowerCase().includes(filterCaliber.toLowerCase()) ||
-        filterCaliber.toLowerCase().includes(b.caliber?.toLowerCase() || '')
+        b.calibre?.toLowerCase().includes(filterCaliber.toLowerCase()) ||
+        filterCaliber.toLowerCase().includes(b.calibre?.toLowerCase() || '')
       );
     }
     if (query) {
       const q = query.toLowerCase();
       list = list.filter(b =>
         b.manufacturer?.toLowerCase().includes(q) ||
-        b.bullet_name?.toLowerCase().includes(q) ||
-        b.caliber?.toLowerCase().includes(q) ||
+        b.bullet_family?.toLowerCase().includes(q) ||
+        b.calibre?.toLowerCase().includes(q) ||
         String(b.weight_grains || '').includes(q) ||
-        b.bullet_type?.toLowerCase().includes(q)
+        b.bullet_type?.toLowerCase().includes(q) ||
+        b.use?.toLowerCase().includes(q)
       );
     }
     setFiltered(list);
@@ -105,7 +112,7 @@ export default function BulletReferencePicker({ onSelect, onClear, selectedId, f
   const label = selected
     ? selected.manual
       ? selected.bullet_name
-      : `${selected.manufacturer} ${selected.bullet_name || ''} ${selected.weight_grains}gr ${selected.caliber}`.trim()
+      : `${selected.manufacturer} ${selected.bullet_family || ''} ${selected.weight_grains}gr ${selected.calibre}`.trim()
     : 'Select bullet';
 
   return (
@@ -182,20 +189,11 @@ export default function BulletReferencePicker({ onSelect, onClear, selectedId, f
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="text-sm font-semibold truncate">
-                        {b.manufacturer} {b.bullet_name || ''} {b.bullet_family && b.bullet_family !== b.bullet_name ? `(${b.bullet_family})` : ''} — {b.weight_grains}gr
+                        {b.manufacturer} {b.bullet_family} — {b.weight_grains}gr
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {b.caliber}{b.bullet_type ? ` · ${b.bullet_type}` : ''}
-                        {b.lead_free ? ' · Lead-Free' : ''}
-                        {b.ballistic_coefficient_g1 ? ` · G1: ${b.ballistic_coefficient_g1}` : ''}
-                        {b.ballistic_coefficient_g7 ? ` · G7: ${b.ballistic_coefficient_g7}` : ''}
-                        {!b.ballistic_coefficient_g1 && !b.ballistic_coefficient_g7 ? ' · No BC data' : ''}
+                        {b.calibre}{b.bullet_type ? ` · ${b.bullet_type}` : ''}{b.use ? ` · ${b.use}` : ''}{b.source_type ? ` · ${b.source_type}` : ''}
                       </p>
-                    </div>
-                    <div className="flex gap-1 flex-shrink-0 mt-0.5">
-                      {b.ballistic_coefficient_g7 && <span className="text-[9px] bg-primary/10 text-primary rounded px-1 font-bold">G7</span>}
-                      {b.ballistic_coefficient_g1 && !b.ballistic_coefficient_g7 && <span className="text-[9px] bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded px-1 font-bold">G1 only</span>}
-                      {b.data_confidence === 'High' && <span className="text-[9px] bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded px-1 font-bold">✓</span>}
                     </div>
                   </div>
                 </button>

@@ -52,14 +52,14 @@ export default function ReferenceDatabase() {
 
   // Bullet filters
   const bulletManufacturers = [...new Set(bullets.map(b => b.manufacturer).filter(Boolean))].sort();
-  const bulletCalibers = [...new Set(bullets.map(b => b.caliber).filter(Boolean))].sort();
+  const bulletCalibers = [...new Set(bullets.map(b => b.calibre || b.caliber).filter(Boolean))].sort();
 
   const filteredBullets = bullets.filter(b => {
     const q = search.toLowerCase();
-    const matchSearch = !q || [b.manufacturer, b.bullet_name, b.caliber, b.bullet_type, b.bullet_construction, b.bullet_family]
+    const matchSearch = !q || [b.manufacturer, b.bullet_family, b.bullet_name, b.calibre || b.caliber, b.bullet_type, b.bullet_construction]
       .some(v => v?.toLowerCase().includes(q));
     const matchMfr = !filters.manufacturer || b.manufacturer === filters.manufacturer;
-    const matchCal = !filters.caliber || b.caliber === filters.caliber;
+    const matchCal = !filters.caliber || (b.calibre === filters.caliber || b.caliber === filters.caliber);
     const matchType = !filters.bullet_type || b.bullet_type === filters.bullet_type;
     const matchHuntMatch = !filters.hunting_or_match || b.hunting_or_match === filters.hunting_or_match;
     const matchLeadFree = !filters.lead_free || b.lead_free === true;
@@ -234,11 +234,11 @@ function BulletTable({ bullets, onEdit, onDelete }) {
     </div>
   );
 
-  // Sort: manufacturer → bullet_name → weight_grains
+  // Sort: manufacturer → bullet_family → weight_grains
   const sorted = [...bullets].sort((a, b) => {
     const mfr = (a.manufacturer || '').localeCompare(b.manufacturer || '');
     if (mfr !== 0) return mfr;
-    const name = (a.bullet_name || '').localeCompare(b.bullet_name || '');
+    const name = (a.bullet_family || '').localeCompare(b.bullet_family || '');
     if (name !== 0) return name;
     return (a.weight_grains || 0) - (b.weight_grains || 0);
   });
@@ -267,11 +267,11 @@ function BulletTable({ bullets, onEdit, onDelete }) {
               <div key={b.id} className="px-4 py-3 flex items-start justify-between gap-4 hover:bg-secondary/20 transition-colors">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-sm">{b.bullet_name || '—'}</span>
-                    {b.caliber && <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{b.caliber}</span>}
-                    {b.weight_grains && <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{b.weight_grains}gr</span>}
-                    {b.bullet_type && <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{b.bullet_type}</span>}
-                    {b.lead_free && <span className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded-full">Lead-Free</span>}
+                        <span className="font-semibold text-sm">{b.bullet_family || b.bullet_name || '—'}</span>
+                        {(b.calibre || b.caliber) && <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{b.calibre || b.caliber}</span>}
+                        {b.weight_grains && <span className="text-xs bg-secondary px-2 py-0.5 rounded-full">{b.weight_grains}gr</span>}
+                        {b.bullet_type && <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">{b.bullet_type}</span>}
+                        {b.source_type && <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded-full">{b.source_type}</span>}
                   </div>
                   <div className="flex gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
                     {b.ballistic_coefficient_g1 && <span>G1: {b.ballistic_coefficient_g1}</span>}
