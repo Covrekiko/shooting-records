@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { Link } from 'react-router-dom';
-import { UserPlus, MoreVertical, Ban, Pause, MessageCircle, Users } from 'lucide-react';
+import { UserPlus, MoreVertical, Ban, Pause, MessageCircle, Users, Zap } from 'lucide-react';
 
 export default function AdminUsers() {
   const [users, setUsers] = useState([]);
@@ -67,6 +67,16 @@ export default function AdminUsers() {
       setSelectedUserMenu(null);
     } catch (error) {
       console.error('Error updating user status:', error);
+    }
+  };
+
+  const handleMakeBetaTester = async (userId) => {
+    try {
+      await base44.entities.User.update(userId, { role: 'beta_tester', beta_tester_status: 'active' });
+      setUsers(users.map(u => u.id === userId ? { ...u, role: 'beta_tester' } : u));
+      setSelectedUserMenu(null);
+    } catch (error) {
+      console.error('Error making beta tester:', error);
     }
   };
 
@@ -273,6 +283,15 @@ export default function AdminUsers() {
                       </button>
                       {selectedUserMenu === user.id && (
                         <div className="absolute right-0 mt-2 w-48 bg-card border border-border rounded-lg shadow-lg z-10" onMouseLeave={() => setSelectedUserMenu(null)}>
+                          {user.role !== 'beta_tester' && (
+                            <button
+                              onClick={() => handleMakeBetaTester(user.id)}
+                              className="w-full px-4 py-2 text-left text-sm hover:bg-secondary flex items-center gap-2 border-b border-border text-primary"
+                            >
+                              <Zap className="w-4 h-4" />
+                              Make Beta Tester
+                            </button>
+                          )}
                           <button
                             onClick={() => handleStatusChange(user.id, 'suspended')}
                             className="w-full px-4 py-2 text-left text-sm hover:bg-secondary flex items-center gap-2 border-b border-border"
