@@ -51,7 +51,7 @@ export default function MobileTabBar() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-[9000] bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-700/60"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[9000] bg-card/95 backdrop-blur-md border-t border-border"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       {/* Sync status strip */}
@@ -61,7 +61,7 @@ export default function MobileTabBar() {
           <button
             onClick={syncPill.action || undefined}
             disabled={!syncPill.action}
-            className={`w-full flex items-center justify-center gap-1.5 py-1 text-white text-[10px] font-semibold select-none ${syncPill.bg} ${syncPill.action ? 'active:opacity-80' : ''}`}
+            className={`w-full flex items-center justify-center gap-1.5 py-1 text-destructive-foreground text-[10px] font-semibold select-none ${syncPill.bg === 'bg-amber-500' ? 'bg-amber-500' : syncPill.bg === 'bg-red-500' ? 'bg-destructive' : syncPill.bg === 'bg-blue-500' ? 'bg-primary' : 'bg-muted'} ${syncPill.action ? 'active:opacity-80' : ''}`}
           >
             <PillIcon className={`w-3 h-3 flex-shrink-0 ${syncPill.spinning ? 'animate-spin' : ''}`} />
             {syncPill.label}
@@ -76,16 +76,16 @@ export default function MobileTabBar() {
               key={key}
               onClick={() => handleTabPress(key)}
               className={`flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 transition-colors active:scale-90 transform-gpu select-none ${
-                isActive ? 'text-primary' : 'text-slate-400 dark:text-slate-500'
+                isActive ? 'text-primary' : 'text-muted-foreground'
               }`}
             >
               <div className={`flex items-center justify-center w-7 h-7 rounded-xl transition-all ${
-                isActive ? 'bg-primary/10 dark:bg-primary/20' : ''
+                isActive ? 'bg-primary/10' : ''
               }`}>
                 <Icon style={{ width: isActive ? 20 : 18, height: isActive ? 20 : 18 }} />
               </div>
               <span className={`text-[9px] font-semibold tracking-tight leading-none ${
-                isActive ? 'text-primary' : 'text-slate-400 dark:text-slate-500'
+                isActive ? 'text-primary' : 'text-muted-foreground'
               }`}>
                 {label}
               </span>

@@ -44,7 +44,7 @@ export default function Profile() {
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/profile')
                     ? 'bg-primary/10 text-primary'
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    : 'text-foreground hover:bg-secondary'
                 }`}
               >
                 <User className="w-4 h-4" />
@@ -55,7 +55,7 @@ export default function Profile() {
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/profile/settings')
                     ? 'bg-primary/10 text-primary'
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    : 'text-foreground hover:bg-secondary'
                 }`}
               >
                 <Settings className="w-4 h-4" />
@@ -66,7 +66,7 @@ export default function Profile() {
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/profile/records')
                     ? 'bg-primary/10 text-primary'
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    : 'text-foreground hover:bg-secondary'
                 }`}
               >
                 <FileText className="w-4 h-4" />
@@ -77,7 +77,7 @@ export default function Profile() {
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/reports')
                     ? 'bg-primary/10 text-primary'
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    : 'text-foreground hover:bg-secondary'
                 }`}
               >
                 <BarChart3 className="w-4 h-4" />
@@ -88,7 +88,7 @@ export default function Profile() {
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/ammo-summary')
                     ? 'bg-primary/10 text-primary'
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    : 'text-foreground hover:bg-secondary'
                 }`}
               >
                 <Zap className="w-4 h-4" />
@@ -99,7 +99,7 @@ export default function Profile() {
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/deer-stalking-logs')
                     ? 'bg-primary/10 text-primary'
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    : 'text-foreground hover:bg-secondary'
                 }`}
               >
                 <Map className="w-4 h-4" />
@@ -110,7 +110,7 @@ export default function Profile() {
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/profile/modules')
                     ? 'bg-primary/10 text-primary'
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    : 'text-foreground hover:bg-secondary'
                 }`}
               >
                 <Layers className="w-4 h-4" />
@@ -121,7 +121,7 @@ export default function Profile() {
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/profile/theme')
                     ? 'bg-primary/10 text-primary'
-                    : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700'
+                    : 'text-foreground hover:bg-secondary'
                 }`}
               >
                 <Palette className="w-4 h-4" />
@@ -382,7 +382,7 @@ function PersonalDetailsPanel() {
           >
             {saving ? 'Saving...' : 'Save Changes'}
           </button>
-          {saved && <span className="text-sm text-green-600 font-medium">✓ Saved successfully</span>}
+          {saved && <span className="text-sm text-primary font-medium">✓ Saved successfully</span>}
         </div>
       </form>
 
