@@ -544,21 +544,6 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
           <div>
             <label className={labelCls}>Shotgun</label>
             <BottomSheetSelect value={data.shotgun_id} onChange={(val) => onChange('shotgun_id', val)} placeholder="Select a shotgun" options={shotguns.map(s => ({ value: s.id, label: s.name }))} />
-            {data.shotgun_id && (() => {
-              const gun = shotguns.find(s => s.id === data.shotgun_id);
-              if (!gun) return null;
-              const cartsSinceClean = (gun.total_cartridges_fired || 0) - (gun.cartridges_at_last_cleaning || 0);
-              const cleaningThreshold = gun.cleaning_reminder_threshold || 100;
-              const needsCleaning = cartsSinceClean >= cleaningThreshold;
-              return (
-                <div className="mt-2 p-2.5 bg-slate-100 dark:bg-slate-700/50 rounded-lg text-xs space-y-1">
-                  <p className="text-slate-600 dark:text-slate-300">{gun.make} {gun.model} · {gun.gauge} gauge</p>
-                  <p className={`font-semibold ${needsCleaning ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
-                    {needsCleaning ? '⚠️ Needs cleaning' : '✓ Clean'} ({cartsSinceClean} rounds since clean)
-                  </p>
-                </div>
-              );
-            })()}
           </div>
           <div>
             <label className={labelCls}>Rounds Fired</label>
