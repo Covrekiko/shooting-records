@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { X, Calculator, Camera, ImagePlus, Trash2 } from 'lucide-react';
+import { X, Calculator, Camera, ImagePlus, Trash2, CloudSun } from 'lucide-react';
 
 const Field = ({ label, children }) => (
   <div>
@@ -33,7 +33,13 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
     is_best: false,
     final_comments: '',
     photos: [],
+    air_pressure_value: '',
+    air_pressure_unit: 'hPa',
+    temperature_value: '',
+    temperature_unit: '°C',
+    humidity: '',
   });
+  const [fetchingWeather, setFetchingWeather] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileInputRef = useRef(null);
@@ -64,6 +70,39 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
 
   const removePhoto = (idx) => {
     setForm(f => ({ ...f, photos: f.photos.filter((_, i) => i !== idx) }));
+  };
+
+  const autoFillWeather = () => {
+    if (!navigator.geolocation) return;
+    setFetchingWeather(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,surface_pressure&wind_speed_unit=mph`
+          );
+          const data = await res.json();
+          const current = data?.current;
+          if (current) {
+            setForm(f => ({
+              ...f,
+              air_pressure_value: Math.round(current.surface_pressure) ?? f.air_pressure_value,
+              air_pressure_unit: 'hPa',
+              temperature_value: current.temperature_2m ?? f.temperature_value,
+              temperature_unit: '°C',
+              humidity: current.relative_humidity_2m ?? f.humidity,
+            }));
+          }
+        } catch {
+          // silently fail
+        } finally {
+          setFetchingWeather(false);
+        }
+      },
+      () => { setFetchingWeather(false); },
+      { timeout: 8000 }
+    );
   };
 
   const calcVelocityStats = () => {
@@ -108,6 +147,11 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
         is_best: form.is_best,
         final_comments: form.final_comments,
         photos: form.photos || [],
+        air_pressure_value: parseFloat(form.air_pressure_value) || null,
+        air_pressure_unit: form.air_pressure_unit,
+        temperature_value: parseFloat(form.temperature_value) || null,
+        temperature_unit: form.temperature_unit,
+        humidity: parseFloat(form.humidity) || null,
       };
 
       if (result?.id) {
@@ -210,6 +254,71 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
                 className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
             </Field>
           </div>
+        </div>
+
+        {/* Environmental Conditions */}
+        <div className="bg-secondary/30 rounded-xl p-3 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-muted-foreground uppercase">Environmental Conditions</p>
+            <button
+              type="button"
+              onClick={autoFillWeather}
+              disabled={fetchingWeather}
+              className="flex items-center gap-1 text-xs text-primary font-semibold hover:underline disabled:opacity-50"
+            >
+              <CloudSun className="w-3 h-3" />
+              {fetchingWeather ? 'Fetching…' : 'Auto-fill Weather'}
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Air Pressure">
+              <div className="flex gap-1">
+                <input
+                  value={form.air_pressure_value ?? ''}
+                  onChange={e => set('air_pressure_value', e.target.value)}
+                  type="number"
+                  placeholder="e.g. 1013"
+                  className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none min-w-0"
+                />
+                <button
+                  type="button"
+                  onClick={() => set('air_pressure_unit', form.air_pressure_unit === 'hPa' ? 'inHg' : 'hPa')}
+                  className="px-2 py-1 text-[10px] font-bold bg-secondary rounded-lg hover:bg-secondary/80 flex-shrink-0 whitespace-nowrap"
+                >
+                  {form.air_pressure_unit}
+                </button>
+              </div>
+            </Field>
+            <Field label="Temperature">
+              <div className="flex gap-1">
+                <input
+                  value={form.temperature_value ?? ''}
+                  onChange={e => set('temperature_value', e.target.value)}
+                  type="number"
+                  placeholder="e.g. 12"
+                  className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none min-w-0"
+                />
+                <button
+                  type="button"
+                  onClick={() => set('temperature_unit', form.temperature_unit === '°C' ? '°F' : '°C')}
+                  className="px-2 py-1 text-[10px] font-bold bg-secondary rounded-lg hover:bg-secondary/80 flex-shrink-0 whitespace-nowrap"
+                >
+                  {form.temperature_unit}
+                </button>
+              </div>
+            </Field>
+          </div>
+          <Field label="Humidity (%)">
+            <input
+              value={form.humidity ?? ''}
+              onChange={e => set('humidity', e.target.value)}
+              type="number"
+              min="0"
+              max="100"
+              placeholder="e.g. 65"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none"
+            />
+          </Field>
         </div>
 
         {/* Notes */}

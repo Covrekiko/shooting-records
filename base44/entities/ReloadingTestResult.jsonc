@@ -76,6 +76,34 @@
         "type": "string"
       },
       "description": "Photo URLs of range targets and results"
+    },
+    "air_pressure_value": {
+      "type": "number",
+      "description": "Atmospheric pressure at time of test"
+    },
+    "air_pressure_unit": {
+      "type": "string",
+      "enum": [
+        "hPa",
+        "inHg"
+      ],
+      "default": "hPa"
+    },
+    "temperature_value": {
+      "type": "number",
+      "description": "Ambient temperature at time of test"
+    },
+    "temperature_unit": {
+      "type": "string",
+      "enum": [
+        "\u00b0C",
+        "\u00b0F"
+      ],
+      "default": "\u00b0C"
+    },
+    "humidity": {
+      "type": "number",
+      "description": "Relative humidity percentage (0-100)"
     }
   },
   "required": [
