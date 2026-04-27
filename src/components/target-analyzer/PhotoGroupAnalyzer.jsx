@@ -57,11 +57,17 @@ export default function PhotoGroupAnalyzer({ session, onSave, onBack }) {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setPhotoUrl(file_url);
-    setHoles([]);
-    setCentre(null);
-    setUploading(false);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setPhotoUrl(file_url);
+      setHoles([]);
+      setCentre(null);
+    } catch (err) {
+      alert('Upload failed: ' + err.message);
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
   };
 
   useEffect(() => { drawCanvas(); }, [holes, centre, imgSize, photoUrl]);
