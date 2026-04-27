@@ -255,13 +255,16 @@ export default function Dashboard() {
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      // Force refresh auth context with latest user data
-      refreshUser?.();
+      // Refresh auth context and wait for it to complete
+      const refreshedUser = await refreshUser?.();
 
-      if (currentUser.role === 'admin') {
+      const user = refreshedUser || currentUser;
+      setUser(user);
+      
+      if (user.role === 'admin') {
         const [users, allRecords] = await Promise.all([
           base44.entities.User.list(),
-          getRepository('SessionRecord').filter({ created_by: currentUser.email }),
+          getRepository('SessionRecord').filter({ created_by: user.email }),
         ]);
         const targetRecords = allRecords.filter((r) => r.category === 'target_shooting');
         const clayRecords = allRecords.filter((r) => r.category === 'clay_shooting');
@@ -269,11 +272,11 @@ export default function Dashboard() {
         setStats({ totalUsers: users.length, totalRecords: allRecords.length, targetRecords: targetRecords.length, clayRecords: clayRecords.length, deerRecords: deerRecords.length });
       } else {
         const [allRecords, rifles, shotguns, clubs, locations] = await Promise.all([
-          getRepository('SessionRecord').filter({ created_by: currentUser.email }),
-          getRepository('Rifle').filter({ created_by: currentUser.email }),
-          getRepository('Shotgun').filter({ created_by: currentUser.email }),
-          getRepository('Club').filter({ created_by: currentUser.email }),
-          getRepository('Area').filter({ created_by: currentUser.email }),
+          getRepository('SessionRecord').filter({ created_by: user.email }),
+          getRepository('Rifle').filter({ created_by: user.email }),
+          getRepository('Shotgun').filter({ created_by: user.email }),
+          getRepository('Club').filter({ created_by: user.email }),
+          getRepository('Area').filter({ created_by: user.email }),
         ]);
         const targetShoots = allRecords.filter((r) => r.category === 'target_shooting');
         const clayShoots = allRecords.filter((r) => r.category === 'clay_shooting');
