@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { ArrowLeft, Wind, Target } from 'lucide-react';
+import { ArrowLeft, Wind, Target, ChevronDown, ChevronUp } from 'lucide-react';
+import BulletReferencePicker from '@/components/reference/BulletReferencePicker';
 
 // ─── Physics ──────────────────────────────────────────────────────────────────
 // G1 drag model — simplified point-mass trajectory
@@ -95,18 +96,28 @@ export default function BallisticCalculator({ session, onBack }) {
     return null;
   };
 
+  const [preset, setPreset] = useState(guessPreset() || '');
   const [bcInput, setBcInput] = useState('');
   const [mvInput, setMvInput] = useState('');      // fps
   const [massInput, setMassInput] = useState(bulletWeight ? String(bulletWeight) : '');
   const [windSpeed, setWindSpeed] = useState('10'); // mph
   const [windAngle, setWindAngle] = useState('90'); // degrees — full crosswind
   const [zeroDistance, setZeroDistance] = useState('100');
-  const [showPresets, setShowPresets] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const bc = parseFloat(bcInput) || null;
-  const mvFps = parseFloat(mvInput) || null;
+  const applyPreset = (name) => {
+    setPreset(name);
+    if (!name) return;
+    const p = BC_PRESETS[name];
+    setBcInput(String(p.bc));
+    setMvInput(String(Math.round(p.mv * 3.28084)));
+    setMassInput(String(p.mass_gr));
+  };
+
+  const bc = parseFloat(bcInput) || (preset ? BC_PRESETS[preset]?.bc : null);
+  const mvFps = parseFloat(mvInput) || (preset ? Math.round(BC_PRESETS[preset]?.mv * 3.28084) : null);
   const mvMs = mvFps ? mvFps / 3.28084 : null;
-  const massGr = parseFloat(massInput) || null;
+  const massGr = parseFloat(massInput) || (preset ? BC_PRESETS[preset]?.mass_gr : null);
   const windMs = parseFloat(windSpeed) * 0.44704;
   const zero = parseInt(zeroDistance) || 100;
 
@@ -146,50 +157,52 @@ export default function BallisticCalculator({ session, onBack }) {
         </div>
       </div>
 
-      {/* Manual entry */}
-       <div className="bg-card border border-border rounded-2xl p-4 mb-4 space-y-3">
-         <div className="flex items-center justify-between mb-2">
-           <p className="font-semibold text-sm">Bullet Setup</p>
-           <button onClick={() => setShowPresets(!showPresets)} className="text-xs text-primary hover:underline">
-             {showPresets ? 'Hide' : 'Show'} presets
-           </button>
-         </div>
-         <div className="grid grid-cols-3 gap-3">
-           <div>
-             <label className={lbl}>BC (G1)</label>
-             <input type="number" step="0.001" value={bcInput}
-               onChange={e => setBcInput(e.target.value)}
-               placeholder="e.g. 0.475" className={inp} />
-           </div>
-           <div>
-             <label className={lbl}>MV (fps)</label>
-             <input type="number" value={mvInput}
-               onChange={e => setMvInput(e.target.value)}
-               placeholder="e.g. 2700" className={inp} />
-           </div>
-           <div>
-             <label className={lbl}>Weight (gr)</label>
-             <input type="number" value={massInput}
-               onChange={e => setMassInput(e.target.value)}
-               placeholder="e.g. 168" className={inp} />
-           </div>
-         </div>
-         
-         {showPresets && (
-           <div className="mt-4 pt-3 border-t border-border">
-             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">Common Presets</p>
-             <div className="grid grid-cols-2 gap-2 text-xs">
-               {Object.entries(BC_PRESETS).map(([name, data]) => (
-                 <button key={name} onClick={() => { setBcInput(String(data.bc)); setMvInput(String(Math.round(data.mv * 3.28084))); setMassInput(String(data.mass_gr)); }}
-                   className="text-left px-2 py-1.5 rounded-lg border border-border hover:bg-secondary transition-colors">
-                   <p className="font-medium">{name}</p>
-                   <p className="text-muted-foreground">BC {data.bc} · MV {Math.round(data.mv * 3.28084)}fps</p>
-                 </button>
-               ))}
-             </div>
-           </div>
-         )}
-       </div>
+      {/* Preset selector */}
+      <div className="bg-card border border-border rounded-2xl p-4 mb-4 space-y-3">
+        <p className="font-semibold text-sm">Bullet / Caliber</p>
+        <div>
+          <label className={lbl}>From bullet database <span className="normal-case font-normal text-muted-foreground">(optional)</span></label>
+          <BulletReferencePicker
+            onSelect={(b) => {
+              setPreset('');
+              if (b.ballistic_coefficient_g1) setBcInput(String(b.ballistic_coefficient_g1));
+              else if (b.ballistic_coefficient_g7) setBcInput(String(b.ballistic_coefficient_g7));
+              if (b.weight_grains) setMassInput(String(b.weight_grains));
+            }}
+            onClear={() => {}}
+          />
+        </div>
+        <div>
+          <label className={lbl}>Or quick-select preset</label>
+          <select value={preset} onChange={e => applyPreset(e.target.value)} className={inp}>
+            <option value="">— Select or enter manually below —</option>
+            {Object.keys(BC_PRESETS).map(name => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          <div>
+            <label className={lbl}>BC (G1)</label>
+            <input type="number" step="0.001" value={bcInput || (preset ? BC_PRESETS[preset]?.bc : '')}
+              onChange={e => { setPreset(''); setBcInput(e.target.value); }}
+              placeholder="e.g. 0.475" className={inp} />
+          </div>
+          <div>
+            <label className={lbl}>MV (fps)</label>
+            <input type="number" value={mvInput || (preset ? Math.round(BC_PRESETS[preset]?.mv * 3.28084) : '')}
+              onChange={e => { setPreset(''); setMvInput(e.target.value); }}
+              placeholder="e.g. 2700" className={inp} />
+          </div>
+          <div>
+            <label className={lbl}>Weight (gr)</label>
+            <input type="number" value={massInput || (preset ? BC_PRESETS[preset]?.mass_gr : '')}
+              onChange={e => { setPreset(''); setMassInput(e.target.value); }}
+              placeholder="e.g. 168" className={inp} />
+          </div>
+        </div>
+      </div>
 
       {/* Conditions */}
       <div className="bg-card border border-border rounded-2xl p-4 mb-4 space-y-3">
