@@ -260,7 +260,16 @@ function FeedbackForm({ onSubmit, onCancel }) {
 
   return (
     <div className="bg-card border border-border rounded-lg p-4 mb-6">
-      <h2 className="font-semibold text-lg mb-4">Report Feedback</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-semibold text-lg">Report Feedback</h2>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="hidden md:block px-3 py-1.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
+        >
+          ← Back
+        </button>
+      </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase">Title *</label>
