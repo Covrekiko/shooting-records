@@ -251,8 +251,8 @@ export function getThemeTokens(themeKey = THEME_KEYS.CURRENT, isDark = false) {
 export function applyThemeToCSSVariables(themeKey = THEME_KEYS.CURRENT, isDark = false) {
   const tokens = getThemeTokens(themeKey, isDark);
   
-  // Get root element (for light mode) or html.dark (for dark mode)
-  const selector = isDark ? document.documentElement.classList.contains('dark') ? ':root.dark' : ':root' : ':root';
+  // Set data-theme attribute on root so CSS can target the right theme
+  document.documentElement.setAttribute('data-theme', themeKey);
   
   // Apply CSS variables
   Object.entries(tokens).forEach(([key, value]) => {

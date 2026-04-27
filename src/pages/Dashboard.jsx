@@ -154,7 +154,11 @@ function KpiRow({ stats }) {
   return (
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
-        <div key={item.label} className="bg-card rounded-xl px-2 py-2.5 text-center border border-border shadow-sm">
+        <div key={item.label} className="rounded-xl px-2 py-2.5 text-center shadow-sm" style={{
+          backgroundColor: 'var(--app-card)',
+          borderColor: 'var(--app-border)',
+          borderWidth: '1px',
+        }}>
           <p className="text-base md:text-lg font-bold text-foreground leading-none">{item.value}</p>
           <p className="text-[10px] text-muted-foreground mt-1 font-medium">{item.label}</p>
         </div>
@@ -166,8 +170,15 @@ function KpiRow({ stats }) {
 function PrimaryCard({ to, icon, label, sub }) {
   return (
     <Link to={to}>
-      <div className="bg-card rounded-2xl p-4 border border-border shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-4 select-none">
-        <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary [&_svg]:w-5 [&_svg]:h-5 select-none">
+      <div className="rounded-2xl p-4 shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-4 select-none" style={{
+        backgroundColor: 'var(--app-card)',
+        borderColor: 'var(--app-border)',
+        borderWidth: '1px',
+      }}>
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 [&_svg]:w-5 [&_svg]:h-5 select-none" style={{
+          backgroundColor: 'color-mix(in srgb, var(--app-accent) 10%, transparent)',
+          color: 'var(--app-accent)',
+        }}>
           {icon}
         </div>
         <div className="flex-1 min-w-0">
@@ -198,8 +209,15 @@ function SecondaryGrid({ user }) {
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
         <Link key={item.to} to={item.to}>
-          <div className="bg-card rounded-xl p-2.5 border border-border shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none">
-            <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground [&_svg]:w-5 [&_svg]:h-5 select-none">
+          <div className="rounded-xl p-2.5 shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none" style={{
+          backgroundColor: 'var(--app-card)',
+          borderColor: 'var(--app-border)',
+          borderWidth: '1px',
+        }}>
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center [&_svg]:w-5 [&_svg]:h-5 select-none" style={{
+              backgroundColor: 'var(--app-surface-soft)',
+              color: 'var(--app-text-muted)',
+            }}>
               {item.icon}
             </div>
             <p className="text-[10px] font-semibold text-muted-foreground leading-tight tracking-wide">{item.label}</p>
@@ -213,19 +231,29 @@ function SecondaryGrid({ user }) {
 function ChartsSection({ chartData }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+    <div className="rounded-2xl shadow-sm overflow-hidden" style={{
+      backgroundColor: 'var(--app-card)',
+      borderColor: 'var(--app-border)',
+      borderWidth: '1px',
+    }}>
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-secondary/30 transition-colors select-none"
+        className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold transition-colors select-none"
+        style={{ color: 'var(--app-text)' }}
+        onMouseEnter={(e) => e.target.parentElement.style.backgroundColor = 'var(--app-surface-soft)'}
+        onMouseLeave={(e) => e.target.parentElement.style.backgroundColor = 'transparent'}
       >
         <span className="flex items-center gap-2.5">
-          <BarChart3 className="w-5 h-5 text-primary" />
+          <BarChart3 className="w-5 h-5" style={{ color: 'var(--app-accent)' }} />
           <span className="tracking-tight">Analytics</span>
         </span>
-        <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${open ? 'rotate-90' : ''}`} />
+        <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${open ? 'rotate-90' : ''}`} style={{ color: 'var(--app-text-muted)' }} />
       </button>
       {open && (
-        <div className="px-4 pb-4 space-y-4 border-t border-border pt-4">
+        <div className="px-4 pb-4 space-y-4 pt-4" style={{
+        borderColor: 'var(--app-border)',
+        borderTopWidth: '1px',
+      }}>
           <MonthlyActivityChart data={chartData.monthly} />
           <RoundsPerMonthChart data={chartData.roundsPerMonth} />
           <RoundsPerFirearmChart data={chartData.firearm} />
@@ -312,7 +340,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="bg-background min-h-screen">
+    <div style={{ backgroundColor: 'var(--app-bg)' }} className="min-h-screen">
       <Navigation />
 
       {/* Pull-to-refresh indicator */}
