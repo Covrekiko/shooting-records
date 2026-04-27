@@ -323,13 +323,7 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
               Enter Manually
             </button>
           </div>
-          <button
-            onClick={() => setShowBallisticCalc(true)}
-            className="w-full py-3.5 bg-card border border-border rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 hover:border-primary/40 transition-all active:scale-95"
-          >
-            <Calculator className="w-4 h-4 text-primary" />
-            Ballistic Calculator
-          </button>
+
         </div>
       </div>
     </div>,
