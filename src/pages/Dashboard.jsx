@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/lib/AuthContext';
 import Navigation from '@/components/Navigation';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import { useOuting } from '@/context/OutingContext';
@@ -246,6 +247,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const { activeOuting } = useOuting();
   const { isEnabled } = useModules();
+  const { refreshUser } = useAuth();
 
   const today = format(new Date(), 'EEE, d MMM');
 
@@ -253,6 +255,8 @@ export default function Dashboard() {
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+      // Force refresh auth context with latest user data
+      refreshUser?.();
 
       if (currentUser.role === 'admin') {
         const [users, allRecords] = await Promise.all([
