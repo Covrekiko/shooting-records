@@ -328,9 +328,9 @@ export default function Dashboard() {
     }
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
-
   const { pulling, progress, refreshing } = usePullToRefresh(loadData);
+
+  useEffect(() => { loadData(); }, [loadData]);
 
   if (loading) {
     return (
