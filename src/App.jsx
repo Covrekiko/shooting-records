@@ -50,30 +50,16 @@ import BetaFeedback from './pages/BetaFeedback';
 import BetaTesters from './pages/admin/BetaTesters';
 import BetaFeedbackAdmin from './pages/admin/BetaFeedbackAdmin';
 
-// Sync dark mode — respect saved preference, fallback to system
+// Sync dark mode with system preference
 function ThemeSync() {
   useEffect(() => {
-    const saved = localStorage.getItem('shooting-records-dark-mode');
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
-
     const apply = (dark) => {
       document.documentElement.classList.toggle('dark', dark);
     };
-
-    // If no explicit save, default to dark (matches reference image)
-    if (saved === null) {
-      apply(true);
-      localStorage.setItem('shooting-records-dark-mode', 'true');
-    } else {
-      apply(saved === 'true');
-    }
-
-    const handler = (e) => {
-      const current = localStorage.getItem('shooting-records-dark-mode');
-      if (current === null) apply(e.matches);
-    };
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
+    apply(mq.matches);
+    mq.addEventListener('change', (e) => apply(e.matches));
+    return () => mq.removeEventListener('change', () => {});
   }, []);
   return null;
 }
@@ -142,8 +128,7 @@ const AuthenticatedApp = () => {
     <>
       <ThemeSync />
       <AnimatedRoutes>
-        {/* Desktop: offset content for fixed sidebar */}
-        <div className="md:pl-56">
+        <div>
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/target-shooting" element={<ModuleGate module="target_shooting"><TargetShooting /></ModuleGate>} />

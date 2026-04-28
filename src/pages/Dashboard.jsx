@@ -127,8 +127,7 @@ function ActiveSessionBanner({ outing }) {
       <motion.div
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-3 px-4 py-3.5 rounded-2xl shadow-lg green-glow"
-        style={{ background: 'linear-gradient(135deg, hsl(142 71% 38%), hsl(142 71% 28%))' }}
+        className="flex items-center gap-3 px-4 py-3.5 bg-emerald-600 dark:bg-emerald-700 rounded-2xl shadow-lg"
       >
         <div className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
         <div className="flex-1 min-w-0">
@@ -149,16 +148,16 @@ function ActiveSessionBanner({ outing }) {
 
 const KpiRow = React.memo(function KpiRow({ stats }) {
   const items = [
-    { label: 'Target', value: stats?.targetSessions ?? stats?.targetRecords ?? 0, color: 'text-blue-400' },
-    { label: 'Clay', value: stats?.claySessions ?? stats?.clayRecords ?? 0, color: 'text-orange-400' },
-    { label: 'Deer', value: stats?.deerOutings ?? stats?.deerRecords ?? 0, color: 'text-green-400' },
-    { label: 'Rounds', value: (stats?.totalRifleRounds ?? 0) + (stats?.totalShotgunRounds ?? 0), color: 'text-primary' },
+    { label: 'Target', value: stats?.targetSessions ?? stats?.targetRecords ?? 0 },
+    { label: 'Clay', value: stats?.claySessions ?? stats?.clayRecords ?? 0 },
+    { label: 'Deer', value: stats?.deerOutings ?? stats?.deerRecords ?? 0 },
+    { label: 'Rounds', value: (stats?.totalRifleRounds ?? 0) + (stats?.totalShotgunRounds ?? 0) },
   ];
   return (
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
-        <div key={item.label} className="stat-card bg-card rounded-xl px-2 py-3 text-center border border-border shadow-sm">
-          <p className={`text-base md:text-lg font-bold leading-none ${item.color}`}>{item.value}</p>
+        <div key={item.label} className="bg-card rounded-xl px-2 py-2.5 text-center border border-border shadow-sm">
+          <p className="text-base md:text-lg font-bold text-foreground leading-none">{item.value}</p>
           <p className="text-[10px] text-muted-foreground mt-1 font-medium">{item.label}</p>
         </div>
       ))}
@@ -169,42 +168,31 @@ const KpiRow = React.memo(function KpiRow({ stats }) {
 const PrimaryCard = React.memo(function PrimaryCard({ to, icon, label, sub }) {
   return (
     <Link to={to}>
-      <div className="premium-card bg-card rounded-2xl p-4 border border-border shadow-sm active:scale-[0.97] transition-all duration-150 flex items-center gap-4 select-none group">
-        <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary [&_svg]:w-5 [&_svg]:h-5 select-none group-hover:bg-primary/20 transition-colors">
+      <div className="bg-card rounded-2xl p-4 border border-border shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-4 select-none">
+        <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary [&_svg]:w-5 [&_svg]:h-5 select-none">
           {icon}
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-foreground leading-snug tracking-tight">{label}</p>
           {sub && <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}
         </div>
-        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0 group-hover:text-primary transition-colors" />
+        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
       </div>
     </Link>
   );
 });
 
-const MODULE_COLORS = {
-  '/target-shooting':  'bg-blue-500/10   text-blue-400',
-  '/clay-shooting':    'bg-orange-500/10 text-orange-400',
-  '/deer-management':  'bg-green-500/10  text-green-400',
-  '/reloading':        'bg-purple-500/10 text-purple-400',
-  '/load-development': 'bg-purple-500/10 text-purple-400',
-  '/settings/rifles':  'bg-slate-500/10  text-slate-400',
-  '/reports':          'bg-yellow-500/10 text-yellow-400',
-  '/admin/users':      'bg-red-500/10    text-red-400',
-};
-
 const SecondaryGrid = React.memo(function SecondaryGrid({ user }) {
   const { isEnabled } = useModules();
   const allItems = [
-    { to: '/target-shooting', icon: <Crosshair className="w-4 h-4" />, label: 'Target', module: 'target_shooting' },
-    { to: '/clay-shooting', icon: <Target className="w-4 h-4" />, label: 'Clay', module: 'clay_shooting' },
-    { to: '/deer-management', icon: <Layers className="w-4 h-4" />, label: 'Deer', module: 'deer_management' },
-    { to: '/reloading', icon: <RefreshCw className="w-4 h-4" />, label: 'Reloading', module: 'reloading' },
-    { to: '/load-development', icon: <FlaskConical className="w-4 h-4" />, label: 'Load Dev', module: 'reloading' },
-    { to: '/settings/rifles', icon: <BarChart3 className="w-4 h-4" />, label: 'Equipment' },
-    { to: '/reports', icon: <BarChart3 className="w-4 h-4" />, label: 'Reports' },
-    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck className="w-4 h-4" />, label: 'Admin' }] : []),
+    { to: '/target-shooting', icon: <Crosshair className="w-5 h-5" />, label: 'Target', module: 'target_shooting' },
+    { to: '/clay-shooting', icon: <Target className="w-5 h-5" />, label: 'Clay', module: 'clay_shooting' },
+    { to: '/deer-management', icon: <span className="text-lg">🦌</span>, label: 'Deer', module: 'deer_management' },
+    { to: '/reloading', icon: <RefreshCw className="w-5 h-5" />, label: 'Reloading', module: 'reloading' },
+    { to: '/load-development', icon: <FlaskConical className="w-5 h-5" />, label: 'Load Dev', module: 'reloading' },
+    { to: '/settings/rifles', icon: <span className="text-lg">🔧</span>, label: 'Equipment' },
+    { to: '/reports', icon: <BarChart3 className="w-5 h-5" />, label: 'Reports' },
+    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck className="w-5 h-5" />, label: 'Admin' }] : []),
   ];
   const items = allItems.filter(item => !item.module || isEnabled(item.module));
 
@@ -212,11 +200,11 @@ const SecondaryGrid = React.memo(function SecondaryGrid({ user }) {
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
          <Link key={item.to} to={item.to}>
-           <div className="premium-card bg-card rounded-xl p-2.5 border border-border shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none group">
-             <div className={`w-9 h-9 rounded-lg flex items-center justify-center select-none transition-colors ${MODULE_COLORS[item.to] || 'bg-secondary text-muted-foreground'}`}>
+           <div className="bg-card rounded-xl p-2.5 border border-border shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none">
+             <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground [&_svg]:w-5 [&_svg]:h-5 select-none">
                {item.icon}
              </div>
-             <p className="text-[10px] font-semibold text-muted-foreground leading-tight tracking-wide group-hover:text-foreground transition-colors">{item.label}</p>
+             <p className="text-[10px] font-semibold text-muted-foreground leading-tight tracking-wide">{item.label}</p>
            </div>
          </Link>
        ))}
@@ -227,7 +215,7 @@ const SecondaryGrid = React.memo(function SecondaryGrid({ user }) {
 const ChartsSection = React.memo(function ChartsSection({ chartData }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="premium-card bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+    <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-secondary/30 transition-colors select-none"
@@ -330,11 +318,8 @@ export default function Dashboard() {
     return (
       <div className="bg-background min-h-screen">
         <Navigation />
-        <div className="md:pl-0 flex items-center justify-center min-h-[60vh]">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs text-muted-foreground">Loading dashboard…</p>
-          </div>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       </div>
     );
@@ -354,24 +339,9 @@ export default function Dashboard() {
         </div>
       )}
 
-      <main className="max-w-2xl mx-auto md:max-w-4xl px-3 md:px-6 pt-4 pb-8 mobile-page-padding space-y-3">
+      <main className="max-w-2xl mx-auto px-3 pt-2 pb-8 mobile-page-padding space-y-3">
 
 
-
-        {/* ── Welcome Header ── */}
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground font-medium">{today}</p>
-            <h1 className="text-xl font-bold text-foreground mt-0.5">
-              Welcome back{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''}
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
-              {user?.full_name?.charAt(0) || 'U'}
-            </div>
-          </div>
-        </div>
 
         {/* ── Active Session Banner ── */}
         {activeOuting && isEnabled('stalk_map') && <ActiveSessionBanner outing={activeOuting} />}
@@ -389,11 +359,9 @@ export default function Dashboard() {
          {/* ── Beta Tester Feedback (if beta tester or admin) ── */}
          {(user?.role === 'beta_tester' || user?.role === 'admin') && (
            <Link to="/beta-feedback" className="block">
-             <div className="premium-card bg-card border border-primary/25 rounded-2xl p-4 hover:border-primary/50 transition-all group">
+             <div className="bg-primary/10 border border-primary/30 rounded-2xl p-4 hover:bg-primary/15 transition-colors">
                <div className="flex items-center gap-3">
-                 <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                   <MessageCircle className="w-4 h-4 text-primary" />
-                 </div>
+                 <MessageCircle className="w-5 h-5 text-primary flex-shrink-0" />
                  <div>
                    <p className="font-semibold text-sm text-foreground">
                      {user?.role === 'admin' ? 'Manage Feedback Forum' : 'Help Improve the App'}
@@ -402,7 +370,7 @@ export default function Dashboard() {
                      {user?.role === 'admin' ? 'Review beta tester feedback' : 'Share bugs and ideas in the feedback forum'}
                    </p>
                  </div>
-                 <ChevronRight className="w-4 h-4 text-primary flex-shrink-0 ml-auto group-hover:translate-x-0.5 transition-transform" />
+                 <ChevronRight className="w-4 h-4 text-primary flex-shrink-0 ml-auto" />
                </div>
              </div>
            </Link>

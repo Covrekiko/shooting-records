@@ -51,12 +51,8 @@ export default function MobileTabBar() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-[9000] border-t border-border"
-      style={{
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-        background: 'hsl(var(--card))',
-        backdropFilter: 'blur(12px)',
-      }}
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[9000] bg-card/95 backdrop-blur-md border-t border-border"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       {/* Sync status strip */}
       {syncPill && (() => {
