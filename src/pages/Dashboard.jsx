@@ -305,7 +305,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [refreshUser]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
