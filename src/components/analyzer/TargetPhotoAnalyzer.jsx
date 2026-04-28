@@ -524,7 +524,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               { id: 'aim', label: '✚ Point of Aim', color: 'bg-green-500 text-white' },
               { id: 'bullets', label: '🎯 Bullet Holes', color: 'bg-red-500 text-white' },
             ].map(m => (
-              <button key={m.id} type="button" onClick={() => setMode(m.id)}
+              <button key={m.id} type="button" onClick={() => setMode(mode === m.id ? '' : m.id)}
                 className={`px-4 py-2.5 rounded-xl font-semibold text-sm flex-shrink-0 transition-all ${mode === m.id ? m.color : 'bg-secondary hover:bg-secondary/80'}`}>
                 {m.label}
               </button>
