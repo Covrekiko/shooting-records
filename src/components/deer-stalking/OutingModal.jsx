@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import GlobalSheet from '@/components/ui/GlobalSheet.jsx';
 
 export default function OutingModal({ onClose, onSubmit, locations = [], selectedArea = null }) {
   const [areas, setAreas] = useState([]);
@@ -56,58 +55,72 @@ export default function OutingModal({ onClose, onSubmit, locations = [], selecte
   };
 
   return (
-    <GlobalSheet
-      open={true}
-      onClose={onClose}
-      title="Check In"
-      onSubmit={handleSubmit}
-      primaryAction="Check In"
-    >
-      <div className="space-y-4">
-        <div>
-          <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Date</label>
-          <input
-            type="date"
-            value={data.date}
-            onChange={(e) => handleChange('date', e.target.value)}
-            className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Select Area</label>
-          <select
-            value={data.location_id}
-            onChange={(e) => handleAreaSelect(e.target.value)}
-            className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
-          >
-            <option value="">Select your area</option>
-            {areas.map((area) => (
-              <option key={area.id} value={area.id}>{area.name}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Place Name</label>
-          <input
-            type="text"
-            value={data.place_name}
-            onChange={(e) => handleChange('place_name', e.target.value)}
-            className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-bold text-muted-foreground uppercase mb-1.5">Check-in Time</label>
-          <input
-            type="time"
-            value={data.start_time}
-            onChange={(e) => handleChange('start_time', e.target.value)}
-            className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
-            required
-          />
-        </div>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[9997]">
+      <div className="bg-card rounded-lg max-w-md w-full p-6 relative z-[9998]">
+        <h2 className="text-xl font-bold mb-4">Check In</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Date</label>
+            <input
+              type="date"
+              value={data.date}
+              onChange={(e) => handleChange('date', e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Select Area</label>
+            <select
+              value={data.location_id}
+              onChange={(e) => handleAreaSelect(e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+            >
+              <option value="">Select your area</option>
+              {areas.map((area) => (
+                <option key={area.id} value={area.id}>
+                  {area.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Place Name</label>
+            <input
+              type="text"
+              value={data.place_name}
+              onChange={(e) => handleChange('place_name', e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Check-in Time</label>
+            <input
+              type="time"
+              value={data.start_time}
+              onChange={(e) => handleChange('start_time', e.target.value)}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              required
+            />
+          </div>
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
+            >
+              Check In
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
-    </GlobalSheet>
+    </div>
   );
 }
