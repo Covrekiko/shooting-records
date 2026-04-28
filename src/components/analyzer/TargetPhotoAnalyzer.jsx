@@ -47,6 +47,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const [bestGroup, setBestGroup] = useState(editGroup?.best_group || false);
   const [setScaleMode, setSetScaleMode] = useState(false);
   const [scalePoints, setScalePoints] = useState([]);
+  const [scaleDragPoint, setScaleDragPoint] = useState(null); // Live cursor position while drawing line
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
   const [imgSize, setImgSize] = useState(null);
@@ -271,6 +272,11 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
 
   const handleContainerTouchMove = (e) => {
     e.preventDefault();
+    // If in scale mode with first point, track cursor for line preview
+    if (setScaleMode && scalePoints.length === 1) {
+      const coords = getRelativeCoords(e);
+      setScaleDragPoint(coords);
+    }
     if (e.touches.length === 2) {
       // Pinch zoom + two-finger drag pan
       const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -301,6 +307,14 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     // One finger: do nothing (prevent accidental pans)
   };
 
+  const handleContainerMouseMove = (e) => {
+    // Live line preview when drawing scale on desktop
+    if (setScaleMode && scalePoints.length === 1) {
+      const coords = getRelativeCoords(e);
+      setScaleDragPoint(coords);
+    }
+  };
+
   const handleContainerTouchEnd = (e) => {
     lastPinchDist.current = null;
     panStart.current = null;
@@ -326,6 +340,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     if (setScaleMode) {
       const newPts = [...scalePoints, coords];
       setScalePoints(newPts);
+      setScaleDragPoint(null); // Clear preview line
       if (newPts.length === 2) {
         // Calculate pixel distance between tapped points
         const pixelDist = Math.sqrt(
@@ -587,6 +602,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             onTouchStart={handleContainerTouchStart}
             onTouchMove={handleContainerTouchMove}
             onTouchEnd={handleContainerTouchEnd}
+            onMouseMove={handleContainerMouseMove}
           >
             {/* Zoom indicator */}
             {zoom > 1.05 && (
@@ -660,6 +676,16 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
                     </div>
                   );
                 })}
+                {setScaleMode && scalePoints.length === 1 && scaleDragPoint && (() => {
+                  const p1 = getDisplayCoords(scalePoints[0]);
+                  const p2 = getDisplayCoords(scaleDragPoint);
+                  if (!p1 || !p2) return null;
+                  return (
+                    <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%' }}>
+                      <line x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="amber" strokeWidth="2" opacity="0.7" />
+                    </svg>
+                  );
+                })()}
               </div>
             </div>
           </div>
