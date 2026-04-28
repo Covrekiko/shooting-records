@@ -29,12 +29,8 @@ export default function MobileTabBar() {
   const activeTab = getTabForPath(location.pathname);
 
   const handleTabPress = (tabKey) => {
-    if (tabKey === activeTab) {
-      navigate(TAB_DEFAULT[tabKey]);
-      return;
-    }
-    const dest = getLastPath(tabKey);
-    navigate(dest);
+    // Always navigate to the tab's default root — no "resume last path" behaviour
+    navigate(TAB_DEFAULT[tabKey]);
   };
 
   // Sync status pill config
