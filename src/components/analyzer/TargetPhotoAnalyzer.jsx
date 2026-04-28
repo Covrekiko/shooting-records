@@ -210,6 +210,13 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   };
 
   const handleContainerTouchStart = (e) => {
+    if (setScaleMode) {
+      // In scale mode: only allow single taps, disable zoom/pan
+      didPan.current = false;
+      panStart.current = null;
+      lastPinchDist.current = null;
+      return;
+    }
     if (e.touches.length === 2) {
       // Two-finger: zoom/pan start
       const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -230,6 +237,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   };
 
   const handleContainerTouchMove = (e) => {
+    if (setScaleMode) return; // Disable pan/zoom in scale mode
     e.preventDefault();
     if (e.touches.length === 2) {
       // Pinch zoom + two-finger drag pan
