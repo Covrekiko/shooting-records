@@ -556,7 +556,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           <div
             ref={containerRef}
             className="relative mb-1 rounded-2xl overflow-hidden border border-border bg-black select-none max-h-96 md:max-h-none"
-            style={{ touchAction: 'none', cursor: 'crosshair', aspectRatio: 'auto' }}
+            style={{ touchAction: mode ? 'none' : 'auto', cursor: 'crosshair', aspectRatio: 'auto' }}
             onTouchStart={handleContainerTouchStart}
             onTouchMove={handleContainerTouchMove}
             onTouchEnd={handleContainerTouchEnd}
