@@ -517,24 +517,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             </button>
           </div>
 
-          {/* Mode selector */}
-
-
-          {/* Mode selection - below image */}
-          <div className="grid grid-cols-3 gap-2 mb-3">
-            {[
-              { id: 'centre', icon: '⊕', label: 'Centre', color: 'bg-blue-500 text-white', title: 'Mark centre of target' },
-              { id: 'aim', icon: '✚', label: 'Aim Point', color: 'bg-green-500 text-white', title: 'Mark point of aim' },
-              { id: 'bullets', icon: '🎯', label: 'Bullet Holes', color: 'bg-red-500 text-white', title: 'Mark bullet holes' },
-            ].map(m => (
-              <button key={m.id} type="button" onClick={() => setMode(mode === m.id ? '' : m.id)}
-                className={`py-3 rounded-xl font-semibold text-sm flex flex-col items-center gap-1.5 transition-all ${mode === m.id ? m.color : 'bg-secondary hover:bg-secondary/80'}`}>
-                <span className="text-2xl">{m.icon}</span>
-                <span className="text-xs leading-tight">{m.label}</span>
-              </button>
-            ))}
-          </div>
-
           {/* Controls */}
           <div className="flex gap-2 mb-3">
             <button type="button" onClick={() => setMarks(prev => prev.slice(0, -1))}
@@ -651,6 +633,21 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               </button>
             </div>
           )}
+
+          {/* Mode selection - below image */}
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            {[
+              { id: 'centre', icon: '⊕', label: 'Centre', color: 'bg-blue-500 text-white', title: 'Mark centre of target' },
+              { id: 'aim', icon: '✚', label: 'Aim Point', color: 'bg-green-500 text-white', title: 'Mark point of aim' },
+              { id: 'bullets', icon: '🎯', label: 'Bullet Holes', color: 'bg-red-500 text-white', title: 'Mark bullet holes' },
+            ].map(m => (
+              <button key={m.id} type="button" onClick={() => setMode(mode === m.id ? '' : m.id)}
+                className={`py-3 rounded-xl font-semibold text-sm flex flex-col items-center gap-1.5 transition-all ${mode === m.id ? m.color : 'bg-secondary hover:bg-secondary/80'}`}>
+                <span className="text-2xl">{m.icon}</span>
+                <span className="text-xs leading-tight">{m.label}</span>
+              </button>
+            ))}
+          </div>
 
           <p className="text-xs text-muted-foreground text-center mb-3">
             {marks.length} bullet hole{marks.length !== 1 ? 's' : ''} marked
