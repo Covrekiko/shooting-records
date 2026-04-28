@@ -17,7 +17,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, GripHorizontal } from 'lucide-react';
-import { ModalHeader, ModalBody, ModalFooter, ModalSaveButton, ModalCancelButton } from './GlobalModal.jsx';
+import { ModalHeader, ModalBody, ModalFooter, ModalSaveButton, ModalCancelButton } from './GlobalModal';
 
 const Z_OVERLAY = 50000;
 const Z_MODAL   = 50001;
