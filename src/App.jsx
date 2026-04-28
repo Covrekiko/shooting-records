@@ -65,11 +65,11 @@ function ThemeSync() {
 }
 
 const pageVariants = {
-  initial: { opacity: 0, x: 20 },
-  in: { opacity: 1, x: 0 },
-  out: { opacity: 0, x: -20 },
+  initial: { opacity: 0 },
+  in: { opacity: 1 },
+  out: { opacity: 0 },
 };
-const pageTransition = { duration: 0.18, ease: 'easeInOut' };
+const pageTransition = { duration: 0.15, ease: 'easeInOut' };
 
 function AnimatedRoutes({ children }) {
   const location = useLocation();
