@@ -91,8 +91,6 @@ export default function LoadDevelopment() {
     }
   };
 
-  useBodyScrollLock(!!(showCreate || viewTest));
-
   const caliberOptions = [...new Set(tests.map(t => t.caliber).filter(Boolean))];
 
   const filtered = tests.filter(t => {
@@ -103,6 +101,8 @@ export default function LoadDevelopment() {
     const matchCaliber = !filterCaliber || t.caliber === filterCaliber;
     return matchSearch && matchStatus && matchCaliber;
   });
+
+  useBodyScrollLock(!!(showCreate || viewTest));
 
   if (selectedTest) {
     return (
