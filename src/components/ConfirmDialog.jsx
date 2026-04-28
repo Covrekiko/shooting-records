@@ -23,7 +23,7 @@ export default function ConfirmDialog({
             exit={{ opacity: 0 }}
             onClick={onCancel}
             className="fixed inset-0 z-[50000] bg-black/30 backdrop-blur-sm"
-            style={{ WebkitBackdropFilter: 'blur(8px)' }}
+            style={{ WebkitBackdropFilter: 'blur(8px)', touchAction: 'none' }}
           />
 
           {/* Dialog */}

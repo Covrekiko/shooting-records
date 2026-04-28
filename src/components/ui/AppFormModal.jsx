@@ -61,7 +61,7 @@ export default function AppFormModal({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             className="fixed inset-0 bg-black/40"
-            style={{ zIndex: Z_INDEX.overlay }}
+            style={{ zIndex: Z_INDEX.overlay, touchAction: 'none' }}
             onClick={onClose}
           />
 
@@ -102,7 +102,7 @@ export default function AppFormModal({
               </div>
 
               {/* Scrollable Content */}
-              <div className="overflow-y-auto flex-1 px-6 py-4" data-scrollable>
+              <div className="overflow-y-auto flex-1 px-6 py-4 overscroll-contain" data-scrollable style={{ touchAction: 'pan-y' }}>
                 {children}
               </div>
 

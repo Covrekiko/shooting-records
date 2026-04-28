@@ -59,7 +59,7 @@ export default function AppModal({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
             className="fixed inset-0 bg-black/40 flex items-center justify-center p-4"
-            style={{ zIndex: Z_INDEX.overlay }}
+            style={{ zIndex: Z_INDEX.overlay, touchAction: 'none' }}
             onClick={() => closeOnOutsideClick && onClose?.()}
           />
 
@@ -94,7 +94,7 @@ export default function AppModal({
               )}
 
               {/* Content (scrollable) */}
-              <div className="overflow-y-auto flex-1 px-6 py-4">
+              <div className="overflow-y-auto flex-1 px-6 py-4 overscroll-contain" style={{ touchAction: 'pan-y' }}>
                 {children}
               </div>
 

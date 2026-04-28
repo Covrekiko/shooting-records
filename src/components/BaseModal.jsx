@@ -30,7 +30,7 @@ export default function BaseModal({
             exit={{ opacity: 0 }}
             onClick={() => closeOnBackdropClick && onClose()}
             className="fixed inset-0 z-[50000] bg-black/30 backdrop-blur-sm"
-            style={{ WebkitBackdropFilter: 'blur(8px)' }}
+            style={{ WebkitBackdropFilter: 'blur(8px)', touchAction: 'none' }}
           />
 
           {/* Modal */}
@@ -63,7 +63,7 @@ export default function BaseModal({
               )}
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto px-6 py-4" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <div className="flex-1 overflow-y-auto px-6 py-4 overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y' }}>
                 {children}
               </div>
 

@@ -39,16 +39,20 @@ export default function AmmoEditModal({ ammo, isOpen, onClose, onSave }) {
   const inputCls = "w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm";
 
   return createPortal(
-    <div className="fixed inset-0 bg-black/50 z-[50000] flex items-center justify-center p-4">
-      <div className="bg-card rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-lg">
-        <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-card">
+    <div
+      className="fixed inset-0 bg-black/50 z-[50000] flex items-center justify-center p-4"
+      style={{ touchAction: 'none' }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="bg-card rounded-xl w-full max-w-md max-h-[90vh] flex flex-col shadow-lg" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between p-5 border-b border-border flex-shrink-0">
           <h2 className="text-lg font-bold">Edit Ammunition</h2>
           <button onClick={onClose} className="p-1 hover:bg-secondary rounded">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto overscroll-contain flex-1" style={{ touchAction: 'pan-y' }}>
           <div>
             <label className="block text-xs font-bold text-muted-foreground uppercase mb-2">Caliber</label>
             <input
