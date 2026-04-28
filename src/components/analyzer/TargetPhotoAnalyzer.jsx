@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { ArrowLeft, Save, Loader2, Trash2, Plus, RotateCcw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import AIPhotoComparison from './AIPhotoComparison';
+import BottomSheetSelect from '@/components/BottomSheetSelect';
 import { mmToMoa, mmToMrad, calcGroupSizePixels, convertGroupSize } from '@/lib/groupSizeCalculations';
 
 // FEATURE FLAG: AI Target Photo Analysis is currently disabled because detection accuracy needs further work.
@@ -753,25 +754,19 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             {rifles.length > 0 && (
               <div>
                 <label className={lbl}>Rifle</label>
-                <select value={selectedRifleId} onChange={e => setSelectedRifleId(e.target.value)} className={inp}>
-                  <option value="">— Select rifle —</option>
-                  {rifles.map(r => <option key={r.id} value={r.id}>{r.name} {r.caliber ? `(${r.caliber})` : ''}</option>)}
-                </select>
+                <BottomSheetSelect value={selectedRifleId} onChange={val => setSelectedRifleId(val)} placeholder="Select rifle" options={rifles.map(r => ({ value: r.id, label: `${r.name} ${r.caliber ? `(${r.caliber})` : ''}` }))} />
               </div>
             )}
             {ammunition.length > 0 && (
               <div>
                 <label className={lbl}>Ammunition</label>
-                <select value={selectedAmmoId} onChange={e => setSelectedAmmoId(e.target.value)} className={inp}>
-                  <option value="">— Select ammunition —</option>
-                  {ammunition
-                    .filter(a => {
-                      if (!selectedRifleId) return true;
-                      const rifle = rifles.find(r => r.id === selectedRifleId);
-                      return !rifle?.caliber || !a.caliber || a.caliber === rifle.caliber;
-                    })
-                    .map(a => <option key={a.id} value={a.id}>{a.brand}{a.caliber ? ` (${a.caliber})` : ''}{a.bullet_type ? ` - ${a.bullet_type}` : ''}{a.grain ? ` ${a.grain}gr` : ''}</option>)}
-                </select>
+                <BottomSheetSelect value={selectedAmmoId} onChange={val => setSelectedAmmoId(val)} placeholder="Select ammunition" options={ammunition
+                  .filter(a => {
+                    if (!selectedRifleId) return true;
+                    const rifle = rifles.find(r => r.id === selectedRifleId);
+                    return !rifle?.caliber || !a.caliber || a.caliber === rifle.caliber;
+                  })
+                  .map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}${a.grain ? ` ${a.grain}gr` : ''}` }))} />
               </div>
             )}
             <div>
@@ -779,18 +774,12 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               <div className="flex gap-2">
                 <input type="number" value={distanceOverride} onChange={e => setDistanceOverride(e.target.value)}
                   placeholder={session.distance ? `${session.distance}` : 'e.g. 100'} className={`${inp} flex-1`} />
-                <select value={distanceUnit} onChange={e => setDistanceUnit(e.target.value)} className="w-16 flex-shrink-0 px-2 py-2.5 border border-border rounded-xl bg-background text-sm">
-                  <option value="meters">m</option>
-                  <option value="yards">yd</option>
-                </select>
+                <BottomSheetSelect value={distanceUnit} onChange={val => setDistanceUnit(val)} placeholder="Unit" options={[{ value: 'meters', label: 'Meters' }, { value: 'yards', label: 'Yards' }]} />
               </div>
             </div>
             <div>
               <label className={lbl}>Shooting Position</label>
-              <select value={shootingPosition} onChange={e => setShootingPosition(e.target.value)} className={inp}>
-                <option value="">— Select —</option>
-                {POSITIONS.map(p => <option key={p} value={p}>{p.replace('_', ' ')}</option>)}
-              </select>
+              <BottomSheetSelect value={shootingPosition} onChange={val => setShootingPosition(val)} placeholder="Select position" options={POSITIONS.map(p => ({ value: p, label: p.replace('_', ' ') }))} />
             </div>
           </div>
 

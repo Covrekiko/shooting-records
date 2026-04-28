@@ -12,6 +12,8 @@ import { format } from 'date-fns';
 import { exportRecordsToPdf, getRecordsPdfBlob } from '@/utils/recordsPdfExport';
 import { DESIGN } from '@/lib/designConstants';
 import RecordDetailModal from '@/components/RecordDetailModal';
+import BottomSheetSelect from '@/components/BottomSheetSelect';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 
 export default function Records() {
   const [allRecords, setAllRecords] = useState([]);
@@ -217,14 +219,7 @@ export default function Records() {
   return (
     <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
       <Navigation />
-      {(pulling || refreshing) && (
-        <div className="flex justify-center pt-3 pb-1">
-          <div
-            className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
-            style={{ animation: refreshing ? 'spin 0.6s linear infinite' : 'none', opacity: refreshing ? 1 : progress, transform: `rotate(${progress * 360}deg)` }}
-          />
-        </div>
-      )}
+      <PullToRefreshIndicator pulling={pulling} progress={progress} refreshing={refreshing} />
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4 gap-3">
@@ -267,16 +262,17 @@ export default function Records() {
              <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
                <div>
                  <label className="block text-xs font-bold uppercase text-muted-foreground mb-2">Record Type</label>
-                 <select
+                 <BottomSheetSelect
                     value={filters.category}
-                    onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                    className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                  >
-                    <option value="all">All Records</option>
-                    <option value="target">Target Shooting</option>
-                    <option value="clay">Clay Shooting</option>
-                    <option value="deer">Deer Management</option>
-                  </select>
+                    onChange={(val) => setFilters({ ...filters, category: val })}
+                    placeholder="Select record type"
+                    options={[
+                      { value: 'all', label: 'All Records' },
+                      { value: 'target', label: 'Target Shooting' },
+                      { value: 'clay', label: 'Clay Shooting' },
+                      { value: 'deer', label: 'Deer Management' }
+                    ]}
+                  />
                </div>
                <div>
                  <label className="block text-xs font-bold uppercase text-muted-foreground mb-2">From Date</label>
