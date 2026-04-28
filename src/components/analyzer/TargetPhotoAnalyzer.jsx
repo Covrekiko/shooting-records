@@ -518,14 +518,18 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           </div>
 
           {/* Mode selector */}
-          <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
+
+
+          {/* Mode selection - below image */}
+          <div className="flex gap-1.5 mb-3 overflow-x-auto pb-1">
             {[
-              { id: 'centre', label: '⊕ Centre of Target', color: 'bg-blue-500 text-white' },
-              { id: 'aim', label: '✚ Point of Aim', color: 'bg-green-500 text-white' },
-              { id: 'bullets', label: '🎯 Bullet Holes', color: 'bg-red-500 text-white' },
+              { id: 'centre', label: '⊕', color: 'bg-blue-500 text-white', title: 'Centre of Target' },
+              { id: 'aim', label: '✚', color: 'bg-green-500 text-white', title: 'Point of Aim' },
+              { id: 'bullets', label: '🎯', color: 'bg-red-500 text-white', title: 'Bullet Holes' },
             ].map(m => (
               <button key={m.id} type="button" onClick={() => setMode(mode === m.id ? '' : m.id)}
-                className={`px-4 py-2.5 rounded-xl font-semibold text-sm flex-shrink-0 transition-all ${mode === m.id ? m.color : 'bg-secondary hover:bg-secondary/80'}`}>
+                title={m.title}
+                className={`px-3 py-2 rounded-lg font-semibold text-xs flex-shrink-0 transition-all ${mode === m.id ? m.color : 'bg-secondary hover:bg-secondary/80'}`}>
                 {m.label}
               </button>
             ))}
