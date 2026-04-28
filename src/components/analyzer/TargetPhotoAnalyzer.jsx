@@ -107,6 +107,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     setScalePx(null);
     setResults(null);
     setUploading(true);
+    if (!FEATURE_AI_TARGET_ANALYSIS) setAnalysisMode('manual');
 
     // 30-second timeout safety net
     let timedOut = false;
@@ -133,6 +134,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
 
       URL.revokeObjectURL(localPreviewUrl);
       setPhoto(file_url);
+      if (!FEATURE_AI_TARGET_ANALYSIS) setAnalysisMode('manual');
     } catch (error) {
       console.error('[TargetPhotoAnalyzer] Upload failed:', error);
       // Keep the local preview and show a retry option
