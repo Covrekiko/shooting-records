@@ -73,9 +73,8 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
   return createPortal(
     <div
       className="fixed inset-0 bg-black/50 z-[50000] flex items-center justify-center p-4"
+      style={{ touchAction: 'none' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      onWheel={(e) => e.stopPropagation()}
-      onTouchMove={(e) => e.stopPropagation()}
     >
       <div className="bg-card rounded-xl w-full max-w-md max-h-[90vh] flex flex-col shadow-lg">
         <div className="flex items-center justify-between p-5 border-b border-border flex-shrink-0">
@@ -85,7 +84,7 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto overscroll-contain flex-1">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto overscroll-contain flex-1" style={{ touchAction: 'pan-y' }}>
 
           {/* New / Used toggle */}
           <div className="flex rounded-lg border border-border overflow-hidden">
