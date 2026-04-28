@@ -319,7 +319,9 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   };
 
   const handleImageTap = (e) => {
-    if (!photo) return;
+    if (!photo || !imgRef.current) return;
+    // Only handle taps on the image itself, not the overlay controls
+    if (e.target !== imgRef.current && !e.target.closest('.mark-overlay')) return;
     const coords = getRelativeCoords(e);
 
     // Scale setting mode: only collect scale points, prevent other markings
@@ -569,7 +571,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               <button type="button" onClick={() => { setScaleInput('1'); setScaleUnit('cm'); setScaleRef('1cm grid'); }} className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold">1cm grid</button>
               <button type="button" onClick={() => { setScaleInput('1'); setScaleUnit('in'); setScaleRef('1in grid'); }} className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold">1in grid</button>
             </div>
-            <button type="button" onClick={(e) => { e.stopPropagation(); setSetScaleMode(!setScaleMode); if (setScaleMode) setScalePoints([]); }}
+            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSetScaleMode(!setScaleMode); if (setScaleMode) setScalePoints([]); }}
               className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all ${setScaleMode ? 'bg-amber-500 text-white' : 'bg-secondary hover:bg-secondary/80'}`}>
               {setScaleMode
                 ? `Tap 2 points on photo (${scalePoints.length}/2 placed)`
@@ -618,7 +620,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
                 style={{ userSelect: 'none', pointerEvents: 'none' }}
               />
               {/* Overlay marks — inside the transform div so they zoom/pan with the image */}
-              <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute inset-0 pointer-events-none mark-overlay">
                 {marks.map((m, i) => {
                   const d = getDisplayCoords(m);
                   if (!d) return null;
