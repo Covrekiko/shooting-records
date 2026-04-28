@@ -52,6 +52,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const [imgSize, setImgSize] = useState(null);
 
   // Pan/zoom state
+  // Pan/zoom state
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const panStart = useRef(null);
@@ -59,6 +60,16 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const lastPinchDist = useRef(null);
   const didPan = useRef(false);
   const containerRef = useRef(null);
+  
+  // Scale state - stored separately to persist independently
+  const scaleStateRef = useRef({
+    calibPoints: [],
+    scalePx: editGroup?.scale_mm_per_px || null,
+    scaleValue: editGroup?.scale_reference ? 
+      parseFloat(editGroup.scale_reference.match(/\d+/)?.[0] || scaleInput) : 
+      parseFloat(scaleInput),
+    scaleUnitVal: editGroup?.scale_unit || 'cm'
+  });
 
   useEffect(() => {
     if (!scalePx || marks.length < 2) {
@@ -158,11 +169,40 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     }
   };
 
+  // Sync scale state ref with component state on changes
+  useEffect(() => {
+    scaleStateRef.current.scaleValue = parseFloat(scaleInput) || 0;
+    scaleStateRef.current.scaleUnitVal = scaleUnit;
+    
+    // Recalculate if calibration points exist
+    if (scaleStateRef.current.calibPoints.length === 2) {
+      const pts = scaleStateRef.current.calibPoints;
+      const pixelDist = Math.sqrt(
+        Math.pow(pts[1].x - pts[0].x, 2) + 
+        Math.pow(pts[1].y - pts[0].y, 2)
+      );
+      if (pixelDist > 0) {
+        const realWorldMm = convertToMm(scaleStateRef.current.scaleValue, scaleStateRef.current.scaleUnitVal);
+        const newScalePx = realWorldMm / pixelDist;
+        scaleStateRef.current.scalePx = newScalePx;
+        setScalePx(newScalePx);
+      }
+    }
+  }, [scaleInput, scaleUnit]);
+  
   // Reset zoom/pan when a new photo is loaded
   useEffect(() => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
     lastPan.current = { x: 0, y: 0 };
+    
+    // Reset scale state for new photo
+    scaleStateRef.current = {
+      calibPoints: [],
+      scalePx: null,
+      scaleValue: parseFloat(scaleInput) || 1,
+      scaleUnitVal: scaleUnit
+    };
   }, [photo]);
 
   const clampPan = useCallback((px, py, z, containerEl, imgEl) => {
@@ -278,38 +318,52 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     return v;
   };
 
-  // Recalculate scalePx from stored calibration points whenever value/unit changes
-  useEffect(() => {
-    if (calibPoints.length !== 2) return;
-    const dist = Math.sqrt(
-      Math.pow(calibPoints[1].x - calibPoints[0].x, 2) +
-      Math.pow(calibPoints[1].y - calibPoints[0].y, 2)
-    );
-    if (dist === 0) return;
-    const refMm = convertToMm(scaleInput, scaleUnit);
-    if (!refMm || isNaN(refMm) || refMm <= 0) return;
-    setScalePx(refMm / dist);
-  }, [scaleInput, scaleUnit, calibPoints]);
-
   const handleImageTap = (e) => {
     if (!photo) return;
     const coords = getRelativeCoords(e);
 
+    // Scale setting mode: only collect scale points, prevent other markings
     if (setScaleMode) {
       const newPts = [...scalePoints, coords];
       setScalePoints(newPts);
       if (newPts.length === 2) {
-        const dist = Math.sqrt(Math.pow(newPts[1].x - newPts[0].x, 2) + Math.pow(newPts[1].y - newPts[0].y, 2));
-        const valueInMm = convertToMm(scaleInput, scaleUnit);
-        const mmPerPx = valueInMm / dist;
+        // Calculate pixel distance between tapped points
+        const pixelDist = Math.sqrt(
+          Math.pow(newPts[1].x - newPts[0].x, 2) + 
+          Math.pow(newPts[1].y - newPts[0].y, 2)
+        );
+        if (pixelDist === 0) {
+          alert('Points are too close. Please tap points further apart.');
+          setScalePoints([]);
+          return;
+        }
+        
+        // Convert input value to mm
+        const realWorldMm = convertToMm(scaleInput, scaleUnit);
+        if (!realWorldMm || isNaN(realWorldMm) || realWorldMm <= 0) {
+          alert('Invalid scale value. Please enter a positive number.');
+          setScalePoints([]);
+          return;
+        }
+        
+        // Calculate mm per pixel
+        const mmPerPx = realWorldMm / pixelDist;
+        
+        // Update state ref and component state atomically
+        scaleStateRef.current.calibPoints = newPts;
+        scaleStateRef.current.scalePx = mmPerPx;
+        scaleStateRef.current.scaleValue = parseFloat(scaleInput);
+        scaleStateRef.current.scaleUnitVal = scaleUnit;
+        
         setScalePx(mmPerPx);
-        setCalibPoints(newPts); // store for live recalibration
+        setCalibPoints(newPts);
         setSetScaleMode(false);
         setScalePoints([]);
       }
       return;
     }
 
+    // Normal marking mode: only add marks if a mode is selected
     if (mode === 'bullets') {
       setMarks(prev => [...prev, coords]);
     } else if (mode === 'centre') {
@@ -322,6 +376,13 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const handleSave = async () => {
     if (!results && marks.length < 2) { alert('Add at least 2 bullet marks to calculate group size'); return; }
     setSaving(true);
+    
+    // Use current scalePx and scale state for persistence
+    const activeScalePx = scaleStateRef.current.scalePx || scalePx;
+    const scaleRefLabel = scaleStateRef.current.calibPoints.length === 2 
+      ? `Calibrated: ${scaleInput} ${scaleUnit}`
+      : scaleRef;
+    
     const payload = {
       group_name: groupName || `Group ${marks.length > 0 ? 'Unknown' : 'Empty'}`,
       number_of_shots: marks.length,
@@ -340,9 +401,10 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
       bullet_holes: marks,
       centre_x: centrePoint?.x || null,
       centre_y: centrePoint?.y || null,
-      scale_mm_per_px: scalePx,
+      scale_mm_per_px: activeScalePx,
       scale_unit: scaleUnit,
-      scale_reference: scaleRef,
+      scale_reference: scaleRefLabel,
+      scale_calibration_points: scaleStateRef.current.calibPoints,
       shooting_position: shootingPosition || null,
       distance_override: distanceOverride ? parseFloat(distanceOverride) : null,
       distance_unit: distanceUnit,
@@ -507,12 +569,12 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               <button type="button" onClick={() => { setScaleInput('1'); setScaleUnit('cm'); setScaleRef('1cm grid'); }} className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold">1cm grid</button>
               <button type="button" onClick={() => { setScaleInput('1'); setScaleUnit('in'); setScaleRef('1in grid'); }} className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold">1in grid</button>
             </div>
-            <button type="button" onClick={() => { setSetScaleMode(true); setScalePoints([]); }}
+            <button type="button" onClick={() => { setSetScaleMode(!setScaleMode); if (setScaleMode) setScalePoints([]); }}
               className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all ${setScaleMode ? 'bg-amber-500 text-white' : 'bg-secondary hover:bg-secondary/80'}`}>
               {setScaleMode
                 ? `Tap 2 points on photo (${scalePoints.length}/2 placed)`
                 : scalePx
-                  ? `✓ Scale set: ${scaleInput} ${scaleUnit} = ${Math.round(convertToMm(scaleInput, scaleUnit) / scalePx * 10) / 10}px — Recalibrate`
+                  ? `✓ Scale set: ${scaleInput} ${scaleUnit} = ${Math.round(convertToMm(scaleInput, scaleUnit) / scalePx * 10) / 10}px — ${setScaleMode ? 'Cancel' : 'Recalibrate'}`
                   : 'Tap 2 known points to set scale'}
             </button>
           </div>
