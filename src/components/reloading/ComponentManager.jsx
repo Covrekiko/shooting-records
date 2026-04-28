@@ -744,8 +744,10 @@ export default function ComponentManager() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h4 className="font-semibold">{comp.name}</h4>
-                            {comp.component_type === 'brass' && comp.is_used_brass && (
-                              <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">USED</span>
+                            {comp.component_type === 'brass' && (
+                              comp.is_used_brass
+                                ? <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">USED</span>
+                                : <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">NEW</span>
                             )}
                           </div>
                           {comp.component_type === 'brass' && comp.batch_number && (
