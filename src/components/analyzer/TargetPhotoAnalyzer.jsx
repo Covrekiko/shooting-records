@@ -54,12 +54,9 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   // Pan/zoom state
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [isPanning, setIsPanning] = useState(false);
   const panStart = useRef(null);
   const lastPan = useRef({ x: 0, y: 0 });
   const lastPinchDist = useRef(null);
-  const holdTimer = useRef(null);
-  const isHolding = useRef(false);
   const didPan = useRef(false);
   const containerRef = useRef(null);
 
@@ -214,77 +211,61 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
 
   const handleContainerTouchStart = (e) => {
     if (e.touches.length === 2) {
-      // Pinch start
-      clearTimeout(holdTimer.current);
-      isHolding.current = false;
+      // Two-finger: zoom/pan start
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       lastPinchDist.current = Math.sqrt(dx * dx + dy * dy);
+      panStart.current = {
+        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+      };
+      lastPan.current = { ...pan };
       return;
     }
     if (e.touches.length === 1) {
+      // One finger: mark only (no panning)
       didPan.current = false;
-      panStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      lastPan.current = { ...pan };
-      // Long-press to enter pan mode
-      holdTimer.current = setTimeout(() => {
-        isHolding.current = true;
-        setIsPanning(true);
-      }, 300);
+      panStart.current = null;
     }
   };
 
   const handleContainerTouchMove = (e) => {
     e.preventDefault();
     if (e.touches.length === 2) {
-      // Pinch zoom
-      clearTimeout(holdTimer.current);
-      isHolding.current = false;
+      // Pinch zoom + two-finger drag pan
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.sqrt(dx * dx + dy * dy);
       if (lastPinchDist.current) {
         const ratio = dist / lastPinchDist.current;
-        setZoom(prev => {
-          const next = Math.min(6, Math.max(1, prev * ratio));
-          return next;
-        });
+        setZoom(prev => Math.min(6, Math.max(1, prev * ratio)));
       }
       lastPinchDist.current = dist;
-      return;
-    }
-    if (e.touches.length === 1 && panStart.current) {
-      const dx = e.touches[0].clientX - panStart.current.x;
-      const dy = e.touches[0].clientY - panStart.current.y;
-      const moved = Math.sqrt(dx * dx + dy * dy);
-      if (moved > 5) {
-        clearTimeout(holdTimer.current);
-        didPan.current = true;
-      }
-      if (isHolding.current || (zoom > 1 && didPan.current)) {
-        // Pan
+      // Pan with two fingers
+      const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      if (panStart.current) {
+        const panDx = centerX - panStart.current.x;
+        const panDy = centerY - panStart.current.y;
         const newPan = clampPan(
-          lastPan.current.x + dx,
-          lastPan.current.y + dy,
+          lastPan.current.x + panDx,
+          lastPan.current.y + panDy,
           zoom,
           containerRef.current,
           imgRef.current
         );
         setPan(newPan);
       }
+      return;
     }
+    // One finger: do nothing (prevent accidental pans)
   };
 
   const handleContainerTouchEnd = (e) => {
-    clearTimeout(holdTimer.current);
     lastPinchDist.current = null;
-    const wasHolding = isHolding.current;
-    const wasPanning = didPan.current;
-    isHolding.current = false;
-    setIsPanning(false);
     panStart.current = null;
-    // Only place a mark if it was a quick tap (not a pan/hold)
-    if (!wasHolding && !wasPanning) {
+    // Mark only if it was a one-finger tap (no zoom/pan in progress)
+    if (e.touches.length === 0 && e.changedTouches.length === 1) {
       handleImageTap(e);
     }
   };
@@ -575,14 +556,11 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           <div
             ref={containerRef}
             className="relative mb-1 rounded-2xl overflow-hidden border border-border bg-black select-none max-h-96 md:max-h-none"
-            style={{ touchAction: 'none', cursor: isPanning ? 'grabbing' : 'crosshair', aspectRatio: 'auto' }}
+            style={{ touchAction: 'none', cursor: 'crosshair', aspectRatio: 'auto' }}
             onTouchStart={handleContainerTouchStart}
             onTouchMove={handleContainerTouchMove}
             onTouchEnd={handleContainerTouchEnd}
-            onClick={(e) => {
-              // Desktop click support (no touch)
-              if (!didPan.current) handleImageTap(e);
-            }}
+            onClick={handleImageTap}
           >
             {/* Zoom indicator */}
             {zoom > 1.05 && (
@@ -590,15 +568,10 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
                 {zoom.toFixed(1)}×
               </div>
             )}
-            {/* Pan hint */}
-            {zoom > 1.05 && !isPanning && (
+            {/* Gesture hints */}
+            {zoom > 1.05 && (
               <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 bg-black/60 text-white text-[10px] px-2 py-1 rounded-lg pointer-events-none">
-                Hold & drag to pan
-              </div>
-            )}
-            {isPanning && (
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 bg-primary/80 text-white text-[10px] px-2 py-1 rounded-lg pointer-events-none">
-                Panning…
+                2 fingers to zoom & pan
               </div>
             )}
             {/* Image + marks — both transform together so marks stay aligned */}
@@ -606,7 +579,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               style={{
                 transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
                 transformOrigin: 'center center',
-                transition: isPanning ? 'none' : 'transform 0.1s ease-out',
                 willChange: 'transform',
               }}
             >
