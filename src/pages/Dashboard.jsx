@@ -312,7 +312,7 @@ export default function Dashboard() {
   // Memoize chart data to prevent re-calculation on every render
   const memoizedChartData = useMemo(() => chartData, [chartData]);
 
-  const { pulling, progress, refreshing } = usePullToRefresh(loadData);
+  const pullToRefresh = usePullToRefresh(loadData);
 
   if (loading) {
     return (
@@ -330,11 +330,11 @@ export default function Dashboard() {
       <Navigation />
 
       {/* Pull-to-refresh indicator */}
-      {(pulling || refreshing) && (
+      {(pullToRefresh.pulling || pullToRefresh.refreshing) && (
         <div className="flex justify-center py-1">
           <div
             className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full"
-            style={{ animation: refreshing ? 'spin 0.6s linear infinite' : 'none', opacity: refreshing ? 1 : progress, transform: `rotate(${progress * 360}deg)` }}
+            style={{ animation: pullToRefresh.refreshing ? 'spin 0.6s linear infinite' : 'none', opacity: pullToRefresh.refreshing ? 1 : pullToRefresh.progress, transform: `rotate(${pullToRefresh.progress * 360}deg)` }}
           />
         </div>
       )}
