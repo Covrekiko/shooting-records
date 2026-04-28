@@ -197,7 +197,7 @@ export default function GlobalModal({
             onClick={() => closeOnBackdrop && onClose?.()}
           />
 
-          {/* Dialog — anchors to bottom on mobile (keyboard-safe), centres on sm+ */}
+          {/* Dialog — floats above safe area on mobile, centred on desktop */}
           <div
             className="fixed inset-0 flex items-end sm:items-center justify-center pointer-events-none"
             style={{
@@ -205,7 +205,7 @@ export default function GlobalModal({
               paddingLeft: '12px',
               paddingRight: '12px',
               paddingTop: 'max(12px, env(safe-area-inset-top, 12px))',
-              paddingBottom: 'max(0px, env(safe-area-inset-bottom, 0px))',
+              paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
             }}
           >
             <motion.div
@@ -220,11 +220,11 @@ export default function GlobalModal({
             >
               <Wrapper
                 {...wrapperProps}
-                className="bg-card border border-border rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+                className="bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
                 style={{
                   maxWidth: '100%',
                   overflowX: 'hidden',
-                  maxHeight: 'min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 12px))',
+                  maxHeight: 'calc(100dvh - max(24px, env(safe-area-inset-top, 12px)) - max(24px, env(safe-area-inset-bottom, 12px)) - 24px)',
                 }}
               >
                 {(title || showClose) && (
