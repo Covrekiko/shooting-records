@@ -58,10 +58,10 @@ function useModalScrollLock(isOpen) {
 
 export function ModalHeader({ title, subtitle, onClose, showClose = true }) {
   return (
-    <div className="flex items-start justify-between px-5 pt-4 pb-3 border-b border-border flex-shrink-0">
-      <div>
-        {title && <h2 className="text-base font-semibold text-foreground">{title}</h2>}
-        {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
+    <div className="flex items-start justify-between px-5 pt-4 pb-3 border-b border-border flex-shrink-0 min-w-0">
+      <div className="min-w-0 flex-1">
+        {title && <h2 className="text-base font-semibold text-foreground truncate">{title}</h2>}
+        {subtitle && <p className="text-xs text-muted-foreground mt-0.5 truncate">{subtitle}</p>}
       </div>
       {showClose && onClose && (
         <button
@@ -80,10 +80,12 @@ export function ModalBody({ children }) {
   return (
     <div
       data-modal-scroll
-      className="flex-1 overflow-y-auto overscroll-contain px-5 py-4"
+      className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-5 py-4"
       style={{ WebkitOverflowScrolling: 'touch' }}
     >
-      {children}
+      <div className="min-w-0 w-full overflow-x-hidden">
+        {children}
+      </div>
     </div>
   );
 }
@@ -191,8 +193,8 @@ export default function GlobalModal({
 
           {/* Dialog */}
           <div
-            className="fixed inset-0 flex items-center justify-center p-4 pointer-events-none"
-            style={{ zIndex: Z_MODAL }}
+            className="fixed inset-0 flex items-center justify-center pointer-events-none"
+            style={{ zIndex: Z_MODAL, padding: '12px' }}
           >
             <motion.div
               key="modal-panel"
@@ -201,11 +203,13 @@ export default function GlobalModal({
               exit={{ opacity: 0, scale: 0.95, y: 8 }}
               transition={{ type: 'spring', damping: 28, stiffness: 320 }}
               className={`w-full ${maxWidth} pointer-events-auto`}
+              style={{ maxWidth: 'min(100%, calc(100vw - 24px))' }}
               onClick={(e) => e.stopPropagation()}
             >
               <Wrapper
                 {...wrapperProps}
                 className="bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90dvh]"
+                style={{ maxWidth: '100%', overflowX: 'hidden' }}
               >
                 {(title || showClose) && (
                   <ModalHeader title={title} subtitle={subtitle} onClose={onClose} showClose={showClose} />
