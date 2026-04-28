@@ -168,8 +168,7 @@ export default function TargetShooting() {
     }
   }, [location, clubs]);
 
-  const handleCheckin = async (e) => {
-    e.preventDefault();
+  const handleCheckin = async () => {
     try {
       // Prevent duplicate active sessions
       if (activeSession) {
