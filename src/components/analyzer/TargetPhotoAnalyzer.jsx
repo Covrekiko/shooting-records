@@ -517,27 +517,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             </button>
           </div>
 
-          {/* Controls */}
-          <div className="flex gap-2 mb-3">
-            <button type="button" onClick={() => setMarks(prev => prev.slice(0, -1))}
-              className="flex-1 py-2 bg-secondary rounded-xl text-sm font-semibold flex items-center justify-center gap-1">
-              <RotateCcw className="w-3.5 h-3.5" /> Undo
-            </button>
-            <button type="button" onClick={() => { setMarks([]); setCentrePoint(null); setAimPoint(null); }}
-              className="flex-1 py-2 bg-secondary rounded-xl text-sm font-semibold flex items-center justify-center gap-1">
-              <Trash2 className="w-3.5 h-3.5" /> Clear All
-            </button>
-            <label className="flex-1 py-2 bg-secondary rounded-xl text-sm font-semibold flex items-center justify-center gap-1 cursor-pointer">
-              🔄 New Photo
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/heic,image/heif,image/*"
-                className="hidden"
-                onChange={e => { setUploadError(null); setPhoto(null); handlePhotoUpload(e.target.files[0]); e.target.value = ''; }}
-              />
-            </label>
-          </div>
-
           {/* Interactive Image — pinch to zoom, hold+drag to pan, tap to mark */}
           <div
             ref={containerRef}
@@ -647,6 +626,27 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
                 <span className="text-xs leading-tight">{m.label}</span>
               </button>
             ))}
+          </div>
+
+          {/* Controls */}
+          <div className="flex gap-2 mb-3">
+            <button type="button" onClick={() => setMarks(prev => prev.slice(0, -1))}
+              className="flex-1 py-2 bg-secondary rounded-xl text-sm font-semibold flex items-center justify-center gap-1">
+              <RotateCcw className="w-3.5 h-3.5" /> Undo
+            </button>
+            <button type="button" onClick={() => { setMarks([]); setCentrePoint(null); setAimPoint(null); }}
+              className="flex-1 py-2 bg-secondary rounded-xl text-sm font-semibold flex items-center justify-center gap-1">
+              <Trash2 className="w-3.5 h-3.5" /> Clear All
+            </button>
+            <label className="flex-1 py-2 bg-secondary rounded-xl text-sm font-semibold flex items-center justify-center gap-1 cursor-pointer">
+              🔄 New Photo
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/heic,image/heif,image/*"
+                className="hidden"
+                onChange={e => { setUploadError(null); setPhoto(null); handlePhotoUpload(e.target.files[0]); e.target.value = ''; }}
+              />
+            </label>
           </div>
 
           <p className="text-xs text-muted-foreground text-center mb-3">
