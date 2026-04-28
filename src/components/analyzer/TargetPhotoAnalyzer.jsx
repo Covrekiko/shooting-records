@@ -305,13 +305,19 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
 
     if (setScaleMode) {
       const newPts = [...scalePoints, coords];
+      console.log('[Scale Mode] Tap registered. Points:', newPts.length);
       setScalePoints(newPts);
       if (newPts.length === 2) {
         const dist = Math.sqrt(Math.pow(newPts[1].x - newPts[0].x, 2) + Math.pow(newPts[1].y - newPts[0].y, 2));
+        if (dist === 0) {
+          console.warn('[Scale Mode] Points are identical, skipping.');
+          return;
+        }
         const valueInMm = convertToMm(scaleInput, scaleUnit);
         const mmPerPx = valueInMm / dist;
+        console.log('[Scale Mode] Calibration complete. Scale:', mmPerPx);
         setScalePx(mmPerPx);
-        setCalibPoints(newPts); // store for live recalibration
+        setCalibPoints(newPts);
         setSetScaleMode(false);
         setScalePoints([]);
       }
@@ -515,13 +521,13 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               <button type="button" onClick={() => { setScaleInput('1'); setScaleUnit('cm'); setScaleRef('1cm grid'); }} className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold">1cm grid</button>
               <button type="button" onClick={() => { setScaleInput('1'); setScaleUnit('in'); setScaleRef('1in grid'); }} className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold">1in grid</button>
             </div>
-            <button type="button" onClick={() => { setSetScaleMode(true); setScalePoints([]); }}
+            <button type="button" onClick={() => { console.log('[Scale] Button clicked'); setSetScaleMode(true); setScalePoints([]); }}
               className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all ${setScaleMode ? 'bg-amber-500 text-white' : 'bg-secondary hover:bg-secondary/80'}`}>
               {setScaleMode
-                ? `Tap 2 points on photo (${scalePoints.length}/2 placed)`
+                ? `⚠️ Tap 2 points (${scalePoints.length}/2)`
                 : scalePx
-                  ? `✓ Scale set: ${scaleInput} ${scaleUnit} = ${Math.round(convertToMm(scaleInput, scaleUnit) / scalePx * 10) / 10}px — Recalibrate`
-                  : 'Tap 2 known points to set scale'}
+                  ? `✓ Scale: ${scaleInput}${scaleUnit} = ${Math.round(convertToMm(scaleInput, scaleUnit) / scalePx * 10) / 10}px`
+                  : 'Tap 2 points to set scale'}
             </button>
           </div>
 
