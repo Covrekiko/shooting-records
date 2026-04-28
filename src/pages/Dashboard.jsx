@@ -12,7 +12,6 @@ import {
   Target, Crosshair, Map, BookOpen,
   BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck, MessageCircle,
 } from 'lucide-react';
-import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 import {
   MonthlyActivityChart,
   RoundsPerFirearmChart,
@@ -331,7 +330,14 @@ export default function Dashboard() {
       <Navigation />
 
       {/* Pull-to-refresh indicator */}
-      <PullToRefreshIndicator pulling={pulling} progress={progress} refreshing={refreshing} />
+      {(pulling || refreshing) && (
+        <div className="flex justify-center py-1">
+          <div
+            className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full"
+            style={{ animation: refreshing ? 'spin 0.6s linear infinite' : 'none', opacity: refreshing ? 1 : progress, transform: `rotate(${progress * 360}deg)` }}
+          />
+        </div>
+      )}
 
       <main className="max-w-2xl mx-auto px-3 pt-2 pb-8 mobile-page-padding space-y-3">
 
