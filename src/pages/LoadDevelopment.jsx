@@ -204,10 +204,10 @@ export default function LoadDevelopment() {
         ) : (
           <div className="space-y-3">
             {filtered.map(test => (
-              <button
+              <div
                 key={test.id}
                 onClick={() => setSelectedTest(test)}
-                className="w-full bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 hover:shadow-sm transition-all group"
+                className="w-full bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 hover:shadow-sm transition-all group cursor-pointer"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
@@ -245,7 +245,7 @@ export default function LoadDevelopment() {
                     <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                   </div>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         )}
