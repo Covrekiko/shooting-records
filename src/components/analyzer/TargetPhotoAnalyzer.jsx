@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ArrowLeft, Save, Loader2, Trash2, Plus, RotateCcw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import AIPhotoComparison from './AIPhotoComparison';
@@ -50,6 +50,18 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
   const [imgSize, setImgSize] = useState(null);
+
+  // Pan/zoom state
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const panStart = useRef(null);
+  const lastPan = useRef({ x: 0, y: 0 });
+  const lastPinchDist = useRef(null);
+  const holdTimer = useRef(null);
+  const isHolding = useRef(false);
+  const didPan = useRef(false);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     if (!scalePx || marks.length < 2) {
@@ -149,17 +161,132 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     }
   };
 
+  // Reset zoom/pan when a new photo is loaded
+  useEffect(() => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+    lastPan.current = { x: 0, y: 0 };
+  }, [photo]);
+
+  const clampPan = useCallback((px, py, z, containerEl, imgEl) => {
+    if (!containerEl || !imgEl) return { x: px, y: py };
+    const cw = containerEl.offsetWidth;
+    const ch = containerEl.offsetHeight;
+    // image rendered at 100% width of container, aspect ratio preserved
+    const naturalAspect = (imgEl.naturalHeight || 1) / (imgEl.naturalWidth || 1);
+    const imgH = cw * naturalAspect;
+    const scaledW = cw * z;
+    const scaledH = imgH * z;
+    const maxX = Math.max(0, (scaledW - cw) / 2);
+    const maxY = Math.max(0, (scaledH - ch) / 2);
+    return {
+      x: Math.min(maxX, Math.max(-maxX, px)),
+      y: Math.min(maxY, Math.max(-maxY, py)),
+    };
+  }, []);
+
   const getRelativeCoords = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const scaleX = imgRef.current.naturalWidth / rect.width;
-    const scaleY = imgRef.current.naturalHeight / rect.height;
+    // Get coords in natural image pixel space, accounting for zoom/pan
+    const container = containerRef.current;
+    const img = imgRef.current;
+    if (!container || !img) return { x: 0, y: 0 };
+    const cRect = container.getBoundingClientRect();
     const touch = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
     const clientX = touch ? touch.clientX : e.clientX;
     const clientY = touch ? touch.clientY : e.clientY;
+    // Position relative to container centre (since transform-origin is center)
+    const relX = clientX - cRect.left - cRect.width / 2;
+    const relY = clientY - cRect.top - cRect.height / 2;
+    // Undo zoom and pan
+    const imgX = (relX - pan.x) / zoom + cRect.width / 2;
+    const imgY = (relY - pan.y) / zoom + cRect.height / 2;
+    // Convert to natural image coords
+    const displayedImgWidth = cRect.width; // img is w-full
+    const naturalAspect = (img.naturalHeight || 1) / (img.naturalWidth || 1);
+    const displayedImgHeight = displayedImgWidth * naturalAspect;
+    const scaleX = img.naturalWidth / displayedImgWidth;
+    const scaleY = img.naturalHeight / displayedImgHeight;
     return {
-      x: (clientX - rect.left) * scaleX,
-      y: (clientY - rect.top) * scaleY,
+      x: imgX * scaleX,
+      y: imgY * scaleY,
     };
+  };
+
+  const handleContainerTouchStart = (e) => {
+    if (e.touches.length === 2) {
+      // Pinch start
+      clearTimeout(holdTimer.current);
+      isHolding.current = false;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      lastPinchDist.current = Math.sqrt(dx * dx + dy * dy);
+      return;
+    }
+    if (e.touches.length === 1) {
+      didPan.current = false;
+      panStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      lastPan.current = { ...pan };
+      // Long-press to enter pan mode
+      holdTimer.current = setTimeout(() => {
+        isHolding.current = true;
+        setIsPanning(true);
+      }, 300);
+    }
+  };
+
+  const handleContainerTouchMove = (e) => {
+    e.preventDefault();
+    if (e.touches.length === 2) {
+      // Pinch zoom
+      clearTimeout(holdTimer.current);
+      isHolding.current = false;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (lastPinchDist.current) {
+        const ratio = dist / lastPinchDist.current;
+        setZoom(prev => {
+          const next = Math.min(6, Math.max(1, prev * ratio));
+          return next;
+        });
+      }
+      lastPinchDist.current = dist;
+      return;
+    }
+    if (e.touches.length === 1 && panStart.current) {
+      const dx = e.touches[0].clientX - panStart.current.x;
+      const dy = e.touches[0].clientY - panStart.current.y;
+      const moved = Math.sqrt(dx * dx + dy * dy);
+      if (moved > 5) {
+        clearTimeout(holdTimer.current);
+        didPan.current = true;
+      }
+      if (isHolding.current || (zoom > 1 && didPan.current)) {
+        // Pan
+        const newPan = clampPan(
+          lastPan.current.x + dx,
+          lastPan.current.y + dy,
+          zoom,
+          containerRef.current,
+          imgRef.current
+        );
+        setPan(newPan);
+      }
+    }
+  };
+
+  const handleContainerTouchEnd = (e) => {
+    clearTimeout(holdTimer.current);
+    lastPinchDist.current = null;
+    const wasHolding = isHolding.current;
+    const wasPanning = didPan.current;
+    isHolding.current = false;
+    setIsPanning(false);
+    panStart.current = null;
+    // Only place a mark if it was a quick tap (not a pan/hold)
+    if (!wasHolding && !wasPanning) {
+      handleImageTap(e);
+    }
   };
 
   const convertToMm = (value, unit) => {
@@ -254,10 +381,12 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const getDisplayCoords = (point) => {
     if (!imgRef.current || !point) return null;
     const img = imgRef.current;
-    const rect = img.getBoundingClientRect();
+    // Use the img's rendered size (offsetWidth/Height) since marks are inside the transform div
+    const w = img.offsetWidth || img.clientWidth || 1;
+    const h = img.offsetHeight || img.clientHeight || 1;
     return {
-      x: point.x / img.naturalWidth * rect.width,
-      y: point.y / img.naturalHeight * rect.height,
+      x: point.x / (img.naturalWidth || 1) * w,
+      y: point.y / (img.naturalHeight || 1) * h,
     };
   };
 
@@ -442,64 +571,110 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             </label>
           </div>
 
-          {/* Interactive Image */}
-          <div className="relative mb-3 rounded-2xl overflow-hidden border border-border bg-black select-none"
-            style={{ touchAction: 'none' }}>
-            <img
-              ref={imgRef}
-              src={photo}
-              className="w-full"
-              alt="Target"
-              onClick={handleImageTap}
-              onTouchEnd={(e) => { e.preventDefault(); handleImageTap(e); }}
-              style={{ cursor: setScaleMode ? 'crosshair' : (mode === 'bullets' ? 'crosshair' : 'crosshair'), userSelect: 'none' }}
-              draggable={false}
-            />
-            {/* Overlay marks */}
-            <div className="absolute inset-0 pointer-events-none">
-              {marks.map((m, i) => {
-                const d = getDisplayCoords(m);
-                if (!d) return null;
-                return (
-                  <div key={i} className="absolute" style={{ left: d.x - 10, top: d.y - 10, width: 20, height: 20 }}>
-                    <div className="w-5 h-5 rounded-full bg-red-500 border-2 border-white flex items-center justify-center text-white text-[8px] font-bold shadow-lg">{i + 1}</div>
-                  </div>
-                );
-              })}
-              {centrePoint && (() => {
-                const d = getDisplayCoords(centrePoint);
-                if (!d) return null;
-                return (
-                  <div className="absolute" style={{ left: d.x - 12, top: d.y - 12 }}>
-                    <div className="w-6 h-6 rounded-full border-3 border-blue-500 flex items-center justify-center bg-blue-500/30">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full" />
+          {/* Interactive Image — pinch to zoom, hold+drag to pan, tap to mark */}
+          <div
+            ref={containerRef}
+            className="relative mb-1 rounded-2xl overflow-hidden border border-border bg-black select-none"
+            style={{ touchAction: 'none', cursor: isPanning ? 'grabbing' : 'crosshair' }}
+            onTouchStart={handleContainerTouchStart}
+            onTouchMove={handleContainerTouchMove}
+            onTouchEnd={handleContainerTouchEnd}
+            onClick={(e) => {
+              // Desktop click support (no touch)
+              if (!didPan.current) handleImageTap(e);
+            }}
+          >
+            {/* Zoom indicator */}
+            {zoom > 1.05 && (
+              <div className="absolute top-2 right-2 z-10 bg-black/60 text-white text-xs font-bold px-2 py-1 rounded-lg pointer-events-none">
+                {zoom.toFixed(1)}×
+              </div>
+            )}
+            {/* Pan hint */}
+            {zoom > 1.05 && !isPanning && (
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 bg-black/60 text-white text-[10px] px-2 py-1 rounded-lg pointer-events-none">
+                Hold & drag to pan
+              </div>
+            )}
+            {isPanning && (
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 bg-primary/80 text-white text-[10px] px-2 py-1 rounded-lg pointer-events-none">
+                Panning…
+              </div>
+            )}
+            {/* Image + marks — both transform together so marks stay aligned */}
+            <div
+              style={{
+                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                transformOrigin: 'center center',
+                transition: isPanning ? 'none' : 'transform 0.1s ease-out',
+                willChange: 'transform',
+              }}
+            >
+              <img
+                ref={imgRef}
+                src={photo}
+                className="w-full block"
+                alt="Target"
+                draggable={false}
+                style={{ userSelect: 'none', pointerEvents: 'none' }}
+              />
+              {/* Overlay marks — inside the transform div so they zoom/pan with the image */}
+              <div className="absolute inset-0 pointer-events-none">
+                {marks.map((m, i) => {
+                  const d = getDisplayCoords(m);
+                  if (!d) return null;
+                  return (
+                    <div key={i} className="absolute" style={{ left: d.x - 10, top: d.y - 10, width: 20, height: 20 }}>
+                      <div className="w-5 h-5 rounded-full bg-red-500 border-2 border-white flex items-center justify-center text-white text-[8px] font-bold shadow-lg">{i + 1}</div>
                     </div>
-                  </div>
-                );
-              })()}
-              {aimPoint && (() => {
-                const d = getDisplayCoords(aimPoint);
-                if (!d) return null;
-                return (
-                  <div className="absolute" style={{ left: d.x - 12, top: d.y - 12 }}>
-                    <div className="w-6 h-6 flex items-center justify-center">
-                      <div className="absolute w-6 h-0.5 bg-green-500" />
-                      <div className="absolute w-0.5 h-6 bg-green-500" />
+                  );
+                })}
+                {centrePoint && (() => {
+                  const d = getDisplayCoords(centrePoint);
+                  if (!d) return null;
+                  return (
+                    <div className="absolute" style={{ left: d.x - 12, top: d.y - 12 }}>
+                      <div className="w-6 h-6 rounded-full border-3 border-blue-500 flex items-center justify-center bg-blue-500/30">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                      </div>
                     </div>
-                  </div>
-                );
-              })()}
-              {scalePoints.map((p, i) => {
-                const d = getDisplayCoords(p);
-                if (!d) return null;
-                return (
-                  <div key={i} className="absolute" style={{ left: d.x - 6, top: d.y - 6 }}>
-                    <div className="w-3 h-3 bg-amber-500 border-2 border-white rounded-full" />
-                  </div>
-                );
-              })}
+                  );
+                })()}
+                {aimPoint && (() => {
+                  const d = getDisplayCoords(aimPoint);
+                  if (!d) return null;
+                  return (
+                    <div className="absolute" style={{ left: d.x - 12, top: d.y - 12 }}>
+                      <div className="w-6 h-6 flex items-center justify-center">
+                        <div className="absolute w-6 h-0.5 bg-green-500" />
+                        <div className="absolute w-0.5 h-6 bg-green-500" />
+                      </div>
+                    </div>
+                  );
+                })()}
+                {scalePoints.map((p, i) => {
+                  const d = getDisplayCoords(p);
+                  if (!d) return null;
+                  return (
+                    <div key={i} className="absolute" style={{ left: d.x - 6, top: d.y - 6 }}>
+                      <div className="w-3 h-3 bg-amber-500 border-2 border-white rounded-full" />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
+
+          {/* Zoom reset button */}
+          {zoom > 1.05 && (
+            <div className="flex justify-center mb-2">
+              <button type="button"
+                onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); lastPan.current = { x: 0, y: 0 }; }}
+                className="px-4 py-1.5 bg-secondary rounded-xl text-xs font-semibold">
+                Reset Zoom
+              </button>
+            </div>
+          )}
 
           <p className="text-xs text-muted-foreground text-center mb-3">
             {marks.length} bullet hole{marks.length !== 1 ? 's' : ''} marked
