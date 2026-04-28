@@ -320,8 +320,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
 
   const handleImageTap = (e) => {
     if (!photo || !imgRef.current) return;
-    // Only handle taps on the image itself, not the overlay controls
-    if (e.target !== imgRef.current && !e.target.closest('.mark-overlay')) return;
     const coords = getRelativeCoords(e);
 
     // Scale setting mode: only collect scale points, prevent other markings
@@ -585,11 +583,10 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           <div
             ref={containerRef}
             className="relative mb-1 rounded-2xl overflow-hidden border border-border bg-black select-none max-h-96 md:max-h-none"
-            style={{ touchAction: mode ? 'none' : 'auto', cursor: 'crosshair', aspectRatio: 'auto' }}
+            style={{ touchAction: mode ? 'none' : 'auto', aspectRatio: 'auto' }}
             onTouchStart={handleContainerTouchStart}
             onTouchMove={handleContainerTouchMove}
             onTouchEnd={handleContainerTouchEnd}
-            onClick={handleImageTap}
           >
             {/* Zoom indicator */}
             {zoom > 1.05 && (
@@ -614,10 +611,11 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               <img
                 ref={imgRef}
                 src={photo}
-                className="w-full block object-contain"
+                className="w-full block object-contain cursor-crosshair"
                 alt="Target"
                 draggable={false}
-                style={{ userSelect: 'none', pointerEvents: 'none' }}
+                onClick={handleImageTap}
+                style={{ userSelect: 'none', pointerEvents: 'auto' }}
               />
               {/* Overlay marks — inside the transform div so they zoom/pan with the image */}
               <div className="absolute inset-0 pointer-events-none mark-overlay">
