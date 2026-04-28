@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { X, Upload } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import GlobalModal from '@/components/ui/GlobalModal.jsx';
+import { DESIGN } from '@/lib/designConstants';
 
 export default function HarvestModal({ location, onClose, onSubmit }) {
   const [species, setSpecies] = useState('Roe');
@@ -13,15 +14,12 @@ export default function HarvestModal({ location, onClose, onSubmit }) {
   const handlePhotoUpload = async (e) => {
     const files = e.target.files;
     if (!files) return;
-
     setUploading(true);
     try {
       for (const file of files) {
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        setPhotos((prev) => [...prev, file_url]);
+        setPhotos(prev => [...prev, file_url]);
       }
-    } catch (err) {
-      console.error('Upload failed:', err);
     } finally {
       setUploading(false);
     }
@@ -32,28 +30,19 @@ export default function HarvestModal({ location, onClose, onSubmit }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9997]">
-      <div className="bg-white rounded-lg p-6 w-96 max-w-full shadow-xl relative z-[9998]">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Record Harvest</h2>
-          <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        <div className="mb-4">
-          <p className="text-sm text-slate-600 mb-2">
-            Location: {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
-          </p>
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">Species</label>
-          <select
-            value={species}
-            onChange={(e) => setSpecies(e.target.value)}
-            className="w-full border rounded-lg p-2 text-sm"
-          >
+    <GlobalModal
+      open={true}
+      onClose={onClose}
+      title="Record Harvest"
+      subtitle={`Location: ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`}
+      onSubmit={handleSubmit}
+      primaryAction="Save Harvest"
+      secondaryAction="Cancel"
+    >
+      <div className="space-y-4">
+        <div>
+          <label className={DESIGN.LABEL}>Species</label>
+          <select value={species} onChange={(e) => setSpecies(e.target.value)} className={DESIGN.INPUT}>
             <option>Roe</option>
             <option>Muntjac</option>
             <option>Fallow</option>
@@ -63,92 +52,51 @@ export default function HarvestModal({ location, onClose, onSubmit }) {
           </select>
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">Sex</label>
+        <div>
+          <label className={DESIGN.LABEL}>Sex</label>
           <div className="flex gap-2">
-            {['male', 'female', 'unknown'].map((s) => (
-              <button
-                key={s}
-                onClick={() => setSex(s)}
-                className={`flex-1 p-2 rounded border-2 text-sm capitalize transition-all ${
-                  sex === s ? 'border-primary bg-primary/10' : 'border-slate-300'
-                }`}
-              >
+            {['male', 'female', 'unknown'].map(s => (
+              <button key={s} type="button" onClick={() => setSex(s)}
+                className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-semibold capitalize transition-all ${
+                  sex === s ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary'
+                }`}>
                 {s}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">Date</label>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full border rounded-lg p-2 text-sm"
-          />
+        <div>
+          <label className={DESIGN.LABEL}>Date</label>
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={DESIGN.INPUT} />
         </div>
 
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2">Notes (Optional)</label>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            className="w-full border rounded-lg p-2 text-sm resize-none"
-            rows="3"
-            placeholder="Add details about the harvest..."
-          />
+        <div>
+          <label className={DESIGN.LABEL}>Notes (optional)</label>
+          <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
+            className={DESIGN.INPUT} rows="3"
+            placeholder="Add details about the harvest..." />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-2">Photos (Optional)</label>
-          <div className="flex items-center gap-2">
-            <label className="flex-1 flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-slate-300 rounded-lg cursor-pointer hover:border-primary transition-all">
-              <Upload className="w-4 h-4" />
-              <span className="text-sm">Add Photos</span>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handlePhotoUpload}
-                disabled={uploading}
-                className="hidden"
-              />
-            </label>
-          </div>
+        <div>
+          <label className={DESIGN.LABEL}>Photos (optional)</label>
+          <label className={`flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary transition-all text-sm ${uploading ? 'opacity-50' : ''}`}>
+            📷 {uploading ? 'Uploading...' : 'Add Photos'}
+            <input type="file" multiple accept="image/*" onChange={handlePhotoUpload} disabled={uploading} className="hidden" />
+          </label>
           {photos.length > 0 && (
             <div className="mt-2 grid grid-cols-3 gap-2">
               {photos.map((photo, idx) => (
                 <div key={idx} className="relative">
-                  <img src={photo} alt="harvest" className="w-full h-20 object-cover rounded" />
-                  <button
-                    onClick={() => setPhotos((prev) => prev.filter((_, i) => i !== idx))}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
+                  <img src={photo} alt="harvest" className="w-full h-20 object-cover rounded-xl border border-border" />
+                  <button type="button" onClick={() => setPhotos(prev => prev.filter((_, i) => i !== idx))}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
                 </div>
               ))}
             </div>
           )}
         </div>
-
-        <div className="flex gap-2">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2 border rounded-lg hover:bg-slate-50"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
-          >
-            Save Harvest
-          </button>
-        </div>
       </div>
-    </div>
+    </GlobalModal>
   );
 }
