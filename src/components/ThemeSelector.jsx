@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Check, Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/context/ThemeContext';
 import { THEME_KEYS, THEME_DISPLAY_NAMES, THEME_DESCRIPTIONS } from '@/lib/themeSystem';
 
@@ -13,6 +13,17 @@ import { THEME_KEYS, THEME_DISPLAY_NAMES, THEME_DESCRIPTIONS } from '@/lib/theme
 export default function ThemeSelector() {
   const { currentTheme, changeTheme } = useTheme();
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem('shooting-records-dark-mode');
+    return saved === null ? true : saved === 'true';
+  });
+
+  const toggleDarkMode = () => {
+    const next = !isDark;
+    setIsDark(next);
+    localStorage.setItem('shooting-records-dark-mode', String(next));
+    document.documentElement.classList.toggle('dark', next);
+  };
 
   const handleThemeSelect = (themeKey) => {
     changeTheme(themeKey);
@@ -51,6 +62,23 @@ export default function ThemeSelector() {
 
   return (
     <div className="space-y-4">
+      {/* Dark / Light Mode Toggle */}
+      <div className="flex items-center justify-between p-4 bg-card rounded-2xl border border-border">
+        <div className="flex items-center gap-3">
+          {isDark ? <Moon className="w-5 h-5 text-primary" /> : <Sun className="w-5 h-5 text-yellow-400" />}
+          <div>
+            <p className="text-sm font-semibold">{isDark ? 'Dark Mode' : 'Light Mode'}</p>
+            <p className="text-xs text-muted-foreground">{isDark ? 'Premium dark design' : 'Clean light design'}</p>
+          </div>
+        </div>
+        <button
+          onClick={toggleDarkMode}
+          className={`relative w-12 h-6 rounded-full transition-colors duration-200 ${isDark ? 'bg-primary' : 'bg-muted'}`}
+        >
+          <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${isDark ? 'translate-x-6' : 'translate-x-0'}`} />
+        </button>
+      </div>
+
       <div>
         <h3 className="text-lg font-semibold mb-2">Select App Theme</h3>
         <p className="text-sm text-muted-foreground mb-6">
