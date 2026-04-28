@@ -71,16 +71,21 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
   const labelCls = "block text-xs font-bold text-muted-foreground uppercase mb-1.5";
 
   return createPortal(
-    <div className="fixed inset-0 bg-black/50 z-[50000] flex items-center justify-center p-4">
-      <div className="bg-card rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-lg">
-        <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-card z-10">
+    <div
+      className="fixed inset-0 bg-black/50 z-[50000] flex items-center justify-center p-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      onWheel={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
+    >
+      <div className="bg-card rounded-xl w-full max-w-md max-h-[90vh] flex flex-col shadow-lg">
+        <div className="flex items-center justify-between p-5 border-b border-border flex-shrink-0">
           <h2 className="text-lg font-bold">Add Brass</h2>
           <button onClick={onClose} className="p-1 hover:bg-secondary rounded">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto overscroll-contain flex-1">
 
           {/* New / Used toggle */}
           <div className="flex rounded-lg border border-border overflow-hidden">
