@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import NumberInput from '@/components/ui/NumberInput.jsx';
 import ChildScreenHeader from '@/components/ChildScreenHeader';
 import { Plus, Trash2, Edit2, Download, FileUp } from 'lucide-react';
 import AmmoEditModal from '@/components/AmmoEditModal';
@@ -21,8 +22,8 @@ export default function Ammunition() {
     caliber: '',
     bullet_type: '',
     grain: '',
-    quantity_in_stock: 0,
-    cost_per_unit: 0,
+    quantity_in_stock: '',
+    cost_per_unit: '',
     date_purchased: '',
     notes: '',
   });
@@ -50,7 +51,7 @@ export default function Ammunition() {
     try {
       const newAmmo = await base44.entities.Ammunition.create(formData);
       setAmmunition([...ammunition, newAmmo]);
-      setFormData({ brand: '', caliber: '', bullet_type: '', grain: '', quantity_in_stock: 0, cost_per_unit: 0, date_purchased: '', notes: '' });
+      setFormData({ brand: '', caliber: '', bullet_type: '', grain: '', quantity_in_stock: '', cost_per_unit: '', date_purchased: '', notes: '' });
       setShowForm(false);
     } catch (error) {
       console.error('Error adding ammunition:', error);
@@ -196,28 +197,22 @@ export default function Ammunition() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Quantity</label>
-                <input
-                  type="number"
-                  value={formData.quantity_in_stock}
-                  onChange={(e) => setFormData({ ...formData, quantity_in_stock: parseInt(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  min="0"
-                />
-              </div>
+              <NumberInput
+                label="Quantity"
+                value={formData.quantity_in_stock}
+                onChange={(v) => setFormData({ ...formData, quantity_in_stock: v })}
+                placeholder="0"
+                unit="rounds"
+              />
 
-              <div>
-                <label className="block text-sm font-medium mb-1">Cost per Round</label>
-                <input
-                  type="number"
-                  value={formData.cost_per_unit}
-                  onChange={(e) => setFormData({ ...formData, cost_per_unit: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  step="0.01"
-                  min="0"
-                />
-              </div>
+              <NumberInput
+                label="Cost per Round"
+                value={formData.cost_per_unit}
+                onChange={(v) => setFormData({ ...formData, cost_per_unit: v })}
+                placeholder="0.00"
+                allowDecimal
+                unit="£"
+              />
 
               <div>
                 <label className="block text-sm font-medium mb-1">Purchase Date</label>

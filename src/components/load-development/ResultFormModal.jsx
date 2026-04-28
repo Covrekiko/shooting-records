@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { X, Calculator, Camera, ImagePlus, Trash2, CloudSun } from 'lucide-react';
 import { compressImage } from '@/lib/imageUtils';
+import NumberInput from '@/components/ui/NumberInput.jsx';
 
 const Field = ({ label, children }) => (
   <div>
@@ -217,20 +218,21 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
             <input value={form.test_date ?? ''} onChange={e => set('test_date', e.target.value)} type="date"
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
           </Field>
-          <Field label={`Distance (${distanceUnit})`}>
+          <Field label={`Distance (${distanceUnit === 'yards' ? 'yd' : 'm'})`}>
             <div className="flex gap-1">
-              <input
+              <NumberInput
                 value={form.distance_yards ?? ''}
-                onChange={e => {
-                  const val = parseFloat(e.target.value) || '';
-                  if (distanceUnit === 'meters' && val) {
-                    set('distance_yards', Math.round(val * 1.09361));
+                onChange={v => {
+                  if (distanceUnit === 'meters' && v) {
+                    const num = parseFloat(v);
+                    set('distance_yards', isNaN(num) ? v : String(Math.round(num * 1.09361)));
                   } else {
-                    set('distance_yards', val);
+                    set('distance_yards', v);
                   }
                 }}
-                type="number" placeholder={distanceUnit === 'yards' ? '100' : '91'}
-                className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none min-w-0"
+                placeholder={distanceUnit === 'yards' ? '100' : '91'}
+                className="flex-1"
+                inputClassName="rounded-r-none border-r-0"
               />
               <button
                 type="button"
@@ -244,14 +246,8 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Group Size (MOA)">
-            <input value={form.group_size_moa ?? ''} onChange={e => set('group_size_moa', e.target.value)} type="number" step="0.01" placeholder="0.75"
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
-          </Field>
-          <Field label="Group Size (mm)">
-            <input value={form.group_size_mm ?? ''} onChange={e => set('group_size_mm', e.target.value)} type="number" step="0.1" placeholder="21"
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
-          </Field>
+          <NumberInput label="Group Size" value={form.group_size_moa ?? ''} onChange={v => set('group_size_moa', v)} placeholder="0.75" allowDecimal unit="MOA" />
+          <NumberInput label="Group Size" value={form.group_size_mm ?? ''} onChange={v => set('group_size_mm', v)} placeholder="21" allowDecimal unit="mm" />
         </div>
 
         {/* Velocity */}
@@ -265,25 +261,13 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
           </div>
           <div className="grid grid-cols-3 gap-2">
             {[1,2,3,4,5].map(n => (
-              <Field key={n} label={`V${n}`}>
-                <input value={form[`velocity_${n}`] ?? ''} onChange={e => set(`velocity_${n}`, e.target.value)} type="number" placeholder="2650"
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
-              </Field>
+              <NumberInput key={n} label={`V${n}`} value={form[`velocity_${n}`] ?? ''} onChange={v => set(`velocity_${n}`, v)} placeholder="2650" unit="fps" />
             ))}
           </div>
           <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border">
-            <Field label="Avg Velocity">
-              <input value={form.avg_velocity ?? ''} onChange={e => set('avg_velocity', e.target.value)} type="number" placeholder="auto"
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
-            </Field>
-            <Field label="ES">
-              <input value={form.es ?? ''} onChange={e => set('es', e.target.value)} type="number" placeholder="auto"
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
-            </Field>
-            <Field label="SD">
-              <input value={form.sd ?? ''} onChange={e => set('sd', e.target.value)} type="number" step="0.1" placeholder="auto"
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
-            </Field>
+            <NumberInput label="Avg" value={form.avg_velocity ?? ''} onChange={v => set('avg_velocity', v)} placeholder="auto" unit="fps" />
+            <NumberInput label="ES" value={form.es ?? ''} onChange={v => set('es', v)} placeholder="auto" unit="fps" />
+            <NumberInput label="SD" value={form.sd ?? ''} onChange={v => set('sd', v)} placeholder="auto" allowDecimal />
           </div>
         </div>
 
@@ -304,52 +288,40 @@ export default function ResultFormModal({ test, variant, result, onClose, onSave
           <div className="grid grid-cols-2 gap-3">
             <Field label="Air Pressure">
               <div className="flex gap-1">
-                <input
+                <NumberInput
                   value={form.air_pressure_value ?? ''}
-                  onChange={e => set('air_pressure_value', e.target.value)}
-                  type="number"
-                  placeholder="e.g. 1013"
-                  className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none min-w-0"
+                  onChange={v => set('air_pressure_value', v)}
+                  placeholder="1013"
+                  className="flex-1"
+                  inputClassName="rounded-r-none border-r-0"
+                  allowDecimal
                 />
-                <button
-                  type="button"
+                <button type="button"
                   onClick={() => set('air_pressure_unit', form.air_pressure_unit === 'hPa' ? 'inHg' : 'hPa')}
-                  className="px-2 py-1 text-[10px] font-bold bg-secondary rounded-lg hover:bg-secondary/80 flex-shrink-0 whitespace-nowrap"
-                >
+                  className="px-2 py-1 text-[10px] font-bold bg-secondary rounded-lg hover:bg-secondary/80 flex-shrink-0 whitespace-nowrap">
                   {form.air_pressure_unit}
                 </button>
               </div>
             </Field>
             <Field label="Temperature">
               <div className="flex gap-1">
-                <input
+                <NumberInput
                   value={form.temperature_value ?? ''}
-                  onChange={e => set('temperature_value', e.target.value)}
-                  type="number"
-                  placeholder="e.g. 12"
-                  className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none min-w-0"
+                  onChange={v => set('temperature_value', v)}
+                  placeholder="12"
+                  className="flex-1"
+                  inputClassName="rounded-r-none border-r-0"
+                  allowDecimal
                 />
-                <button
-                  type="button"
+                <button type="button"
                   onClick={() => set('temperature_unit', form.temperature_unit === '°C' ? '°F' : '°C')}
-                  className="px-2 py-1 text-[10px] font-bold bg-secondary rounded-lg hover:bg-secondary/80 flex-shrink-0 whitespace-nowrap"
-                >
+                  className="px-2 py-1 text-[10px] font-bold bg-secondary rounded-lg hover:bg-secondary/80 flex-shrink-0 whitespace-nowrap">
                   {form.temperature_unit}
                 </button>
               </div>
             </Field>
           </div>
-          <Field label="Humidity (%)">
-            <input
-              value={form.humidity ?? ''}
-              onChange={e => set('humidity', e.target.value)}
-              type="number"
-              min="0"
-              max="100"
-              placeholder="e.g. 65"
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none"
-            />
-          </Field>
+          <NumberInput label="Humidity" value={form.humidity ?? ''} onChange={v => set('humidity', v)} placeholder="65" unit="%" allowDecimal />
         </div>
 
         {/* Notes */}

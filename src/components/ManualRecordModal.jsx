@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
 import { useFormValidation } from '@/lib/formValidation';
 import { useMobileKeyboardHandler } from '@/lib/mobileKeyboardHandler';
 import { cameraPermissionHandler } from '@/lib/cameraPermissionHandler';
 import { base44 } from '@/api/base44Client';
-import { X } from 'lucide-react';
 import AddRifleForm from './AddRifleForm';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
-import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+import GlobalModal from '@/components/ui/GlobalModal.jsx';
+import NumberInput from '@/components/ui/NumberInput.jsx';
 
 async function handlePhotoUpload(files, data, setFormData) {
   if (!files || files.length === 0) return;
@@ -28,7 +27,6 @@ async function handlePhotoUpload(files, data, setFormData) {
 }
 
 export default function ManualRecordModal({ record = null, onClose, onSave, recordTypes = ['target', 'clay', 'deer'] }) {
-  useBodyScrollLock(true);
   const modalRef = useRef(null);
   const { errors, validateField, clearError, hasErrors } = useFormValidation();
   useMobileKeyboardHandler(modalRef);
@@ -181,27 +179,25 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
   };
 
   if (loading) {
-    return createPortal(
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[50001]">
-        <div className="bg-card rounded-lg p-6 max-w-md w-full">
+    return (
+      <GlobalModal open={true} onClose={onClose} title="Loading…" footer={null}>
+        <div className="flex items-center justify-center py-8">
           <div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
-      </div>,
-      document.body
+      </GlobalModal>
     );
   }
 
-  return createPortal(
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[50001] overflow-y-auto" ref={modalRef}>
-      <div className="bg-card rounded-lg max-w-2xl w-full p-6 my-8">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">{record ? 'Edit Record' : 'Add Manual Record'}</h2>
-          <button onClick={onClose} className="p-1 hover:bg-secondary rounded">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
+  return (
+    <GlobalModal
+      open={true}
+      onClose={onClose}
+      title={record ? 'Edit Record' : 'Add Manual Record'}
+      onSubmit={handleSubmit}
+      primaryAction={record ? 'Update Record' : 'Add Record'}
+      maxWidth="max-w-2xl"
+    >
+      <div ref={modalRef} className="space-y-6">
           {/* Record Type & Date */}
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -342,16 +338,13 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Rounds Fired</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.rounds_fired}
-                    onChange={(e) => setFormData({ ...formData, rounds_fired: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  />
-                </div>
+              <NumberInput
+                label="Rounds Fired"
+                value={formData.rounds_fired}
+                onChange={(v) => setFormData({ ...formData, rounds_fired: v })}
+                placeholder="0"
+                unit="rounds"
+              />
                 <div>
                   <label className="block text-sm font-medium mb-2">Ammunition Used</label>
                   <input
@@ -428,16 +421,12 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Number Shot</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={formData.number_shot}
-                    onChange={(e) => setFormData({ ...formData, number_shot: e.target.value, total_count: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-                  />
-                </div>
+                <NumberInput
+                  label="Number Shot"
+                  value={formData.number_shot}
+                  onChange={(v) => setFormData({ ...formData, number_shot: v, total_count: v })}
+                  placeholder="0"
+                />
                 <div>
                   <label className="block text-sm font-medium mb-2">Rifle</label>
                   <BottomSheetSelect
@@ -535,25 +524,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
             )}
           </div>
 
-          {/* Buttons */}
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
-            >
-              {record ? 'Update Record' : 'Add Record'}
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
       </div>
-    </div>,
-    document.body
+    </GlobalModal>
   );
 }
