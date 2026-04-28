@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Plus, Trash2, Edit2, Download, FlaskConical } from 'lucide-react';
+import { Plus, Trash2, Edit2, ArrowLeft, Menu, Download, FlaskConical } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import ReloadingSessionForm from '@/components/reloading/ReloadingSessionForm';
 import ReloadingInventoryWidget from '@/components/reloading/ReloadingInventoryWidget';
 import ComponentManager from '@/components/reloading/ComponentManager';
@@ -197,6 +199,9 @@ export default function ReloadingManagement() {
     }
   };
 
+  const anyModalOpen = showBatchForm || showForm;
+  useBodyScrollLock(anyModalOpen);
+
   const totalCost = sessions.reduce((sum, s) => sum + (s.total_cost || 0), 0);
   const totalRounds = sessions.reduce((sum, s) => sum + (s.rounds_loaded || 0), 0);
 
@@ -376,26 +381,38 @@ export default function ReloadingManagement() {
         {activeTab === 'inventory' && <ReloadingInventoryWidget />}
 
         {/* Reload Batch Form Modal */}
-        {showBatchForm && (
-          <ReloadBatchForm
-            onSubmit={() => {
-              setShowBatchForm(false);
-              loadSessions();
-            }}
-            onClose={() => setShowBatchForm(false)}
-          />
+        {showBatchForm && createPortal(
+          <div className="fixed inset-0 bg-black/50 z-[50000] flex items-end sm:items-center justify-center">
+            <div className="bg-card rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl flex flex-col"
+              style={{ maxHeight: '92dvh' }}>
+              <ReloadBatchForm
+                onSubmit={() => {
+                  setShowBatchForm(false);
+                  loadSessions();
+                }}
+                onClose={() => setShowBatchForm(false)}
+              />
+            </div>
+          </div>,
+          document.body
         )}
 
         {/* Old Session Form Modal */}
-        {showForm && (
-          <ReloadingSessionForm
-            session={editingSession}
-            onSubmit={handleSubmit}
-            onClose={() => {
-              setShowForm(false);
-              setEditingSession(null);
-            }}
-          />
+        {showForm && createPortal(
+          <div className="fixed inset-0 bg-black/50 z-[50000] flex items-end sm:items-center justify-center">
+            <div className="bg-card rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl flex flex-col"
+              style={{ maxHeight: '92dvh' }}>
+              <ReloadingSessionForm
+                session={editingSession}
+                onSubmit={handleSubmit}
+                onClose={() => {
+                  setShowForm(false);
+                  setEditingSession(null);
+                }}
+              />
+            </div>
+          </div>,
+          document.body
         )}
       </main>
     </div>

@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
-import { Plus } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 import { searchCalibers } from '@/utils/caliberCatalog';
 import AddBrassModal from './AddBrassModal';
-import GlobalSheet from '@/components/ui/GlobalSheet.jsx';
 
 export default function ReloadBatchForm({ onSubmit, onClose }) {
 
@@ -441,33 +440,22 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
   }
 
   return (
-    <GlobalSheet
-      open={true}
-      onClose={onClose}
-      title="New Reload Batch"
-      footer={
-        <>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 h-11 rounded-xl font-semibold text-sm bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            form="reload-batch-form"
-            type="submit"
-            className="flex-1 h-11 rounded-xl font-semibold text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            Create Batch
-          </button>
-        </>
-      }
-    >
+    <div className="flex flex-col bg-card min-h-0 flex-1">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 pt-6 pb-5 border-b border-border flex-shrink-0">
+        <h2 className="text-xl font-bold text-foreground">New Reload Batch</h2>
+        <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-lg bg-muted hover:opacity-70 transition-opacity">
+          <X className="w-5 h-5 text-muted-foreground" />
+        </button>
+      </div>
+
+      {/* Form Content */}
+      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6"
+        style={{ WebkitOverflowScrolling: 'touch' }}>
       {validationError && (
-        <div className="border border-destructive rounded-lg p-3 text-sm font-medium bg-destructive/10 text-destructive mb-4">
-          {validationError}
-        </div>
+       <div className="border border-destructive rounded-lg p-4 text-sm font-medium bg-destructive/10 text-destructive">
+         {validationError}
+       </div>
       )}
       <form id="reload-batch-form" onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-2 gap-3">
@@ -741,11 +729,32 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
            </div>
          )}
       </form>
+      </div>
+
+      {/* Footer */}
+      <div className="flex gap-3 px-6 py-5 border-t border-border flex-shrink-0 safe-area-bottom bg-card">
+        <button
+          form="reload-batch-form"
+          type="submit"
+          className="flex-1 py-3.5 rounded-lg font-semibold text-base bg-primary text-primary-foreground hover:opacity-90 active:scale-95 transition-all"
+        >
+          Create Batch
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex-1 py-3.5 border border-border rounded-lg font-semibold text-base text-muted-foreground hover:opacity-70 active:scale-95 transition-all"
+        >
+          Cancel
+        </button>
+      </div>
+
+      {/* Add Brass Modal */}
       <AddBrassModal
         isOpen={showAddBrassModal}
         onClose={() => setShowAddBrassModal(false)}
         onSave={handleAddBrassSaved}
       />
-    </GlobalSheet>
+    </div>
   );
 }

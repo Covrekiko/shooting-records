@@ -1,9 +1,13 @@
 import { useState } from 'react';
+import { X } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
-import GlobalSheet from '@/components/ui/GlobalSheet.jsx';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
 
 export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition, onSubmit, onClose }) {
+  useBodyScrollLock(true);
   const [checkoutData, setCheckoutData] = useState({
     end_time: new Date().toTimeString().slice(0, 5),
     shot_anything: false,
@@ -77,30 +81,17 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   };
 
   return (
-    <GlobalSheet
-      open={true}
-      onClose={onClose}
-      title="Check Out"
-      footer={
-        <>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 h-11 rounded-xl font-semibold text-sm bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            className="flex-1 h-11 rounded-xl font-semibold text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
-          >
-            Check Out
-          </button>
-        </>
-      }
-    >
-      <div className="space-y-4">
+    <div className="bg-white rounded-2xl max-w-md w-[calc(100%-1.5rem)] sm:w-full p-5 sm:p-6 flex flex-col max-h-[90vh] shadow-lg overflow-hidden" onClick={(e) => {
+      e.stopPropagation();
+    }} style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
+      <div className="flex items-center justify-between mb-4 border-b border-slate-200 pb-4">
+        <h2 className="text-xl font-bold text-slate-900">Check Out</h2>
+        <motion.button onClick={onClose} className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors" whileTap={{ scale: 0.9 }}>
+          <X className="w-5 h-5 text-slate-600" />
+        </motion.button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto space-y-4" style={{ WebkitOverflowScrolling: 'touch' }}>
          <div>
            <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">Check-out Time</label>
            <input
@@ -115,9 +106,10 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
         <div>
           <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-3">Did you shoot anything?</label>
           <div className="flex gap-3">
-            <button
+            <motion.button
                   type="button"
                   onClick={() => setCheckoutData({ ...checkoutData, shot_anything: false })}
+                  whileTap={{ scale: 0.98 }}
                   className={`flex-1 px-3 py-2.5 rounded-xl transition-colors font-medium text-sm ${
                     !checkoutData.shot_anything
                       ? 'bg-primary text-primary-foreground'
@@ -125,10 +117,11 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                   }`}
                 >
                   No
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   type="button"
                   onClick={() => setCheckoutData({ ...checkoutData, shot_anything: true })}
+                  whileTap={{ scale: 0.98 }}
                   className={`flex-1 px-3 py-2.5 rounded-xl transition-colors font-medium text-sm ${
                     checkoutData.shot_anything
                       ? 'bg-primary text-primary-foreground'
@@ -136,7 +129,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                   }`}
                 >
                   Yes
-                </button>
+                </motion.button>
           </div>
         </div>
 
@@ -145,26 +138,28 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
             <div>
               <div className="flex items-center justify-between mb-3">
                 <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide">Species Harvested</label>
-                <button
+                <motion.button
                   type="button"
                   onClick={addSpecies}
+                  whileTap={{ scale: 0.98 }}
                   className="text-xs bg-background border border-border hover:bg-secondary px-3 py-1.5 rounded-lg font-medium transition-all"
                 >
                   + Add Species
-                </button>
+                </motion.button>
               </div>
               {checkoutData.species_list.map((entry, idx) => (
                 <div key={idx} className="bg-secondary/30 p-3 rounded-xl mb-3 space-y-2 border border-border">
                     <div className="flex justify-between items-center mb-2">
                        <span className="text-xs font-medium text-muted-foreground">Species {idx + 1}</span>
                        {checkoutData.species_list.length > 1 && (
-                         <button
+                         <motion.button
                            type="button"
                            onClick={() => removeSpecies(idx)}
+                           whileTap={{ scale: 0.95 }}
                            className="text-xs text-destructive hover:text-destructive/80 font-medium"
                          >
                            Remove
-                         </button>
+                         </motion.button>
                        )}
                      </div>
                     <select
@@ -260,11 +255,11 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
           <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-3">Photos</label>
           <div className="flex gap-2 mb-3">
             <label className="flex-1 px-4 py-2.5 bg-secondary hover:bg-secondary/80 rounded-xl text-center cursor-pointer font-medium text-sm transition-colors">
-              Choose Photo
+              📁 Choose Photo
               <input type="file" accept="image/*" multiple onChange={handlePhotoUpload} className="hidden" />
             </label>
             <label className="flex-1 px-4 py-2.5 bg-secondary hover:bg-secondary/80 rounded-xl text-center cursor-pointer font-medium text-sm transition-colors">
-              Take Photo
+              📷 Take Photo
               <input type="file" accept="image/*" capture="environment" multiple onChange={handlePhotoUpload} className="hidden" />
             </label>
           </div>
@@ -273,13 +268,14 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
               {checkoutData.photos.map((photo, idx) => (
                 <div key={idx} className="relative group">
                   <img src={photo} alt="preview" className="h-20 w-20 object-cover rounded-lg" />
-                   <button
+                   <motion.button
                      type="button"
                      onClick={() => setCheckoutData({ ...checkoutData, photos: checkoutData.photos.filter((_, i) => i !== idx) })}
-                     className="absolute top-0 right-0 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                     whileTap={{ scale: 0.9 }}
+                     className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                    >
                      ×
-                   </button>
+                   </motion.button>
                 </div>
               ))}
             </div>
@@ -287,6 +283,24 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
         </div>
 
       </div>
-    </GlobalSheet>
-  );
+      <div className="flex-shrink-0 flex gap-3 pt-4 border-t border-border flex-col-reverse sm:flex-row">
+        <motion.button
+          type="button"
+          onClick={handleSubmit}
+          whileTap={{ scale: 0.98 }}
+          className="flex-1 px-4 py-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 font-semibold text-sm transition-all"
+        >
+          Check Out
+        </motion.button>
+        <motion.button
+          type="button"
+          onClick={onClose}
+          whileTap={{ scale: 0.98 }}
+          className="flex-1 px-4 py-3 border border-border bg-background rounded-xl hover:bg-secondary font-semibold text-sm transition-all"
+        >
+          Cancel
+        </motion.button>
+      </div>
+      </div>
+      );
       }
