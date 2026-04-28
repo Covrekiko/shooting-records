@@ -574,8 +574,8 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           {/* Interactive Image — pinch to zoom, hold+drag to pan, tap to mark */}
           <div
             ref={containerRef}
-            className="relative mb-1 rounded-2xl overflow-hidden border border-border bg-black select-none"
-            style={{ touchAction: 'none', cursor: isPanning ? 'grabbing' : 'crosshair' }}
+            className="relative mb-1 rounded-2xl overflow-hidden border border-border bg-black select-none max-h-96 md:max-h-none"
+            style={{ touchAction: 'none', cursor: isPanning ? 'grabbing' : 'crosshair', aspectRatio: 'auto' }}
             onTouchStart={handleContainerTouchStart}
             onTouchMove={handleContainerTouchMove}
             onTouchEnd={handleContainerTouchEnd}
@@ -613,7 +613,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               <img
                 ref={imgRef}
                 src={photo}
-                className="w-full block"
+                className="w-full block object-contain"
                 alt="Target"
                 draggable={false}
                 style={{ userSelect: 'none', pointerEvents: 'none' }}
