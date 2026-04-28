@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { X, Plus, Trash2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Plus, Trash2 } from 'lucide-react';
+import GlobalSheet from '@/components/ui/GlobalSheet.jsx';
 
 export default function ReloadingSessionForm({ session, onSubmit, onClose }) {
   const [formData, setFormData] = useState(
@@ -90,18 +90,29 @@ export default function ReloadingSessionForm({ session, onSubmit, onClose }) {
   const labelCls = "block text-xs font-semibold text-muted-foreground uppercase mb-1.5";
 
   return (
-    <div className="flex flex-col" style={{ minHeight: 0, flex: 1 }}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-border flex-shrink-0">
-        <h2 className="text-lg font-bold">{session ? 'Edit Session' : 'New Reloading Session'}</h2>
-        <button onClick={onClose} className="w-10 h-10 flex items-center justify-center hover:bg-secondary rounded-xl">
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* Form Content */}
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4"
-        style={{ WebkitOverflowScrolling: 'touch' }}>
+    <GlobalSheet
+      open={true}
+      onClose={onClose}
+      title={session ? 'Edit Session' : 'New Reloading Session'}
+      footer={
+        <>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 h-11 rounded-xl font-semibold text-sm bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            form="reload-form"
+            type="submit"
+            className="flex-1 h-11 rounded-xl font-semibold text-sm bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            {session ? 'Update Session' : 'Save Session'}
+          </button>
+        </>
+      }
+    >
         <form id="reload-form" onSubmit={handleSubmit} className="space-y-4">
           {/* Basic Info */}
           <div>
@@ -347,28 +358,6 @@ export default function ReloadingSessionForm({ session, onSubmit, onClose }) {
             </div>
           </div>
         </form>
-      </div>
-
-      {/* Footer */}
-      <div className="flex gap-3 px-5 py-4 border-t border-border flex-shrink-0 bg-card"
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}>
-        <motion.button
-          type="submit"
-          form="reload-form"
-          whileTap={{ scale: 0.97 }}
-          className="flex-1 py-3.5 bg-primary text-primary-foreground rounded-xl font-semibold text-base hover:opacity-90"
-        >
-          {session ? 'Update Session' : 'Save Session'}
-        </motion.button>
-        <motion.button
-          type="button"
-          onClick={onClose}
-          whileTap={{ scale: 0.97 }}
-          className="flex-1 py-3.5 border border-border rounded-xl font-semibold text-base hover:bg-secondary"
-        >
-          Cancel
-        </motion.button>
-      </div>
-    </div>
+    </GlobalSheet>
   );
 }
