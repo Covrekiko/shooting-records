@@ -93,7 +93,13 @@ export function ModalBody({ children }) {
 export function ModalFooter({ children }) {
   if (!children) return null;
   return (
-    <div className="flex gap-3 px-5 py-4 border-t border-border flex-shrink-0 safe-area-bottom">
+    <div
+      className="flex gap-3 px-5 border-t border-border flex-shrink-0 bg-card"
+      style={{
+        paddingTop: '12px',
+        paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
+      }}
+    >
       {children}
     </div>
   );
@@ -191,25 +197,35 @@ export default function GlobalModal({
             onClick={() => closeOnBackdrop && onClose?.()}
           />
 
-          {/* Dialog */}
+          {/* Dialog — anchors to bottom on mobile (keyboard-safe), centres on sm+ */}
           <div
-            className="fixed inset-0 flex items-center justify-center pointer-events-none"
-            style={{ zIndex: Z_MODAL, padding: '12px' }}
+            className="fixed inset-0 flex items-end sm:items-center justify-center pointer-events-none"
+            style={{
+              zIndex: Z_MODAL,
+              paddingLeft: '12px',
+              paddingRight: '12px',
+              paddingTop: 'max(12px, env(safe-area-inset-top, 12px))',
+              paddingBottom: 'max(0px, env(safe-area-inset-bottom, 0px))',
+            }}
           >
             <motion.div
               key="modal-panel"
-              initial={{ opacity: 0, scale: 0.95, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 8 }}
-              transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 24 }}
+              transition={{ type: 'spring', damping: 30, stiffness: 320 }}
               className={`w-full ${maxWidth} pointer-events-auto`}
               style={{ maxWidth: 'min(100%, calc(100vw - 24px))' }}
               onClick={(e) => e.stopPropagation()}
             >
               <Wrapper
                 {...wrapperProps}
-                className="bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90dvh]"
-                style={{ maxWidth: '100%', overflowX: 'hidden' }}
+                className="bg-card border border-border rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+                style={{
+                  maxWidth: '100%',
+                  overflowX: 'hidden',
+                  maxHeight: 'min(92dvh, calc(100dvh - env(safe-area-inset-top, 0px) - 12px))',
+                }}
               >
                 {(title || showClose) && (
                   <ModalHeader title={title} subtitle={subtitle} onClose={onClose} showClose={showClose} />

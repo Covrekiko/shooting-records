@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { X } from 'lucide-react';
 import BulletReferencePicker from '@/components/reference/BulletReferencePicker';
+import GlobalModal, { ModalSaveButton, ModalCancelButton } from '@/components/ui/GlobalModal.jsx';
 
-export default function VariantFormModal({ test, variant, variantCount, onClose, onSaved }) {
+export default function VariantFormModal({ open, test, variant, variantCount, onClose, onSaved }) {
   const [components, setComponents] = useState({ powder: [], bullet: [], brass: [], primer: [] });
   const [form, setForm] = useState({
     label: '',
@@ -156,12 +156,20 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
   };
 
   return (
-    <div className="p-5">
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-lg font-bold">{variant ? 'Edit Variant' : 'Add Variant'}</h2>
-        <button onClick={onClose} className="p-2 hover:bg-secondary rounded-lg"><X className="w-4 h-4" /></button>
-      </div>
-
+    <GlobalModal
+      open={open}
+      onClose={onClose}
+      title={variant ? 'Edit Variant' : 'Add Variant'}
+      maxWidth="max-w-xl"
+      footer={
+        <>
+          <ModalCancelButton onClick={onClose}>Cancel</ModalCancelButton>
+          <ModalSaveButton onClick={handleSubmit} disabled={saving}>
+            {saving ? 'Saving…' : variant ? 'Save Changes' : 'Add Variant'}
+          </ModalSaveButton>
+        </>
+      }
+    >
       <div className="space-y-4">
         {/* Label */}
         <div>
@@ -356,14 +364,7 @@ export default function VariantFormModal({ test, variant, variantCount, onClose,
           <p className="text-xs text-blue-600 bg-blue-50 dark:bg-blue-950/20 rounded-lg px-3 py-2">Stock already deducted for this variant.</p>
         )}
 
-        <div className="flex gap-3 pt-2">
-          <button onClick={onClose} className="flex-1 py-2.5 border border-border rounded-xl text-sm font-medium hover:bg-secondary">Cancel</button>
-          <button onClick={handleSubmit} disabled={saving}
-            className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold disabled:opacity-50">
-            {saving ? 'Saving…' : variant ? 'Save Changes' : 'Add Variant'}
-          </button>
-        </div>
       </div>
-    </div>
+    </GlobalModal>
   );
 }
