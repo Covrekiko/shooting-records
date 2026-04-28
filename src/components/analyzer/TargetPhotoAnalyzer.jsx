@@ -676,21 +676,22 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
                     </div>
                   );
                 })}
-                {setScaleMode && scalePoints.length === 1 && scaleDragPoint && (() => {
-                  const p1 = getDisplayCoords(scalePoints[0]);
-                  const p2 = getDisplayCoords(scaleDragPoint);
-                  if (!p1 || !p2) return null;
-                  const img = imgRef.current;
-                  if (!img) return null;
-                  const w = img.offsetWidth || 1;
-                  const h = img.offsetHeight || 1;
-                  return (
-                    <svg className="absolute inset-0 pointer-events-none" style={{ width: w, height: h }}>
-                      <line x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="#f59e0b" strokeWidth="3" opacity="0.8" strokeLinecap="round" />
-                    </svg>
-                  );
-                })()}
               </div>
+              {/* Scale line preview — outside transform so it's always visible */}
+              {setScaleMode && scalePoints.length === 1 && scaleDragPoint && (() => {
+                const p1 = getDisplayCoords(scalePoints[0]);
+                const p2 = getDisplayCoords(scaleDragPoint);
+                if (!p1 || !p2) return null;
+                const img = imgRef.current;
+                if (!img) return null;
+                const w = img.offsetWidth || 1;
+                const h = img.offsetHeight || 1;
+                return (
+                  <svg className="absolute inset-0 pointer-events-none z-10" style={{ width: w, height: h }}>
+                    <line x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="#fbbf24" strokeWidth="3" opacity="0.9" strokeLinecap="round" />
+                  </svg>
+                );
+              })()}
             </div>
           </div>
 
