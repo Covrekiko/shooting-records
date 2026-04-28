@@ -322,28 +322,17 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     if (!photo) return;
     const coords = getRelativeCoords(e);
 
-    console.log('[Scale Debug] Tap detected at:', coords, 'Scale mode:', setScaleMode, 'Current points:', scalePoints.length);
-
     // Scale setting mode: only collect scale points, prevent other markings
     if (setScaleMode) {
       const newPts = [...scalePoints, coords];
-      console.log('[Scale Debug] Added scale point:', coords, 'Total points:', newPts.length);
       setScalePoints(newPts);
-      
-      if (newPts.length === 1) {
-        console.log('[Scale Debug] First point saved, waiting for second tap');
-      }
-      
       if (newPts.length === 2) {
         // Calculate pixel distance between tapped points
         const pixelDist = Math.sqrt(
           Math.pow(newPts[1].x - newPts[0].x, 2) + 
           Math.pow(newPts[1].y - newPts[0].y, 2)
         );
-        console.log('[Scale Debug] Pixel distance:', pixelDist);
-        
         if (pixelDist === 0) {
-          console.error('[Scale Debug] Points are identical');
           alert('Points are too close. Please tap points further apart.');
           setScalePoints([]);
           return;
@@ -351,10 +340,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
         
         // Convert input value to mm
         const realWorldMm = convertToMm(scaleInput, scaleUnit);
-        console.log('[Scale Debug] Real world value:', scaleInput, scaleUnit, '=', realWorldMm, 'mm');
-        
         if (!realWorldMm || isNaN(realWorldMm) || realWorldMm <= 0) {
-          console.error('[Scale Debug] Invalid scale value');
           alert('Invalid scale value. Please enter a positive number.');
           setScalePoints([]);
           return;
@@ -362,7 +348,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
         
         // Calculate mm per pixel
         const mmPerPx = realWorldMm / pixelDist;
-        console.log('[Scale Debug] Scale calculated:', mmPerPx, 'mm/px');
         
         // Update state ref and component state atomically
         scaleStateRef.current.calibPoints = newPts;
@@ -374,8 +359,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
         setCalibPoints(newPts);
         setSetScaleMode(false);
         setScalePoints([]);
-        
-        console.log('[Scale Debug] Scale set successfully');
       }
       return;
     }
@@ -600,7 +583,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           <div
             ref={containerRef}
             className="relative mb-1 rounded-2xl overflow-hidden border border-border bg-black select-none max-h-96 md:max-h-none"
-            style={{ touchAction: 'none', cursor: 'crosshair', aspectRatio: 'auto' }}
+            style={{ touchAction: mode ? 'none' : 'auto', cursor: 'crosshair', aspectRatio: 'auto' }}
             onTouchStart={handleContainerTouchStart}
             onTouchMove={handleContainerTouchMove}
             onTouchEnd={handleContainerTouchEnd}
