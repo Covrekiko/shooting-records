@@ -247,29 +247,21 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const { activeOuting } = useOuting();
   const { isEnabled } = useModules();
-  const { refreshUser } = useAuth();
 
   const today = format(new Date(), 'EEE, d MMM');
 
   const loadData = useCallback(async () => {
     try {
-      // Always fetch fresh user data (not cached)
-      // This ensures role changes from admin page are picked up
+      console.log('[API DEBUG] Dashboard.loadData called');
       const currentUser = await base44.auth.me();
       
-      // Refresh auth context to ensure role is up-to-date
-      const refreshedUser = await refreshUser?.();
-      const user = refreshedUser || currentUser;
+      setUser(currentUser);
       
-      // Ensure state is updated with latest user data
-      setUser(user);
-      
-      if (user.role === 'admin') {
+      if (currentUser.role === 'admin') {
         const [users, allRecordsRaw] = await Promise.all([
           base44.entities.User.list(),
-          getRepository('SessionRecord').filter({ created_by: user.email, status: 'completed' }),
+          getRepository('SessionRecord').filter({ created_by: currentUser.email, status: 'completed' }),
         ]);
-        // Filter out soft-deleted records
         const allRecords = allRecordsRaw.filter((r) => r.isDeleted !== true && r.status !== 'deleted');
         const targetRecords = allRecords.filter((r) => r.category === 'target_shooting');
         const clayRecords = allRecords.filter((r) => r.category === 'clay_shooting');
@@ -277,13 +269,12 @@ export default function Dashboard() {
         setStats({ totalUsers: users.length, totalRecords: allRecords.length, targetRecords: targetRecords.length, clayRecords: clayRecords.length, deerRecords: deerRecords.length });
       } else {
         const [allRecordsRaw, rifles, shotguns, clubs, locations] = await Promise.all([
-          getRepository('SessionRecord').filter({ created_by: user.email, status: 'completed' }),
-          getRepository('Rifle').filter({ created_by: user.email }),
-          getRepository('Shotgun').filter({ created_by: user.email }),
-          getRepository('Club').filter({ created_by: user.email }),
-          getRepository('Area').filter({ created_by: user.email }),
+          getRepository('SessionRecord').filter({ created_by: currentUser.email, status: 'completed' }),
+          getRepository('Rifle').filter({ created_by: currentUser.email }),
+          getRepository('Shotgun').filter({ created_by: currentUser.email }),
+          getRepository('Club').filter({ created_by: currentUser.email }),
+          getRepository('Area').filter({ created_by: currentUser.email }),
         ]);
-        // Filter out soft-deleted records
         const allRecords = allRecordsRaw.filter((r) => r.isDeleted !== true && r.status !== 'deleted');
         const targetShoots = allRecords.filter((r) => r.category === 'target_shooting');
         const clayShoots = allRecords.filter((r) => r.category === 'clay_shooting');
@@ -309,9 +300,11 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [refreshUser]);
+  }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // Memoize chart data to prevent re-calculation on every render
   const memoizedChartData = useMemo(() => chartData, [chartData]);

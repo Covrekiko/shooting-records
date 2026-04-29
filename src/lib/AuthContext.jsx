@@ -104,6 +104,7 @@ export const AuthProvider = ({ children }) => {
   const checkUserAuth = async () => {
     try {
       // Now check if the user is authenticated
+      console.log('[API DEBUG] auth.me called');
       setIsLoadingAuth(true);
       const currentUser = await base44.auth.me();
       setUser(currentUser);
@@ -115,6 +116,23 @@ export const AuthProvider = ({ children }) => {
       preCacheUserData(currentUser.email).catch(() => {});
     } catch (error) {
       console.error('User auth check failed:', error);
+
+      // Rate-limit cooldown: don't retry on 429
+      if (error.status === 429) {
+        console.warn('[RATE LIMIT] 429 on auth.me — stopping retries, using cache');
+        const cached = await getCachedUserProfile().catch(() => null);
+        if (cached) {
+          setUser({ ...cached, profileComplete: true });
+          setIsAuthenticated(true);
+          setAuthError(null);
+          setIsLoadingAuth(false);
+          return;
+        }
+        setIsLoadingAuth(false);
+        setIsAuthenticated(false);
+        setAuthError({ type: 'rate_limit', message: 'Service temporarily unavailable' });
+        return;
+      }
 
       // Try to restore from local cache if network error (not auth error)
       const isNetworkError = !error.status || error.status === 0;
