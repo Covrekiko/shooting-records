@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Trash2, Eye, X, Download, Loader } from 'lucide-react';
+import { Trash2, Eye, X, Download, Loader, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
-import { getRecordsPdfBlob } from '@/utils/recordsPdfExport';
+import { getRecordsPdfBlob, exportRecordsToPdf } from '@/utils/recordsPdfExport';
+import { resolveClayClubName, getClayScoreSummary, calculateDuration, normalizePhotos } from '@/lib/claySessionUtils';
 
 export default function RecordsSection({ category, title, emptyMessage = 'No records yet', onRecordDeleted, showTargetAnalysis = false }) {
    const [records, setRecords] = useState([]);
@@ -17,6 +18,8 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
    const [locations, setLocations] = useState({});
    const [previewingPdf, setPreviewingPdf] = useState(null);
    const [generatingPdf, setGeneratingPdf] = useState(null);
+   const [clayScorecards, setClayScorecards] = useState({});
+   const [clayStands, setClayStands] = useState({});
 
    useEffect(() => {
      async function loadRecords() {
@@ -39,6 +42,20 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
          // Filter out soft-deleted records
          const recordsList = recordsListRaw.filter((r) => r.isDeleted !== true && r.status !== 'deleted');
          setRecords(recordsList);
+
+         if (category === 'clay_shooting' && recordsList.length > 0) {
+           const scorecardLists = await Promise.all(recordsList.map(record => base44.entities.ClayScorecard.filter({ clay_session_id: record.id })));
+           const scorecardMap = {};
+           const standMap = {};
+           await Promise.all(scorecardLists.flat().map(async (scorecard) => {
+             scorecardMap[scorecard.clay_session_id] = scorecard;
+             const stands = await base44.entities.ClayStand.filter({ clay_scorecard_id: scorecard.id });
+             standMap[scorecard.clay_session_id] = stands.sort((a, b) => (a.stand_number || 0) - (b.stand_number || 0));
+           }));
+           setClayScorecards(scorecardMap);
+           setClayStands(standMap);
+         }
+
          setRifles(riflesList.reduce((acc, r) => ({ ...acc, [r.id]: r }), {}));
          setShotguns(shotgunsList.reduce((acc, s) => ({ ...acc, [s.id]: s }), {}));
          setClubs(clubsList.reduce((acc, c) => ({ ...acc, [c.id]: c }), {}));
@@ -60,7 +77,10 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
       if (showTargetAnalysis && record.category === 'target_shooting') {
         targetGroups = await base44.entities.TargetGroup.filter({ session_id: record.id });
       }
-      const blob = await getRecordsPdfBlob([record], null, rifles, clubs, shotguns, locations, targetGroups);
+      const blob = await getRecordsPdfBlob([record], null, rifles, clubs, shotguns, locations, targetGroups, {
+        scorecards: clayScorecards,
+        stands: clayStands,
+      });
       const url = URL.createObjectURL(blob);
       setPreviewingPdf({ record, url });
     } catch (error) {
@@ -199,18 +219,40 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
 
   return (
     <div className="space-y-3">
-      {records.map((record) => (
+      {records.map((record) => {
+        const isClay = category === 'clay_shooting';
+        const scoreSummary = isClay ? getClayScoreSummary(clayScorecards[record.id], clayStands[record.id] || []) : null;
+        const clubName = isClay ? resolveClayClubName(record, clubs, locations) : (record.location_name || record.place_name || 'Session');
+        const shotgunName = isClay ? (shotguns[record.shotgun_id]?.name || 'Not recorded') : null;
+
+        return (
         <div key={record.id} className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm">{record.location_name || record.place_name || 'Session'}</p>
+              <p className="font-semibold text-sm">
+                {isClay
+                  ? `Clay Shooting - ${scoreSummary ? scoreSummary.label : `${record.rounds_fired || 0} cartridges`}`
+                  : clubName}
+              </p>
               <p className="text-xs text-muted-foreground mt-1">
                 {format(new Date(record.date), 'MMM d, yyyy')} at {record.checkin_time || record.start_time}
               </p>
-              {record.created_by && (
-                <p className="text-xs text-muted-foreground mt-1">by {record.created_by}</p>
+              {isClay ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 mt-3 text-xs">
+                  <p><span className="font-bold text-muted-foreground">Club / Range:</span> {clubName}</p>
+                  <p><span className="font-bold text-muted-foreground">Shotgun:</span> {shotgunName}</p>
+                  <p><span className="font-bold text-muted-foreground">Cartridges:</span> {record.rounds_fired || 0}</p>
+                  <p><span className="font-bold text-muted-foreground">Score:</span> {scoreSummary ? scoreSummary.label : 'Not recorded'}</p>
+                </div>
+              ) : (
+                <>
+                  {record.created_by && (
+                    <p className="text-xs text-muted-foreground mt-1">by {record.created_by}</p>
+                  )}
+                  {record.notes && <p className="text-xs text-foreground mt-2 line-clamp-2">{record.notes}</p>}
+                </>
               )}
-              {record.notes && <p className="text-xs text-foreground mt-2 line-clamp-2">{record.notes}</p>}
+              {isClay && record.notes && <p className="text-xs text-foreground mt-2 line-clamp-2">{record.notes}</p>}
             </div>
             <div className="flex gap-2 ml-3 flex-shrink-0">
                <button
@@ -220,14 +262,26 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
                >
                  <Eye className="w-4 h-4" />
                </button>
-               {showTargetAnalysis && category === 'target_shooting' && (
+               {(showTargetAnalysis && category === 'target_shooting') || isClay ? (
                  <button
                    onClick={() => handlePdfPreview(record)}
                    disabled={generatingPdf === record.id}
                    className="p-2 hover:bg-secondary rounded transition-colors disabled:opacity-50"
                    title="PDF Preview"
                  >
-                   {generatingPdf === record.id ? <Loader className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                   {generatingPdf === record.id ? <Loader className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+                 </button>
+               ) : null}
+               {isClay && (
+                 <button
+                   onClick={() => exportRecordsToPdf([record], null, 'clay-shooting-session-report.pdf', rifles, clubs, shotguns, locations, [], {
+                     scorecards: clayScorecards,
+                     stands: clayStands,
+                   })}
+                   className="p-2 hover:bg-secondary rounded transition-colors"
+                   title="Download PDF"
+                 >
+                   <Download className="w-4 h-4" />
                  </button>
                )}
                <button
@@ -240,7 +294,8 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
              </div>
           </div>
         </div>
-      ))}
+        );
+      })}
 
       {/* Full Session Report Modal */}
        {viewingRecord && createPortal(
@@ -253,6 +308,8 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
            locations={locations}
            category={category}
            showTargetAnalysis={showTargetAnalysis}
+           clayScorecard={clayScorecards[viewingRecord.id]}
+           clayStands={clayStands[viewingRecord.id] || []}
          />,
          document.body
        )}
@@ -270,7 +327,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
   );
 }
 
-function SessionReportModal({ record, onClose, rifles, shotguns, clubs, locations, category, showTargetAnalysis = false }) {
+function SessionReportModal({ record, onClose, rifles, shotguns, clubs, locations, category, showTargetAnalysis = false, clayScorecard = null, clayStands = [] }) {
    const [currentRecord, setCurrentRecord] = useState(record);
    const [targetGroups, setTargetGroups] = useState([]);
    const [loadingGroups, setLoadingGroups] = useState(false);
@@ -304,6 +361,11 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
    const getShotgunDetails = (shotgunId) => shotguns[shotgunId];
    const getClubName = (clubId) => clubs[clubId]?.name || 'Unknown Club';
    const getLocationName = (locationId) => locations[locationId]?.name || 'Unknown Location';
+   const clayScoreSummary = category === 'clay_shooting' ? getClayScoreSummary(clayScorecard, clayStands) : null;
+   const clayClubName = category === 'clay_shooting' ? resolveClayClubName(currentRecord, clubs, locations) : null;
+   const clayShotgun = category === 'clay_shooting' ? getShotgunDetails(currentRecord.shotgun_id) : null;
+   const clayDuration = category === 'clay_shooting' ? calculateDuration(currentRecord.checkin_time || currentRecord.start_time, currentRecord.checkout_time || currentRecord.end_time) : null;
+   const clayPhotos = category === 'clay_shooting' ? normalizePhotos(currentRecord.photos || []) : [];
 
    return (
      <div className="fixed inset-0 bg-black/50 z-[50001] flex items-end sm:items-center justify-center p-4 sm:p-0" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
@@ -311,7 +373,7 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border flex-shrink-0 sticky top-0 bg-card z-10">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold">Session Report</h2>
+            <h2 className="text-xl sm:text-2xl font-bold">{category === 'clay_shooting' ? 'Clay Shooting Session Report' : 'Session Report'}</h2>
             <p className="text-muted-foreground text-xs mt-1">Detailed Activity Record</p>
           </div>
           <button onClick={onClose} className="p-1 hover:bg-secondary rounded flex-shrink-0 ml-3">
@@ -340,10 +402,16 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
             <label className="font-bold text-xs text-primary uppercase">Check-Out</label>
             <p className="text-base sm:text-lg">{currentRecord.end_time || currentRecord.checkout_time || 'N/A'}</p>
           </div>
-          {category === 'target_shooting' && (
+          {(category === 'target_shooting' || category === 'clay_shooting') && (
             <div>
               <label className="font-bold text-xs text-primary uppercase">Club / Range</label>
-              <p className="text-base sm:text-lg">{currentRecord.club_name || (currentRecord.club_id && clubs[currentRecord.club_id]?.name) || currentRecord.location_name || 'Not recorded'}</p>
+              <p className="text-base sm:text-lg">{category === 'clay_shooting' ? clayClubName : (currentRecord.club_name || (currentRecord.club_id && clubs[currentRecord.club_id]?.name) || currentRecord.location_name || 'Not recorded')}</p>
+            </div>
+          )}
+          {category === 'clay_shooting' && clayDuration && (
+            <div>
+              <label className="font-bold text-xs text-primary uppercase">Duration</label>
+              <p className="text-base sm:text-lg">{clayDuration}</p>
             </div>
           )}
         </div>
@@ -455,61 +523,71 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
         {/* Clay Shooting Section */}
         {category === 'clay_shooting' && (
           <>
-            {(currentRecord.club_id && clubs[currentRecord.club_id]) && (
-              <div className="mb-6 pb-4 border-b border-border">
-                <h3 className="font-bold text-base sm:text-lg mb-3 text-primary">Venue Details</h3>
-                <div className="bg-secondary/30 p-4 rounded-lg">
-                  <p className="font-semibold text-base">{getClubName(currentRecord.club_id)}</p>
-                  {clubs[currentRecord.club_id]?.location && (
-                    <p className="text-sm text-muted-foreground mt-1">{clubs[currentRecord.club_id].location}</p>
-                  )}
+            <div className="mb-6 pb-4 border-b border-border">
+              <h3 className="font-bold text-base sm:text-lg mb-3 text-primary">Shotgun Used</h3>
+              <div className="bg-secondary/30 p-4 rounded-lg">
+                <p className="font-semibold text-base">{clayShotgun?.name || 'Not recorded'}</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
+                  <div><label className="text-xs font-bold text-muted-foreground uppercase">Make</label><p className="text-sm">{clayShotgun?.make || '-'}</p></div>
+                  <div><label className="text-xs font-bold text-muted-foreground uppercase">Model</label><p className="text-sm">{clayShotgun?.model || '-'}</p></div>
+                  <div><label className="text-xs font-bold text-muted-foreground uppercase">Gauge</label><p className="text-sm">{clayShotgun?.gauge || '-'}</p></div>
+                  {clayShotgun?.serial_number && <div className="sm:col-span-3"><label className="text-xs font-bold text-muted-foreground uppercase">Serial Number</label><p className="font-mono text-sm">{clayShotgun.serial_number}</p></div>}
+                  <div><label className="text-xs font-bold text-muted-foreground uppercase">Cartridges Fired</label><p className="text-sm font-semibold">{currentRecord.rounds_fired || 0}</p></div>
                 </div>
               </div>
-            )}
-
-            {currentRecord.shotgun_id && (
-              <div className="mb-6 pb-4 border-b border-border">
-                <h3 className="font-bold text-base sm:text-lg mb-3 text-primary">Shotgun Details</h3>
-                <div className="bg-secondary/30 p-4 rounded-lg">
-                  {getShotgunDetails(currentRecord.shotgun_id) && (
-                    <>
-                      <p className="font-semibold text-base">{getShotgunName(currentRecord.shotgun_id)}</p>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
-                        <div>
-                          <label className="text-xs font-bold text-muted-foreground uppercase">Make</label>
-                          <p className="text-sm">{getShotgunDetails(currentRecord.shotgun_id).make || '-'}</p>
-                        </div>
-                        <div>
-                          <label className="text-xs font-bold text-muted-foreground uppercase">Model</label>
-                          <p className="text-sm">{getShotgunDetails(currentRecord.shotgun_id).model || '-'}</p>
-                        </div>
-                        <div>
-                          <label className="text-xs font-bold text-muted-foreground uppercase">Gauge</label>
-                          <p className="text-sm">{getShotgunDetails(currentRecord.shotgun_id).gauge || '-'}</p>
-                        </div>
-                      </div>
-                      {getShotgunDetails(currentRecord.shotgun_id).serial_number && (
-                        <div className="mt-3">
-                          <label className="text-xs font-bold text-muted-foreground">Serial Number</label>
-                          <p className="font-mono text-sm">{getShotgunDetails(currentRecord.shotgun_id).serial_number}</p>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
+            </div>
 
             <div className="mb-6 pb-4 border-b border-border">
-              <div className="mb-4">
-                <label className="font-bold text-xs text-primary uppercase">Total Rounds Fired</label>
-                <p className="text-base sm:text-lg">{currentRecord.rounds_fired || '0'} rounds</p>
-              </div>
-              {currentRecord.ammunition_used && (
-                <div className="bg-blue-50/30 p-3 rounded border border-blue-200/50">
-                  <label className="text-xs font-bold text-muted-foreground mb-1 block">Ammunition Used</label>
-                  <p className="text-sm font-medium">{currentRecord.ammunition_used}</p>
+              <h3 className="font-bold text-base sm:text-lg mb-3 text-primary">Cartridges / Ammunition</h3>
+              <div className="bg-blue-50/30 p-3 rounded border border-blue-200/50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div><label className="text-xs font-bold text-muted-foreground uppercase">Cartridge / Brand</label><p className="text-sm font-medium">{currentRecord.ammunition_used || 'Not recorded'}</p></div>
+                  <div><label className="text-xs font-bold text-muted-foreground uppercase">Gauge / Calibre</label><p className="text-sm font-medium">{clayShotgun?.gauge || 'Not recorded'}</p></div>
+                  <div><label className="text-xs font-bold text-muted-foreground uppercase">Quantity Used</label><p className="text-sm font-medium">{currentRecord.rounds_fired || 0}</p></div>
+                  <div><label className="text-xs font-bold text-muted-foreground uppercase">Cost</label><p className="text-sm font-medium">Not recorded</p></div>
                 </div>
+              </div>
+            </div>
+
+            <div className="mb-6 pb-4 border-b border-border">
+              <h3 className="font-bold text-base sm:text-lg mb-3 text-primary">Score Card</h3>
+              {clayScoreSummary ? (
+                <div className="space-y-3">
+                  <div className="bg-primary/10 p-4 rounded-lg grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div><label className="text-xs font-bold text-primary uppercase">Total</label><p className="text-lg font-semibold">{clayScoreSummary.label}</p></div>
+                    <div><label className="text-xs font-bold text-primary uppercase">Hits</label><p className="text-lg font-semibold">{clayScoreSummary.totalHits}</p></div>
+                    <div><label className="text-xs font-bold text-primary uppercase">Missed</label><p className="text-lg font-semibold">{clayScoreSummary.totalMisses}</p></div>
+                    <div><label className="text-xs font-bold text-primary uppercase">Percentage</label><p className="text-lg font-semibold">{clayScoreSummary.percentage}%</p></div>
+                  </div>
+                  {clayStands.length > 0 && (
+                    <div className="space-y-2">
+                      {clayStands.map((stand) => {
+                        const valid = Number(stand.valid_scored_clays || ((stand.hits || 0) + (stand.misses || 0)));
+                        return (
+                          <div key={stand.id} className="bg-secondary/30 p-3 rounded-lg flex justify-between gap-3 text-sm">
+                            <span>Stand {stand.stand_number}{stand.discipline_type ? ` · ${stand.discipline_type}` : ''}</span>
+                            <span className="font-semibold">{stand.hits || 0} / {valid}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-muted-foreground text-sm">No score card recorded</div>
+              )}
+            </div>
+
+            <div className="mb-6 pb-4 border-b border-border">
+              <h3 className="font-bold text-base sm:text-lg mb-3 text-primary">Photos</h3>
+              {clayPhotos.length > 0 ? (
+                <div className="grid grid-cols-4 gap-2">
+                  {clayPhotos.map((photoUrl, idx) => (
+                    <img key={idx} src={photoUrl} alt="clay session" className="h-24 w-24 object-cover rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity" onClick={() => window.open(photoUrl, '_blank')} onError={(e) => e.currentTarget.style.display = 'none'} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-muted-foreground text-sm">No photos recorded</div>
               )}
             </div>
           </>

@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import { resolveClayClubName, getClayScoreSummary, calculateDuration, normalizePhotos } from '@/lib/claySessionUtils';
 
 function generateDocumentId() {
   const timestamp = Date.now().toString(36).toUpperCase();
@@ -22,7 +23,7 @@ const STYLES = {
   darkGray: [60, 60, 60],
 };
 
-export async function exportRecordsToPdf(records, userInfo = null, fileName = 'shooting-records.pdf', rifles = {}, clubs = {}, shotguns = {}) {
+export async function exportRecordsToPdf(records, userInfo = null, fileName = 'shooting-records.pdf', rifles = {}, clubs = {}, shotguns = {}, locations = {}, targetGroups = [], clayData = {}) {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -64,9 +65,9 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
 
   let yPosition = STYLES.margin;
 
-  const targetRecords = records.filter(r => r.recordType === 'target');
-  const clayRecords = records.filter(r => r.recordType === 'clay');
-  const deerRecords = records.filter(r => r.recordType === 'deer');
+  const targetRecords = records.filter(r => r.recordType === 'target' || r.category === 'target_shooting');
+  const clayRecords = records.filter(r => r.recordType === 'clay' || r.category === 'clay_shooting');
+  const deerRecords = records.filter(r => r.recordType === 'deer' || r.category === 'deer_management');
 
   if (targetRecords.length > 0) {
     yPosition = renderTargetShootingSection(doc, targetRecords, yPosition, pageWidth, pageHeight, rifles, clubs, docId, pageNum);
@@ -78,7 +79,7 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
     pageNum++;
     addPageId(doc, docId, pageNum, pageWidth);
     yPosition = STYLES.margin;
-    yPosition = renderClayShootingSection(doc, clayRecords, yPosition, pageWidth, pageHeight, shotguns, clubs, docId, pageNum);
+    yPosition = renderClayShootingSection(doc, clayRecords, yPosition, pageWidth, pageHeight, shotguns, clubs, docId, pageNum, clayData, locations);
     pageNum = doc.getNumberOfPages();
   }
 
@@ -93,7 +94,7 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
   doc.save(fileName);
 }
 
-export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, clubs = {}, shotguns = {}, locations = {}, targetGroups = []) {
+export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, clubs = {}, shotguns = {}, locations = {}, targetGroups = [], clayData = {}) {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
@@ -149,7 +150,7 @@ export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, c
       pageNum++;
       addPageId(doc, docId, pageNum, pageWidth);
       yPosition = STYLES.margin;
-      yPosition = renderClayShootingSection(doc, clayRecords, yPosition, pageWidth, pageHeight, shotguns, clubs, docId, pageNum);
+      yPosition = renderClayShootingSection(doc, clayRecords, yPosition, pageWidth, pageHeight, shotguns, clubs, docId, pageNum, clayData, locations);
       pageNum = doc.getNumberOfPages();
     }
 
@@ -796,170 +797,170 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
          return yPosition;
          }
 
-function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, shotguns, clubs, docId, pageNum) {
+function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, shotguns, clubs, docId, pageNum, clayData = {}, locations = {}) {
   const { margin } = STYLES;
   let yPosition = startY;
+  const scorecards = clayData.scorecards || {};
+  const standsBySession = clayData.stands || {};
 
-  doc.setFontSize(14);
-  doc.setFont(undefined, 'bold');
-  doc.setTextColor(...STYLES.accentColor);
-  doc.text('CLAY SHOOTING SESSIONS', margin, yPosition);
-  yPosition += 2;
-  doc.setDrawColor(...STYLES.accentColor);
-  doc.line(margin, yPosition, pageWidth - margin, yPosition);
-  yPosition += 8;
-
-  const contentWidth = (pageWidth - 2 * margin) * 0.6;
-  const photoX = margin + contentWidth + 28.35;
-  const photoMaxWidth = pageWidth - photoX - margin;
-
-  records.forEach((record, idx) => {
-    if (yPosition > pageHeight - 80) {
+  const ensureSpace = (needed = 30) => {
+    if (yPosition > pageHeight - needed) {
       doc.addPage();
       pageNum++;
       addPageId(doc, docId, pageNum, pageWidth);
-      yPosition = margin + 5;
+      yPosition = margin;
     }
+  };
 
-    let textY = yPosition;
-    let photoY = yPosition;
-    const photoSize = 18;
-    const photosPerRow = Math.max(2, Math.floor(photoMaxWidth / (photoSize + 3)));
-
-    // LEFT COLUMN - Session Details
-    doc.setFontSize(10);
+  const sectionHeader = (title) => {
+    ensureSpace(18);
+    doc.setFillColor(...STYLES.lightGray);
+    doc.rect(margin, yPosition, pageWidth - 2 * margin, 5, 'F');
+    doc.setFontSize(11);
     doc.setFont(undefined, 'bold');
     doc.setTextColor(...STYLES.headingColor);
-    doc.text(`Session ${idx + 1}: ${record.date}`, margin, textY);
-    textY += 6;
+    doc.text(title, margin + 3, yPosition + 3.5);
+    yPosition += 9;
+  };
 
-    if (record.club_id && clubs[record.club_id]) {
-      doc.setFontSize(9);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(...STYLES.darkGray);
-      doc.text('Venue', margin + 2, textY);
-      textY += 4;
-
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(8.5);
-      doc.setTextColor(...STYLES.textColor);
-      doc.text(`${clubs[record.club_id].name}`, margin + 5, textY);
-      textY += 3.5;
-      doc.text(`${clubs[record.club_id].location || ''}`, margin + 5, textY);
-      textY += 5;
-    }
-
+  const field = (label, value, x, y) => {
     doc.setFontSize(8.5);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(...STYLES.darkGray);
+    doc.text(label, x, y);
     doc.setFont(undefined, 'normal');
     doc.setTextColor(...STYLES.textColor);
-    doc.text(`Check-in: ${record.checkin_time || 'N/A'} | Check-out: ${record.checkout_time || 'N/A'} | Rounds: ${record.rounds_fired || '-'}`, margin + 2, textY);
-    textY += 5;
+    doc.text(String(value || 'Not recorded'), x + 34, y);
+  };
 
-    if (record.shotgun_id && shotguns[record.shotgun_id]) {
-      const shotgunData = shotguns[record.shotgun_id];
-      doc.setFontSize(9);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(...STYLES.darkGray);
-      doc.text('Shotgun Details', margin + 2, textY);
-      textY += 4;
-
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(8);
-      doc.setTextColor(...STYLES.textColor);
-      doc.text(`${shotgunData.name}`, margin + 5, textY);
-      textY += 3.5;
-      doc.setTextColor(80, 80, 80);
-      doc.text(`Make: ${shotgunData.make || '-'} | Model: ${shotgunData.model || '-'} | Gauge: ${shotgunData.gauge || '-'}`, margin + 5, textY);
-      textY += 3.5;
-      doc.text(`Serial: ${shotgunData.serial_number || '-'}`, margin + 5, textY);
-      textY += 5;
+  records.forEach((record, idx) => {
+    if (idx > 0) {
+      doc.addPage();
+      pageNum++;
+      addPageId(doc, docId, pageNum, pageWidth);
+      yPosition = margin;
     }
 
-    if (record.ammunition_used) {
-      doc.setFontSize(9);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(...STYLES.darkGray);
-      doc.text('Ammunition', margin + 2, textY);
-      textY += 4;
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(8);
-      doc.setTextColor(...STYLES.textColor);
-      doc.text(record.ammunition_used, margin + 5, textY);
-      textY += 5;
-    }
+    const scorecard = scorecards[record.id];
+    const stands = standsBySession[record.id] || [];
+    const scoreSummary = getClayScoreSummary(scorecard, stands);
+    const shotgun = shotguns[record.shotgun_id];
+    const clubName = resolveClayClubName(record, clubs, locations);
+    const duration = calculateDuration(record.checkin_time || record.start_time, record.checkout_time || record.end_time);
+    const photos = normalizePhotos(record.photos || []);
 
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(...STYLES.headingColor);
+    doc.text('CLAY SHOOTING SESSION REPORT', margin, yPosition);
+    yPosition += 7;
+
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.setTextColor(120, 120, 120);
+    doc.text('Detailed Activity Record', margin, yPosition);
+    yPosition += 12;
+
+    sectionHeader('SESSION OVERVIEW');
+    field('Session Date:', record.date || '-', margin + 2, yPosition);
+    field('Session Type:', 'Clay Shooting', margin + 100, yPosition);
+    yPosition += 7;
+    field('Club / Range:', clubName, margin + 2, yPosition);
+    yPosition += 7;
+    field('Check-In:', record.checkin_time || record.start_time || '-', margin + 2, yPosition);
+    field('Check-Out:', record.checkout_time || record.end_time || '-', margin + 100, yPosition);
+    yPosition += 7;
+    if (duration) {
+      field('Duration:', duration, margin + 2, yPosition);
+      yPosition += 7;
+    }
     if (record.notes) {
-      doc.setFontSize(9);
       doc.setFont(undefined, 'bold');
       doc.setTextColor(...STYLES.darkGray);
-      doc.text('Notes', margin + 2, textY);
-      textY += 4;
+      doc.text('Notes:', margin + 2, yPosition);
+      yPosition += 5;
       doc.setFont(undefined, 'normal');
-      doc.setFontSize(8);
       doc.setTextColor(...STYLES.textColor);
-      const wrappedNotes = doc.splitTextToSize(record.notes, contentWidth - 5);
-      wrappedNotes.forEach(line => {
-        doc.text(line, margin + 5, textY);
-        textY += 3.5;
+      doc.splitTextToSize(record.notes, pageWidth - 2 * margin - 8).forEach((line) => {
+        ensureSpace(12);
+        doc.text(line, margin + 5, yPosition);
+        yPosition += 4;
       });
-      textY += 2;
     }
+    yPosition += 5;
 
-    if (record.gps_track && record.gps_track.length > 0) {
-      doc.setFontSize(9);
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(...STYLES.darkGray);
-      doc.text('GPS Track', margin + 2, textY);
-      textY += 4;
-      doc.setFont(undefined, 'normal');
-      doc.setFontSize(8);
-      doc.setTextColor(...STYLES.textColor);
-      doc.text(`Points: ${record.gps_track.length}`, margin + 5, textY);
-      textY += 3;
-      if (record.gps_track[0]) {
-        doc.text(`Start: ${record.gps_track[0].lat.toFixed(6)}, ${record.gps_track[0].lng.toFixed(6)}`, margin + 5, textY);
-        textY += 3;
-      }
-      if (record.gps_track[record.gps_track.length - 1]) {
-        doc.text(`End: ${record.gps_track[record.gps_track.length - 1].lat.toFixed(6)}, ${record.gps_track[record.gps_track.length - 1].lng.toFixed(6)}`, margin + 5, textY);
-        textY += 5;
-      }
-    }
+    sectionHeader('SHOTGUN USED');
+    field('Name:', shotgun?.name || 'Not recorded', margin + 2, yPosition);
+    field('Make:', shotgun?.make || '-', margin + 100, yPosition);
+    yPosition += 7;
+    field('Model:', shotgun?.model || '-', margin + 2, yPosition);
+    field('Gauge:', shotgun?.gauge || '-', margin + 100, yPosition);
+    yPosition += 7;
+    field('Serial:', shotgun?.serial_number || '-', margin + 2, yPosition);
+    field('Cartridges:', record.rounds_fired || 0, margin + 100, yPosition);
+    yPosition += 12;
 
-    // RIGHT COLUMN - Photos
-    if (record.photos && record.photos.length > 0) {
-      let pX = photoX;
-      let pY = photoY;
-      let photoCount = 0;
+    sectionHeader('CARTRIDGES / AMMUNITION');
+    field('Brand/Name:', record.ammunition_used || 'Not recorded', margin + 2, yPosition);
+    yPosition += 7;
+    field('Gauge:', shotgun?.gauge || 'Not recorded', margin + 2, yPosition);
+    field('Quantity:', record.rounds_fired || 0, margin + 100, yPosition);
+    yPosition += 12;
 
-      record.photos.forEach((photo) => {
-        if (photoCount > 0 && photoCount % photosPerRow === 0) {
-          pY += photoSize + 3;
-          pX = photoX;
-        }
+    sectionHeader('SCORE CARD');
+    if (scoreSummary) {
+      field('Total:', scoreSummary.label, margin + 2, yPosition);
+      field('Percentage:', `${scoreSummary.percentage}%`, margin + 100, yPosition);
+      yPosition += 7;
+      field('Hits:', scoreSummary.totalHits, margin + 2, yPosition);
+      field('Missed:', scoreSummary.totalMisses, margin + 100, yPosition);
+      yPosition += 9;
 
-        try {
-          doc.addImage(photo, 'JPEG', pX, pY, photoSize, photoSize);
-          doc.link(pX, pY, photoSize, photoSize, { url: photo });
-        } catch (e) {
-          doc.setDrawColor(...STYLES.lightGray);
-          doc.rect(pX, pY, photoSize, photoSize);
-        }
-
-        pX += photoSize + 3;
-        photoCount++;
+      stands.forEach((stand) => {
+        ensureSpace(10);
+        const valid = Number(stand.valid_scored_clays || ((stand.hits || 0) + (stand.misses || 0)));
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(...STYLES.textColor);
+        doc.text(`Stand ${stand.stand_number}${stand.discipline_type ? ` (${stand.discipline_type})` : ''}: ${stand.hits || 0} / ${valid}`, margin + 5, yPosition);
+        yPosition += 5;
       });
-
-      photoY = pY + photoSize + 3;
     } else {
-      photoY = textY;
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(...STYLES.textColor);
+      doc.text('No score card recorded', margin + 5, yPosition);
+      yPosition += 7;
     }
+    yPosition += 5;
 
-    yPosition = Math.max(photoY, textY) + 8;
-
-    doc.setDrawColor(200, 200, 200);
-    doc.line(margin, yPosition, pageWidth - margin, yPosition);
-    yPosition += 6;
+    sectionHeader('PHOTOS');
+    if (photos.length === 0) {
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(...STYLES.textColor);
+      doc.text('No photos recorded', margin + 5, yPosition);
+      yPosition += 10;
+    } else {
+      const photoWidth = 35;
+      const photoHeight = 35;
+      let x = margin + 5;
+      photos.forEach((photoUrl, photoIndex) => {
+        if (photoIndex > 0 && x + photoWidth > pageWidth - margin) {
+          x = margin + 5;
+          yPosition += photoHeight + 5;
+        }
+        ensureSpace(photoHeight + 12);
+        try {
+          doc.addImage(photoUrl, 'JPEG', x, yPosition, photoWidth, photoHeight);
+          doc.link(x, yPosition, photoWidth, photoHeight, { url: photoUrl });
+        } catch (e) {
+          doc.setDrawColor(200, 200, 200);
+          doc.rect(x, yPosition, photoWidth, photoHeight);
+          doc.setFontSize(7);
+          doc.text('Image unavailable', x + 3, yPosition + 18);
+        }
+        x += photoWidth + 5;
+      });
+      yPosition += photoHeight + 8;
+    }
   });
 
   return yPosition;
