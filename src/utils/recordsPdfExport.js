@@ -263,158 +263,381 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
    const { margin } = STYLES;
    let yPosition = startY;
 
-   doc.setFontSize(14);
-   doc.setFont(undefined, 'bold');
-   doc.setTextColor(...STYLES.accentColor);
-   doc.text('TARGET SHOOTING SESSIONS', margin, yPosition);
-   yPosition += 2;
-   doc.setDrawColor(...STYLES.accentColor);
-   doc.line(margin, yPosition, pageWidth - margin, yPosition);
-   yPosition += 8;
-
    records.forEach((record, idx) => {
-     if (yPosition > pageHeight - 80) {
+     // New page for each session
+     if (idx > 0) {
        doc.addPage();
        pageNum++;
        addPageId(doc, docId, pageNum, pageWidth);
-       yPosition = margin + 5;
+       yPosition = margin;
      }
 
-     let textY = yPosition;
-
-     // Session header
-     doc.setFontSize(10);
+     // ═══ SESSION TITLE ═══
+     doc.setFontSize(16);
      doc.setFont(undefined, 'bold');
      doc.setTextColor(...STYLES.headingColor);
-     doc.text(`Session ${idx + 1}: ${record.date}`, margin, textY);
-     textY += 6;
+     doc.text('TARGET SHOOTING SESSION REPORT', margin, yPosition);
+     yPosition += 8;
 
-     // Club/Venue
-     if (record.club_id && clubs[record.club_id]) {
-       doc.setFontSize(9);
-       doc.setFont(undefined, 'bold');
-       doc.setTextColor(...STYLES.darkGray);
-       doc.text('Venue', margin + 2, textY);
-       textY += 3.5;
-       doc.setFont(undefined, 'normal');
-       doc.setFontSize(8.5);
-       doc.setTextColor(...STYLES.textColor);
-       doc.text(`${clubs[record.club_id].name}`, margin + 5, textY);
-       textY += 3.5;
-       if (clubs[record.club_id].location) {
-         doc.text(`${clubs[record.club_id].location}`, margin + 5, textY);
-         textY += 3.5;
-       }
-     }
+     doc.setFontSize(11);
+     doc.setFont(undefined, 'normal');
+     doc.setTextColor(100, 100, 100);
+     doc.text('Detailed Activity Record', margin, yPosition);
+     yPosition += 10;
 
-     // Times
-     doc.setFontSize(8);
+     // ═══ SECTION 1: SESSION OVERVIEW ═══
+     doc.setFillColor(...STYLES.lightGray);
+     doc.rect(margin, yPosition, pageWidth - 2 * margin, 5, 'F');
+     doc.setFontSize(11);
+     doc.setFont(undefined, 'bold');
+     doc.setTextColor(...STYLES.headingColor);
+     doc.text('SESSION OVERVIEW', margin + 3, yPosition + 3.5);
+     yPosition += 8;
+
+     // Overview grid
+     const colWidth = (pageWidth - 2 * margin) / 2;
+     doc.setFontSize(9);
+     doc.setFont(undefined, 'bold');
+     doc.setTextColor(...STYLES.darkGray);
+
+     doc.text('Session Date:', margin, yPosition);
      doc.setFont(undefined, 'normal');
      doc.setTextColor(...STYLES.textColor);
-     doc.text(`Check-in: ${record.checkin_time || 'N/A'} | Check-out: ${record.checkout_time || 'N/A'}`, margin + 5, textY);
-     textY += 4;
+     doc.text(record.date, margin + 35, yPosition);
 
-     // Firearms & Ammunition
-     if (record.rifles_used && record.rifles_used.length > 0) {
-       doc.setFontSize(9);
+     doc.setFont(undefined, 'bold');
+     doc.setTextColor(...STYLES.darkGray);
+     doc.text('Session Type:', margin + colWidth, yPosition);
+     doc.setFont(undefined, 'normal');
+     doc.setTextColor(...STYLES.textColor);
+     doc.text('Target Shooting', margin + colWidth + 35, yPosition);
+     yPosition += 6;
+
+     doc.setFont(undefined, 'bold');
+     doc.setTextColor(...STYLES.darkGray);
+     doc.text('Check-In:', margin, yPosition);
+     doc.setFont(undefined, 'normal');
+     doc.setTextColor(...STYLES.textColor);
+     doc.text(record.checkin_time || 'N/A', margin + 35, yPosition);
+
+     doc.setFont(undefined, 'bold');
+     doc.setTextColor(...STYLES.darkGray);
+     doc.text('Check-Out:', margin + colWidth, yPosition);
+     doc.setFont(undefined, 'normal');
+     doc.setTextColor(...STYLES.textColor);
+     doc.text(record.checkout_time || 'N/A', margin + colWidth + 35, yPosition);
+     yPosition += 6;
+
+     // Club/Range
+     if (record.club_id && clubs[record.club_id]) {
        doc.setFont(undefined, 'bold');
        doc.setTextColor(...STYLES.darkGray);
-       doc.text('Firearms & Ammunition', margin + 2, textY);
-       textY += 4;
+       doc.text('Club / Range:', margin, yPosition);
+       doc.setFont(undefined, 'normal');
+       doc.setTextColor(...STYLES.textColor);
+       doc.text(clubs[record.club_id].name || 'Unknown', margin + 35, yPosition);
+       yPosition += 6;
+       if (clubs[record.club_id].location) {
+         doc.setFont(undefined, 'normal');
+         doc.setFontSize(8);
+         doc.text(clubs[record.club_id].location, margin + 35, yPosition);
+         yPosition += 5;
+       }
+     }
+     yPosition += 4;
+
+     // ═══ SECTION 2: FIREARMS & AMMUNITION ═══
+     if (record.rifles_used && record.rifles_used.length > 0) {
+       doc.setFillColor(...STYLES.lightGray);
+       doc.rect(margin, yPosition, pageWidth - 2 * margin, 5, 'F');
+       doc.setFontSize(11);
+       doc.setFont(undefined, 'bold');
+       doc.setTextColor(...STYLES.headingColor);
+       doc.text('FIREARMS & AMMUNITION', margin + 3, yPosition + 3.5);
+       yPosition += 8;
 
        record.rifles_used.forEach((rifle, rIdx) => {
          const rifleData = rifles[rifle.rifle_id];
-         doc.setFontSize(8);
+
+         // Firearm card background
+         doc.setDrawColor(200, 200, 200);
+         doc.rect(margin, yPosition, pageWidth - 2 * margin, 0.3);
+         yPosition += 3;
+
+         // Firearm title
+         doc.setFontSize(10);
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.headingColor);
+         doc.text(`Firearm #${rIdx + 1}`, margin + 3, yPosition);
+         yPosition += 5;
+
+         // Firearm details
+         doc.setFontSize(9);
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Name:', margin + 5, yPosition);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
+         doc.text(rifleData?.name || 'Unknown', margin + 30, yPosition);
+         yPosition += 5;
 
          if (rifleData) {
            doc.setFont(undefined, 'bold');
-           doc.text(`Firearm #${rIdx + 1}: ${rifleData.name}`, margin + 5, textY);
-           textY += 3.5;
+           doc.setTextColor(...STYLES.darkGray);
+           doc.text('Make:', margin + 5, yPosition);
            doc.setFont(undefined, 'normal');
-           doc.setTextColor(80, 80, 80);
-           doc.text(`Make: ${rifleData.make || '-'} | Model: ${rifleData.model || '-'} | Caliber: ${rifleData.caliber || '-'}`, margin + 7, textY);
-           textY += 3.5;
+           doc.setTextColor(...STYLES.textColor);
+           doc.text(rifleData.make || '-', margin + 30, yPosition);
+
+           doc.setFont(undefined, 'bold');
+           doc.setTextColor(...STYLES.darkGray);
+           doc.text('Model:', margin + 100, yPosition);
+           doc.setFont(undefined, 'normal');
+           doc.setTextColor(...STYLES.textColor);
+           doc.text(rifleData.model || '-', margin + 125, yPosition);
+           yPosition += 5;
+
+           doc.setFont(undefined, 'bold');
+           doc.setTextColor(...STYLES.darkGray);
+           doc.text('Caliber:', margin + 5, yPosition);
+           doc.setFont(undefined, 'normal');
+           doc.setTextColor(...STYLES.textColor);
+           doc.text(rifleData.caliber || '-', margin + 30, yPosition);
+
            if (rifleData.serial_number) {
-             doc.text(`Serial: ${rifleData.serial_number}`, margin + 7, textY);
-             textY += 3.5;
+             doc.setFont(undefined, 'bold');
+             doc.setTextColor(...STYLES.darkGray);
+             doc.text('Serial:', margin + 100, yPosition);
+             doc.setFont(undefined, 'normal');
+             doc.setTextColor(...STYLES.textColor);
+             doc.text(rifleData.serial_number, margin + 125, yPosition);
+           }
+           yPosition += 5;
+         }
+
+         // Session details
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Rounds Fired:', margin + 5, yPosition);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         doc.text(`${rifle.rounds_fired || '0'} rounds`, margin + 30, yPosition);
+
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Range Distance:', margin + 100, yPosition);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         doc.text(`${rifle.meters_range || '-'} m`, margin + 125, yPosition);
+         yPosition += 5;
+
+         // Ammunition
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Ammunition Brand:', margin + 5, yPosition);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         doc.text(rifle.ammunition_brand || '-', margin + 30, yPosition);
+         yPosition += 5;
+
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Bullet Type:', margin + 5, yPosition);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         doc.text(rifle.bullet_type || '-', margin + 30, yPosition);
+
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Grain Weight:', margin + 100, yPosition);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         doc.text(rifle.grain || '-', margin + 125, yPosition);
+         yPosition += 6;
+       });
+     }
+
+     // ═══ SECTION 3: TARGET ANALYSIS ═══
+     const groupsForRecord = targetGroups.filter(g => g.session_id === record.id);
+     if (groupsForRecord && groupsForRecord.length > 0) {
+       if (yPosition > pageHeight - 100) {
+         doc.addPage();
+         pageNum++;
+         addPageId(doc, docId, pageNum, pageWidth);
+         yPosition = margin;
+       }
+
+       doc.setFillColor(...STYLES.lightGray);
+       doc.rect(margin, yPosition, pageWidth - 2 * margin, 5, 'F');
+       doc.setFontSize(11);
+       doc.setFont(undefined, 'bold');
+       doc.setTextColor(...STYLES.headingColor);
+       doc.text('TARGET ANALYSIS', margin + 3, yPosition + 3.5);
+       yPosition += 8;
+
+       groupsForRecord.forEach((group, gIdx) => {
+         if (yPosition > pageHeight - 50) {
+           doc.addPage();
+           pageNum++;
+           addPageId(doc, docId, pageNum, pageWidth);
+           yPosition = margin;
+         }
+
+         // Group card
+         doc.setDrawColor(200, 200, 200);
+         doc.rect(margin, yPosition, pageWidth - 2 * margin, 0.3);
+         yPosition += 3;
+
+         doc.setFontSize(10);
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.headingColor);
+         doc.text(`Group ${gIdx + 1}: ${group.group_name || `Group ${gIdx + 1}`}`, margin + 3, yPosition);
+         yPosition += 5;
+
+         doc.setFontSize(9);
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+
+         if (group.number_of_shots) {
+           doc.text('Shots:', margin + 5, yPosition);
+           doc.setFont(undefined, 'normal');
+           doc.setTextColor(...STYLES.textColor);
+           doc.text(String(group.number_of_shots), margin + 30, yPosition);
+           yPosition += 5;
+         }
+
+         if (group.distance_override) {
+           doc.setFont(undefined, 'bold');
+           doc.setTextColor(...STYLES.darkGray);
+           doc.text('Distance:', margin + 5, yPosition);
+           doc.setFont(undefined, 'normal');
+           doc.setTextColor(...STYLES.textColor);
+           doc.text(`${group.distance_override} m`, margin + 30, yPosition);
+           yPosition += 5;
+         }
+
+         if (group.group_size_moa || group.group_size_mm || group.group_size_mrad) {
+           doc.setFont(undefined, 'bold');
+           doc.setTextColor(...STYLES.darkGray);
+           doc.text('Group Size:', margin + 5, yPosition);
+           doc.setFont(undefined, 'normal');
+           doc.setTextColor(...STYLES.textColor);
+           const sizes = [];
+           if (group.group_size_moa) sizes.push(`${group.group_size_moa.toFixed(2)} MOA`);
+           if (group.group_size_mm) sizes.push(`${group.group_size_mm} mm`);
+           if (group.group_size_mrad) sizes.push(`${group.group_size_mrad.toFixed(3)} mrad`);
+           doc.text(sizes.join(' | '), margin + 30, yPosition);
+           yPosition += 5;
+         }
+
+         if (group.point_of_impact_x || group.point_of_impact_y) {
+           doc.setFont(undefined, 'bold');
+           doc.setTextColor(...STYLES.darkGray);
+           doc.text('Point of Impact:', margin + 5, yPosition);
+           doc.setFont(undefined, 'normal');
+           doc.setTextColor(...STYLES.textColor);
+           const poiText = `X: ${(group.point_of_impact_x || 0).toFixed(1)}mm | Y: ${(group.point_of_impact_y || 0).toFixed(1)}mm`;
+           doc.text(poiText, margin + 30, yPosition);
+           yPosition += 5;
+         }
+
+         if (group.clicks_up_down || group.clicks_left_right) {
+           doc.setFont(undefined, 'bold');
+           doc.setTextColor(...STYLES.darkGray);
+           doc.text('Turret Clicks:', margin + 5, yPosition);
+           doc.setFont(undefined, 'normal');
+           doc.setTextColor(...STYLES.textColor);
+           const clickText = `Elevation: ${group.clicks_up_down || '-'} | Windage: ${group.clicks_left_right || '-'}`;
+           doc.text(clickText, margin + 30, yPosition);
+           yPosition += 5;
+         }
+
+         if (group.notes) {
+           doc.setFont(undefined, 'bold');
+           doc.setTextColor(...STYLES.darkGray);
+           doc.text('Notes:', margin + 5, yPosition);
+           doc.setFont(undefined, 'normal');
+           doc.setFontSize(8);
+           doc.setTextColor(...STYLES.textColor);
+           const wrappedNotes = doc.splitTextToSize(group.notes, pageWidth - 2 * margin - 30);
+           wrappedNotes.forEach((line, nIdx) => {
+             doc.text(line, margin + 30, yPosition);
+             yPosition += 3.5;
+           });
+           yPosition += 1;
+         } else {
+           yPosition += 2;
+         }
+
+         // Target photos
+         if (group.marked_photo_url || group.ai_marked_photo_url || group.photo_url) {
+           if (yPosition > pageHeight - 50) {
+             doc.addPage();
+             pageNum++;
+             addPageId(doc, docId, pageNum, pageWidth);
+             yPosition = margin;
+           }
+
+           doc.setFontSize(8);
+           doc.setFont(undefined, 'bold');
+           doc.setTextColor(...STYLES.darkGray);
+           doc.text('Target Photo:', margin + 5, yPosition);
+           yPosition += 4;
+
+           const photoWidth = 40;
+           const photoHeight = 40;
+           const photoX = margin + 10;
+
+           try {
+             const photoUrl = group.marked_photo_url || group.ai_marked_photo_url || group.photo_url;
+             doc.addImage(photoUrl, 'JPEG', photoX, yPosition, photoWidth, photoHeight);
+             yPosition += photoHeight + 3;
+           } catch (e) {
+             doc.setTextColor(150, 0, 0);
+             doc.setFontSize(8);
+             doc.text('Image unavailable', photoX, yPosition + 18);
+             yPosition += 25;
            }
          }
 
-         doc.setTextColor(...STYLES.textColor);
-         doc.text(`Rounds: ${rifle.rounds_fired || '0'} | Range: ${rifle.meters_range || '-'}m`, margin + 7, textY);
-         textY += 3.5;
-         doc.text(`Ammo: ${rifle.ammunition_brand || '-'} | Type: ${rifle.bullet_type || '-'} | Grain: ${rifle.grain || '-'}`, margin + 7, textY);
-         textY += 4;
+         yPosition += 2;
        });
      }
 
-     // Target Analysis
-     const groupsForRecord = targetGroups.filter(g => g.session_id === record.id);
-     if (groupsForRecord && groupsForRecord.length > 0) {
-       doc.setFontSize(9);
-       doc.setFont(undefined, 'bold');
-       doc.setTextColor(...STYLES.darkGray);
-       doc.text('Target Analysis', margin + 2, textY);
-       textY += 4;
-
-       groupsForRecord.forEach((group, gIdx) => {
-         doc.setFont(undefined, 'bold');
-         doc.setFontSize(8);
-         doc.setTextColor(...STYLES.textColor);
-         doc.text(`Group ${gIdx + 1}: ${group.group_name || `Group ${gIdx + 1}`}`, margin + 5, textY);
-         textY += 3.5;
-
-         doc.setFont(undefined, 'normal');
-         doc.setFontSize(7.5);
-         doc.setTextColor(80, 80, 80);
-         const groupLines = [];
-         if (group.number_of_shots) groupLines.push(`Shots: ${group.number_of_shots}`);
-         if (group.distance_override) groupLines.push(`Distance: ${group.distance_override}m`);
-         if (group.group_size_moa) groupLines.push(`MOA: ${group.group_size_moa.toFixed(2)}`);
-         if (group.group_size_mm) groupLines.push(`mm: ${group.group_size_mm}`);
-         if (group.group_size_mrad) groupLines.push(`mrad: ${group.group_size_mrad.toFixed(3)}`);
-         if (group.point_of_impact_x || group.point_of_impact_y) {
-           groupLines.push(`POI: X:${(group.point_of_impact_x || 0).toFixed(1)} Y:${(group.point_of_impact_y || 0).toFixed(1)}mm`);
-         }
-         if (group.clicks_up_down || group.clicks_left_right) {
-           groupLines.push(`Clicks: Elev:${group.clicks_up_down || '-'} Wind:${group.clicks_left_right || '-'}`);
-         }
-
-         const groupText = groupLines.join(' | ');
-         const wrappedGroupText = doc.splitTextToSize(groupText, pageWidth - 2 * margin - 10);
-         wrappedGroupText.forEach(line => {
-           doc.text(line, margin + 7, textY);
-           textY += 3;
-         });
-         textY += 1;
-       });
-     }
-
-     // Notes
+     // ═══ SECTION 4: NOTES ═══
      if (record.notes) {
-       doc.setFontSize(9);
+       if (yPosition > pageHeight - 50) {
+         doc.addPage();
+         pageNum++;
+         addPageId(doc, docId, pageNum, pageWidth);
+         yPosition = margin;
+       }
+
+       doc.setFillColor(...STYLES.lightGray);
+       doc.rect(margin, yPosition, pageWidth - 2 * margin, 5, 'F');
+       doc.setFontSize(11);
        doc.setFont(undefined, 'bold');
-       doc.setTextColor(...STYLES.darkGray);
-       doc.text('Notes', margin + 2, textY);
-       textY += 4;
+       doc.setTextColor(...STYLES.headingColor);
+       doc.text('SESSION NOTES', margin + 3, yPosition + 3.5);
+       yPosition += 8;
+
+       doc.setFontSize(9);
        doc.setFont(undefined, 'normal');
-       doc.setFontSize(8);
        doc.setTextColor(...STYLES.textColor);
        const wrappedNotes = doc.splitTextToSize(record.notes, pageWidth - 2 * margin - 10);
        wrappedNotes.forEach(line => {
-         doc.text(line, margin + 5, textY);
-         textY += 3.5;
+         if (yPosition > pageHeight - 20) {
+           doc.addPage();
+           pageNum++;
+           addPageId(doc, docId, pageNum, pageWidth);
+           yPosition = margin;
+         }
+         doc.text(line, margin + 5, yPosition);
+         yPosition += 5;
        });
-       textY += 2;
      }
 
-     yPosition = textY + 6;
-
-     doc.setDrawColor(200, 200, 200);
-     doc.line(margin, yPosition, pageWidth - margin, yPosition);
-     yPosition += 6;
+     yPosition += 10;
    });
 
    return yPosition;
