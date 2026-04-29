@@ -156,17 +156,22 @@ export default function ClayShooting() {
     return () => unsubscribe();
   }, []);
 
+  // Proximity detection: whenever tracking updates location, check nearby clubs
   useEffect(() => {
-    if (location && clubs.length > 0) {
-      clubs.forEach((club) => {
-        const match = club.location?.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
-        if (match) {
-          const distance = calculateDistance(location.latitude, location.longitude, parseFloat(match[1]), parseFloat(match[2]));
-          if (distance < 0.5) setNearbyClub({ name: club.name, distance });
-        }
-      });
-    }
-  }, [location, clubs]);
+    const unsubscribe = trackingService.subscribe((track) => {
+      if (track.length > 0 && clubs.length > 0) {
+        const lastPoint = track[track.length - 1];
+        clubs.forEach((club) => {
+          const match = club.location?.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
+          if (match) {
+            const distance = calculateDistance(lastPoint.lat, lastPoint.lng, parseFloat(match[1]), parseFloat(match[2]));
+            if (distance < 0.5) setNearbyClub({ name: club.name, distance });
+          }
+        });
+      }
+    });
+    return () => unsubscribe();
+  }, [clubs]);
 
   const handleCheckin = async (e) => {
     e.preventDefault();

@@ -34,21 +34,17 @@ export default function TargetShooting() {
   const [nearbyClub, setNearbyClub] = useState(null);
   const [location, setLocation] = useState(null);
 
+  // GPS proximity detection now uses trackingService location updates via subscription
+  // No separate watchPosition needed — trackingService is the single tracker
   useEffect(() => {
-    if (!navigator.geolocation) return;
-    let lastUpdate = 0;
-    const id = navigator.geolocation.watchPosition(
-      (pos) => {
-        const now = Date.now();
-        if (now - lastUpdate > 30000) { // Throttle to 30 second updates
-          setLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
-          lastUpdate = now;
-        }
-      },
-      () => {},
-      { enableHighAccuracy: false, maximumAge: 30000, timeout: 5000 }
-    );
-    return () => navigator.geolocation.clearWatch(id);
+    // Subscribe to trackingService for proximity detection without duplicate tracking
+    const unsubscribe = trackingService.subscribe((track) => {
+      if (track.length > 0) {
+        const lastPoint = track[track.length - 1];
+        setLocation({ latitude: lastPoint.lat, longitude: lastPoint.lng });
+      }
+    });
+    return () => unsubscribe();
   }, []);
   const [gpsTrack, setGpsTrack] = useState([]);
   const [viewingTrack, setViewingTrack] = useState(null);
