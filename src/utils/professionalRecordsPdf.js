@@ -291,12 +291,62 @@ function buildClayReportData(record, reportData) {
   };
 }
 
+function resolveTargetClubName(record, clubs = {}, locations = {}) {
+  return record.club_name
+    || record.range_name
+    || record.location_name
+    || record.place_name
+    || record.venue_name
+    || (record.club_id && clubs[record.club_id]?.name)
+    || (record.location_id && (clubs[record.location_id]?.name || locations[record.location_id]?.name || locations[record.location_id]?.place_name))
+    || 'Not Recorded';
+}
+
+function getTargetGroupPhoto(group = {}) {
+  const photos = normalizePhotos(group.photos || []);
+  return group.photo_url || group.target_photo_url || group.image_url || group.target_photo || photos[0] || null;
+}
+
+function buildTargetReportData(record, reportData) {
+  const { rifles = {}, clubs = {}, locations = {}, targetGroups = [] } = reportData.lookups;
+  const groups = targetGroups.filter((group) => group.session_id === record.id || group.session_record_id === record.id || group.target_session_id === record.id);
+  return {
+    clubName: resolveTargetClubName(record, clubs, locations),
+    duration: calculateDuration(record.checkin_time || record.start_time, record.checkout_time || record.end_time),
+    rifles,
+    groups,
+    photos: normalizePhotos(record.photos || []),
+  };
+}
+
 function drawClayReportHeader(doc, reportData, cursor) {
   const { width } = pageMetrics(doc);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(18);
   doc.setTextColor(...REPORT.navy);
   doc.text('CLAY SHOOTING SESSION REPORT', REPORT.margin, cursor.y + 6);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
+  doc.setTextColor(...REPORT.muted);
+  doc.text('Detailed Activity Record', REPORT.margin, cursor.y + 13);
+
+  doc.setFontSize(8);
+  doc.text(`Document ID: ${reportData.documentId}`, REPORT.margin, cursor.y + 19);
+  doc.text(`Generated: ${reportData.generatedAtLabel}`, REPORT.margin, cursor.y + 24);
+
+  doc.setDrawColor(...REPORT.copper);
+  doc.setLineWidth(0.8);
+  doc.line(REPORT.margin, cursor.y + 29, width - REPORT.margin, cursor.y + 29);
+  return { ...cursor, y: cursor.y + 38 };
+}
+
+function drawTargetReportHeader(doc, reportData, cursor) {
+  const { width } = pageMetrics(doc);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(...REPORT.navy);
+  doc.text('TARGET SHOOTING SESSION REPORT', REPORT.margin, cursor.y + 6);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9.5);
@@ -461,53 +511,106 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
   return cursor;
 }
 
-function renderTargetSession(doc, record, reportData, cursor) {
-  const { rifles = {}, clubs = {}, targetGroups = [] } = reportData.lookups;
-  const clubName = record.club_name || (record.club_id && clubs[record.club_id]?.name) || record.location_name || record.range_name || record.place_name || 'Not recorded';
-  cursor = drawSectionTitle(doc, 'TARGET SHOOTING SESSION REPORT', cursor);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  doc.setTextColor(...REPORT.muted);
-  doc.text('Detailed Activity Record', REPORT.margin + 2, cursor.y - 5);
+function renderTargetSession(doc, record, reportData, cursor, options = {}) {
+  const data = buildTargetReportData(record, reportData);
+  const firearms = record.rifles_used?.length ? record.rifles_used : [{
+    rifle_id: record.rifle_id,
+    rounds_fired: record.rounds_fired,
+    meters_range: record.meters_range || record.range_distance,
+    ammunition_brand: record.ammunition_used,
+    caliber: record.caliber,
+  }];
 
-  cursor = drawInfoCard(doc, 'Session Overview', [
+  if (options.includeTitle !== false) {
+    cursor = drawClayPageTitle(doc, 'TARGET SHOOTING SESSION REPORT', cursor, reportData);
+  }
+
+  cursor = drawClayCompactCard(doc, 'Session Overview', [
     { label: 'Session Date', value: formatDate(record.date) },
     { label: 'Session Type', value: 'Target Shooting' },
-    { label: 'Club / Range', value: clubName },
-    { label: 'Check-in', value: record.checkin_time },
-    { label: 'Check-out', value: record.checkout_time },
-  ], cursor, { columns: 2, rowHeight: 14 });
+    { label: 'Club / Range', value: data.clubName },
+    { label: 'Duration', value: data.duration || 'Not Recorded' },
+    { label: 'Check-In', value: record.checkin_time || record.start_time || 'Not Recorded' },
+    { label: 'Check-Out', value: record.checkout_time || record.end_time || 'Not Recorded' },
+    ...(record.notes ? [{ label: 'Notes', value: record.notes }] : []),
+  ], cursor);
 
-  if (record.rifles_used?.length) {
-    cursor = drawSectionTitle(doc, 'FIREARMS & AMMUNITION', cursor);
-    cursor = drawDataTable(doc, ['Firearm', 'Calibre', 'Rounds', 'Range', 'Ammunition', 'Bullet'], record.rifles_used.map((rifle) => {
-      const rifleData = rifles[rifle.rifle_id] || {};
-      return [
-        rifleData.name || rifle.rifle_name || 'Not recorded',
-        rifle.caliber || rifleData.caliber || 'Not recorded',
-        rifle.rounds_fired || 0,
-        rifle.meters_range ? `${rifle.meters_range}m` : 'Not recorded',
-        rifle.ammunition_brand || 'Not recorded',
-        [rifle.bullet_type, rifle.grain].filter(Boolean).join(' / ') || 'Not recorded',
-      ];
-    }), cursor, { widths: [35, 25, 20, 22, 45, 39], leftColumns: [0, 4, 5], rowHeight: 9 });
+  firearms.forEach((firearm, index) => {
+    const rifleData = data.rifles[firearm.rifle_id] || {};
+    cursor = drawClayCompactCard(doc, `Firearm #${index + 1}`, [
+      { label: 'Name', value: rifleData.name || firearm.rifle_name },
+      { label: 'Make', value: rifleData.make || firearm.make },
+      { label: 'Model', value: rifleData.model || firearm.model },
+      { label: 'Calibre', value: firearm.caliber || rifleData.caliber },
+      { label: 'Serial', value: rifleData.serial_number || firearm.serial_number },
+      { label: 'Rounds Fired', value: firearm.rounds_fired || 0 },
+      { label: 'Range Distance', value: firearm.meters_range ? `${firearm.meters_range} m` : firearm.range_distance },
+      ...(firearm.scope || rifleData.scope ? [{ label: 'Scope', value: firearm.scope || rifleData.scope }] : []),
+      ...(firearm.zero_distance || rifleData.zero_distance ? [{ label: 'Zero Distance', value: firearm.zero_distance || rifleData.zero_distance }] : []),
+    ], cursor);
+  });
+
+  cursor = drawClayCompactCard(doc, 'Ammunition / Ballistics', firearms.flatMap((firearm, index) => [
+    ...(firearms.length > 1 ? [{ label: `Firearm #${index + 1}`, value: data.rifles[firearm.rifle_id]?.name || firearm.rifle_name || `Firearm #${index + 1}` }] : []),
+    { label: 'Brand / Name', value: firearm.ammunition_brand || record.ammunition_used },
+    { label: 'Bullet Type', value: firearm.bullet_type },
+    { label: 'Grain Weight', value: firearm.grain },
+    { label: 'Calibre', value: firearm.caliber || data.rifles[firearm.rifle_id]?.caliber || record.caliber },
+    { label: 'Rounds Fired', value: firearm.rounds_fired || record.rounds_fired || 0 },
+    { label: 'Reloaded / Factory', value: firearm.ammo_type || record.ammo_type },
+    ...(firearm.batch_number || record.batch_number ? [{ label: 'Batch Number', value: firearm.batch_number || record.batch_number }] : []),
+    ...(firearm.cost || record.cost || record.total_cost ? [{ label: 'Cost', value: firearm.cost || record.cost || record.total_cost }] : []),
+    ...(firearm.powder ? [{ label: 'Powder', value: firearm.powder }] : []),
+    ...(firearm.primer ? [{ label: 'Primer', value: firearm.primer }] : []),
+    ...(firearm.brass ? [{ label: 'Brass', value: firearm.brass }] : []),
+    ...(firearm.bullet ? [{ label: 'Bullet', value: firearm.bullet }] : []),
+  ]), cursor);
+
+  doc.addPage();
+  cursor = drawClayPageTitle(doc, 'TARGET ANALYSIS', { y: REPORT.margin }, reportData);
+  if (data.groups.length === 0) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(...REPORT.text);
+    doc.text('No Target Analysis Recorded', REPORT.margin + 4, cursor.y);
+    cursor.y += 10;
+  } else {
+    data.groups.forEach((group, index) => {
+      const groupName = group.group_name || group.name || `Group ${index + 1}`;
+      cursor = drawClayCompactCard(doc, `Group ${index + 1} — ${groupName}`, [
+        { label: 'Shots', value: group.number_of_shots || group.shots },
+        { label: 'Distance', value: group.distance_override || group.distance ? `${group.distance_override || group.distance} m` : null },
+        { label: 'Group Size', value: group.group_size_mm ? `${group.group_size_mm} mm` : group.group_size },
+        { label: 'MOA', value: Number.isFinite(Number(group.group_size_moa)) ? Number(group.group_size_moa).toFixed(2) : group.moa },
+        { label: 'Accuracy Result', value: Number.isFinite(Number(group.group_size_moa)) ? `${Number(group.group_size_moa).toFixed(2)} MOA` : group.accuracy_result },
+        { label: 'Notes', value: group.notes },
+      ], cursor);
+
+      const targetPhoto = getTargetGroupPhoto(group);
+      if (targetPhoto) {
+        cursor = ensureSpace(doc, cursor, 44);
+        try {
+          doc.addImage(targetPhoto, 'JPEG', REPORT.margin + 4, cursor.y, 52, 36);
+          doc.link(REPORT.margin + 4, cursor.y, 52, 36, { url: targetPhoto });
+        } catch (error) {
+          doc.setDrawColor(...REPORT.border);
+          doc.rect(REPORT.margin + 4, cursor.y, 52, 36);
+          doc.setFontSize(7);
+          doc.setTextColor(...REPORT.muted);
+          doc.text('Image unavailable', REPORT.margin + 10, cursor.y + 19);
+        }
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(...REPORT.muted);
+        doc.text(`Target Photo — Group ${index + 1}`, REPORT.margin + 4, cursor.y + 41);
+        cursor.y += 48;
+      }
+    });
   }
 
-  const groups = targetGroups.filter((group) => group.session_id === record.id);
-  if (groups.length > 0) {
-    cursor = drawSectionTitle(doc, 'TARGET ANALYSIS RESULTS', cursor);
-    cursor = drawDataTable(doc, ['Group', 'Shots', 'Distance', 'MOA', 'Size mm', 'MRAD'], groups.map((group, index) => [
-      group.group_name || `Group ${index + 1}`,
-      group.number_of_shots || 'Not recorded',
-      group.distance_override ? `${group.distance_override}m` : 'Not recorded',
-      group.group_size_moa ? group.group_size_moa.toFixed(2) : 'Not recorded',
-      group.group_size_mm || 'Not recorded',
-      group.group_size_mrad ? group.group_size_mrad.toFixed(3) : 'Not recorded',
-    ]), cursor, { widths: [42, 22, 28, 28, 30, 30], leftColumns: [0] });
-  }
-
-  cursor = drawPhotosSection(doc, normalizePhotos(record.photos || []), cursor, 'TARGET PHOTOS');
-  if (record.notes) cursor = drawNotes(doc, record.notes, cursor);
+  doc.addPage();
+  cursor = drawClayPageTitle(doc, 'PHOTOS', { y: REPORT.margin }, reportData);
+  cursor = drawPhotosSection(doc, data.photos, cursor, null);
   return cursor;
 }
 
@@ -583,9 +686,12 @@ function renderDeerSession(doc, record, reportData, cursor) {
 function renderRecords(doc, reportData) {
   let cursor = { y: REPORT.margin };
   const isClayOnly = reportData.records.length > 0 && reportData.records.every((record) => record.category === 'clay_shooting' || record.recordType === 'clay');
+  const isTargetOnly = reportData.records.length > 0 && reportData.records.every((record) => record.category === 'target_shooting' || record.recordType === 'target');
 
   if (isClayOnly) {
     cursor = drawClayReportHeader(doc, reportData, cursor);
+  } else if (isTargetOnly) {
+    cursor = drawTargetReportHeader(doc, reportData, cursor);
   } else {
     cursor = drawHeader(doc, reportData, cursor);
     cursor = drawParticipantInfo(doc, reportData, cursor);
@@ -597,11 +703,12 @@ function renderRecords(doc, reportData) {
       doc.addPage();
       cursor = { y: REPORT.margin };
       if (isClayOnly) cursor = drawClayReportHeader(doc, reportData, cursor);
+      if (isTargetOnly) cursor = drawTargetReportHeader(doc, reportData, cursor);
     }
     if (record.category === 'clay_shooting' || record.recordType === 'clay') {
       cursor = renderClaySession(doc, record, reportData, cursor, { includeTitle: !isClayOnly, separateScoreAndPhotos: isClayOnly });
     } else if (record.category === 'target_shooting' || record.recordType === 'target') {
-      cursor = renderTargetSession(doc, record, reportData, cursor);
+      cursor = renderTargetSession(doc, record, reportData, cursor, { includeTitle: !isTargetOnly });
     } else if (record.category === 'deer_management' || record.recordType === 'deer') {
       cursor = renderDeerSession(doc, record, reportData, cursor);
     }
