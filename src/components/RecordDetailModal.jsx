@@ -225,17 +225,10 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
             </>
           )}
 
-          {/* Notes */}
-          {rec.notes && (
-            <Section title="Notes">
-              <p className="text-sm whitespace-pre-wrap">{rec.notes}</p>
-            </Section>
-          )}
-
-          {/* Photos (Bottom) - Target Shooting */}
+          {/* Checkout/Session Photos for Target Shooting */}
           {rec.recordType === 'target' && rec.photos?.length > 0 && (
             <div className="mb-5">
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3 px-1">Photos</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3 px-1">Session Photos</p>
               <div className="grid grid-cols-4 gap-2">
                 {rec.photos.map((photo, i) => {
                   const photoUrl = typeof photo === 'string' ? photo : photo.url;
@@ -254,6 +247,13 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
                 })}
               </div>
             </div>
+          )}
+
+          {/* Notes */}
+          {rec.notes && (
+            <Section title="Notes">
+              <p className="text-sm whitespace-pre-wrap">{rec.notes}</p>
+            </Section>
           )}
 
           {/* Footer */}
