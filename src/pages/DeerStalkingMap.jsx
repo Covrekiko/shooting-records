@@ -272,8 +272,9 @@ export default function DeerStalkingMap() {
       });
 
       // Decrement ammo AFTER session is created
+      // Pass BOTH SessionRecord.id AND outing_id so cleanup can find entries with either ID
       if (submitData.shot_anything && submitData.ammunition_id && submitData.total_count) {
-        await decrementAmmoStock(submitData.ammunition_id, parseInt(submitData.total_count), 'deer_management', sessionRecord.id);
+        await decrementAmmoStock(submitData.ammunition_id, parseInt(submitData.total_count), 'deer_management', sessionRecord.id, activeOuting.id);
       }
 
       // Update DeerOuting to reference SessionRecord

@@ -2,9 +2,10 @@ import { base44 } from '@/api/base44Client';
 
 /**
  * Decrement ammunition stock and log the spending.
- * Always stores session_id so restores can find and clean up the log entry.
+ * For Deer: pass both sessionId (SessionRecord.id) and outingId (DeerOuting.id) for reliable cleanup.
+ * For Target/Clay: sessionId is sufficient.
  */
-export async function decrementAmmoStock(ammunitionId, quantity, sessionType = null, sessionId = null) {
+export async function decrementAmmoStock(ammunitionId, quantity, sessionType = null, sessionId = null, outingId = null) {
   if (!ammunitionId || !quantity || quantity <= 0) return;
 
   try {
@@ -12,11 +13,18 @@ export async function decrementAmmoStock(ammunitionId, quantity, sessionType = n
     const stockBefore = ammo.quantity_in_stock || 0;
     const newQuantity = Math.max(0, stockBefore - quantity);
 
-    console.log(`[AMMO DEBUG] action: AMMO_USED sourceType: ${sessionType} sourceId: ${sessionId} ammoId: ${ammunitionId} quantityChange: -${quantity} stockBefore: ${stockBefore} stockAfter: ${newQuantity}`);
+    console.log(`[AMMO DEBUG] action: AMMO_USED sourceType: ${sessionType} sourceId: ${sessionId} outingId: ${outingId} ammoId: ${ammunitionId} quantityChange: -${quantity} stockBefore: ${stockBefore} stockAfter: ${newQuantity}`);
 
     await base44.entities.Ammunition.update(ammunitionId, { quantity_in_stock: newQuantity });
 
-    // Log spending — always include session_id for reliable restore/cleanup
+    // Log spending — store both IDs for Deer (to handle both SessionRecord.id and DeerOuting.id cleanup paths)
+    // For Deer: notes = "session:${sessionId}|outing:${outingId}" allows fallback cleanup
+    const notesValue = sessionId && outingId
+      ? `session:${sessionId}|outing:${outingId}`  // Deer: both IDs for fallback
+      : sessionId
+      ? `session:${sessionId}`  // Target/Clay: only SessionRecord.id
+      : undefined;
+
     await base44.entities.AmmoSpending.create({
       ammunition_id: ammunitionId,
       brand: ammo.brand,
@@ -26,7 +34,7 @@ export async function decrementAmmoStock(ammunitionId, quantity, sessionType = n
       total_cost: quantity * (ammo.cost_per_unit || 0),
       date_used: new Date().toISOString().split('T')[0],
       session_type: sessionType,
-      notes: sessionId ? `session:${sessionId}` : undefined,
+      notes: notesValue,
     });
   } catch (error) {
     console.error('Error decrementing ammo stock:', error);
@@ -36,25 +44,34 @@ export async function decrementAmmoStock(ammunitionId, quantity, sessionType = n
 /**
  * Restore ammunition stock (add back) — called on record delete.
  * Also removes any AmmoSpending log entries tied to that session.
+ * For Deer: pass outingId as fallback if SessionRecord cleanup doesn't find entries.
  */
-export async function restoreAmmoStock(ammunitionId, quantity, sessionId = null) {
+export async function restoreAmmoStock(ammunitionId, quantity, sessionId = null, outingId = null) {
   if (!ammunitionId || !quantity || quantity <= 0) return;
 
   try {
     const ammo = await base44.entities.Ammunition.get(ammunitionId);
     const stockBefore = ammo.quantity_in_stock || 0;
     const newQuantity = stockBefore + quantity;
-    console.log(`[AMMO DEBUG] action: AMMO_REFUNDED sourceId: ${sessionId} ammoId: ${ammunitionId} quantityChange: +${quantity} stockBefore: ${stockBefore} stockAfter: ${newQuantity}`);
+    console.log(`[AMMO DEBUG] action: AMMO_REFUNDED sourceId: ${sessionId} outingId: ${outingId} ammoId: ${ammunitionId} quantityChange: +${quantity} stockBefore: ${stockBefore} stockAfter: ${newQuantity}`);
     await base44.entities.Ammunition.update(ammunitionId, { quantity_in_stock: newQuantity });
 
-    // Clean up spending log entries tied to this session
-    if (sessionId) {
+    // Clean up spending log entries tied to this session (with fallback for Deer)
+    if (sessionId || outingId) {
       try {
         const user = await base44.auth.me();
         const spendingRecords = await base44.entities.AmmoSpending.filter({ created_by: user.email });
         for (const record of spendingRecords) {
-          if (record.notes && record.notes.includes(`session:${sessionId}`)) {
-            await base44.entities.AmmoSpending.delete(record.id);
+          if (record.notes) {
+            // Try SessionRecord ID first (main path)
+            if (sessionId && record.notes.includes(`session:${sessionId}`)) {
+              await base44.entities.AmmoSpending.delete(record.id);
+            }
+            // Fallback: try DeerOuting ID if SessionRecord didn't match (for old/orphaned records)
+            else if (outingId && record.notes.includes(`outing:${outingId}`)) {
+              console.log(`[AMMO CLEANUP] Fallback: cleaned up orphaned AmmoSpending via outingId (record.id: ${record.id})`);
+              await base44.entities.AmmoSpending.delete(record.id);
+            }
           }
         }
       } catch (e) {
@@ -89,10 +106,11 @@ export async function refundAmmoForRecord(record, recordType) {
       }
     } else if (recordType === 'deer_management') {
       // Deer: use top-level ammunition_id and rounds_fired
+      // Pass both SessionRecord.id AND outing_id for reliable cleanup with fallback
       if (record.ammunition_id && record.rounds_fired) {
         const roundsFired = parseInt(record.rounds_fired) || 0;
         if (roundsFired > 0) {
-          await restoreAmmoStock(record.ammunition_id, roundsFired, record.id);
+          await restoreAmmoStock(record.ammunition_id, roundsFired, record.id, record.outing_id);
           totalRefunded = roundsFired;
         }
       }
