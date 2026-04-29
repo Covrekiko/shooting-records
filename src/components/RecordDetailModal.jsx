@@ -30,13 +30,30 @@ const CATEGORY_CONFIG = {
 };
 
 export default function RecordDetailModal({ record, onClose, rifles, shotguns, clubs, locations }) {
-  const [rec, setRec] = useState(record);
+   const [rec, setRec] = useState(record);
+   const [targetGroups, setTargetGroups] = useState([]);
+   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
 
-  useEffect(() => {
-    getRepository('SessionRecord').get(record.id)
-      .then(updated => { if (updated) setRec({ ...updated, recordType: record.recordType }); })
-      .catch(() => {});
-  }, [record.id]);
+   useEffect(() => {
+     getRepository('SessionRecord').get(record.id)
+       .then(updated => { if (updated) setRec({ ...updated, recordType: record.recordType }); })
+       .catch(() => {});
+   }, [record.id]);
+
+   // Load target analysis if this is a target shooting record
+   useEffect(() => {
+     if (rec.recordType === 'target' && rec.id) {
+       setLoadingAnalysis(true);
+       console.log('[TARGET ANALYSIS DEBUG] loading for session_id:', rec.id);
+       getRepository('TargetGroup').filter({ session_id: rec.id })
+         .then(groups => {
+           console.log('[TARGET ANALYSIS DEBUG] target analyses found =', groups.length, groups);
+           setTargetGroups(groups.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)));
+         })
+         .catch(err => console.error('[TARGET ANALYSIS DEBUG] load error:', err))
+         .finally(() => setLoadingAnalysis(false));
+     }
+   }, [rec.id, rec.recordType]);
 
   const cat = CATEGORY_CONFIG[rec.recordType] || {};
 
@@ -135,11 +152,50 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
                     ) : null}
                   </div>
                 </div>
-              )}
-            </>
-          )}
 
-          {/* Clay Shooting */}
+              {/* Target Analysis Section */}
+              {(rec.recordType === 'target' && targetGroups.length > 0) && (
+                <div className="mb-5">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3 px-1">Target Analysis ({targetGroups.length})</p>
+                  <div className="space-y-3">
+                    {targetGroups.map((group, idx) => (
+                      <div key={group.id} className="bg-secondary/30 rounded-xl overflow-hidden">
+                        <div className="flex items-center justify-between px-4 py-2.5 bg-secondary/50 border-b border-border">
+                          <span className="text-xs text-muted-foreground font-medium">{group.group_name || `Target Analysis ${idx + 1}`}</span>
+                          {group.distance_override && <span className="text-xs font-semibold">{group.distance_override}m</span>}
+                        </div>
+                        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {group.distance_override && <Field label="Distance" value={`${group.distance_override}m`} />}
+                          {group.group_size_moa && <Field label="Group Size (MOA)" value={group.group_size_moa.toFixed(2)} />}
+                          {group.group_size_mm && <Field label="Group Size (mm)" value={group.group_size_mm.toFixed(2)} />}
+                          {group.group_size_mrad && <Field label="Group Size (MRAD)" value={group.group_size_mrad.toFixed(3)} />}
+                          {group.ammo_override && <Field label="Ammunition" value={group.ammo_override} />}
+                          {(group.clicks_up_down || group.clicks_left_right) && (
+                            <Field label="POI Shift" value={`↑${group.clicks_up_down || 0} →${group.clicks_left_right || 0} clicks`} />
+                          )}
+                          {group.confirmed && <Field label="Confirmed at Range" value="Yes" />}
+                          {group.best_group && <Field label="Best Group" value="⭐ Selected" />}
+                          {group.notes && <Field label="Notes" value={group.notes} />}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {loadingAnalysis && (
+                    <div className="flex justify-center py-4">
+                      <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                </div>
+              )}
+              {(rec.recordType === 'target' && targetGroups.length === 0 && !loadingAnalysis) && (
+                <div className="bg-secondary/30 rounded-xl px-4 py-3 mb-5 text-sm text-muted-foreground">
+                  No target analysis recorded for this session
+                </div>
+              )}
+              </>
+              )}
+
+              {/* Clay Shooting */}
           {rec.recordType === 'clay' && (
             <>
               {getClub(rec.club_id) && (
