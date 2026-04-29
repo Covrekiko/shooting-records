@@ -206,26 +206,112 @@ export default function Records() {
       // STEP 6: Reverse Armory firearm counters (idempotency check first)
       let armoryReversalSuccess = false;
       if (freshRecord.armoryCountersReversed !== true) {
-        console.log('[ARMORY REVERSE DEBUG] starting armory counter reversal');
+        console.log('[ARMORY DEBUG] starting armory counter reversal');
+        console.log('[ARMORY DEBUG] category =', freshRecord.category);
+        console.log('[ARMORY DEBUG] recordId =', freshRecord.id);
         try {
-          const { reverseArmoryCountersForRecord } = await import('@/lib/ammoUtils');
-          const armoryResult = await reverseArmoryCountersForRecord(freshRecord, freshRecord.category);
-          
-          if (!armoryResult.success) {
-            console.error('[ARMORY REVERSE DEBUG] counter reversal failed:', armoryResult.error);
-            alert('⚠️ Armory counter reversal failed. Delete cancelled.');
-            return;
+          // TARGET SHOOTING - multiple rifles
+          if (freshRecord.category === 'target_shooting' && freshRecord.rifles_used?.length > 0) {
+            for (const rifleEntry of freshRecord.rifles_used) {
+              const rifleId = rifleEntry.rifle_id;
+              const roundsToSubtract = parseInt(rifleEntry.rounds_fired || 0);
+              
+              if (!rifleId || roundsToSubtract <= 0) continue;
+              
+              console.log('[ARMORY DEBUG] firearmId =', rifleId);
+              console.log('[ARMORY DEBUG] fetching firearm from Base44');
+              
+              const rifle = await base44.entities.Rifle.get(rifleId);
+              if (!rifle) {
+                console.error('[ARMORY DEBUG] firearm not found, aborting delete');
+                alert(`⚠️ Rifle ${rifleId} not found. Delete cancelled.`);
+                return;
+              }
+              
+              console.log('[ARMORY DEBUG] firearm loaded from DB = true');
+              const totalBefore = Number(rifle.total_rounds_fired || 0);
+              const totalAfter = Math.max(0, totalBefore - roundsToSubtract);
+              
+              console.log('[ARMORY DEBUG] roundsToSubtract =', roundsToSubtract);
+              console.log('[ARMORY DEBUG] totalBefore =', totalBefore);
+              console.log('[ARMORY DEBUG] totalAfter =', totalAfter);
+              
+              await base44.entities.Rifle.update(rifleId, {
+                total_rounds_fired: totalAfter
+              });
+              console.log('[ARMORY DEBUG] update success = true');
+            }
+          } 
+          // CLAY SHOOTING - single shotgun
+          else if (freshRecord.category === 'clay_shooting') {
+            const shotgunId = freshRecord.shotgun_id || freshRecord.firearm_id || freshRecord.weapon_id;
+            const cartridgesToSubtract = parseInt(freshRecord.rounds_fired || freshRecord.cartridges_fired || freshRecord.total_shots || 0);
+            
+            if (shotgunId && cartridgesToSubtract > 0) {
+              console.log('[ARMORY DEBUG] firearmId =', shotgunId);
+              console.log('[ARMORY DEBUG] fetching firearm from Base44');
+              
+              const shotgun = await base44.entities.Shotgun.get(shotgunId);
+              if (!shotgun) {
+                console.error('[ARMORY DEBUG] firearm not found, aborting delete');
+                alert(`⚠️ Shotgun ${shotgunId} not found. Delete cancelled.`);
+                return;
+              }
+              
+              console.log('[ARMORY DEBUG] firearm loaded from DB = true');
+              const totalBefore = Number(shotgun.total_cartridges_fired || 0);
+              const totalAfter = Math.max(0, totalBefore - cartridgesToSubtract);
+              
+              console.log('[ARMORY DEBUG] roundsToSubtract =', cartridgesToSubtract);
+              console.log('[ARMORY DEBUG] totalBefore =', totalBefore);
+              console.log('[ARMORY DEBUG] totalAfter =', totalAfter);
+              
+              await base44.entities.Shotgun.update(shotgunId, {
+                total_cartridges_fired: totalAfter
+              });
+              console.log('[ARMORY DEBUG] update success = true');
+            }
+          } 
+          // DEER MANAGEMENT - single rifle
+          else if (freshRecord.category === 'deer_management') {
+            const rifleId = freshRecord.rifle_id || freshRecord.firearm_id || freshRecord.weapon_id;
+            const shotsToSubtract = parseInt(freshRecord.rounds_fired || freshRecord.total_count || freshRecord.shots_fired || 0);
+            
+            if (rifleId && shotsToSubtract > 0) {
+              console.log('[ARMORY DEBUG] firearmId =', rifleId);
+              console.log('[ARMORY DEBUG] fetching firearm from Base44');
+              
+              const rifle = await base44.entities.Rifle.get(rifleId);
+              if (!rifle) {
+                console.error('[ARMORY DEBUG] firearm not found, aborting delete');
+                alert(`⚠️ Rifle ${rifleId} not found. Delete cancelled.`);
+                return;
+              }
+              
+              console.log('[ARMORY DEBUG] firearm loaded from DB = true');
+              const totalBefore = Number(rifle.total_rounds_fired || 0);
+              const totalAfter = Math.max(0, totalBefore - shotsToSubtract);
+              
+              console.log('[ARMORY DEBUG] roundsToSubtract =', shotsToSubtract);
+              console.log('[ARMORY DEBUG] totalBefore =', totalBefore);
+              console.log('[ARMORY DEBUG] totalAfter =', totalAfter);
+              
+              await base44.entities.Rifle.update(rifleId, {
+                total_rounds_fired: totalAfter
+              });
+              console.log('[ARMORY DEBUG] update success = true');
+            }
           }
           
           armoryReversalSuccess = true;
-          console.log('[ARMORY REVERSE DEBUG] success');
+          console.log('[ARMORY DEBUG] all counters reversed successfully');
         } catch (armoryErr) {
-          console.error('[ARMORY REVERSE DEBUG] counter reversal failed:', armoryErr);
-          alert('⚠️ Armory counter reversal failed. Delete cancelled.');
+          console.error('[ARMORY DEBUG] counter reversal failed:', armoryErr);
+          alert('⚠️ Armory counter update failed. Record was not deleted.');
           return;
         }
       } else {
-        console.log('[ARMORY REVERSE DEBUG] countersReversed already true, skipping');
+        console.log('[ARMORY DEBUG] record already marked reversed, skipping');
         armoryReversalSuccess = true;
       }
 
