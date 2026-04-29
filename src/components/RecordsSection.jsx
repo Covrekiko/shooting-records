@@ -116,24 +116,43 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
       }
 
       // Prevent double refund (idempotency check)
-      let refundResult = null;
-      if (freshRecord.ammoRefunded === true) {
-        console.warn('[DELETE DEBUG] record already refunded, skipping refund');
-      } else {
-        // Refund ammunition using fresh record
-        console.log('[DELETE DEBUG] refund start');
-        const { refundAmmoForRecord } = await import('@/lib/ammoUtils');
-        refundResult = await refundAmmoForRecord(freshRecord, freshRecord.category);
-        console.log('[DELETE DEBUG] refund result =', refundResult);
+       let refundResult = null;
+       if (freshRecord.ammoRefunded === true) {
+         console.warn('[DELETE DEBUG] record already refunded, skipping refund');
+       } else {
+         // Refund ammunition using fresh record
+         console.log('[DELETE DEBUG] refund start');
+         const { refundAmmoForRecord } = await import('@/lib/ammoUtils');
+         refundResult = await refundAmmoForRecord(freshRecord, freshRecord.category);
+         console.log('[DELETE DEBUG] refund result =', refundResult);
 
-        if (!refundResult.success) {
-          console.error('[DELETE DEBUG] refund failed:', refundResult.error);
-          alert('Ammunition refund failed. Record was not deleted.');
-          return;
-        }
-      }
+         if (!refundResult.success) {
+           console.error('[DELETE DEBUG] refund failed:', refundResult.error);
+           alert('Ammunition refund failed. Record was not deleted.');
+           return;
+         }
+       }
 
-      // Soft delete the record (mark as deleted, do not hard delete)
+       // STEP 6: Reverse Armory counters
+       console.error('🔥🔥🔥 ARMORY REVERSAL MUST START NOW 🔥🔥🔥', {
+         id: freshRecord.id,
+         category: freshRecord.category,
+         shotgun_id: freshRecord.shotgun_id,
+         rounds_fired: freshRecord.rounds_fired,
+         armoryCountersReversed: freshRecord.armoryCountersReversed
+       });
+
+       try {
+         const { reverseArmoryCountersForRecord } = await import('@/lib/ammoUtils');
+         const armoryResult = await reverseArmoryCountersForRecord(freshRecord, freshRecord.category);
+         console.error('✅✅✅ ARMORY REVERSAL FINISHED ✅✅✅', armoryResult);
+       } catch (armoryErr) {
+         console.error('❌ ARMORY REVERSAL FAILED:', armoryErr);
+         alert('⚠️ Armory counter update failed. Record was not deleted.');
+         return;
+       }
+
+       // Soft delete the record (mark as deleted, do not hard delete)
       console.log('[DELETE DEBUG] attempting SessionRecord.update (soft delete):', freshRecord.id);
       try {
         const now = new Date().toISOString();
