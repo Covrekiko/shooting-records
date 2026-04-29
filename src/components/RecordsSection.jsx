@@ -678,54 +678,48 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
                     )}
 
                     {(group.photo_url || group.marked_photo_url || group.ai_marked_photo_url) && (
-                       <div className="mb-3">
-                         <label className="text-xs font-bold text-muted-foreground uppercase block mb-2">Target Photos</label>
-                         <div className="flex gap-2 flex-wrap">
-                           {group.marked_photo_url && (
-                             <a 
-                               href={group.marked_photo_url}
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               className="relative group"
-                               title="Click to open full size"
-                             >
-                               <img src={group.marked_photo_url} alt="marked target" className="h-24 w-24 object-cover rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity" onError={(e) => e.target.style.display = 'none'} />
-                               <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 rounded-lg transition-all">
-                                 <span className="text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Open</span>
-                               </div>
-                             </a>
-                           )}
-                           {group.ai_marked_photo_url && (
-                             <a 
-                               href={group.ai_marked_photo_url}
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               className="relative group"
-                               title="Click to open full size"
-                             >
-                               <img src={group.ai_marked_photo_url} alt="ai analysis" className="h-24 w-24 object-cover rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity" onError={(e) => e.target.style.display = 'none'} />
-                               <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 rounded-lg transition-all">
-                                 <span className="text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Open</span>
-                               </div>
-                             </a>
-                           )}
-                           {group.photo_url && !group.marked_photo_url && !group.ai_marked_photo_url && (
-                             <a 
-                               href={group.photo_url}
-                               target="_blank"
-                               rel="noopener noreferrer"
-                               className="relative group"
-                               title="Click to open full size"
-                             >
-                               <img src={group.photo_url} alt="target" className="h-24 w-24 object-cover rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity" onError={(e) => e.target.style.display = 'none'} />
-                               <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 rounded-lg transition-all">
-                                 <span className="text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Open</span>
-                               </div>
-                             </a>
-                           )}
-                         </div>
-                       </div>
-                     )}
+                      <div className="mb-3">
+                        <label className="text-xs font-bold text-muted-foreground uppercase block mb-2">Target Photos</label>
+                        <div className="flex gap-2 flex-wrap">
+                          {group.marked_photo_url && (
+                            <button 
+                              onClick={() => window.open(group.marked_photo_url, '_blank')}
+                              className="relative group"
+                              title="Click to open full size"
+                            >
+                              <img src={group.marked_photo_url} alt="marked target" className="h-24 w-24 object-cover rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity" onError={(e) => e.target.style.display = 'none'} />
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 rounded-lg transition-all">
+                                <span className="text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Open</span>
+                              </div>
+                            </button>
+                          )}
+                          {group.ai_marked_photo_url && (
+                            <button 
+                              onClick={() => window.open(group.ai_marked_photo_url, '_blank')}
+                              className="relative group"
+                              title="Click to open full size"
+                            >
+                              <img src={group.ai_marked_photo_url} alt="ai analysis" className="h-24 w-24 object-cover rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity" onError={(e) => e.target.style.display = 'none'} />
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 rounded-lg transition-all">
+                                <span className="text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Open</span>
+                              </div>
+                            </button>
+                          )}
+                          {group.photo_url && !group.marked_photo_url && !group.ai_marked_photo_url && (
+                            <button 
+                              onClick={() => window.open(group.photo_url, '_blank')}
+                              className="relative group"
+                              title="Click to open full size"
+                            >
+                              <img src={group.photo_url} alt="target" className="h-24 w-24 object-cover rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity" onError={(e) => e.target.style.display = 'none'} />
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 rounded-lg transition-all">
+                                <span className="text-white text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">Open</span>
+                              </div>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
 
                     {group.notes && (
                       <div className="bg-secondary/20 p-2 rounded text-sm">
