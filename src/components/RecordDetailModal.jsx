@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Clock } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { X, Clock } from 'lucide-react';
 import { getRepository } from '@/lib/offlineSupport';
 import { format } from 'date-fns';
-import GlobalModal from '@/components/ui/GlobalModal.jsx';
+import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 const Field = ({ label, value }) => {
   if (!value && value !== 0) return null;
@@ -30,6 +31,7 @@ const CATEGORY_CONFIG = {
 };
 
 export default function RecordDetailModal({ record, onClose, rifles, shotguns, clubs, locations }) {
+  useBodyScrollLock(true);
   const [rec, setRec] = useState(record);
 
   useEffect(() => {
@@ -49,36 +51,31 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
   const checkinTime = rec.recordType === 'deer' ? rec.start_time : rec.checkin_time;
   const checkoutTime = rec.end_time || rec.checkout_time;
 
-  const titleContent = (
-    <div className="min-w-0">
-      <div className="flex items-center gap-2 mb-0.5">
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cat.color}`}>{cat.label}</span>
-      </div>
-      <div className="text-base font-semibold">{format(new Date(rec.date), 'EEEE, d MMMM yyyy')}</div>
-      {(checkinTime || checkoutTime) && (
-        <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
-          <Clock className="w-3 h-3" />
-          {checkinTime || '—'} → {checkoutTime || 'ongoing'}
-        </p>
-      )}
-    </div>
-  );
+  return createPortal(
+    <div className="fixed inset-0 bg-black/60 z-[50001] flex items-end sm:items-center justify-center">
+      <div className="bg-card w-full sm:max-w-xl h-[92vh] sm:h-[88vh] sm:rounded-2xl rounded-t-3xl flex flex-col overflow-hidden shadow-2xl">
 
-  return (
-    <GlobalModal
-      open={true}
-      onClose={onClose}
-      title={format(new Date(rec.date), 'EEEE, d MMMM yyyy')}
-      subtitle={`${cat.label}${checkinTime ? ` · ${checkinTime}${checkoutTime ? ` → ${checkoutTime}` : ''}` : ''}`}
-      maxWidth="max-w-xl"
-      footer={
-        <button onClick={onClose}
-          className="w-full h-11 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors">
-          Close
-        </button>
-      }
-    >
-      <div>
+        {/* Header */}
+        <div className="flex items-start justify-between px-5 pt-5 pb-4 border-b border-border flex-shrink-0">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cat.color}`}>{cat.label}</span>
+            </div>
+            <h2 className="text-lg font-bold">{format(new Date(rec.date), 'EEEE, d MMMM yyyy')}</h2>
+            {(checkinTime || checkoutTime) && (
+              <p className="text-sm text-muted-foreground mt-0.5 flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5" />
+                {checkinTime || '—'} → {checkoutTime || 'ongoing'}
+              </p>
+            )}
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-secondary rounded-xl transition-colors flex-shrink-0">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-5 py-5">
 
           {/* Photos */}
           {rec.photos?.length > 0 && (
@@ -237,6 +234,18 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
             Record ID: {rec.id} · Created {format(new Date(rec.created_date), 'dd/MM/yyyy HH:mm')}
           </p>
         </div>
-    </GlobalModal>
+
+        {/* Footer button */}
+        <div className="px-5 py-4 border-t border-border flex-shrink-0">
+          <button
+            onClick={onClose}
+            className="w-full py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 }

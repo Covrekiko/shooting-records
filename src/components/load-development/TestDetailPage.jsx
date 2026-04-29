@@ -4,6 +4,7 @@ import Navigation from '@/components/Navigation';
 import { ArrowLeft, Plus, Download, Star, Trash2, Edit2, ChevronDown, ChevronUp, Eye, EyeOff, BookOpen } from 'lucide-react';
 import TestViewModal from './TestViewModal';
 import { format } from 'date-fns';
+import { createPortal } from 'react-dom';
 import VariantFormModal from './VariantFormModal';
 import ResultFormModal from './ResultFormModal';
 import { generateLoadTestPDF } from '@/utils/loadTestPDF';
@@ -529,33 +530,55 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
         )}
       </main>
 
-      <TestViewModal
-        open={showViewModal}
-        test={test}
-        variants={variants}
-        results={results}
-        onClose={() => setShowViewModal(false)}
-        onEdit={() => { setShowViewModal(false); setActiveTab('overview'); setEditingTest(true); }}
-        onExportPDF={handleExportPDF}
-      />
+      {showViewModal && (
+        <TestViewModal
+          test={test}
+          variants={variants}
+          results={results}
+          onClose={() => setShowViewModal(false)}
+          onEdit={() => { setShowViewModal(false); setActiveTab('overview'); setEditingTest(true); }}
+          onExportPDF={handleExportPDF}
+        />
+      )}
 
-      <VariantFormModal
-        open={showVariantForm}
-        test={test}
-        variant={editingVariant}
-        variantCount={variants.length}
-        onClose={() => { setShowVariantForm(false); setEditingVariant(null); }}
-        onSaved={() => { setShowVariantForm(false); setEditingVariant(null); loadData(); }}
-      />
+      {showVariantForm && createPortal(
+        <div className="fixed inset-0 bg-black/50 z-[50000] flex items-end sm:items-center justify-center">
+          <div className="bg-card rounded-t-3xl sm:rounded-2xl w-full sm:max-w-xl max-h-[90vh] overflow-y-auto">
+            <VariantFormModal
+              test={test}
+              variant={editingVariant}
+              variantCount={variants.length}
+              onClose={() => { setShowVariantForm(false); setEditingVariant(null); }}
+              onSaved={() => {
+                setShowVariantForm(false);
+                setEditingVariant(null);
+                loadData();
+              }}
+            />
+          </div>
+        </div>,
+        document.body
+      )}
 
-      <ResultFormModal
-        open={!!(showResultForm && resultVariant)}
-        test={test}
-        variant={resultVariant}
-        result={editingResult}
-        onClose={() => { setShowResultForm(false); setResultVariant(null); setEditingResult(null); }}
-        onSaved={() => { setShowResultForm(false); setResultVariant(null); setEditingResult(null); loadData(); }}
-      />
+      {showResultForm && resultVariant && createPortal(
+        <div className="fixed inset-0 bg-black/50 z-[50000] flex items-end sm:items-center justify-center">
+          <div className="bg-card rounded-t-3xl sm:rounded-2xl w-full sm:max-w-xl h-[92vh] sm:max-h-[90vh] overflow-y-auto flex flex-col">
+            <ResultFormModal
+              test={test}
+              variant={resultVariant}
+              result={editingResult}
+              onClose={() => { setShowResultForm(false); setResultVariant(null); setEditingResult(null); }}
+              onSaved={() => {
+                setShowResultForm(false);
+                setResultVariant(null);
+                setEditingResult(null);
+                loadData();
+              }}
+            />
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

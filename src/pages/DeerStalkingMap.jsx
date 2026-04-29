@@ -9,7 +9,7 @@ import HarvestModal from '@/components/deer-stalking/HarvestModal';
 import OutingModal from '@/components/deer-stalking/OutingModal';
 import { AlertCircle, Home, Satellite, LocateFixed } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal.jsx';
+import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import AreaDrawer from '@/components/deer-stalking/AreaDrawer';
 import AreaSaveForm from '@/components/deer-stalking/AreaSaveForm';
@@ -646,43 +646,105 @@ export default function DeerStalkingMap() {
         />
       </div>
 
-      {/* Modals — GlobalModal handles its own portal/overlay */}
-      {showPOI && mapClick && (
-        <POIModal location={mapClick} onClose={() => { setShowPOI(false); setWaitingForPin(null); }} onSubmit={handlePOISubmit} />
-      )}
+      {/* Modals - rendered via portal */}
+      {createPortal(
+        <>
+          {(showPOI || showHarvest || showOuting || showCheckout || showAreaForm) && (
+            <div className="fixed inset-0 z-[50000] bg-black/50 pointer-events-auto" onClick={() => {
+              setShowPOI(false);
+              setShowHarvest(false);
+              setShowOuting(false);
+              setShowCheckout(false);
+              setShowAreaForm(false);
+              setWaitingForPin(null);
+            }} />
+          )}
 
-      {showHarvest && mapClick && (
-        <HarvestModal location={mapClick} onClose={() => { setShowHarvest(false); setWaitingForPin(null); }} onSubmit={handleHarvestSubmit} />
-      )}
+          {showPOI && mapClick && (
+            <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+              <POIModal
+                location={mapClick}
+                onClose={() => {
+                  setShowPOI(false);
+                  setWaitingForPin(null);
+                }}
+                onSubmit={handlePOISubmit}
+              />
+            </div>
+          )}
 
-      {showOuting && (
-        <OutingModal onClose={() => setShowOuting(false)} onSubmit={handleStartOuting} selectedArea={savedAreas.find(a => a.id === selectedAreaId)} />
-      )}
+          {showHarvest && mapClick && (
+            <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+              <HarvestModal
+                location={mapClick}
+                onClose={() => {
+                  setShowHarvest(false);
+                  setWaitingForPin(null);
+                }}
+                onSubmit={handleHarvestSubmit}
+              />
+            </div>
+          )}
 
-      {showCheckout && activeOuting && (
-        <UnifiedCheckoutModal activeOuting={activeOuting} rifles={rifles} ammunition={ammunition} onSubmit={handleCheckoutSubmit} onClose={() => setShowCheckout(false)} />
-      )}
+          {showOuting && (
+            <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+              <OutingModal
+                onClose={() => setShowOuting(false)}
+                onSubmit={handleStartOuting}
+                selectedArea={savedAreas.find((a) => a.id === selectedAreaId)}
+              />
+            </div>
+          )}
 
-      {showAreaDrawer && (
-        <div className="fixed inset-0 z-[50001] w-full h-full">
-          <AreaDrawer
-            userLocation={userLocation}
-            mapCenter={areaBounds?.center}
-            mapZoom={areaBounds?.zoom}
-            savedAreas={savedAreas}
-            onFinish={handleFinishDrawing}
-            onCancel={() => { setShowAreaDrawer(false); setDrawnPolygon(null); setAreaBounds(null); }}
-          />
-        </div>
-      )}
+          {showCheckout && activeOuting && (
+            <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+              <UnifiedCheckoutModal
+                activeOuting={activeOuting}
+                rifles={rifles}
+                ammunition={ammunition}
+                onSubmit={handleCheckoutSubmit}
+                onClose={() => setShowCheckout(false)}
+              />
+            </div>
+          )}
 
-      {showAreaForm && drawnPolygon && (
-        <AreaSaveForm
-          polygon={drawnPolygon}
-          onSave={handleSaveArea}
-          onCancel={() => { setShowAreaForm(false); setDrawnPolygon(null); }}
-          onFlyTo={(lat, lng) => { if (mapRef.current) { mapRef.current.panTo({ lat, lng }); mapRef.current.setZoom(15); } }}
-        />
+          {showAreaDrawer && (
+            <div className="fixed inset-0 z-[50001] w-full h-full">
+              <AreaDrawer
+                userLocation={userLocation}
+                mapCenter={areaBounds?.center}
+                mapZoom={areaBounds?.zoom}
+                savedAreas={savedAreas}
+                onFinish={handleFinishDrawing}
+                onCancel={() => {
+                  setShowAreaDrawer(false);
+                  setDrawnPolygon(null);
+                  setAreaBounds(null);
+                }}
+              />
+            </div>
+          )}
+
+          {showAreaForm && drawnPolygon && (
+            <div className="fixed inset-0 z-[50001] flex items-center justify-center">
+              <AreaSaveForm
+                polygon={drawnPolygon}
+                onSave={handleSaveArea}
+                onCancel={() => {
+                  setShowAreaForm(false);
+                  setDrawnPolygon(null);
+                }}
+                onFlyTo={(lat, lng) => {
+                  if (mapRef.current) {
+                    mapRef.current.panTo({ lat, lng });
+                    mapRef.current.setZoom(15);
+                  }
+                }}
+              />
+            </div>
+          )}
+        </>,
+        document.body
       )}
     </div>
   );

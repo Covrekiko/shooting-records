@@ -2,11 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import ChildScreenHeader from '@/components/ChildScreenHeader';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
-import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
-
-const inp = 'w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring/40';
-const lbl = 'block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5';
 
 export default function Clubs() {
   const [clubs, setClubs] = useState([]);
@@ -38,7 +34,7 @@ export default function Clubs() {
   };
 
   const handleSubmit = async (e) => {
-    if (e?.preventDefault) e.preventDefault();
+    e.preventDefault();
     try {
       if (editingId) {
         await base44.entities.Club.update(editingId, formData);
@@ -103,24 +99,57 @@ export default function Clubs() {
           Add Club
         </button>
 
-        <GlobalModal
-          open={showForm}
-          onClose={() => setShowForm(false)}
-          title={editingId ? 'Edit Club' : 'Add Club'}
-          onSubmit={handleSubmit}
-          primaryAction={editingId ? 'Update Club' : 'Save Club'}
-          secondaryAction="Cancel"
-        >
-          <div className="space-y-4">
-            <div><label className={lbl}>Club Name *</label><input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={inp} required /></div>
-            <div>
-              <label className={lbl}>Type</label>
-              <BottomSheetSelect value={formData.type} onChange={(val) => setFormData({ ...formData, type: val })} placeholder="Select type" options={[{ value: 'Target Shooting', label: 'Target Shooting' }, { value: 'Clay Shooting', label: 'Clay Shooting' }, { value: 'Both', label: 'Both' }]} />
+        {showForm && (
+          <form onSubmit={handleSubmit} className="bg-card border border-border rounded-lg p-6 mb-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input
+                type="text"
+                placeholder="Club Name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="px-3 py-2 border border-border rounded-lg bg-background"
+                required
+              />
+              <BottomSheetSelect
+                value={formData.type}
+                onChange={(val) => setFormData({ ...formData, type: val })}
+                placeholder="Select type"
+                options={[
+                  { value: 'Target Shooting', label: 'Target Shooting' },
+                  { value: 'Clay Shooting', label: 'Clay Shooting' },
+                  { value: 'Both', label: 'Both' },
+                ]}
+              />
+              <input
+                type="text"
+                placeholder="Location / Address"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                className="px-3 py-2 border border-border rounded-lg bg-background md:col-span-2"
+                required
+              />
             </div>
-            <div><label className={lbl}>Location / Address *</label><input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} className={inp} required /></div>
-            <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows="2" /></div>
-          </div>
-        </GlobalModal>
+            <textarea
+              placeholder="Notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              rows="2"
+            />
+            <div className="flex gap-3">
+              <button type="submit" className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
+                {editingId ? 'Update' : 'Save'} Club
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
 
         <div className="space-y-3">
           {clubs.map((club) => (

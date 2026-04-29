@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import ChildScreenHeader from '@/components/ChildScreenHeader';
-import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
-
-const inp = 'w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring/40';
-const lbl = 'block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5';
 
 export default function Rifles() {
   const [rifles, setRifles] = useState([]);
@@ -39,7 +35,7 @@ export default function Rifles() {
   };
 
   const handleSubmit = async (e) => {
-    if (e?.preventDefault) e.preventDefault();
+    e.preventDefault();
     try {
       if (editingId) {
         await base44.entities.Rifle.update(editingId, formData);
@@ -104,25 +100,70 @@ export default function Rifles() {
           Add Rifle
         </button>
 
-        <GlobalModal
-          open={showForm}
-          onClose={() => setShowForm(false)}
-          title={editingId ? 'Edit Rifle' : 'Add Rifle'}
-          onSubmit={handleSubmit}
-          primaryAction={editingId ? 'Update Rifle' : 'Save Rifle'}
-          secondaryAction="Cancel"
-        >
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div><label className={lbl}>Rifle Name *</label><input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={inp} required /></div>
-              <div><label className={lbl}>Make / Brand *</label><input type="text" value={formData.make} onChange={(e) => setFormData({ ...formData, make: e.target.value })} className={inp} required /></div>
-              <div><label className={lbl}>Model *</label><input type="text" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} className={inp} required /></div>
-              <div><label className={lbl}>Caliber *</label><input type="text" value={formData.caliber} onChange={(e) => setFormData({ ...formData, caliber: e.target.value })} className={inp} required /></div>
-              <div className="sm:col-span-2"><label className={lbl}>Serial Number (optional)</label><input type="text" value={formData.serial_number} onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })} className={inp} /></div>
+        {showForm && (
+          <form onSubmit={handleSubmit} className="bg-card border border-border rounded-lg p-6 mb-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input
+                type="text"
+                placeholder="Rifle Name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="px-3 py-2 border border-border rounded-lg bg-background"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Make / Brand"
+                value={formData.make}
+                onChange={(e) => setFormData({ ...formData, make: e.target.value })}
+                className="px-3 py-2 border border-border rounded-lg bg-background"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Model"
+                value={formData.model}
+                onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                className="px-3 py-2 border border-border rounded-lg bg-background"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Caliber"
+                value={formData.caliber}
+                onChange={(e) => setFormData({ ...formData, caliber: e.target.value })}
+                className="px-3 py-2 border border-border rounded-lg bg-background"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Serial Number (optional)"
+                value={formData.serial_number}
+                onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
+                className="px-3 py-2 border border-border rounded-lg bg-background"
+              />
             </div>
-            <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows="2" /></div>
-          </div>
-        </GlobalModal>
+            <textarea
+              placeholder="Notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              rows="2"
+            />
+            <div className="flex gap-3">
+              <button type="submit" className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
+                {editingId ? 'Update' : 'Save'} Rifle
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {rifles.map((rifle) => (

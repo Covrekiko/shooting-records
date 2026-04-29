@@ -1,11 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import ChildScreenHeader from '@/components/ChildScreenHeader';
-import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
-
-const inp = 'w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring/40';
-const lbl = 'block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5';
 
 export default function Shotguns() {
   const [shotguns, setShotguns] = useState([]);
@@ -40,7 +36,7 @@ export default function Shotguns() {
   };
 
   const handleSubmit = async (e) => {
-    if (e?.preventDefault) e.preventDefault();
+    e.preventDefault();
     try {
       if (editingId) {
         await base44.entities.Shotgun.update(editingId, formData);
@@ -105,26 +101,77 @@ export default function Shotguns() {
           Add Shotgun
         </button>
 
-        <GlobalModal
-          open={showForm}
-          onClose={() => setShowForm(false)}
-          title={editingId ? 'Edit Shotgun' : 'Add Shotgun'}
-          onSubmit={handleSubmit}
-          primaryAction={editingId ? 'Update Shotgun' : 'Save Shotgun'}
-          secondaryAction="Cancel"
-        >
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div><label className={lbl}>Shotgun Name *</label><input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={inp} required /></div>
-              <div><label className={lbl}>Make / Brand *</label><input type="text" value={formData.make} onChange={(e) => setFormData({ ...formData, make: e.target.value })} className={inp} required /></div>
-              <div><label className={lbl}>Model *</label><input type="text" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} className={inp} required /></div>
-              <div><label className={lbl}>Gauge *</label><input type="text" value={formData.gauge} onChange={(e) => setFormData({ ...formData, gauge: e.target.value })} className={inp} required /></div>
-              <div><label className={lbl}>Barrel Length</label><input type="text" placeholder="e.g. 28in" value={formData.barrel_length} onChange={(e) => setFormData({ ...formData, barrel_length: e.target.value })} className={inp} /></div>
-              <div><label className={lbl}>Serial Number</label><input type="text" value={formData.serial_number} onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })} className={inp} /></div>
+        {showForm && (
+          <form onSubmit={handleSubmit} className="bg-card border border-border rounded-lg p-6 mb-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <input
+                type="text"
+                placeholder="Shotgun Name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="px-3 py-2 border border-border rounded-lg bg-background"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Make / Brand"
+                value={formData.make}
+                onChange={(e) => setFormData({ ...formData, make: e.target.value })}
+                className="px-3 py-2 border border-border rounded-lg bg-background"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Model"
+                value={formData.model}
+                onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+                className="px-3 py-2 border border-border rounded-lg bg-background"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Gauge"
+                value={formData.gauge}
+                onChange={(e) => setFormData({ ...formData, gauge: e.target.value })}
+                className="px-3 py-2 border border-border rounded-lg bg-background"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Barrel Length (e.g., 28in)"
+                value={formData.barrel_length}
+                onChange={(e) => setFormData({ ...formData, barrel_length: e.target.value })}
+                className="px-3 py-2 border border-border rounded-lg bg-background"
+              />
+              <input
+                type="text"
+                placeholder="Serial Number (optional)"
+                value={formData.serial_number}
+                onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })}
+                className="px-3 py-2 border border-border rounded-lg bg-background"
+              />
             </div>
-            <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows="2" /></div>
-          </div>
-        </GlobalModal>
+            <textarea
+              placeholder="Notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+              rows="2"
+            />
+            <div className="flex gap-3">
+              <button type="submit" className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
+                {editingId ? 'Update' : 'Save'} Shotgun
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowForm(false)}
+                className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {shotguns.map((shotgun) => (

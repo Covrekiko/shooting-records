@@ -13,8 +13,8 @@ export default function BottomSheetSelect({ value, onChange, options = [], place
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
       setPosition({
-        top: rect.bottom,
-        left: rect.left,
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
         width: rect.width,
       });
     }
@@ -48,10 +48,10 @@ export default function BottomSheetSelect({ value, onChange, options = [], place
           <div 
             className="fixed z-[60001] bg-card rounded-lg shadow-2xl border border-border overflow-hidden"
             style={{
-              top: `${position.top + 4}px`,
+              top: `${position.top}px`,
               left: `${position.left}px`,
               width: `${position.width}px`,
-              maxHeight: '260px',
+              maxHeight: '300px',
               overflowY: 'auto',
               pointerEvents: 'auto'
             }}

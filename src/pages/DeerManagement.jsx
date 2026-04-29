@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
@@ -7,9 +8,9 @@ import { useOuting } from '@/context/OutingContext';
 import { Plus, Clock, Layers } from 'lucide-react';
 import RecordsSection from '@/components/RecordsSection';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
-import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal.jsx';
+import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal';
 import { trackingService } from '@/lib/trackingService';
-import GlobalModal from '@/components/ui/GlobalModal.jsx';
+import ModalShell from '@/components/ModalShell';
 import { motion } from 'framer-motion';
 import { DESIGN } from '@/lib/designConstants';
 
@@ -225,23 +226,37 @@ export default function DeerManagement() {
           <RecordsSection category="deer_management" title="Outing Records" emptyMessage="No deer management outings recorded yet" />
         </div>
 
-        {showCheckin && (
-          <CheckinModal
-            data={checkinData}
-            areas={areas}
-            onSubmit={handleCheckin}
-            onChange={(field, value) => setCheckinData({ ...checkinData, [field]: value })}
-            onClose={() => setShowCheckin(false)}
-          />
-        )}
-        {showCheckout && (
-          <UnifiedCheckoutModal
-            activeOuting={activeOuting}
-            rifles={rifles}
-            ammunition={ammunition}
-            onSubmit={handleCheckout}
-            onClose={() => setShowCheckout(false)}
-          />
+        {createPortal(
+          <>
+            {(showCheckin || showCheckout) && <div className="fixed inset-0 z-[50000] bg-black/50" onClick={() => { setShowCheckin(false); setShowCheckout(false); }} />}
+            {showCheckin && (
+              <div className="fixed inset-0 z-[50001] flex flex-col justify-end sm:justify-center sm:items-center pointer-events-none">
+                <div className="pointer-events-auto w-full sm:max-w-md">
+                  <CheckinModal
+                    data={checkinData}
+                    areas={areas}
+                    onSubmit={handleCheckin}
+                    onChange={(field, value) => setCheckinData({ ...checkinData, [field]: value })}
+                    onClose={() => setShowCheckin(false)}
+                  />
+                </div>
+              </div>
+            )}
+            {showCheckout && (
+              <div className="fixed inset-0 z-[50001] flex flex-col justify-end sm:justify-center sm:items-center pointer-events-none">
+                <div className="pointer-events-auto w-full sm:max-w-md">
+                  <UnifiedCheckoutModal
+                    activeOuting={activeOuting}
+                    rifles={rifles}
+                    ammunition={ammunition}
+                    onSubmit={handleCheckout}
+                    onClose={() => setShowCheckout(false)}
+                  />
+                </div>
+              </div>
+            )}
+          </>,
+          document.body
         )}
       </main>
     </div>
@@ -263,15 +278,23 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
   };
 
   return (
-    <GlobalModal
-      open={true}
-      onClose={onClose}
+    <ModalShell
       title="Start Outing"
-      onSubmit={onSubmit}
-      primaryAction="Check In"
-      secondaryAction="Cancel"
+      onClose={onClose}
+      footer={
+        <div className="flex gap-3">
+           <motion.button type="submit" form="deer-checkin-form" whileTap={{ scale: 0.97 }}
+             className={`flex-1 ${DESIGN.BUTTON_PRIMARY}`}>
+             Check In
+           </motion.button>
+           <motion.button type="button" onClick={onClose} whileTap={{ scale: 0.97 }}
+             className={`flex-1 ${DESIGN.BUTTON_SECONDARY}`}>
+             Cancel
+           </motion.button>
+         </div>
+      }
     >
-      <div className="space-y-4">
+      <form id="deer-checkin-form" onSubmit={onSubmit} className="px-5 py-4 space-y-4">
         <div>
           <label className={labelCls}>Date</label>
           <input type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} className={inputCls} required />
@@ -295,7 +318,7 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
           <label className={labelCls}>Check-in Time</label>
           <input type="time" value={data.start_time} onChange={(e) => onChange('start_time', e.target.value)} className={inputCls} required />
         </div>
-      </div>
-    </GlobalModal>
+      </form>
+    </ModalShell>
   );
 }

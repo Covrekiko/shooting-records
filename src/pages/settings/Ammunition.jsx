@@ -2,11 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import NumberInput from '@/components/ui/NumberInput.jsx';
 import ChildScreenHeader from '@/components/ChildScreenHeader';
-import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { Plus, Trash2, Edit2, Download, FileUp } from 'lucide-react';
-
-const inp = 'w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring/40';
-const lbl = 'block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5';
 import AmmoEditModal from '@/components/AmmoEditModal';
 import { generateAmmunitionInventoryPDF } from '@/utils/pdfGenerators';
 import BulletReferencePicker from '@/components/reference/BulletReferencePicker';
@@ -51,7 +47,7 @@ export default function Ammunition() {
   }, []);
 
   const handleAddAmmunition = async (e) => {
-    if (e?.preventDefault) e.preventDefault();
+    e.preventDefault();
     try {
       const newAmmo = await base44.entities.Ammunition.create(formData);
       setAmmunition([...ammunition, newAmmo]);
@@ -142,29 +138,121 @@ export default function Ammunition() {
           )}
         </div>
 
-        <GlobalModal
-          open={showForm}
-          onClose={() => setShowForm(false)}
-          title="Add Ammunition"
-          onSubmit={handleAddAmmunition}
-          primaryAction="Save Ammunition"
-          secondaryAction="Cancel"
-        >
-          <div className="space-y-4">
-            <div>
-              <label className={lbl}>Bullet Reference Database <span className="font-normal normal-case text-muted-foreground">(optional autofill)</span></label>
-              <BulletReferencePicker onSelect={(b) => setFormData(f => ({ ...f, brand: b.manufacturer, caliber: b.calibre || f.caliber, bullet_type: b.bullet_type || f.bullet_type, grain: b.weight_grains ? String(b.weight_grains) : f.grain }))} onClear={() => {}} />
-            </div>
-            <div><label className={lbl}>Brand *</label><input type="text" value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} className={inp} required /></div>
-            <div><label className={lbl}>Caliber (optional)</label><input type="text" placeholder="e.g., 308 Win, 9mm" value={formData.caliber} onChange={(e) => setFormData({ ...formData, caliber: e.target.value })} className={inp} /></div>
-            <div><label className={lbl}>Bullet Type (optional)</label><input type="text" value={formData.bullet_type} onChange={(e) => setFormData({ ...formData, bullet_type: e.target.value })} className={inp} /></div>
-            <div><label className={lbl}>Grain (optional)</label><input type="text" value={formData.grain} onChange={(e) => setFormData({ ...formData, grain: e.target.value })} className={inp} /></div>
-            <NumberInput label="Quantity" value={formData.quantity_in_stock} onChange={(v) => setFormData({ ...formData, quantity_in_stock: v })} placeholder="0" unit="rounds" />
-            <NumberInput label="Cost per Round" value={formData.cost_per_unit} onChange={(v) => setFormData({ ...formData, cost_per_unit: v })} placeholder="0.00" allowDecimal unit="£" />
-            <div><label className={lbl}>Purchase Date</label><input type="date" value={formData.date_purchased} onChange={(e) => setFormData({ ...formData, date_purchased: e.target.value })} className={inp} /></div>
-            <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows="2" placeholder="Additional notes" /></div>
+        {showForm && (
+          <div className="bg-card border border-border rounded-lg p-6 mb-6">
+            <h2 className="text-xl font-bold mb-4">Add New Ammunition</h2>
+            <form onSubmit={handleAddAmmunition} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Bullet Reference Database <span className="font-normal text-muted-foreground text-xs">(optional autofill)</span></label>
+                <BulletReferencePicker
+                   onSelect={(b) => setFormData(f => ({
+                     ...f,
+                     brand: b.manufacturer,
+                     caliber: b.calibre || f.caliber,
+                     bullet_type: b.bullet_type || f.bullet_type,
+                     grain: b.weight_grains ? String(b.weight_grains) : f.grain,
+                   }))}
+                   onClear={() => {}}
+                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Brand</label>
+                <input
+                  type="text"
+                  value={formData.brand}
+                  onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Caliber (optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g., 308 Win, 9mm"
+                  value={formData.caliber}
+                  onChange={(e) => setFormData({ ...formData, caliber: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Bullet Type (optional)</label>
+                <input
+                  type="text"
+                  value={formData.bullet_type}
+                  onChange={(e) => setFormData({ ...formData, bullet_type: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Grain (optional)</label>
+                <input
+                  type="text"
+                  value={formData.grain}
+                  onChange={(e) => setFormData({ ...formData, grain: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                />
+              </div>
+
+              <NumberInput
+                label="Quantity"
+                value={formData.quantity_in_stock}
+                onChange={(v) => setFormData({ ...formData, quantity_in_stock: v })}
+                placeholder="0"
+                unit="rounds"
+              />
+
+              <NumberInput
+                label="Cost per Round"
+                value={formData.cost_per_unit}
+                onChange={(v) => setFormData({ ...formData, cost_per_unit: v })}
+                placeholder="0.00"
+                allowDecimal
+                unit="£"
+              />
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Purchase Date</label>
+                <input
+                  type="date"
+                  value={formData.date_purchased}
+                  onChange={(e) => setFormData({ ...formData, date_purchased: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Notes</label>
+                <textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  rows="3"
+                  placeholder="Additional notes"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
-        </GlobalModal>
+        )}
 
         {ammunition.length === 0 ? (
           <div className="bg-card border border-border rounded-lg p-8 text-center">

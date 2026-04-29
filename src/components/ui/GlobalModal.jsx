@@ -58,10 +58,10 @@ function useModalScrollLock(isOpen) {
 
 export function ModalHeader({ title, subtitle, onClose, showClose = true }) {
   return (
-    <div className="flex items-start justify-between px-5 pt-4 pb-3 border-b border-border flex-shrink-0 min-w-0">
-      <div className="min-w-0 flex-1">
-        {title && <h2 className="text-base font-semibold text-foreground truncate">{title}</h2>}
-        {subtitle && <p className="text-xs text-muted-foreground mt-0.5 truncate">{subtitle}</p>}
+    <div className="flex items-start justify-between px-5 pt-4 pb-3 border-b border-border flex-shrink-0">
+      <div>
+        {title && <h2 className="text-base font-semibold text-foreground">{title}</h2>}
+        {subtitle && <p className="text-xs text-muted-foreground mt-0.5">{subtitle}</p>}
       </div>
       {showClose && onClose && (
         <button
@@ -80,12 +80,10 @@ export function ModalBody({ children }) {
   return (
     <div
       data-modal-scroll
-      className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-5 py-4"
+      className="flex-1 overflow-y-auto overscroll-contain px-5 py-4"
       style={{ WebkitOverflowScrolling: 'touch' }}
     >
-      <div className="min-w-0 w-full overflow-x-hidden">
-        {children}
-      </div>
+      {children}
     </div>
   );
 }
@@ -93,13 +91,7 @@ export function ModalBody({ children }) {
 export function ModalFooter({ children }) {
   if (!children) return null;
   return (
-    <div
-      className="flex gap-3 px-5 border-t border-border flex-shrink-0 bg-card"
-      style={{
-        paddingTop: '12px',
-        paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
-      }}
-    >
+    <div className="flex gap-3 px-5 py-4 border-t border-border flex-shrink-0 safe-area-bottom">
       {children}
     </div>
   );
@@ -197,35 +189,23 @@ export default function GlobalModal({
             onClick={() => closeOnBackdrop && onClose?.()}
           />
 
-          {/* Dialog — floats above safe area on mobile, centred on desktop */}
+          {/* Dialog */}
           <div
-            className="fixed inset-0 flex items-end sm:items-center justify-center pointer-events-none"
-            style={{
-              zIndex: Z_MODAL,
-              paddingLeft: '12px',
-              paddingRight: '12px',
-              paddingTop: 'max(12px, env(safe-area-inset-top, 12px))',
-              paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
-            }}
+            className="fixed inset-0 flex items-center justify-center p-4 pointer-events-none"
+            style={{ zIndex: Z_MODAL }}
           >
             <motion.div
               key="modal-panel"
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 24 }}
-              transition={{ type: 'spring', damping: 30, stiffness: 320 }}
+              initial={{ opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 320 }}
               className={`w-full ${maxWidth} pointer-events-auto`}
-              style={{ maxWidth: 'min(100%, calc(100vw - 24px))' }}
               onClick={(e) => e.stopPropagation()}
             >
               <Wrapper
                 {...wrapperProps}
-                className="bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
-                style={{
-                  maxWidth: '100%',
-                  overflowX: 'hidden',
-                  maxHeight: 'calc(100dvh - max(24px, env(safe-area-inset-top, 12px)) - max(24px, env(safe-area-inset-bottom, 12px)) - 24px)',
-                }}
+                className="bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden max-h-[90dvh]"
               >
                 {(title || showClose) && (
                   <ModalHeader title={title} subtitle={subtitle} onClose={onClose} showClose={showClose} />

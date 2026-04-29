@@ -162,7 +162,6 @@ export default function GlobalSheet({
             <Wrapper
               {...wrapperProps}
               className="bg-card border-t border-border rounded-t-3xl shadow-2xl flex flex-col overflow-hidden w-full h-full"
-              style={{ maxWidth: '100vw', overflowX: 'hidden' }}
             >
               {/* Drag handle */}
               {isDraggable && (

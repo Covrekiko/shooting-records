@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus } from 'lucide-react';
-import GlobalModal, { ModalSaveButton, ModalCancelButton } from '@/components/ui/GlobalModal.jsx';
+import { X, Plus } from 'lucide-react';
 
 const TEST_TYPES = [
   'Powder Charge Test',
@@ -12,7 +11,7 @@ const TEST_TYPES = [
   'General Load Development',
 ];
 
-export default function CreateTestModal({ open, onClose, onCreated }) {
+export default function CreateTestModal({ onClose, onCreated }) {
   const [rifles, setRifles] = useState([]);
   const [mode, setMode] = useState('select'); // 'select' | 'new'
   const [form, setForm] = useState({
@@ -85,20 +84,12 @@ export default function CreateTestModal({ open, onClose, onCreated }) {
   };
 
   return (
-    <GlobalModal
-      open={open}
-      onClose={onClose}
-      title="New Load Development Test"
-      maxWidth="max-w-xl"
-      footer={
-        <>
-          <ModalCancelButton onClick={onClose}>Cancel</ModalCancelButton>
-          <ModalSaveButton onClick={handleSubmit} disabled={saving}>
-            {saving ? 'Creating…' : 'Create Test'}
-          </ModalSaveButton>
-        </>
-      }
-    >
+    <div className="p-5">
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-lg font-bold">New Load Development Test</h2>
+        <button onClick={onClose} className="p-2 hover:bg-secondary rounded-lg"><X className="w-4 h-4" /></button>
+      </div>
+
       <div className="space-y-4">
         {/* Test Name */}
         <div>
@@ -204,7 +195,14 @@ export default function CreateTestModal({ open, onClose, onCreated }) {
             className="w-full px-3 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none resize-none" />
         </div>
 
+        <div className="flex gap-3 pt-2">
+          <button onClick={onClose} className="flex-1 py-2.5 border border-border rounded-xl text-sm font-medium hover:bg-secondary">Cancel</button>
+          <button onClick={handleSubmit} disabled={saving}
+            className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-semibold disabled:opacity-50">
+            {saving ? 'Creating…' : 'Create Test'}
+          </button>
+        </div>
       </div>
-    </GlobalModal>
+    </div>
   );
 }
