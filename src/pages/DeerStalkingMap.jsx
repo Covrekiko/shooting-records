@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { GoogleMap, Marker, Polyline, InfoWindow, useLoadScript } from '@react-google-maps/api';
+import { GoogleMap, Marker, Polyline, InfoWindow } from '@react-google-maps/api';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useOuting } from '@/context/OutingContext';
@@ -36,21 +36,38 @@ export default function DeerStalkingMap() {
   const { activeOuting, loading: outingLoading, startOuting, endOuting, endOutingWithData, updateGpsTrack } = useOuting();
   
   const [apiKey, setApiKey] = useState(() => import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Fetch API key from backend if Vite env key is missing (development environment)
+  // Load Google Maps with API key
   useEffect(() => {
     if (!apiKey) {
       base44.functions.invoke('getGoogleMapsApiKey', {})
-        .then(res => setApiKey(res.data?.apiKey))
+        .then(res => {
+          const key = res.data?.apiKey;
+          if (key) {
+            loadGoogleMapsScript(key);
+            setApiKey(key);
+          }
+        })
         .catch(() => {});
+    } else {
+      loadGoogleMapsScript(apiKey);
     }
   }, [apiKey]);
 
-  // Load Google Maps with API key
-  const { isLoaded } = useLoadScript({
-    googleMapsApiKey: apiKey,
-    libraries: GOOGLE_MAPS_LIBRARIES,
-  });
+  const loadGoogleMapsScript = (key) => {
+    if (window.google) {
+      setIsLoaded(true);
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=${GOOGLE_MAPS_LIBRARIES.join(',')}&loading=async`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => setIsLoaded(true);
+    script.onerror = () => console.error('Failed to load Google Maps');
+    document.head.appendChild(script);
+  };
 
   const [markers, setMarkers] = useState([]);
   const [harvests, setHarvests] = useState([]);
