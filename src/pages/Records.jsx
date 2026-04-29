@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+console.error('🚨 RECORDS DELETE BUILD VERSION: ARMORY_STEP_6_2026_04_29_2225');
+
 import { base44 } from '@/api/base44Client';
 import { getRepository } from '@/lib/offlineSupport';
 import Navigation from '@/components/Navigation';
@@ -263,6 +265,7 @@ export default function Records() {
   };
 
   const handleDelete = async (record) => {
+    console.error('🚨 ACTIVE handleDelete VERSION: ARMORY_STEP_6_2026_04_29_2225');
     if (!confirm('Delete this record? This will restore all ammunition stock.')) return;
     try {
       // Prevent delete if offline
