@@ -64,10 +64,6 @@ export default function TargetShooting() {
     notes: '',
   });
 
-  useEffect(() => {
-    base44.auth.me().then(u => setAutoCheckinEnabled(u?.autoCheckinEnabled === true));
-  }, []);
-
   useAutoCheckin({
     enabled: autoCheckinEnabled,
     clubs: clubs.filter(c => c.type === 'Target Shooting' || c.type === 'Both'),
@@ -108,6 +104,7 @@ export default function TargetShooting() {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
+        setAutoCheckinEnabled(currentUser?.autoCheckinEnabled === true);
         const [clubsList, riflesList, ammoList, activeSession] = await Promise.all([
           base44.entities.Club.filter({ created_by: currentUser.email }),
           base44.entities.Rifle.filter({ created_by: currentUser.email }),
