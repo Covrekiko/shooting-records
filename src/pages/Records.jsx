@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-console.error('🚨 RECORDS DELETE BUILD VERSION: ARMORY_STEP_6_2026_04_29_2225');
-
 import { base44 } from '@/api/base44Client';
 import { getRepository } from '@/lib/offlineSupport';
 import Navigation from '@/components/Navigation';
@@ -137,151 +135,7 @@ export default function Records() {
     setFilteredRecords(filtered);
   };
 
-  // HELPER: Reverse Armory counters for any record type
-   const reverseArmoryCountersForRecord = async (record) => {
-     console.error('[ARMORY CHECK] armoryCountersReversed =', record.armoryCountersReversed);
-     console.error('[ARMORY CHECK] status =', record.status);
-     console.error('[ARMORY CHECK] isDeleted =', record.isDeleted);
-     console.error('🔥🔥🔥 [ARMORY REVERSAL] START 🔥🔥🔥', { id: record.id, category: record.category, shotgun_id: record.shotgun_id, rounds_fired: record.rounds_fired });
-
-     const category = record.category || record.recordType || record.type;
-
-     // Idempotency: skip if already reversed
-     if (record.armoryCountersReversed === true) {
-       console.warn('[ARMORY REVERSAL] already marked as reversed, skipping', { id: record.id, countersReversedAt: record.countersReversedAt });
-       return { success: true, skipped: true };
-     }
-
-    // CLAY SHOOTING
-    if (category === 'clay_shooting') {
-      console.error('[ARMORY CLAY FIELD CHECK]', {
-        id: record.id,
-        category: record.category,
-        shotgun_id: record.shotgun_id,
-        firearm_id: record.firearm_id,
-        weapon_id: record.weapon_id,
-        gun_id: record.gun_id,
-        rounds_fired: record.rounds_fired,
-        cartridges_fired: record.cartridges_fired,
-        total_shots: record.total_shots,
-        cartridges_used: record.cartridges_used
-      });
-      const shotgunId = record.shotgun_id || record.firearm_id || record.weapon_id || record.gun_id;
-      const cartridges = Number(record.rounds_fired || record.cartridges_fired || record.total_shots || record.cartridges_used || 0);
-
-      console.error('[ARMORY REVERSAL] CLAY DATA', { shotgunId, cartridges });
-
-      if (!shotgunId) {
-        throw new Error('Clay: shotgunId missing');
-      }
-      if (cartridges <= 0) {
-        console.warn('[ARMORY REVERSAL] clay: cartridges = 0, skipping update');
-        return { success: true, skipped: true, reason: 'no cartridges' };
-      }
-
-      const shotgun = await base44.entities.Shotgun.get(shotgunId);
-      if (!shotgun) {
-        throw new Error('Clay: shotgun not found');
-      }
-
-      const before = Number(shotgun.total_cartridges_fired || 0);
-      const after = Math.max(0, before - cartridges);
-
-      console.error('[ARMORY REVERSAL] CLAY UPDATE', { shotgunId, before, cartridges, after });
-
-      await base44.entities.Shotgun.update(shotgunId, { total_cartridges_fired: after });
-
-      const verify = await base44.entities.Shotgun.get(shotgunId);
-      console.error('[ARMORY VERIFY] shotgun after =', verify.total_cartridges_fired);
-
-      return { success: true, type: 'clay', before, after };
-    }
-
-    // TARGET SHOOTING
-    if (category === 'target_shooting') {
-      const targetRifles = [];
-
-      if (Array.isArray(record.rifles_used) && record.rifles_used.length > 0) {
-        for (const r of record.rifles_used) {
-          targetRifles.push({
-            rifle_id: r.rifle_id || r.firearm_id || r.weapon_id || r.gun_id,
-            rounds_fired: Number(r.rounds_fired || 0)
-          });
-        }
-      } else {
-        const rifleId = record.rifle_id || record.firearm_id || record.weapon_id || record.gun_id;
-        const rounds = Number(record.rounds_fired || 0);
-        if (rifleId && rounds > 0) {
-          targetRifles.push({ rifle_id: rifleId, rounds_fired: rounds });
-        }
-      }
-
-      console.error('[ARMORY REVERSAL] TARGET DATA', { targetRifles });
-
-      if (targetRifles.length === 0) {
-        console.warn('[ARMORY REVERSAL] target: no rifle/round data');
-        return { success: true, skipped: true, reason: 'no target data' };
-      }
-
-      for (const item of targetRifles) {
-        if (!item.rifle_id || item.rounds_fired <= 0) continue;
-
-        const rifle = await base44.entities.Rifle.get(item.rifle_id);
-        if (!rifle) {
-          throw new Error(`Target: rifle ${item.rifle_id} not found`);
-        }
-
-        const before = Number(rifle.total_rounds_fired || 0);
-        const after = Math.max(0, before - item.rounds_fired);
-
-        console.error('[ARMORY REVERSAL] TARGET UPDATE', { rifleId: item.rifle_id, before, rounds: item.rounds_fired, after });
-
-        await base44.entities.Rifle.update(item.rifle_id, { total_rounds_fired: after });
-
-        const verify = await base44.entities.Rifle.get(item.rifle_id);
-        console.error('[ARMORY VERIFY] rifle after =', verify.total_rounds_fired);
-      }
-
-      return { success: true, type: 'target' };
-    }
-
-    // DEER MANAGEMENT
-    if (category === 'deer_management') {
-      const rifleId = record.rifle_id || record.firearm_id || record.weapon_id || record.gun_id;
-      const shots = Number(record.rounds_fired || record.total_count || record.shots_fired || record.shots || 0);
-
-      console.error('[ARMORY REVERSAL] DEER DATA', { rifleId, shots });
-
-      if (!rifleId || shots <= 0) {
-        console.warn('[ARMORY REVERSAL] deer: no rifle or shots');
-        return { success: true, skipped: true, reason: 'no deer data' };
-      }
-
-      const rifle = await base44.entities.Rifle.get(rifleId);
-      if (!rifle) {
-        throw new Error('Deer: rifle not found');
-      }
-
-      const before = Number(rifle.total_rounds_fired || 0);
-      const after = Math.max(0, before - shots);
-
-      console.error('[ARMORY REVERSAL] DEER UPDATE', { rifleId, before, shots, after });
-
-      await base44.entities.Rifle.update(rifleId, { total_rounds_fired: after });
-
-      const verify = await base44.entities.Rifle.get(rifleId);
-      console.error('[ARMORY VERIFY] deer rifle after =', verify.total_rounds_fired);
-
-      return { success: true, type: 'deer', before, after };
-    }
-
-    console.warn('[ARMORY REVERSAL] unknown category:', category);
-    return { success: true, skipped: true, reason: 'unknown category' };
-  };
-
   const handleDelete = async (record) => {
-    console.error('🧨 ACTIVE RECORDS.JSX HANDLEDELETE CALLED', record.id);
-    console.error('🚨 ACTIVE handleDelete VERSION: ARMORY_STEP_6_2026_04_29_2225');
     if (!confirm('Delete this record? This will restore all ammunition stock.')) return;
     try {
       // Prevent delete if offline
@@ -291,16 +145,9 @@ export default function Records() {
         return;
       }
 
-      // DEBUG: Log record details
-      console.log('[DELETE DEBUG] record from UI:', record);
-      console.log('[DELETE DEBUG] record.id:', record?.id);
-      console.log('[DELETE DEBUG] record category:', record?.category);
-      console.log('[DELETE DEBUG] record status:', record?.status);
-      console.log('[DELETE DEBUG] record created_by:', record?.created_by);
-
       // STEP 1: Validate record.id exists
       if (!record.id) {
-        console.error('[DELETE DEBUG] record.id is missing or invalid');
+        console.error('Record ID is missing or invalid');
         alert('Error: Record ID is missing. Cannot delete.');
         return;
       }
@@ -308,25 +155,21 @@ export default function Records() {
       // STEP 2: Load fresh record from Base44 before any changes
       let freshRecord;
       try {
-        console.log('[DELETE DEBUG] loading fresh SessionRecord:', record.id);
         freshRecord = await base44.entities.SessionRecord.get(record.id);
         if (!freshRecord) {
-          console.error('[DELETE DEBUG] fresh record not found in Base44');
+          console.error('Record no longer exists in database');
           alert('Error: Record no longer exists in database.');
           return;
         }
-        console.log('[DELETE DEBUG] fresh SessionRecord:', freshRecord);
       } catch (err) {
-        console.error('[DELETE DEBUG] fresh load failed:', err);
-        console.error('[DELETE DEBUG] fresh load error response:', err.response);
-        console.error('[DELETE DEBUG] fresh load error data:', err.response?.data);
+        console.error('Error loading record from database:', err);
         alert('Error loading record from database: ' + err.message);
         return;
       }
 
       // STEP 3: Check if already deleted
       if (freshRecord.isDeleted === true || freshRecord.status === 'deleted') {
-        console.warn('[DELETE DEBUG] record already marked as deleted, removing from UI');
+        console.warn('Record already marked as deleted, removing from UI');
         setAllRecords(allRecords.filter((r) => r.id !== record.id));
         return;
       }
@@ -334,41 +177,27 @@ export default function Records() {
       // STEP 4: Refund ammunition
       let refundResult = null;
       if (freshRecord.ammoRefunded === true) {
-        console.warn('[DELETE DEBUG] record already refunded, skipping refund');
+        console.warn('Record already refunded, skipping refund');
       } else {
-        console.log('[DELETE DEBUG] refund start');
         const { refundAmmoForRecord } = await import('@/lib/ammoUtils');
         refundResult = await refundAmmoForRecord(freshRecord, freshRecord.category);
-        console.log('[DELETE DEBUG] refund result =', refundResult);
-
         if (!refundResult.success) {
-          console.error('[DELETE DEBUG] refund failed:', refundResult.error);
+          console.error('Ammunition refund failed:', refundResult.error);
           alert('Ammunition refund failed. Record was not deleted.');
           return;
         }
       }
 
-      // STEP 5: UNMISSABLE LOG before Armory reversal
-      console.error('🔥🔥🔥 ARMORY REVERSAL MUST START NOW 🔥🔥🔥', {
-        id: freshRecord.id,
-        category: freshRecord.category,
-        shotgun_id: freshRecord.shotgun_id,
-        rounds_fired: freshRecord.rounds_fired,
-        armoryCountersReversed: freshRecord.armoryCountersReversed
-      });
-
-      // STEP 6: Call Armory reversal helper
-      try {
-        const armoryResult = await reverseArmoryCountersForRecord(freshRecord);
-        console.error('✅✅✅ ARMORY REVERSAL FINISHED ✅✅✅', armoryResult);
-      } catch (armoryErr) {
-        console.error('❌ ARMORY REVERSAL FAILED:', armoryErr);
-        alert('⚠️ Armory counter update failed. Record was not deleted.');
+      // STEP 6: Call shared Armory reversal helper
+      const { reverseArmoryCountersForRecord } = await import('@/lib/ammoUtils');
+      const armoryResult = await reverseArmoryCountersForRecord(freshRecord, freshRecord.category);
+      if (!armoryResult.success) {
+        alert('Armory counter update failed. Record was not deleted.');
         return;
       }
 
       // STEP 7: Soft delete the record (mark as deleted, do not hard delete)
-      console.log('[DELETE DEBUG] attempting SessionRecord.update (soft delete):', freshRecord.id);
+      
       try {
         const now = new Date().toISOString();
         await base44.entities.SessionRecord.update(freshRecord.id, {
@@ -380,16 +209,13 @@ export default function Records() {
           armoryCountersReversed: true,
           countersReversedAt: now,
         });
-        console.log('[DELETE DEBUG] soft delete (update) response = success');
+        
       } catch (updateErr) {
-        console.error('[DELETE DEBUG] delete failed full error:', updateErr);
-        console.error('[DELETE DEBUG] delete failed status:', updateErr.response?.status);
-        console.error('[DELETE DEBUG] delete failed data:', updateErr.response?.data);
-        console.error('[DELETE DEBUG] delete failed message:', updateErr.message);
+        console.error('Error deleting record:', updateErr);
 
         // STEP 8: Rollback ammo refund if soft delete fails
         if (refundResult?.success && freshRecord.ammoRefunded !== true) {
-          console.warn('[DELETE DEBUG] delete failed, rolling back ammo refund...');
+          console.warn('Delete failed, rolling back ammo refund');
           try {
             const { decrementAmmoStock } = await import('@/lib/ammoUtils');
             // Re-decrement the stock to undo the refund
@@ -408,9 +234,9 @@ export default function Records() {
             } else if (freshRecord.category === 'deer_management' && freshRecord.ammunition_id) {
               await decrementAmmoStock(freshRecord.ammunition_id, parseInt(freshRecord.total_count), 'deer_management', record.id);
             }
-            console.log('[DELETE DEBUG] rollback complete');
+            
           } catch (rollbackErr) {
-            console.error('[DELETE DEBUG] rollback failed:', rollbackErr);
+            console.error('Rollback failed:', rollbackErr);
             alert('⚠️ Delete failed and rollback encountered an error. Contact support.');
             return;
           }
@@ -426,7 +252,7 @@ export default function Records() {
       // Force reload
       setTimeout(() => loadRecords(), 500);
     } catch (error) {
-      console.error('🔴 [handleDelete] Unexpected error:', error);
+      console.error('Error deleting record:', error);
       alert('Error deleting record: ' + error.message);
     }
   };
@@ -711,7 +537,7 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
               <Edit className="w-4 h-4" />
             </button>
             <button
-               onClick={() => { console.error('🧨 DELETE BUTTON CLICKED FROM RECORDCARD', record.id); onDelete(); }}
+               onClick={onDelete}
                className="px-3 py-1 text-sm bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded transition-colors flex items-center gap-1"
              >
                <Trash2 className="w-4 h-4" />
