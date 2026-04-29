@@ -121,14 +121,30 @@ export default function DeerManagement() {
 
       console.log(`[AMMO DEBUG] action: deer_checkout sourceType: deer_management sourceId: ${activeOuting.id} ammoId: ${checkoutData.ammunition_id} quantityChange: -${roundsFired}`);
 
-      // Update rifle round counts only if something was shot
+      // Update rifle round counts only if something was shot (using fresh DB value)
       if (checkoutData.shot_anything && checkoutData.rifle_id && roundsFired > 0) {
-        const currentRifle = rifles.find(r => r.id === checkoutData.rifle_id);
-        if (currentRifle) {
-          await base44.entities.Rifle.update(checkoutData.rifle_id, {
-            total_rounds_fired: (currentRifle.total_rounds_fired || 0) + roundsFired,
-          });
+        console.log('[DEER ARMORY DEBUG] rifle_id =', checkoutData.rifle_id);
+        console.log('[DEER ARMORY DEBUG] roundsFired =', roundsFired);
+
+        // Fetch fresh rifle from Base44 (don't use stale cache)
+        const freshRifle = await base44.entities.Rifle.get(checkoutData.rifle_id);
+        if (!freshRifle) {
+          throw new Error('Rifle not found. Cannot update Armory counter.');
         }
+
+        const before = Number(freshRifle.total_rounds_fired || 0);
+        const after = before + roundsFired;
+
+        console.log('[DEER ARMORY DEBUG] before =', before);
+        console.log('[DEER ARMORY DEBUG] after =', after);
+
+        await base44.entities.Rifle.update(checkoutData.rifle_id, {
+          total_rounds_fired: after,
+        });
+
+        // Verify update succeeded
+        const verify = await base44.entities.Rifle.get(checkoutData.rifle_id);
+        console.log('[DEER ARMORY DEBUG] verify =', verify.total_rounds_fired);
       }
 
       // Prepare data first — determine if anything was shot before touching stock

@@ -238,15 +238,31 @@ export default function ClayShooting() {
       const finalTrack = trackingService.getTrack();
       console.log('🟢 Checkout: Collected', finalTrack.length, 'GPS points before stop');
 
-      // Update shotgun cartridge count (Since Cleaning is calculated based on total and baseline)
+      // Update shotgun cartridge count using fresh DB value (not stale cache)
        const cartridgesFired = parseInt(formData.rounds_fired) || 0;
        if (formData.shotgun_id && cartridgesFired > 0) {
-         const currentShotgun = shotguns.find(s => s.id === formData.shotgun_id);
-         if (currentShotgun) {
-           await base44.entities.Shotgun.update(formData.shotgun_id, {
-             total_cartridges_fired: (currentShotgun.total_cartridges_fired || 0) + cartridgesFired,
-           });
+         console.log('[CLAY ARMORY DEBUG] shotgun_id =', formData.shotgun_id);
+         console.log('[CLAY ARMORY DEBUG] cartridgesFired =', cartridgesFired);
+
+         // Fetch fresh shotgun from Base44 (don't use stale cache)
+         const freshShotgun = await base44.entities.Shotgun.get(formData.shotgun_id);
+         if (!freshShotgun) {
+           throw new Error('Shotgun not found. Cannot update Armory counter.');
          }
+
+         const before = Number(freshShotgun.total_cartridges_fired || 0);
+         const after = before + cartridgesFired;
+
+         console.log('[CLAY ARMORY DEBUG] before =', before);
+         console.log('[CLAY ARMORY DEBUG] after =', after);
+
+         await base44.entities.Shotgun.update(formData.shotgun_id, {
+           total_cartridges_fired: after,
+         });
+
+         // Verify update succeeded
+         const verify = await base44.entities.Shotgun.get(formData.shotgun_id);
+         console.log('[CLAY ARMORY DEBUG] verify =', verify.total_cartridges_fired);
        }
 
       // Decrement ammo if needed — pass session ID for reliable restore on delete

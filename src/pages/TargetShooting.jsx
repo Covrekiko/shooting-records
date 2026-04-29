@@ -216,20 +216,36 @@ export default function TargetShooting() {
       // Collect GPS track BEFORE stopping tracking
       const finalTrack = trackingService.getTrack();
 
-      // Update rifle round counts and decrement ammo
+      // Update rifle round counts using fresh DB values (not stale cache)
       // Accumulate rounds per ammo ID in case multiple rifles share the same ammo
       const ammoTotals = {};
       for (const rifle of formData.rifles_used || []) {
         const roundsFired = parseInt(rifle.rounds_fired) || 0;
 
-        // Update rifle total (Since Cleaning is calculated based on total and baseline)
+        // Update rifle total using fresh fetch (don't use stale cache)
         if (rifle.rifle_id && roundsFired > 0) {
-          const currentRifle = rifles.find(r => r.id === rifle.rifle_id);
-          if (currentRifle) {
-            await base44.entities.Rifle.update(rifle.rifle_id, {
-              total_rounds_fired: (currentRifle.total_rounds_fired || 0) + roundsFired,
-            });
+          console.log('[TARGET ARMORY DEBUG] rifle_id =', rifle.rifle_id);
+          console.log('[TARGET ARMORY DEBUG] roundsFired =', roundsFired);
+
+          // Fetch fresh rifle from Base44 (don't use stale cache)
+          const freshRifle = await base44.entities.Rifle.get(rifle.rifle_id);
+          if (!freshRifle) {
+            throw new Error(`Rifle ${rifle.rifle_id} not found. Cannot update Armory counter.`);
           }
+
+          const before = Number(freshRifle.total_rounds_fired || 0);
+          const after = before + roundsFired;
+
+          console.log('[TARGET ARMORY DEBUG] before =', before);
+          console.log('[TARGET ARMORY DEBUG] after =', after);
+
+          await base44.entities.Rifle.update(rifle.rifle_id, {
+            total_rounds_fired: after,
+          });
+
+          // Verify update succeeded
+          const verify = await base44.entities.Rifle.get(rifle.rifle_id);
+          console.log('[TARGET ARMORY DEBUG] verify =', verify.total_rounds_fired);
         }
 
         // Accumulate rounds per ammo ID (handles multiple rifles using same ammo)
