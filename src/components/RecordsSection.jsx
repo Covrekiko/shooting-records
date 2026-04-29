@@ -871,15 +871,6 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
                 <iframe src={pdfUrl} className="w-full h-full border-0" />
               </div>
               <div className="p-4 border-t border-slate-200/70 dark:border-slate-700 flex justify-end gap-2">
-                {record?.category === 'clay_shooting' && (
-                  <a
-                    href={pdfUrl}
-                    download="clay-shooting-session-report.pdf"
-                    className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:opacity-90 text-sm font-medium transition-colors"
-                  >
-                    Download
-                  </a>
-                )}
                 <button
                   onClick={onClose}
                   className="px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 text-sm font-medium transition-colors"
