@@ -326,8 +326,8 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
     { label: 'Session Type', value: 'Clay Shooting' },
     { label: 'Club / Range', value: data.clubName },
     { label: 'Duration', value: data.duration || 'Not recorded' },
-    { label: 'Check-in', value: record.checkin_time || record.start_time || 'Not recorded' },
-    { label: 'Check-out', value: record.checkout_time || record.end_time || 'Not recorded' },
+    { label: 'Check-In', value: record.checkin_time || record.start_time || 'Not recorded' },
+    { label: 'Check-Out', value: record.checkout_time || record.end_time || 'Not recorded' },
   ], cursor, { columns: 2, rowHeight: 14 });
 
   cursor = drawInfoCard(doc, 'Shotgun Used', [
@@ -353,12 +353,13 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
     cursor = { ...cursor, y: REPORT.margin };
   }
 
-  cursor = drawSectionTitle(doc, 'SCORE CARD', cursor);
+  cursor = ensureSpace(doc, cursor, 74);
+  cursor = drawSectionTitle(doc, 'Score Card', cursor);
   if (!data.scoreData) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
     doc.setTextColor(...REPORT.text);
-    doc.text('No score card recorded', REPORT.margin + 4, cursor.y);
+    doc.text('No Score Card Recorded', REPORT.margin + 4, cursor.y);
     cursor.y += 10;
   } else {
     doc.setFont('helvetica', 'bold');
@@ -371,20 +372,20 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
       data.scoreData.hits,
       data.scoreData.missed,
       `${data.scoreData.percentage}%`,
-    ]], cursor, { widths: [42, 30, 34, 38], width: 144 });
+    ]], cursor, { widths: [50, 36, 36, 50], fontSize: 8.8, rowHeight: 10 });
 
     if (data.scoreData.stands.length > 0) {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8.5);
       doc.setTextColor(...REPORT.navy);
-      doc.text(data.scoreData.hasTargetGrid ? 'Target Grid' : 'Stand Breakdown', REPORT.margin + 2, cursor.y);
+      doc.text('Stand Breakdown', REPORT.margin + 2, cursor.y);
       cursor.y += 4;
       cursor = drawDataTable(
         doc,
         ['Stand', 'Discipline', 'Targets', 'Hits', 'Missed', 'Score'],
         data.scoreData.stands.map((stand) => [stand.standNumber, stand.discipline, stand.targets, stand.hits, stand.missed, `${stand.hits}/${stand.targets}`]),
         cursor,
-        { widths: [20, 58, 28, 24, 28, 28], leftColumns: [1], rowHeight: 9 }
+        { widths: [18, 54, 28, 24, 28, 30], leftColumns: [1], rowHeight: 10, fontSize: 8.8 }
       );
     }
   }
@@ -394,7 +395,7 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
     cursor = { ...cursor, y: REPORT.margin };
   }
 
-  cursor = drawPhotosSection(doc, data.photos, cursor);
+  cursor = drawPhotosSection(doc, data.photos, cursor, 'Photos');
   if (record.notes) cursor = drawNotes(doc, record.notes, cursor);
   return cursor;
 }
@@ -455,7 +456,7 @@ function drawPhotosSection(doc, photos, cursor, title = 'PHOTOS') {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
     doc.setTextColor(...REPORT.text);
-    doc.text('No photos recorded', REPORT.margin + 4, cursor.y);
+    doc.text('No Photos Recorded', REPORT.margin + 4, cursor.y);
     return { ...cursor, y: cursor.y + 10 };
   }
 
