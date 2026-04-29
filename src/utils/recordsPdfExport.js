@@ -684,68 +684,8 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
          });
          }
 
-         // ═══ SECTION 4: SESSION PHOTOS (Checkout) ═══
-         if (record.photos && record.photos.length > 0) {
-         if (yPosition > pageHeight - 80) {
-         doc.addPage();
-         pageNum++;
-         addPageId(doc, docId, pageNum, pageWidth);
-         yPosition = margin;
-         }
-
-         doc.setFillColor(...STYLES.lightGray);
-         doc.rect(margin, yPosition, pageWidth - 2 * margin, 5, 'F');
-         doc.setFontSize(11);
-         doc.setFont(undefined, 'bold');
-         doc.setTextColor(...STYLES.headingColor);
-         doc.text('SESSION PHOTOS', margin + 3, yPosition + 3.5);
-         yPosition += 9;
-
-         // Render photos in grid
-         const photoWidth = 40;
-         const photoHeight = 40;
-         const photosPerRow = Math.floor((pageWidth - 2 * margin) / (photoWidth + 4));
-         let photoX = margin + 5;
-         let photoY = yPosition;
-         let photoCount = 0;
-
-         record.photos.forEach((photo, idx) => {
-         if (photoCount > 0 && photoCount % photosPerRow === 0) {
-           photoY += photoHeight + 4;
-           photoX = margin + 5;
-         }
-
-         if (photoY > pageHeight - 30) {
-           doc.addPage();
-           pageNum++;
-           addPageId(doc, docId, pageNum, pageWidth);
-           photoY = margin;
-           photoX = margin + 5;
-         }
-
-         const photoUrl = typeof photo === 'string' ? photo : photo.url;
-         try {
-           doc.addImage(photoUrl, 'JPEG', photoX, photoY, photoWidth, photoHeight);
-         } catch (e) {
-           doc.setDrawColor(200, 200, 200);
-           doc.rect(photoX, photoY, photoWidth, photoHeight);
-           doc.setFontSize(7);
-           doc.setFont(undefined, 'normal');
-           doc.setTextColor(150, 0, 0);
-           doc.text('N/A', photoX + 14, photoY + 18);
-         }
-
-         photoX += photoWidth + 4;
-         photoCount++;
-         });
-
-         yPosition = photoY + photoHeight + 8;
-         }
-
-         // ═══ SECTION 5: NOTES ═══
-         if (record.photos?.length === 0 && !record.notes) {
-           yPosition += 0;
-         } else if (record.notes) {
+         // ═══ SECTION 4: NOTES ═══
+         if (record.notes) {
        if (yPosition > pageHeight - 50) {
          doc.addPage();
          pageNum++;
@@ -773,15 +713,73 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
            yPosition = margin;
          }
          doc.text(line, margin + 5, yPosition);
-         yPosition += 5;
-       });
-     }
+           yPosition += 5;
+         });
+         yPosition += 8;
+         }
 
-     yPosition += 12;
-   });
+         // ═══ SECTION 5: PHOTOS (Bottom) ═══
+         if (record.photos && record.photos.length > 0) {
+         if (yPosition > pageHeight - 80) {
+           doc.addPage();
+           pageNum++;
+           addPageId(doc, docId, pageNum, pageWidth);
+           yPosition = margin;
+         }
 
-   return yPosition;
-}
+         doc.setFillColor(...STYLES.lightGray);
+         doc.rect(margin, yPosition, pageWidth - 2 * margin, 5, 'F');
+         doc.setFontSize(11);
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.headingColor);
+         doc.text('PHOTOS', margin + 3, yPosition + 3.5);
+         yPosition += 9;
+
+         const photoWidth = 40;
+         const photoHeight = 40;
+         const photosPerRow = Math.floor((pageWidth - 2 * margin) / (photoWidth + 4));
+         let photoX = margin + 5;
+         let photoY = yPosition;
+         let photoCount = 0;
+
+         record.photos.forEach((photo) => {
+           if (photoCount > 0 && photoCount % photosPerRow === 0) {
+             photoY += photoHeight + 4;
+             photoX = margin + 5;
+           }
+
+           if (photoY > pageHeight - 30) {
+             doc.addPage();
+             pageNum++;
+             addPageId(doc, docId, pageNum, pageWidth);
+             photoY = margin;
+             photoX = margin + 5;
+           }
+
+           const photoUrl = typeof photo === 'string' ? photo : photo.url;
+           try {
+             doc.addImage(photoUrl, 'JPEG', photoX, photoY, photoWidth, photoHeight);
+           } catch (e) {
+             doc.setDrawColor(200, 200, 200);
+             doc.rect(photoX, photoY, photoWidth, photoHeight);
+             doc.setFontSize(7);
+             doc.setFont(undefined, 'normal');
+             doc.setTextColor(150, 0, 0);
+             doc.text('N/A', photoX + 14, photoY + 18);
+           }
+
+           photoX += photoWidth + 4;
+           photoCount++;
+         });
+
+         yPosition = photoY + photoHeight + 8;
+         }
+
+         yPosition += 4;
+         });
+
+         return yPosition;
+         }
 
 function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, shotguns, clubs, docId, pageNum) {
   const { margin } = STYLES;
