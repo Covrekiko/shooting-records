@@ -154,7 +154,7 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
                 </div>
               )}
 
-                  {rec.recordType === 'target' && targetGroups.length > 0 && (
+              {rec.recordType === 'target' && targetGroups.length > 0 && (
                 <div className="mb-5">
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3 px-1">Target Analysis ({targetGroups.length})</p>
                   <div className="space-y-3">
@@ -192,8 +192,8 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
                   No target analysis recorded for this session
                 </div>
               )}
-              </>
-              )}
+            </>
+          )}
 
               {rec.recordType === 'clay' && (
             <>
