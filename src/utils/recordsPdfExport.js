@@ -55,38 +55,23 @@ export async function exportRecordsToPdf(records, userInfo = null, fileName = 's
     }
 
    if (userData) {
-      createFrontPage(doc, userData, pageWidth, pageHeight, docId);
-      addPageId(doc, docId, pageNum, pageWidth);
-      pageNum++;
-      doc.addPage();
-      addPageId(doc, docId, pageNum, pageWidth);
-    }
-
-   let yPosition = STYLES.margin;
-
-   const targetRecords = records.filter(r => r.recordType === 'target');
-   const clayRecords = records.filter(r => r.recordType === 'clay');
-   const deerRecords = records.filter(r => r.recordType === 'deer');
-
-   // Load target groups for all target records
-   const targetGroupsMap = {};
-   if (targetRecords.length > 0) {
-     try {
-       const { base44 } = await import('@/api/base44Client');
-       for (const record of targetRecords) {
-         const groups = await base44.entities.TargetGroup.filter({ session_id: record.id });
-         targetGroupsMap[record.id] = groups.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-       }
-       console.log('[TARGET PDF DEBUG] loaded target groups =', targetGroupsMap);
-     } catch (e) {
-       console.warn('[TARGET PDF DEBUG] could not load target groups:', e);
-     }
+     createFrontPage(doc, userData, pageWidth, pageHeight, docId);
+     addPageId(doc, docId, pageNum, pageWidth);
+     pageNum++;
+     doc.addPage();
+     addPageId(doc, docId, pageNum, pageWidth);
    }
 
-   if (targetRecords.length > 0) {
-     yPosition = renderTargetShootingSection(doc, targetRecords, yPosition, pageWidth, pageHeight, rifles, clubs, docId, pageNum, targetGroupsMap);
-     pageNum = doc.getNumberOfPages();
-   }
+  let yPosition = STYLES.margin;
+
+  const targetRecords = records.filter(r => r.recordType === 'target');
+  const clayRecords = records.filter(r => r.recordType === 'clay');
+  const deerRecords = records.filter(r => r.recordType === 'deer');
+
+  if (targetRecords.length > 0) {
+    yPosition = renderTargetShootingSection(doc, targetRecords, yPosition, pageWidth, pageHeight, rifles, clubs, docId, pageNum);
+    pageNum = doc.getNumberOfPages();
+  }
 
   if (clayRecords.length > 0) {
     doc.addPage();
@@ -140,39 +125,24 @@ export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, c
       }
     }
 
-    if (userData) {
-      createFrontPage(doc, userData, pageWidth, pageHeight, docId);
-      addPageId(doc, docId, pageNum, pageWidth);
-      pageNum++;
-      doc.addPage();
-      addPageId(doc, docId, pageNum, pageWidth);
-    }
-
-   let yPosition = STYLES.margin;
-
-   const targetRecords = records.filter(r => r.recordType === 'target');
-   const clayRecords = records.filter(r => r.recordType === 'clay');
-   const deerRecords = records.filter(r => r.recordType === 'deer');
-
-   // Load target groups for all target records
-   const targetGroupsMap = {};
-   if (targetRecords.length > 0) {
-     try {
-       const { base44 } = await import('@/api/base44Client');
-       for (const record of targetRecords) {
-         const groups = await base44.entities.TargetGroup.filter({ session_id: record.id });
-         targetGroupsMap[record.id] = groups.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
-       }
-       console.log('[TARGET PDF DEBUG] loaded target groups =', targetGroupsMap);
-     } catch (e) {
-       console.warn('[TARGET PDF DEBUG] could not load target groups:', e);
-     }
+   if (userData) {
+     createFrontPage(doc, userData, pageWidth, pageHeight, docId);
+     addPageId(doc, docId, pageNum, pageWidth);
+     pageNum++;
+     doc.addPage();
+     addPageId(doc, docId, pageNum, pageWidth);
    }
 
-   if (targetRecords.length > 0) {
-     yPosition = renderTargetShootingSection(doc, targetRecords, yPosition, pageWidth, pageHeight, rifles, clubs, docId, pageNum, targetGroupsMap);
-     pageNum = doc.getNumberOfPages();
-   }
+  let yPosition = STYLES.margin;
+
+  const targetRecords = records.filter(r => r.recordType === 'target');
+  const clayRecords = records.filter(r => r.recordType === 'clay');
+  const deerRecords = records.filter(r => r.recordType === 'deer');
+
+  if (targetRecords.length > 0) {
+    yPosition = renderTargetShootingSection(doc, targetRecords, yPosition, pageWidth, pageHeight, rifles, clubs, docId, pageNum);
+    pageNum = doc.getNumberOfPages();
+  }
 
   if (clayRecords.length > 0) {
     doc.addPage();
@@ -289,24 +259,24 @@ function createFrontPage(doc, userInfo, pageWidth, pageHeight, docId) {
   doc.text(`Doc ID: ${docId}`, margin + 5, yPosition);
 }
 
-function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight, rifles, clubs, docId, pageNum, targetGroupsMap = {}) {
-   const { margin } = STYLES;
-   let yPosition = startY;
+function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight, rifles, clubs, docId, pageNum) {
+  const { margin } = STYLES;
+  let yPosition = startY;
 
-   doc.setFontSize(14);
-   doc.setFont(undefined, 'bold');
-   doc.setTextColor(...STYLES.accentColor);
-   doc.text('TARGET SHOOTING SESSIONS', margin, yPosition);
-   yPosition += 2;
-   doc.setDrawColor(...STYLES.accentColor);
-   doc.line(margin, yPosition, pageWidth - margin, yPosition);
-   yPosition += 8;
+  doc.setFontSize(14);
+  doc.setFont(undefined, 'bold');
+  doc.setTextColor(...STYLES.accentColor);
+  doc.text('TARGET SHOOTING SESSIONS', margin, yPosition);
+  yPosition += 2;
+  doc.setDrawColor(...STYLES.accentColor);
+  doc.line(margin, yPosition, pageWidth - margin, yPosition);
+  yPosition += 8;
 
-   const contentWidth = (pageWidth - 2 * margin) * 0.6;
-   const photoX = margin + contentWidth + 28.35;
-   const photoMaxWidth = pageWidth - photoX - margin;
+  const contentWidth = (pageWidth - 2 * margin) * 0.6;
+  const photoX = margin + contentWidth + 28.35;
+  const photoMaxWidth = pageWidth - photoX - margin;
 
-   records.forEach((record, idx) => {
+  records.forEach((record, idx) => {
     if (yPosition > pageHeight - 80) {
       doc.addPage();
       pageNum++;

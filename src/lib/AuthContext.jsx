@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
+import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
 import { cacheUserProfile, getCachedUserProfile } from '@/lib/syncEngine';
 import { preCacheUserData } from '@/lib/offlineSupport';
 import { offlineDB, ENTITY_STORE_MAP } from '@/lib/offlineDB';
@@ -22,38 +23,75 @@ export const AuthProvider = ({ children }) => {
   const checkAppState = async () => {
     try {
       setIsLoadingPublicSettings(true);
-
+      
       // First, check app public settings (with token if available)
       // This will tell us if auth is required, user not registered, etc.
-
+      const appClient = createAxiosClient({
+        baseURL: `/api/apps/public`,
+        headers: {
+          'X-App-Id': appParams.appId
+        },
+        token: appParams.token, // Include token if available
+        interceptResponses: true
+      });
+      
       try {
-        // Direct use of base44 SDK instead of custom axios client
+        const publicSettings = await appClient.get(`/prod/public-settings/by-id/${appParams.appId}`);
+        setAppPublicSettings(publicSettings);
+        
+        // If we got the app public settings successfully, check if user is authenticated
         if (appParams.token) {
-          // User has token, check their auth status
           await checkUserAuth();
         } else {
           setIsLoadingAuth(false);
           setIsAuthenticated(false);
-          setAuthError(null);
+          setAuthError(null); // No error if no token and app doesn't require auth
         }
         setIsLoadingPublicSettings(false);
       } catch (appError) {
         console.error('App state check failed:', appError);
         setIsLoadingPublicSettings(false);
-
-        // Handle errors gracefully
-        const cached = await getCachedUserProfile().catch(() => null);
-        if (cached && appParams.token) {
-          setUser({ ...cached, profileComplete: true });
-          setIsAuthenticated(true);
-          setAuthError(null);
+        
+        // Handle app-level errors
+        if (appError.status === 403 && appError.data?.extra_data?.reason) {
+          const reason = appError.data.extra_data.reason;
+          if (reason === 'auth_required') {
+            setAuthError({
+              type: 'auth_required',
+              message: 'Authentication required'
+            });
+            setIsLoadingAuth(false);
+          } else if (reason === 'user_not_registered') {
+            setAuthError({
+              type: 'user_not_registered',
+              message: 'User not registered for this app'
+            });
+            setIsLoadingAuth(false);
+          } else {
+            setAuthError({
+              type: reason,
+              message: appError.message
+            });
+            setIsLoadingAuth(false);
+          }
         } else {
-          setIsAuthenticated(false);
+          // Network or other errors — try offline fallback
+          const cached = await getCachedUserProfile().catch(() => null);
+          if (cached && appParams.token) {
+            // User was previously logged in — allow offline access
+            setUser({ ...cached, profileComplete: true });
+            setIsAuthenticated(true);
+            setAuthError(null);
+          } else {
+            // Not cached — treat as auth required
+            setIsAuthenticated(false);
+          }
+          setIsLoadingAuth(false);
+          setIsLoadingPublicSettings(false);
         }
-        setIsLoadingAuth(false);
       }
     } catch (error) {
-      console.error('Unexpected error in checkAppState:', error);
+      console.error('Unexpected error:', error);
       setAuthError({
         type: 'unknown',
         message: error.message || 'An unexpected error occurred'
