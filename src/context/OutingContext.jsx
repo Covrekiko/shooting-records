@@ -134,12 +134,18 @@ export function OutingProvider({ children }) {
        setActiveOuting(outing);
        // Persist locally for offline restore
        offlineDB.put('meta', { id: 'active_outing', value: outing }).catch(() => {});
+
+       // Start GPS tracking for this outing
+       if (navigator.geolocation) {
+         trackingService.startTracking(outing.id, 'deer');
+       }
+
        return outing;
-     } catch (error) {
+       } catch (error) {
        console.error('🔴 Error starting outing:', error);
        throw error;
-     }
-   };
+       }
+       };
 
   const endOuting = async (outingId) => {
     try {
@@ -251,11 +257,14 @@ export function OutingProvider({ children }) {
         setActiveOuting(null);
         // Clear local cache of active outing
         offlineDB.remove('meta', 'active_outing').catch(() => {});
-      } catch (error) {
+
+        // Stop GPS tracking after successful checkout
+        trackingService.stopTracking();
+        } catch (error) {
         console.error('🔴 Error ending outing with data:', error.message, error.status, error.response?.data);
         throw error;
-      }
-    };
+        }
+        };
 
   const updateGpsTrack = async (outingId, track) => {
     try {

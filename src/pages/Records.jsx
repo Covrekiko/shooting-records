@@ -142,25 +142,106 @@ export default function Records() {
         return;
       }
 
-      // Refund ammunition using client-side helper
-      const { refundAmmoForRecord } = await import('@/lib/ammoUtils');
-      const refundResult = await refundAmmoForRecord(record, record.category);
+      // DEBUG: Log record details
+      console.log('[DELETE DEBUG] record =', record);
+      console.log('[DELETE DEBUG] record.id =', record.id);
+      console.log('[DELETE DEBUG] record.category =', record.category);
+      console.log('[DELETE DEBUG] record.recordType =', record.recordType);
 
-      if (!refundResult.success) {
-        alert('Error restoring ammunition: ' + refundResult.error);
+      // STEP 1: Validate record.id exists and is not stale
+      if (!record.id) {
+        console.error('[DELETE DEBUG] record.id is missing or invalid');
+        alert('Error: Record ID is missing. Cannot delete.');
         return;
       }
 
-      // Delete the record
-      await base44.entities.SessionRecord.delete(record.id);
+      // STEP 2: Load fresh record from Base44 before any changes
+      let freshRecord;
+      try {
+        console.log('[DELETE DEBUG] loading fresh record from Base44...');
+        freshRecord = await base44.entities.SessionRecord.get(record.id);
+        if (!freshRecord) {
+          console.error('[DELETE DEBUG] fresh record not found in Base44');
+          alert('Error: Record no longer exists in database.');
+          return;
+        }
+        console.log('[DELETE DEBUG] fresh record loaded:', freshRecord);
+      } catch (err) {
+        console.error('[DELETE DEBUG] failed to load fresh record:', err);
+        alert('Error loading record from database: ' + err.message);
+        return;
+      }
 
-      // Update local state
+      // STEP 3: Prevent double refund (idempotency check)
+      let refundResult = null;
+      if (freshRecord.ammoRefunded === true) {
+        console.warn('[DELETE DEBUG] record already refunded, skipping refund');
+      } else {
+        // STEP 4: Refund ammunition using fresh record
+        console.log('[DELETE DEBUG] refund start');
+        const { refundAmmoForRecord } = await import('@/lib/ammoUtils');
+        refundResult = await refundAmmoForRecord(freshRecord, freshRecord.category);
+        console.log('[DELETE DEBUG] refund result =', refundResult);
+
+        if (!refundResult.success) {
+          console.error('[DELETE DEBUG] refund failed:', refundResult.error);
+          alert('Error restoring ammunition: ' + refundResult.error);
+          return;
+        }
+      }
+
+      // STEP 5: Delete the record from Base44
+      console.log('[DELETE DEBUG] deleting SessionRecord id =', record.id);
+      try {
+        await base44.entities.SessionRecord.delete(record.id);
+        console.log('[DELETE DEBUG] delete response = success');
+      } catch (deleteErr) {
+        console.error('[DELETE DEBUG] delete error status =', deleteErr.response?.status);
+        console.error('[DELETE DEBUG] delete error data =', deleteErr.response?.data);
+        console.error('[DELETE DEBUG] delete error message =', deleteErr.message);
+        console.error('Delete error full:', deleteErr);
+        console.error('Delete error response:', deleteErr.response);
+
+        // STEP 6: Rollback ammo refund if delete fails
+        if (refundResult?.success && freshRecord.ammoRefunded !== true) {
+          console.warn('[DELETE DEBUG] delete failed, rolling back ammo refund...');
+          try {
+            const { decrementAmmoStock } = await import('@/lib/ammoUtils');
+            // Re-decrement the stock to undo the refund
+            if (freshRecord.category === 'target_shooting' && freshRecord.rifles_used) {
+              const ammoTotals = {};
+              for (const rifle of freshRecord.rifles_used) {
+                if (rifle.ammunition_id && parseInt(rifle.rounds_fired) > 0) {
+                  ammoTotals[rifle.ammunition_id] = (ammoTotals[rifle.ammunition_id] || 0) + parseInt(rifle.rounds_fired);
+                }
+              }
+              for (const [ammoId, totalRounds] of Object.entries(ammoTotals)) {
+                await decrementAmmoStock(ammoId, totalRounds, 'target_shooting', record.id);
+              }
+            } else if (freshRecord.category === 'clay_shooting' && freshRecord.ammunition_id) {
+              await decrementAmmoStock(freshRecord.ammunition_id, parseInt(freshRecord.rounds_fired), 'clay_shooting', record.id);
+            } else if (freshRecord.category === 'deer_management' && freshRecord.ammunition_id) {
+              await decrementAmmoStock(freshRecord.ammunition_id, parseInt(freshRecord.total_count), 'deer_management', record.id);
+            }
+            console.log('[DELETE DEBUG] rollback complete');
+          } catch (rollbackErr) {
+            console.error('[DELETE DEBUG] rollback failed:', rollbackErr);
+            alert('⚠️ Delete failed and rollback encountered an error. Contact support.');
+            return;
+          }
+        }
+
+        alert('Error deleting record: ' + deleteErr.message);
+        return;
+      }
+
+      // STEP 7: Delete succeeded — update local state
       setAllRecords(allRecords.filter((r) => r.id !== record.id));
 
       // Force reload
       setTimeout(() => loadRecords(), 500);
     } catch (error) {
-      console.error('🔴 [handleDelete] Error deleting record:', error);
+      console.error('🔴 [handleDelete] Unexpected error:', error);
       alert('Error deleting record: ' + error.message);
     }
   };
