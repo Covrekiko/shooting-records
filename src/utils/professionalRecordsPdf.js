@@ -152,15 +152,15 @@ function drawHeader(doc, reportData, cursor) {
 
 function drawSectionTitle(doc, title, cursor) {
   const { width } = pageMetrics(doc);
-  cursor = ensureSpace(doc, cursor, 14);
+  cursor = ensureSpace(doc, cursor, 16);
   doc.setFillColor(...REPORT.soft);
   doc.setDrawColor(...REPORT.border);
-  doc.roundedRect(REPORT.margin, cursor.y, width - REPORT.margin * 2, 8, 1.5, 1.5, 'FD');
+  doc.roundedRect(REPORT.margin, cursor.y, width - REPORT.margin * 2, 9, 1.5, 1.5, 'FD');
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
+  doc.setFontSize(10.5);
   doc.setTextColor(...REPORT.navy);
-  doc.text(title, REPORT.margin + 4, cursor.y + 5.4);
-  return { ...cursor, y: cursor.y + 12 };
+  doc.text(title, REPORT.margin + 4, cursor.y + 6.1);
+  return { ...cursor, y: cursor.y + 15 };
 }
 
 function drawInfoCard(doc, title, rows, cursor, options = {}) {
@@ -168,10 +168,11 @@ function drawInfoCard(doc, title, rows, cursor, options = {}) {
   const cardX = options.x || REPORT.margin;
   const cardW = options.width || width - REPORT.margin * 2;
   const colCount = options.columns || 2;
-  const rowHeight = options.rowHeight || 10;
-  const titleHeight = title ? 9 : 0;
+  const rowHeight = options.rowHeight || 12;
+  const titleHeight = title ? 10 : 0;
+  const contentPadding = title ? 4 : 2;
   const rowsPerLine = Math.ceil(rows.length / colCount);
-  const cardH = titleHeight + rowsPerLine * rowHeight + 5;
+  const cardH = titleHeight + contentPadding + rowsPerLine * rowHeight + 7;
   cursor = ensureSpace(doc, cursor, cardH + 4);
 
   doc.setFillColor(...REPORT.white);
@@ -184,9 +185,10 @@ function drawInfoCard(doc, title, rows, cursor, options = {}) {
     doc.setFontSize(9.5);
     doc.setTextColor(...REPORT.navy);
     doc.text(title, cardX + 4, y);
-    y += 6;
+    y += 7;
     doc.setDrawColor(...REPORT.border);
     doc.line(cardX + 4, y - 2, cardX + cardW - 4, y - 2);
+    y += contentPadding;
   }
 
   const colW = (cardW - 8) / colCount;
@@ -196,14 +198,14 @@ function drawInfoCard(doc, title, rows, cursor, options = {}) {
     const x = cardX + 4 + col * colW;
     const rowY = y + line * rowHeight;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(...REPORT.muted);
-    doc.text(row.label, x, rowY);
-    doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
+    doc.setTextColor(...REPORT.muted);
+    doc.text(row.label, x, rowY + 1);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
     doc.setTextColor(...REPORT.text);
     const valueLines = doc.splitTextToSize(valueOrMissing(row.value), colW - 6);
-    doc.text(valueLines.slice(0, 2), x, rowY + 4);
+    doc.text(valueLines.slice(0, 2), x, rowY + 6);
   });
 
   return { ...cursor, y: cursor.y + cardH + 6 };
@@ -217,7 +219,7 @@ function drawParticipantInfo(doc, reportData, cursor) {
     { label: 'Report Generated', value: reportData.generatedAtLabel },
     { label: 'Address', value: reportData.participant.address },
     { label: 'Document ID', value: reportData.documentId },
-  ], cursor, { columns: 2, rowHeight: 12 });
+  ], cursor, { columns: 2, rowHeight: 14 });
 }
 
 function drawDataTable(doc, columns, rows, cursor, options = {}) {
@@ -226,8 +228,8 @@ function drawDataTable(doc, columns, rows, cursor, options = {}) {
   const providedWidths = options.widths;
   const tableW = options.width || (providedWidths ? providedWidths.reduce((sum, item) => sum + item, 0) : width - REPORT.margin * 2);
   const widths = providedWidths || columns.map(() => tableW / columns.length);
-  const headerH = 8;
-  const rowH = options.rowHeight || 8;
+  const headerH = 9;
+  const rowH = options.rowHeight || 9;
   cursor = ensureSpace(doc, cursor, headerH + rowH + 6);
 
   const drawHeader = () => {
@@ -236,11 +238,11 @@ function drawDataTable(doc, columns, rows, cursor, options = {}) {
     doc.rect(x, cursor.y, tableW, headerH, 'FD');
     let colX = x;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(options.fontSize || 7.8);
+    doc.setFontSize(options.fontSize || 8.5);
     doc.setTextColor(...REPORT.gunmetal);
     columns.forEach((column, index) => {
       doc.line(colX, cursor.y, colX, cursor.y + headerH);
-      doc.text(column, colX + widths[index] / 2, cursor.y + 5.2, { align: 'center' });
+      doc.text(column, colX + widths[index] / 2, cursor.y + 6, { align: 'center' });
       colX += widths[index];
     });
     doc.line(colX, cursor.y, colX, cursor.y + headerH);
@@ -254,14 +256,14 @@ function drawDataTable(doc, columns, rows, cursor, options = {}) {
     doc.setDrawColor(...REPORT.border);
     doc.rect(x, cursor.y, tableW, rowH);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(options.fontSize || 7.8);
+    doc.setFontSize(options.fontSize || 8.5);
     doc.setTextColor(...REPORT.text);
     row.forEach((cell, index) => {
       doc.line(colX, cursor.y, colX, cursor.y + rowH);
       const align = options.leftColumns?.includes(index) ? 'left' : 'center';
-      const textX = align === 'left' ? colX + 2 : colX + widths[index] / 2;
-      const text = doc.splitTextToSize(valueOrMissing(cell), widths[index] - 4)[0] || 'Not recorded';
-      doc.text(text, textX, cursor.y + 5.2, { align });
+      const textX = align === 'left' ? colX + 3 : colX + widths[index] / 2;
+      const text = doc.splitTextToSize(valueOrMissing(cell), widths[index] - 6)[0] || 'Not recorded';
+      doc.text(text, textX, cursor.y + 6, { align });
       colX += widths[index];
     });
     doc.line(colX, cursor.y, colX, cursor.y + rowH);
@@ -326,7 +328,7 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
     { label: 'Duration', value: data.duration || 'Not recorded' },
     { label: 'Check-in', value: record.checkin_time || record.start_time || 'Not recorded' },
     { label: 'Check-out', value: record.checkout_time || record.end_time || 'Not recorded' },
-  ], cursor, { columns: 2, rowHeight: 12 });
+  ], cursor, { columns: 2, rowHeight: 14 });
 
   cursor = drawInfoCard(doc, 'Shotgun Used', [
     { label: 'Name', value: data.shotgun.name },
@@ -335,7 +337,7 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
     { label: 'Gauge', value: data.shotgun.gauge },
     { label: 'Serial', value: data.shotgun.serial_number },
     { label: 'Cartridges Fired', value: record.rounds_fired || 0 },
-  ], cursor, { columns: 2, rowHeight: 12 });
+  ], cursor, { columns: 2, rowHeight: 14 });
 
   cursor = drawInfoCard(doc, 'Cartridges / Ammunition', [
     { label: 'Brand / Name', value: record.ammunition_used },
@@ -344,7 +346,7 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
     { label: 'Shot Size', value: record.shot_size },
     { label: 'Load / Weight', value: record.load_grams || record.grams },
     { label: 'Cost', value: record.cost || record.total_cost },
-  ], cursor, { columns: 2, rowHeight: 12 });
+  ], cursor, { columns: 2, rowHeight: 14 });
 
   if (options.separateScoreAndPhotos) {
     doc.addPage();
@@ -412,7 +414,7 @@ function renderTargetSession(doc, record, reportData, cursor) {
     { label: 'Club / Range', value: clubName },
     { label: 'Check-in', value: record.checkin_time },
     { label: 'Check-out', value: record.checkout_time },
-  ], cursor, { columns: 2, rowHeight: 12 });
+  ], cursor, { columns: 2, rowHeight: 14 });
 
   if (record.rifles_used?.length) {
     cursor = drawSectionTitle(doc, 'FIREARMS & AMMUNITION', cursor);
@@ -510,7 +512,7 @@ function renderDeerSession(doc, record, reportData, cursor) {
     { label: 'Start Time', value: record.start_time },
     { label: 'End Time', value: record.end_time },
     { label: 'Total Count', value: record.total_count || record.number_shot || 0 },
-  ], cursor, { columns: 2, rowHeight: 12 });
+  ], cursor, { columns: 2, rowHeight: 14 });
   cursor = drawPhotosSection(doc, normalizePhotos(record.photos || []), cursor);
   if (record.notes) cursor = drawNotes(doc, record.notes, cursor);
   return cursor;
@@ -535,7 +537,7 @@ function renderRecords(doc, reportData) {
       if (isClayOnly) cursor = drawClayReportHeader(doc, reportData, cursor);
     }
     if (record.category === 'clay_shooting' || record.recordType === 'clay') {
-      cursor = renderClaySession(doc, record, reportData, cursor, { includeTitle: !isClayOnly, separateScoreAndPhotos: isClayOnly });
+      cursor = renderClaySession(doc, record, reportData, cursor, { includeTitle: !isClayOnly, separateScoreAndPhotos: false });
     } else if (record.category === 'target_shooting' || record.recordType === 'target') {
       cursor = renderTargetSession(doc, record, reportData, cursor);
     } else if (record.category === 'deer_management' || record.recordType === 'deer') {
