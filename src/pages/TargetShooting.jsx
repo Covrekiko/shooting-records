@@ -185,6 +185,7 @@ export default function TargetShooting() {
         status: 'active',
         location_id: checkinData.club_id,
         location_name: selectedClub?.name || 'Unknown Club',
+        club_name: selectedClub?.name || 'Unknown Club',
         start_time: checkinData.checkin_time,
         notes: checkinData.notes || '',
         photos: [],
@@ -245,6 +246,9 @@ export default function TargetShooting() {
       // Prepare data
       const photoUrls = (formData.photos || []).map(photo => typeof photo === 'string' ? photo : photo.url);
 
+      // Resolve club name if not already in activeSession
+      const clubName = activeSession.club_name || (activeSession.club_id && clubs.find(c => c.id === activeSession.club_id)?.name) || activeSession.location_name || 'Not recorded';
+
       // Compute top-level summary fields for reliable restore on delete
       const allAmmoIds = [...new Set((formData.rifles_used || []).map(r => r.ammunition_id).filter(Boolean))];
       const totalRoundsFired = (formData.rifles_used || []).reduce((sum, r) => sum + (parseInt(r.rounds_fired) || 0), 0);
@@ -258,6 +262,7 @@ export default function TargetShooting() {
             status: 'completed',
             checkout_time: formData.checkout_time,
             rifles_used: formData.rifles_used,
+            club_name: clubName,
             // Top-level summary for easy restore — first ammo ID used
             ammunition_id: allAmmoIds[0] || null,
             rounds_fired: totalRoundsFired,

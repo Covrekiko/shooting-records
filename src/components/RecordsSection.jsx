@@ -360,6 +360,12 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
             <label className="font-bold text-xs text-primary uppercase">Check-Out</label>
             <p className="text-base sm:text-lg">{currentRecord.end_time || currentRecord.checkout_time || 'N/A'}</p>
           </div>
+          {category === 'target_shooting' && (
+            <div>
+              <label className="font-bold text-xs text-primary uppercase">Club / Range</label>
+              <p className="text-base sm:text-lg">{currentRecord.club_name || (currentRecord.club_id && clubs[currentRecord.club_id]?.name) || currentRecord.location_name || 'Not recorded'}</p>
+            </div>
+          )}
         </div>
 
         {/* Target Shooting Section */}
