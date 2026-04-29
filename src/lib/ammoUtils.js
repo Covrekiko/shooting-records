@@ -9,7 +9,10 @@ export async function decrementAmmoStock(ammunitionId, quantity, sessionType = n
 
   try {
     const ammo = await base44.entities.Ammunition.get(ammunitionId);
-    const newQuantity = Math.max(0, (ammo.quantity_in_stock || 0) - quantity);
+    const stockBefore = ammo.quantity_in_stock || 0;
+    const newQuantity = Math.max(0, stockBefore - quantity);
+
+    console.log(`[AMMO DEBUG] action: AMMO_USED sourceType: ${sessionType} sourceId: ${sessionId} ammoId: ${ammunitionId} quantityChange: -${quantity} stockBefore: ${stockBefore} stockAfter: ${newQuantity}`);
 
     await base44.entities.Ammunition.update(ammunitionId, { quantity_in_stock: newQuantity });
 
@@ -39,7 +42,9 @@ export async function restoreAmmoStock(ammunitionId, quantity, sessionId = null)
 
   try {
     const ammo = await base44.entities.Ammunition.get(ammunitionId);
-    const newQuantity = (ammo.quantity_in_stock || 0) + quantity;
+    const stockBefore = ammo.quantity_in_stock || 0;
+    const newQuantity = stockBefore + quantity;
+    console.log(`[AMMO DEBUG] action: AMMO_REFUNDED sourceId: ${sessionId} ammoId: ${ammunitionId} quantityChange: +${quantity} stockBefore: ${stockBefore} stockAfter: ${newQuantity}`);
     await base44.entities.Ammunition.update(ammunitionId, { quantity_in_stock: newQuantity });
 
     // Clean up spending log entries tied to this session

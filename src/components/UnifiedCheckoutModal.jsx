@@ -12,6 +12,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
     shot_anything: false,
     species_list: [],
     total_count: '',
+    rounds_fired: '',
     rifle_id: '',
     ammunition_id: '',
     ammunition_used: '',
@@ -61,10 +62,15 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   const totalCount = formData.species_list.reduce((sum, s) => sum + (parseInt(s.count) || 0), 0);
 
   const handleSubmit = () => {
+    // rounds_fired defaults to total animal count if not explicitly entered
+    const roundsFired = formData.shot_anything
+      ? (parseInt(formData.rounds_fired) > 0 ? parseInt(formData.rounds_fired) : totalCount)
+      : 0;
     onSubmit({
       ...formData,
       photos,
       total_count: formData.shot_anything ? String(totalCount) : null,
+      rounds_fired: roundsFired,
       species_list: formData.shot_anything ? formData.species_list : [],
     });
   };
@@ -190,6 +196,19 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
             {totalCount > 0 && (
               <p className="text-xs text-primary font-semibold">Total: {totalCount} animal{totalCount !== 1 ? 's' : ''}</p>
             )}
+
+            <div>
+              <label className={labelCls}>Rounds Fired <span className="font-normal text-muted-foreground normal-case">(defaults to animal count if blank)</span></label>
+              <input
+                type="number"
+                inputMode="numeric"
+                min="0"
+                value={formData.rounds_fired}
+                onChange={e => set('rounds_fired', e.target.value)}
+                placeholder={String(totalCount || 0)}
+                className={inputCls}
+              />
+            </div>
 
 
 

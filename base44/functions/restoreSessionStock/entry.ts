@@ -100,7 +100,12 @@ Deno.serve(async (req) => {
 
     // ─── DEER MANAGEMENT ─────────────────────────────────────────────────
     if (session.category === 'deer_management') {
-      const shotsFired = parseInt(session.total_count) || 0;
+      // Prefer explicit rounds_fired field (saved since the fix); fall back to total_count for old records
+      const shotsFired = parseInt(session.rounds_fired) > 0
+        ? parseInt(session.rounds_fired)
+        : parseInt(session.total_count) || 0;
+
+      console.log(`🟡 [restoreSessionStock] Deer session - rounds_fired: ${session.rounds_fired}, total_count: ${session.total_count}, using: ${shotsFired}`);
 
       if (session.ammunition_id && shotsFired > 0) {
         await restoreAmmo(session.ammunition_id, shotsFired);

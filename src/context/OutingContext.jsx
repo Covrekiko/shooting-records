@@ -202,6 +202,10 @@ export function OutingProvider({ children }) {
           const srId = sessionRecords[0].id;
           const endTimeStr = new Date().toTimeString().slice(0, 5);
 
+          const roundsFired = checkoutData.shot_anything
+            ? (parseInt(checkoutData.rounds_fired) > 0 ? parseInt(checkoutData.rounds_fired) : parseInt(checkoutData.total_count || 0))
+            : 0;
+
           const updateSrPayload = {
             status: 'completed',
             checkout_time: endTimeStr,
@@ -211,6 +215,7 @@ export function OutingProvider({ children }) {
             photos: checkoutData.photos || [],
             species_list: checkoutData.shot_anything ? (checkoutData.species_list || []) : [],
             total_count: checkoutData.shot_anything ? (checkoutData.total_count || '0') : '0',
+            rounds_fired: roundsFired,
             number_shot: checkoutData.shot_anything ? parseInt(checkoutData.total_count || 0) : 0,
             rifle_id: checkoutData.shot_anything ? (checkoutData.rifle_id || null) : null,
             ammunition_used: checkoutData.shot_anything ? (checkoutData.ammunition_used || null) : null,

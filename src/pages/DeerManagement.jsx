@@ -114,8 +114,14 @@ export default function DeerManagement() {
       const finalTrack = trackingService.getTrack();
       console.log('🟢 Checkout: Collected', finalTrack.length, 'GPS points before stop');
 
+      // Use explicit rounds_fired (set in UnifiedCheckoutModal), fallback to total_count (animals harvested)
+      const roundsFired = checkoutData.shot_anything
+        ? (parseInt(checkoutData.rounds_fired) > 0 ? parseInt(checkoutData.rounds_fired) : parseInt(checkoutData.total_count) || 0)
+        : 0;
+
+      console.log(`[AMMO DEBUG] action: deer_checkout sourceType: deer_management sourceId: ${activeOuting.id} ammoId: ${checkoutData.ammunition_id} quantityChange: -${roundsFired}`);
+
       // Update rifle round counts only if something was shot
-      const roundsFired = parseInt(checkoutData.total_count) || 0;
       if (checkoutData.shot_anything && checkoutData.rifle_id && roundsFired > 0) {
         const currentRifle = rifles.find(r => r.id === checkoutData.rifle_id);
         if (currentRifle) {
@@ -126,18 +132,20 @@ export default function DeerManagement() {
       }
 
       // Prepare data first — determine if anything was shot before touching stock
-      const submitData = { ...checkoutData, active_checkin: false };
+      const submitData = { ...checkoutData, active_checkin: false, rounds_fired: roundsFired };
       if (!checkoutData.shot_anything) {
         submitData.species_list = [];
         submitData.total_count = null;
+        submitData.rounds_fired = 0;
         submitData.rifle_id = null;
         submitData.ammunition_id = null;
         submitData.ammunition_used = null;
       }
 
       // Decrement ammo only if something was actually shot
-      if (checkoutData.shot_anything && checkoutData.ammunition_id && checkoutData.total_count) {
-        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count), 'deer_management', activeOuting.id);
+      if (checkoutData.shot_anything && checkoutData.ammunition_id && roundsFired > 0) {
+        await decrementAmmoStock(checkoutData.ammunition_id, roundsFired, 'deer_management', activeOuting.id);
+        console.log(`[AMMO DEBUG] ammo decremented by ${roundsFired} for session ${activeOuting.id}`);
       }
 
       // Save to database FIRST, then stop tracking
