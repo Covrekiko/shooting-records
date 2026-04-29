@@ -234,7 +234,8 @@ function drawDataTable(doc, columns, rows, cursor, options = {}) {
 
   const drawHeader = () => {
     doc.setFillColor(...REPORT.soft);
-    doc.setDrawColor(...REPORT.border);
+    doc.setDrawColor(155, 164, 176);
+    doc.setLineWidth(0.35);
     doc.rect(x, cursor.y, tableW, headerH, 'FD');
     let colX = x;
     doc.setFont('helvetica', 'bold');
@@ -253,7 +254,8 @@ function drawDataTable(doc, columns, rows, cursor, options = {}) {
   rows.forEach((row) => {
     cursor = ensureSpace(doc, cursor, rowH + 8);
     let colX = x;
-    doc.setDrawColor(...REPORT.border);
+    doc.setDrawColor(155, 164, 176);
+    doc.setLineWidth(0.35);
     doc.rect(x, cursor.y, tableW, rowH);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(options.fontSize || 8.5);
@@ -311,6 +313,45 @@ function drawClayReportHeader(doc, reportData, cursor) {
   return { ...cursor, y: cursor.y + 28 };
 }
 
+function drawClayCompactCard(doc, title, rows, cursor) {
+  const { width } = pageMetrics(doc);
+  const cardW = width - REPORT.margin * 2;
+  const colW = (cardW - 10) / 2;
+  const rowHeight = 8;
+  const rowsPerLine = Math.ceil(rows.length / 2);
+  const cardH = 10 + rowsPerLine * rowHeight + 4;
+  cursor = ensureSpace(doc, cursor, cardH + 4);
+
+  doc.setFillColor(...REPORT.white);
+  doc.setDrawColor(...REPORT.border);
+  doc.roundedRect(REPORT.margin, cursor.y, cardW, cardH, 1.5, 1.5, 'FD');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...REPORT.navy);
+  doc.text(title, REPORT.margin + 4, cursor.y + 6.5);
+  doc.setDrawColor(...REPORT.border);
+  doc.line(REPORT.margin + 4, cursor.y + 9, width - REPORT.margin - 4, cursor.y + 9);
+
+  rows.forEach((row, index) => {
+    const col = index % 2;
+    const line = Math.floor(index / 2);
+    const x = REPORT.margin + 4 + col * colW;
+    const y = cursor.y + 15 + line * rowHeight;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.2);
+    doc.setTextColor(...REPORT.muted);
+    doc.text(`${row.label}:`, x, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.7);
+    doc.setTextColor(...REPORT.text);
+    const labelWidth = doc.getTextWidth(`${row.label}: `);
+    const valueLines = doc.splitTextToSize(valueOrMissing(row.value), colW - labelWidth - 8);
+    doc.text(valueLines[0] || 'Not Recorded', x + labelWidth + 1.5, y);
+  });
+
+  return { ...cursor, y: cursor.y + cardH + 4 };
+}
+
 function renderClaySession(doc, record, reportData, cursor, options = {}) {
   const data = buildClayReportData(record, reportData);
   if (options.includeTitle !== false) {
@@ -321,39 +362,39 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
     doc.text('Detailed Activity Record', REPORT.margin + 2, cursor.y - 5);
   }
 
-  cursor = drawInfoCard(doc, 'Session Overview', [
+  cursor = drawClayCompactCard(doc, 'Session Overview', [
     { label: 'Session Date', value: formatDate(record.date) },
     { label: 'Session Type', value: 'Clay Shooting' },
     { label: 'Club / Range', value: data.clubName },
-    { label: 'Duration', value: data.duration || 'Not recorded' },
-    { label: 'Check-In', value: record.checkin_time || record.start_time || 'Not recorded' },
-    { label: 'Check-Out', value: record.checkout_time || record.end_time || 'Not recorded' },
-  ], cursor, { columns: 2, rowHeight: 14 });
+    { label: 'Duration', value: data.duration || 'Not Recorded' },
+    { label: 'Check-In', value: record.checkin_time || record.start_time || 'Not Recorded' },
+    { label: 'Check-Out', value: record.checkout_time || record.end_time || 'Not Recorded' },
+  ], cursor);
 
-  cursor = drawInfoCard(doc, 'Shotgun Used', [
+  cursor = drawClayCompactCard(doc, 'Shotgun Used', [
     { label: 'Name', value: data.shotgun.name },
     { label: 'Make', value: data.shotgun.make },
     { label: 'Model', value: data.shotgun.model },
     { label: 'Gauge', value: data.shotgun.gauge },
     { label: 'Serial', value: data.shotgun.serial_number },
     { label: 'Cartridges Fired', value: record.rounds_fired || 0 },
-  ], cursor, { columns: 2, rowHeight: 14 });
+  ], cursor);
 
-  cursor = drawInfoCard(doc, 'Cartridges / Ammunition', [
+  cursor = drawClayCompactCard(doc, 'Cartridges / Ammunition', [
     { label: 'Brand / Name', value: record.ammunition_used },
     { label: 'Gauge', value: data.shotgun.gauge },
     { label: 'Quantity Used', value: record.rounds_fired || 0 },
     { label: 'Shot Size', value: record.shot_size },
     { label: 'Load / Weight', value: record.load_grams || record.grams },
     { label: 'Cost', value: record.cost || record.total_cost },
-  ], cursor, { columns: 2, rowHeight: 14 });
+  ], cursor);
 
   if (options.separateScoreAndPhotos) {
     doc.addPage();
     cursor = { ...cursor, y: REPORT.margin };
   }
 
-  cursor = ensureSpace(doc, cursor, 74);
+  cursor = ensureSpace(doc, cursor, data.photos.length === 0 ? 58 : 78);
   cursor = drawSectionTitle(doc, 'Score Card', cursor);
   if (!data.scoreData) {
     doc.setFont('helvetica', 'normal');
@@ -372,7 +413,7 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
       data.scoreData.hits,
       data.scoreData.missed,
       `${data.scoreData.percentage}%`,
-    ]], cursor, { widths: [50, 36, 36, 50], fontSize: 8.8, rowHeight: 10 });
+    ]], cursor, { widths: [56, 38, 38, 54], fontSize: 8.3, rowHeight: 9 });
 
     if (data.scoreData.stands.length > 0) {
       doc.setFont('helvetica', 'bold');
@@ -385,7 +426,7 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
         ['Stand', 'Discipline', 'Targets', 'Hits', 'Missed', 'Score'],
         data.scoreData.stands.map((stand) => [stand.standNumber, stand.discipline, stand.targets, stand.hits, stand.missed, `${stand.hits}/${stand.targets}`]),
         cursor,
-        { widths: [18, 54, 28, 24, 28, 30], leftColumns: [1], rowHeight: 10, fontSize: 8.8 }
+        { widths: [22, 60, 30, 24, 28, 32], leftColumns: [1], rowHeight: 9, fontSize: 8.3 }
       );
     }
   }
