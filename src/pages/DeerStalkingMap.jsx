@@ -37,10 +37,6 @@ export default function DeerStalkingMap() {
   const windowKey = window?.GOOGLE_MAPS_API_KEY;
   const mapsKey = viteKey || windowKey || '';
   
-  const keySource = viteKey ? 'vite' : windowKey ? 'window' : 'none';
-  console.log('[MAP DEBUG] key exists:', !!mapsKey);
-  console.log('[MAP DEBUG] key source:', keySource);
-  
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: mapsKey,
   });
@@ -253,10 +249,9 @@ export default function DeerStalkingMap() {
   };
 
   const handleCheckoutSubmit = async (checkoutData) => {
-    if (!activeOuting) {
-      console.error('🔴 No active outing found for checkout');
-      return;
-    }
+   if (!activeOuting) {
+     return;
+   }
     try {
       const submitData = { ...checkoutData, active_checkin: false };
       if (!checkoutData.shot_anything) {
@@ -293,7 +288,6 @@ export default function DeerStalkingMap() {
       setShowCheckout(false);
       loadData();
     } catch (err) {
-      console.error('🔴 Error during checkout:', err);
       setError(err.message);
     }
   };

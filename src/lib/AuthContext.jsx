@@ -104,7 +104,6 @@ export const AuthProvider = ({ children }) => {
   const checkUserAuth = async () => {
     try {
       // Now check if the user is authenticated
-      console.log('[API DEBUG] auth.me called');
       setIsLoadingAuth(true);
       const currentUser = await base44.auth.me();
       setUser(currentUser);

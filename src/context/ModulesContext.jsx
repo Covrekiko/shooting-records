@@ -26,7 +26,6 @@ export function ModulesProvider({ children }) {
         return;
       }
       try {
-        console.log('[API DEBUG] ModulesContext.loadModules called');
         const user = await base44.auth.me();
         if (user?.enabledModules && Array.isArray(user.enabledModules)) {
           setEnabledModules(user.enabledModules);

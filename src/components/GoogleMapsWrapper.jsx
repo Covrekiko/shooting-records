@@ -10,7 +10,6 @@ export default function GoogleMapsWrapper({ children }) {
         // Try to load from Vite environment variable (build-time injection)
         const envKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
         if (envKey) {
-          console.log('[GoogleMapsWrapper] Loaded key from VITE_GOOGLE_MAPS_API_KEY');
           setApiKey(envKey);
           window.GOOGLE_MAPS_API_KEY = envKey; // Also expose on window
           return;
@@ -18,7 +17,6 @@ export default function GoogleMapsWrapper({ children }) {
 
         // Fallback: try window object (might be set externally)
         if (window.GOOGLE_MAPS_API_KEY) {
-          console.log('[GoogleMapsWrapper] Key already available on window');
           setApiKey(window.GOOGLE_MAPS_API_KEY);
           return;
         }
@@ -29,14 +27,13 @@ export default function GoogleMapsWrapper({ children }) {
           if (response.ok) {
             const data = await response.json();
             if (data.key) {
-              console.log('[GoogleMapsWrapper] Loaded key from backend endpoint');
               setApiKey(data.key);
               window.GOOGLE_MAPS_API_KEY = data.key;
               return;
             }
           }
         } catch (fetchErr) {
-          console.warn('[GoogleMapsWrapper] Backend endpoint not available:', fetchErr.message);
+          // Backend endpoint not available
         }
 
         // No key found anywhere
