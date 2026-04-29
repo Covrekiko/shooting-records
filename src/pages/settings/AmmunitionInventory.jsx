@@ -8,6 +8,7 @@ import AmmoSpendingBreakdown from '@/components/AmmoSpendingBreakdown';
 export default function AmmunitionInventory() {
   const [ammo, setAmmo] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -29,13 +30,15 @@ export default function AmmunitionInventory() {
   }, []);
 
   const loadAmmo = async () => {
+    setError(null);
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       const ammoList = await base44.entities.Ammunition.filter({ created_by: currentUser.email });
       setAmmo(ammoList);
-    } catch (error) {
-      console.error('Error loading ammunition:', error);
+    } catch (err) {
+      console.error('Error loading ammunition:', err);
+      setError(err.message || 'Failed to load ammunition');
     } finally {
       setLoading(false);
     }
@@ -249,11 +252,20 @@ export default function AmmunitionInventory() {
           <AmmoSpendingBreakdown />
         </div>
 
-        {ammo.length === 0 ? (
+        {error ? (
+          <div className="bg-card border border-destructive/30 rounded-lg p-8 text-center">
+            <AlertCircle className="w-8 h-8 text-destructive mx-auto mb-3" />
+            <p className="text-destructive font-medium mb-1">Failed to load ammunition</p>
+            <p className="text-muted-foreground text-sm mb-4">{error}</p>
+            <button onClick={loadAmmo} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90">
+              Retry
+            </button>
+          </div>
+        ) : ammo.length === 0 ? (
            <div className="bg-card border border-border rounded-lg p-8 text-center">
              <p className="text-muted-foreground">No ammunition tracked yet</p>
            </div>
-         ) : (
+        ) : (
            <div className="space-y-3">
             {ammo.map((item) => (
               <div key={item.id} className="bg-card border border-border rounded-lg p-4">
