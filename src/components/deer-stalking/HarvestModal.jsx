@@ -43,12 +43,33 @@ export default function HarvestModal({ location, onClose, onSubmit }) {
         <div>
           <label className={DESIGN.LABEL}>Species</label>
           <select value={species} onChange={(e) => setSpecies(e.target.value)} className={DESIGN.INPUT}>
-            <option>Roe</option>
-            <option>Muntjac</option>
-            <option>Fallow</option>
-            <option>Red</option>
-            <option>Sika</option>
-            <option>Chinese Water Deer</option>
+            <optgroup label="Deer">
+              <option>Roe</option>
+              <option>Muntjac</option>
+              <option>Fallow</option>
+              <option>Red</option>
+              <option>Sika</option>
+              <option>Chinese Water Deer</option>
+            </optgroup>
+            <optgroup label="Pest Control">
+              <option>Fox</option>
+              <option>Rabbit</option>
+              <option>Grey Squirrel</option>
+              <option>Brown Rat</option>
+              <option>Mink</option>
+              <option>Stoat</option>
+              <option>Weasel</option>
+              <option>Mole</option>
+              <option>Pigeon (Feral)</option>
+              <option>Pigeon (Wood)</option>
+              <option>Crow</option>
+              <option>Magpie</option>
+              <option>Jackdaw</option>
+              <option>Jay</option>
+              <option>Rook</option>
+              <option>Canada Goose</option>
+              <option>Other (Pest)</option>
+            </optgroup>
           </select>
         </div>
 

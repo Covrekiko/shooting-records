@@ -2,6 +2,7 @@ import { useState } from 'react';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
+const PEST_SPECIES = ['Fox', 'Rabbit', 'Grey Squirrel', 'Brown Rat', 'Mink', 'Stoat', 'Weasel', 'Mole', 'Pigeon (Feral)', 'Pigeon (Wood)', 'Crow', 'Magpie', 'Jackdaw', 'Jay', 'Rook', 'Canada Goose', 'Other (Pest)'];
 
 export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition, onSubmit, onClose }) {
   const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
     ammunition_used: '',
     notes: '',
   });
+  const [selectedPest, setSelectedPest] = useState('');
 
   const set = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
 
@@ -91,6 +93,57 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
               </div>
               {totalCount > 0 && (
                 <p className="text-xs text-primary font-semibold mt-2">Total: {totalCount} animal{totalCount !== 1 ? 's' : ''}</p>
+              )}
+            </div>
+
+            {/* Pest Control */}
+            <div>
+              <label className={labelCls}>Pest Control</label>
+              <div className="flex gap-2">
+                <select
+                  value={selectedPest}
+                  onChange={e => setSelectedPest(e.target.value)}
+                  className={inputCls}
+                >
+                  <option value="">Select species…</option>
+                  {PEST_SPECIES.filter(p => !formData.species_list.find(s => s.species === p)).map(p => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  disabled={!selectedPest}
+                  onClick={() => {
+                    if (!selectedPest) return;
+                    set('species_list', [...formData.species_list, { species: selectedPest, count: '1' }]);
+                    setSelectedPest('');
+                  }}
+                  className="px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold disabled:opacity-40 shrink-0"
+                >
+                  Add
+                </button>
+              </div>
+              {formData.species_list.filter(s => PEST_SPECIES.includes(s.species)).length > 0 && (
+                <div className="mt-2 space-y-1.5">
+                  {formData.species_list.filter(s => PEST_SPECIES.includes(s.species)).map(entry => (
+                    <div key={entry.species} className="flex items-center gap-3">
+                      <span className="text-sm flex-1 text-foreground">{entry.species}</span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min="0"
+                        value={entry.count}
+                        onChange={e => handleSpeciesChange(entry.species, e.target.value)}
+                        className="w-20 px-3 py-2 border border-input bg-background text-foreground rounded-lg text-sm outline-none focus:border-primary"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => set('species_list', formData.species_list.filter(s => s.species !== entry.species))}
+                        className="text-muted-foreground hover:text-destructive text-lg leading-none"
+                      >×</button>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
 
