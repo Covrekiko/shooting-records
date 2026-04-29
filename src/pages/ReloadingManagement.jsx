@@ -39,117 +39,93 @@ export default function ReloadingManagement() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this reloading session? All component stock will be restored.')) return;
+    if (!confirm('Delete this reloading session? Component stock will be restored.')) return;
     try {
-      // Get the session to restore its stock
       const session = sessions.find(s => s.id === id);
-      if (session && session.components) {
-        const unitConversions = {
-          'grams': 1,
-          'kg': 1000,
-          'oz': 28.3495,
-          'lb': 453.592,
-          'grains': 0.06479891,
-        };
+      const user = await base44.auth.me();
 
-        // Restore each component used in the session
+      // ── STEP 1: Find linked ammo stock item ──────────────────────────
+      const ammoList = await base44.entities.Ammunition.filter({ created_by: user.email });
+      let matchedAmmo = ammoList.find(a => a.notes && a.notes.includes(`reload_batch:${id}`));
+      if (!matchedAmmo && session) {
+        matchedAmmo = ammoList.find(a =>
+          (a.brand === 'Reloaded') &&
+          a.caliber === session.caliber &&
+          a.notes && a.notes.includes(session.batch_number)
+        );
+      }
+
+      console.log(`[RELOAD DELETE DEBUG] batchId = ${id}`);
+      console.log(`[RELOAD DELETE DEBUG] ammoStockItemId = ${matchedAmmo?.id || 'NOT FOUND'}`);
+      console.log(`[RELOAD DELETE DEBUG] roundsProduced = ${session?.rounds_loaded || 0}`);
+      console.log(`[RELOAD DELETE DEBUG] ammoInventoryBefore = ${matchedAmmo?.quantity_in_stock ?? 'N/A'}`);
+
+      // ── STEP 2: Check if any rounds were used in session records ─────
+      let roundsUsed = 0;
+      if (matchedAmmo) {
+        const spendingLogs = await base44.entities.AmmoSpending.filter({ ammunition_id: matchedAmmo.id });
+        roundsUsed = spendingLogs.reduce((sum, s) => sum + (s.quantity_used || 0), 0);
+      }
+      const roundsRemaining = Math.max(0, (matchedAmmo?.quantity_in_stock || 0));
+      console.log(`[RELOAD DELETE DEBUG] roundsUsedInRecords = ${roundsUsed}`);
+      console.log(`[RELOAD DELETE DEBUG] roundsRemaining = ${roundsRemaining}`);
+
+      // ── STEP 3: Block if rounds were used in records ─────────────────
+      if (roundsUsed > 0) {
+        alert(`Cannot delete this batch — ${roundsUsed} round(s) have already been used in session records. Archive the batch instead or edit it manually.`);
+        return;
+      }
+
+      // ── STEP 4: Delete the linked ammo stock item entirely ───────────
+      if (matchedAmmo) {
+        await base44.entities.Ammunition.delete(matchedAmmo.id);
+        console.log(`[RELOAD DELETE DEBUG] removingFromInventory = true (deleted ammo id ${matchedAmmo.id})`);
+        console.log(`[RELOAD DELETE DEBUG] ammoInventoryAfter = 0 (item deleted)`);
+      } else {
+        console.warn(`[RELOAD DELETE DEBUG] removingFromInventory = false (no linked ammo found)`);
+      }
+
+      // ── STEP 5: Restore components ───────────────────────────────────
+      const unitConversions = { grams: 1, kg: 1000, oz: 28.3495, lb: 453.592, grains: 0.06479891 };
+      if (session?.components) {
         for (const comp of session.components) {
           try {
             let component;
-
-            if (comp.type === 'powder') {
-              // Restore powder: convert used amount to grams, then back to stored unit
-              const usedInGrams = parseFloat(comp.quantity_used) * (unitConversions[comp.unit] || 1);
-              
-              // Try to find by ID first, then by name
-              if (comp.component_id) {
-                const results = await base44.entities.ReloadingComponent.filter({
-                  created_by: session.created_by,
-                  component_type: 'powder',
-                }).then(results => results.find(c => c.id === comp.component_id));
-                component = results;
-              } else if (comp.name) {
-                const results = await base44.entities.ReloadingComponent.filter({
-                  created_by: session.created_by,
-                  component_type: 'powder',
-                }).then(results => results.find(c => c.name === comp.name));
-                component = results;
+            if (comp.component_id) {
+              const list = await base44.entities.ReloadingComponent.filter({
+                created_by: session.created_by,
+                component_type: comp.type,
+              });
+              component = list.find(c => c.id === comp.component_id);
+            } else if (comp.name) {
+              const list = await base44.entities.ReloadingComponent.filter({
+                created_by: session.created_by,
+                component_type: comp.type,
+              });
+              component = list.find(c => c.name === comp.name);
+            }
+            if (component) {
+              let newRemaining;
+              if (comp.type === 'powder') {
+                const usedInGrams = parseFloat(comp.quantity_used) * (unitConversions[comp.unit] || 1);
+                newRemaining = component.quantity_remaining + usedInGrams / (unitConversions[component.unit] || 1);
+              } else {
+                newRemaining = component.quantity_remaining + (comp.quantity_used || 0);
               }
-
-              if (component) {
-                const restoredRemaining = component.quantity_remaining + usedInGrams / (unitConversions[component.unit] || 1);
-                await base44.entities.ReloadingComponent.update(component.id, {
-                  quantity_remaining: restoredRemaining,
-                });
-              }
-            } else {
-              // Restore primer, brass, bullet: simple quantity addition
-              // Try to find by ID first, then by name
-              if (comp.component_id) {
-                const results = await base44.entities.ReloadingComponent.filter({
-                  created_by: session.created_by,
-                  component_type: comp.type,
-                }).then(results => results.find(c => c.id === comp.component_id));
-                component = results;
-              } else if (comp.name) {
-                const results = await base44.entities.ReloadingComponent.filter({
-                  created_by: session.created_by,
-                  component_type: comp.type,
-                }).then(results => results.find(c => c.name === comp.name));
-                component = results;
-              }
-
-              if (component) {
-                const restoredRemaining = component.quantity_remaining + (comp.quantity_used || 0);
-                await base44.entities.ReloadingComponent.update(component.id, {
-                  quantity_remaining: restoredRemaining,
-                });
-              }
+              await base44.entities.ReloadingComponent.update(component.id, { quantity_remaining: newRemaining });
             }
           } catch (compError) {
-            console.warn('Could not restore component:', comp, compError);
-            // Continue with other components even if one fails
+            console.warn('Could not restore component:', comp.name, compError);
           }
         }
+        console.log(`[RELOAD DELETE DEBUG] componentsRestored = true`);
       }
 
-      // Reverse the global Ammunition stock added when this batch was created
-      // Look up by reload_batch:<id> tag for reliable reversal
-      if (session && session.rounds_loaded > 0) {
-        try {
-          const user = await base44.auth.me();
-          const ammoList = await base44.entities.Ammunition.filter({ created_by: user.email });
-          // Primary: match by reload_batch tag (new batches)
-          let matchedAmmo = ammoList.find(a => a.notes && a.notes.includes(`reload_batch:${id}`));
-          // Fallback: match by brand+caliber for old batches that didn't have the tag
-          if (!matchedAmmo) {
-            matchedAmmo = ammoList.find(a =>
-              (a.brand === 'Reloaded' || (a.brand || '').startsWith('Reloaded')) &&
-              a.caliber === session.caliber &&
-              a.notes && a.notes.includes(session.batch_number)
-            );
-          }
-          if (!matchedAmmo) {
-            // Last resort: any Reloaded entry for this caliber
-            matchedAmmo = ammoList.find(a =>
-              (a.brand === 'Reloaded' || (a.brand || '').startsWith('Reloaded')) &&
-              a.caliber === session.caliber
-            );
-          }
-          if (matchedAmmo) {
-            const newQty = Math.max(0, (matchedAmmo.quantity_in_stock || 0) - session.rounds_loaded);
-            await base44.entities.Ammunition.update(matchedAmmo.id, { quantity_in_stock: newQty });
-            console.log(`[RELOAD DEBUG] batch deleted: reversed ${session.rounds_loaded} rounds for ${session.caliber} on ammo id ${matchedAmmo.id} → stock now: ${newQty}`);
-          } else {
-            console.warn(`[RELOAD DEBUG] No matching ammo stock found for batch ${session.batch_number} caliber ${session.caliber} — nothing to reverse`);
-          }
-        } catch (e) {
-          console.warn('Could not reverse ammo stock for reloaded batch:', e.message);
-        }
-      }
-
-      // Delete the session
+      // ── STEP 6: Delete the session record ────────────────────────────
       await base44.entities.ReloadingSession.delete(id);
+      console.log(`[RELOAD DELETE DEBUG] batchDeleteOrArchiveSuccess = true`);
+      console.log(`[RELOAD DELETE DEBUG] inventoryRefreshTriggered = true`);
+
       loadSessions();
     } catch (error) {
       console.error('Error deleting session:', error);
