@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import { resolveClayClubName, getClayScoreSummary, calculateDuration, normalizePhotos } from '@/lib/claySessionUtils';
+import { resolveClayClubName, buildClayScoreCardData, calculateDuration, normalizePhotos } from '@/lib/claySessionUtils';
 
 function generateDocumentId() {
   const timestamp = Date.now().toString(36).toUpperCase();
@@ -802,6 +802,7 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
   let yPosition = startY;
   const scorecards = clayData.scorecards || {};
   const standsBySession = clayData.stands || {};
+  const shotsBySession = clayData.shots || {};
 
   const ensureSpace = (needed = 30) => {
     if (yPosition > pageHeight - needed) {
@@ -843,7 +844,7 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
 
     const scorecard = scorecards[record.id];
     const stands = standsBySession[record.id] || [];
-    const scoreSummary = getClayScoreSummary(scorecard, stands);
+    const scoreData = buildClayScoreCardData(record, scorecard, stands, shotsBySession[record.id] || {});
     const shotgun = shotguns[record.shotgun_id];
     const clubName = resolveClayClubName(record, clubs, locations);
     const duration = calculateDuration(record.checkin_time || record.start_time, record.checkout_time || record.end_time);
@@ -874,22 +875,9 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
       field('Duration:', duration, margin + 2, yPosition);
       yPosition += 7;
     }
-    if (record.notes) {
-      doc.setFont(undefined, 'bold');
-      doc.setTextColor(...STYLES.darkGray);
-      doc.text('Notes:', margin + 2, yPosition);
-      yPosition += 5;
-      doc.setFont(undefined, 'normal');
-      doc.setTextColor(...STYLES.textColor);
-      doc.splitTextToSize(record.notes, pageWidth - 2 * margin - 8).forEach((line) => {
-        ensureSpace(12);
-        doc.text(line, margin + 5, yPosition);
-        yPosition += 4;
-      });
-    }
     yPosition += 5;
 
-    sectionHeader('SHOTGUN USED');
+    sectionHeader('SHOTGUN & CARTRIDGES');
     field('Name:', shotgun?.name || 'Not recorded', margin + 2, yPosition);
     field('Make:', shotgun?.make || '-', margin + 100, yPosition);
     yPosition += 7;
@@ -900,36 +888,16 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
     field('Cartridges:', record.rounds_fired || 0, margin + 100, yPosition);
     yPosition += 12;
 
-    sectionHeader('CARTRIDGES / AMMUNITION');
-    field('Brand/Name:', record.ammunition_used || 'Not recorded', margin + 2, yPosition);
+    field('Cartridge:', record.ammunition_used || 'Not recorded', margin + 2, yPosition);
     yPosition += 7;
-    field('Gauge:', shotgun?.gauge || 'Not recorded', margin + 2, yPosition);
-    field('Quantity:', record.rounds_fired || 0, margin + 100, yPosition);
+    field('Shot Size:', record.shot_size || 'Not recorded', margin + 2, yPosition);
+    field('Load/Grams:', record.load_grams || record.grams || 'Not recorded', margin + 100, yPosition);
+    yPosition += 7;
+    field('Quantity:', record.rounds_fired || 0, margin + 2, yPosition);
     yPosition += 12;
 
     sectionHeader('SCORE CARD');
-    if (scoreSummary) {
-      field('Total:', scoreSummary.label, margin + 2, yPosition);
-      field('Percentage:', `${scoreSummary.percentage}%`, margin + 100, yPosition);
-      yPosition += 7;
-      field('Hits:', scoreSummary.totalHits, margin + 2, yPosition);
-      field('Missed:', scoreSummary.totalMisses, margin + 100, yPosition);
-      yPosition += 9;
-
-      stands.forEach((stand) => {
-        ensureSpace(10);
-        const valid = Number(stand.valid_scored_clays || ((stand.hits || 0) + (stand.misses || 0)));
-        doc.setFont(undefined, 'normal');
-        doc.setTextColor(...STYLES.textColor);
-        doc.text(`Stand ${stand.stand_number}${stand.discipline_type ? ` (${stand.discipline_type})` : ''}: ${stand.hits || 0} / ${valid}`, margin + 5, yPosition);
-        yPosition += 5;
-      });
-    } else {
-      doc.setFont(undefined, 'normal');
-      doc.setTextColor(...STYLES.textColor);
-      doc.text('No score card recorded', margin + 5, yPosition);
-      yPosition += 7;
-    }
+    yPosition = renderClayScorecardTables(doc, scoreData, yPosition, pageWidth, pageHeight, margin, ensureSpace, sectionHeader);
     yPosition += 5;
 
     sectionHeader('PHOTOS');
@@ -961,7 +929,118 @@ function renderClayShootingSection(doc, records, startY, pageWidth, pageHeight, 
       });
       yPosition += photoHeight + 8;
     }
+
+    if (record.notes) {
+      sectionHeader('NOTES');
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(...STYLES.textColor);
+      doc.splitTextToSize(record.notes, pageWidth - 2 * margin - 10).forEach((line) => {
+        ensureSpace(12);
+        doc.text(line, margin + 5, yPosition);
+        yPosition += 5;
+      });
+    }
   });
+
+  return yPosition;
+}
+
+function renderClayScorecardTables(doc, scoreData, startY, pageWidth, pageHeight, margin, ensureSpace, sectionHeader) {
+  let yPosition = startY;
+
+  if (!scoreData) {
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...STYLES.textColor);
+    doc.text('No score card recorded', margin + 5, yPosition);
+    return yPosition + 8;
+  }
+
+  const drawTable = (columns, rows, widths) => {
+    const rowHeight = 7;
+    const tableWidth = widths.reduce((sum, width) => sum + width, 0);
+    const drawHeader = () => {
+      ensureSpace(rowHeight + 8);
+      doc.setFillColor(...STYLES.lightGray);
+      doc.setDrawColor(190, 190, 190);
+      doc.rect(margin + 2, yPosition, tableWidth, rowHeight, 'FD');
+      let x = margin + 2;
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(...STYLES.darkGray);
+      columns.forEach((column, index) => {
+        doc.line(x, yPosition, x, yPosition + rowHeight);
+        doc.text(column, x + widths[index] / 2, yPosition + 4.6, { align: 'center' });
+        x += widths[index];
+      });
+      doc.line(x, yPosition, x, yPosition + rowHeight);
+      yPosition += rowHeight;
+    };
+
+    drawHeader();
+    rows.forEach((row) => {
+      if (yPosition > pageHeight - 25) {
+        ensureSpace(40);
+        drawHeader();
+      }
+      let x = margin + 2;
+      doc.setDrawColor(210, 210, 210);
+      doc.rect(margin + 2, yPosition, tableWidth, rowHeight);
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(...STYLES.textColor);
+      row.forEach((cell, index) => {
+        doc.line(x, yPosition, x, yPosition + rowHeight);
+        const align = index <= 1 && columns[index] !== 'T1' ? 'left' : 'center';
+        const textX = align === 'left' ? x + 2 : x + widths[index] / 2;
+        doc.text(String(cell ?? '-'), textX, yPosition + 4.6, { align });
+        x += widths[index];
+      });
+      doc.line(x, yPosition, x, yPosition + rowHeight);
+      yPosition += rowHeight;
+    });
+    yPosition += 5;
+  };
+
+  doc.setFont(undefined, 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...STYLES.headingColor);
+  doc.text('Score Summary', margin + 2, yPosition);
+  yPosition += 4;
+  drawTable(
+    ['Total Targets', 'Hits', 'Missed', 'No Birds', 'Percentage'],
+    [[scoreData.totalTargets, scoreData.hits, scoreData.missed, scoreData.noBirds, `${scoreData.percentage}%`]],
+    [34, 24, 24, 28, 30]
+  );
+
+  if (scoreData.stands.length === 0) return yPosition;
+
+  doc.setFont(undefined, 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(...STYLES.headingColor);
+  doc.text(scoreData.hasTargetGrid ? 'Target Grid' : 'Stand Breakdown', margin + 2, yPosition);
+  yPosition += 4;
+
+  if (scoreData.hasTargetGrid) {
+    drawTable(
+      ['Stand', 'Discipline', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'Hits', 'Total'],
+      scoreData.stands.map((stand) => [
+        stand.standNumber,
+        stand.discipline,
+        ...Array.from({ length: 10 }, (_, index) => stand.targetResults[index] || '-'),
+        stand.hits,
+        stand.targets,
+      ]),
+      [14, 28, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 13, 13]
+    );
+  } else {
+    drawTable(
+      ['Stand', 'Discipline', 'Hits', 'Targets', 'Missed', 'Percentage'],
+      scoreData.stands.map((stand) => [stand.standNumber, stand.discipline, stand.hits, stand.targets, stand.missed, `${stand.percentage}%`]),
+      [18, 42, 22, 26, 24, 32]
+    );
+  }
 
   return yPosition;
 }

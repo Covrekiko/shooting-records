@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { getRecordsPdfBlob, exportRecordsToPdf } from '@/utils/recordsPdfExport';
-import { resolveClayClubName, getClayScoreSummary, calculateDuration, normalizePhotos } from '@/lib/claySessionUtils';
+import { resolveClayClubName, getClayScoreSummary, buildClayScoreCardData, calculateDuration, normalizePhotos } from '@/lib/claySessionUtils';
 
 export default function RecordsSection({ category, title, emptyMessage = 'No records yet', onRecordDeleted, showTargetAnalysis = false }) {
    const [records, setRecords] = useState([]);
@@ -20,6 +20,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
    const [generatingPdf, setGeneratingPdf] = useState(null);
    const [clayScorecards, setClayScorecards] = useState({});
    const [clayStands, setClayStands] = useState({});
+   const [clayShots, setClayShots] = useState({});
 
    useEffect(() => {
      async function loadRecords() {
@@ -47,13 +48,21 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
            const scorecardLists = await Promise.all(recordsList.map(record => base44.entities.ClayScorecard.filter({ clay_session_id: record.id })));
            const scorecardMap = {};
            const standMap = {};
+           const shotMap = {};
            await Promise.all(scorecardLists.flat().map(async (scorecard) => {
              scorecardMap[scorecard.clay_session_id] = scorecard;
              const stands = await base44.entities.ClayStand.filter({ clay_scorecard_id: scorecard.id });
-             standMap[scorecard.clay_session_id] = stands.sort((a, b) => (a.stand_number || 0) - (b.stand_number || 0));
+             const sortedStands = stands.sort((a, b) => (a.stand_number || 0) - (b.stand_number || 0));
+             standMap[scorecard.clay_session_id] = sortedStands;
+             const shotLists = await Promise.all(sortedStands.map((stand) => base44.entities.ClayShot.filter({ clay_stand_id: stand.id })));
+             shotMap[scorecard.clay_session_id] = sortedStands.reduce((acc, stand, index) => ({
+               ...acc,
+               [stand.id]: (shotLists[index] || []).sort((a, b) => (a.shot_number || 0) - (b.shot_number || 0)),
+             }), {});
            }));
            setClayScorecards(scorecardMap);
            setClayStands(standMap);
+           setClayShots(shotMap);
          }
 
          setRifles(riflesList.reduce((acc, r) => ({ ...acc, [r.id]: r }), {}));
@@ -80,6 +89,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
       const blob = await getRecordsPdfBlob([record], null, rifles, clubs, shotguns, locations, targetGroups, {
         scorecards: clayScorecards,
         stands: clayStands,
+        shots: clayShots,
       });
       const url = URL.createObjectURL(blob);
       setPreviewingPdf({ record, url });
@@ -272,18 +282,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
                    {generatingPdf === record.id ? <Loader className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
                  </button>
                ) : null}
-               {isClay && (
-                 <button
-                   onClick={() => exportRecordsToPdf([record], null, 'clay-shooting-session-report.pdf', rifles, clubs, shotguns, locations, [], {
-                     scorecards: clayScorecards,
-                     stands: clayStands,
-                   })}
-                   className="p-2 hover:bg-secondary rounded transition-colors"
-                   title="Download PDF"
-                 >
-                   <Download className="w-4 h-4" />
-                 </button>
-               )}
+
                <button
                  onClick={() => handleDelete(record.id)}
                  className="p-2 hover:bg-destructive/10 text-destructive rounded transition-colors"
@@ -310,6 +309,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
            showTargetAnalysis={showTargetAnalysis}
            clayScorecard={clayScorecards[viewingRecord.id]}
            clayStands={clayStands[viewingRecord.id] || []}
+           clayShots={clayShots[viewingRecord.id] || {}}
          />,
          document.body
        )}
@@ -327,7 +327,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
   );
 }
 
-function SessionReportModal({ record, onClose, rifles, shotguns, clubs, locations, category, showTargetAnalysis = false, clayScorecard = null, clayStands = [] }) {
+function SessionReportModal({ record, onClose, rifles, shotguns, clubs, locations, category, showTargetAnalysis = false, clayScorecard = null, clayStands = [], clayShots = {} }) {
    const [currentRecord, setCurrentRecord] = useState(record);
    const [targetGroups, setTargetGroups] = useState([]);
    const [loadingGroups, setLoadingGroups] = useState(false);
@@ -361,6 +361,7 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
    const getShotgunDetails = (shotgunId) => shotguns[shotgunId];
    const getClubName = (clubId) => clubs[clubId]?.name || 'Unknown Club';
    const getLocationName = (locationId) => locations[locationId]?.name || 'Unknown Location';
+   const clayScoreData = category === 'clay_shooting' ? buildClayScoreCardData(currentRecord, clayScorecard, clayStands, clayShots) : null;
    const clayScoreSummary = category === 'clay_shooting' ? getClayScoreSummary(clayScorecard, clayStands) : null;
    const clayClubName = category === 'clay_shooting' ? resolveClayClubName(currentRecord, clubs, locations) : null;
    const clayShotgun = category === 'clay_shooting' ? getShotgunDetails(currentRecord.shotgun_id) : null;
@@ -870,6 +871,15 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
                 <iframe src={pdfUrl} className="w-full h-full border-0" />
               </div>
               <div className="p-4 border-t border-slate-200/70 dark:border-slate-700 flex justify-end gap-2">
+                {record?.category === 'clay_shooting' && (
+                  <a
+                    href={pdfUrl}
+                    download="clay-shooting-session-report.pdf"
+                    className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:opacity-90 text-sm font-medium transition-colors"
+                  >
+                    Download
+                  </a>
+                )}
                 <button
                   onClick={onClose}
                   className="px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 text-sm font-medium transition-colors"

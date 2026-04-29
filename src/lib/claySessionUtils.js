@@ -11,23 +11,63 @@ export function resolveClayClubName(record, clubs = {}, locations = {}) {
 }
 
 export function getClayScoreSummary(scorecard, stands = []) {
-  if (!scorecard && (!stands || stands.length === 0)) return null;
-
-  const totalHits = Number(scorecard?.total_hits ?? stands.reduce((sum, stand) => sum + Number(stand.hits || 0), 0));
-  const totalMisses = Number(scorecard?.total_misses ?? stands.reduce((sum, stand) => sum + Number(stand.misses || 0), 0));
-  const totalTargets = Number(scorecard?.total_valid_scored_clays ?? stands.reduce((sum, stand) => sum + Number(stand.valid_scored_clays || (Number(stand.hits || 0) + Number(stand.misses || 0))), 0));
-  const totalNoBirds = Number(scorecard?.total_no_birds ?? stands.reduce((sum, stand) => sum + Number(stand.no_birds || 0), 0));
-  const percentage = totalTargets > 0 ? Math.round((totalHits / totalTargets) * 100) : Number(scorecard?.hit_percentage || 0);
-
-  if (totalTargets === 0 && totalHits === 0 && totalMisses === 0 && totalNoBirds === 0) return null;
+  const data = buildClayScoreCardData(null, scorecard, stands);
+  if (!data) return null;
 
   return {
-    totalHits,
-    totalMisses,
+    totalHits: data.hits,
+    totalMisses: data.missed,
+    totalTargets: data.totalTargets,
+    totalNoBirds: data.noBirds,
+    percentage: data.percentage,
+    label: `${data.hits} / ${data.totalTargets}`,
+  };
+}
+
+export function buildClayScoreCardData(record = {}, scorecard = null, stands = [], shotsByStand = {}) {
+  const normalizedStands = (stands || [])
+    .map((stand, index) => {
+      const shots = shotsByStand[stand.id] || stand.shots || [];
+      const targetResults = shots
+        .sort((a, b) => (a.shot_number || 0) - (b.shot_number || 0))
+        .map((shot) => shot.result === 'hit' ? 'H' : shot.result === 'no_bird' ? 'NB' : 'M');
+
+      const hits = Number(stand.hits ?? targetResults.filter(result => result === 'H').length ?? 0);
+      const missed = Number(stand.misses ?? targetResults.filter(result => result === 'M').length ?? 0);
+      const noBirds = Number(stand.no_birds ?? targetResults.filter(result => result === 'NB').length ?? 0);
+      const targets = Number(stand.valid_scored_clays ?? stand.clays_total ?? (hits + missed) ?? 0);
+      const percentage = targets > 0 ? Math.round((hits / targets) * 100) : Number(stand.hit_percentage || 0);
+
+      return {
+        standNumber: stand.stand_number || index + 1,
+        discipline: stand.discipline_type || stand.discipline || stand.round_type || 'Sporting',
+        hits,
+        targets,
+        missed,
+        noBirds,
+        percentage,
+        targetResults,
+      };
+    })
+    .filter((stand) => stand.targets > 0 || stand.hits > 0 || stand.missed > 0 || stand.targetResults.length > 0);
+
+  const totalTargets = Number(scorecard?.total_valid_scored_clays ?? scorecard?.total_clays ?? normalizedStands.reduce((sum, stand) => sum + stand.targets, 0) ?? record?.total_targets ?? 0);
+  const hits = Number(scorecard?.total_hits ?? normalizedStands.reduce((sum, stand) => sum + stand.hits, 0) ?? record?.hits ?? 0);
+  const missed = Number(scorecard?.total_misses ?? normalizedStands.reduce((sum, stand) => sum + stand.missed, 0) ?? record?.missed ?? record?.misses ?? 0);
+  const noBirds = Number(scorecard?.total_no_birds ?? normalizedStands.reduce((sum, stand) => sum + stand.noBirds, 0) ?? 0);
+  const percentage = totalTargets > 0 ? Math.round((hits / totalTargets) * 100) : Number(scorecard?.hit_percentage || record?.percentage || 0);
+
+  if (totalTargets === 0 && hits === 0 && missed === 0 && noBirds === 0 && normalizedStands.length === 0) return null;
+
+  return {
     totalTargets,
-    totalNoBirds,
+    hits,
+    missed,
+    noBirds,
     percentage,
-    label: `${totalHits} / ${totalTargets}`,
+    roundType: normalizedStands[0]?.discipline || scorecard?.round_type || record?.round_type || 'Clay Shooting',
+    stands: normalizedStands,
+    hasTargetGrid: normalizedStands.some((stand) => stand.targetResults.length > 0),
   };
 }
 
