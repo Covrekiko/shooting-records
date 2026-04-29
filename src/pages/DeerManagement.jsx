@@ -261,6 +261,7 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
   const selectedArea = areas.find(a => a.id === data.location_id);
   const inputCls = DESIGN.INPUT;
   const labelCls = DESIGN.LABEL;
+  const selectCls = DESIGN.SELECT;
 
   const handleAreaSelect = (areaId) => {
     onChange('location_id', areaId);
@@ -286,7 +287,7 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
         </div>
         <div>
           <label className={labelCls}>Select Area</label>
-          <select value={data.location_id || ''} onChange={(e) => handleAreaSelect(e.target.value)} className={inputCls} required>
+          <select value={data.location_id || ''} onChange={(e) => handleAreaSelect(e.target.value)} className={selectCls} required>
             <option value="">Select your area</option>
             {areas && areas.length > 0
               ? areas.map((area) => <option key={area.id} value={area.id}>{area.name || 'Unnamed Area'}</option>)

@@ -409,6 +409,7 @@ export default function ClayShooting() {
 function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
   const inputCls = DESIGN.INPUT;
   const labelCls = DESIGN.LABEL;
+  const selectCls = DESIGN.SELECT;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -431,7 +432,10 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
         </div>
         <div>
           <label className={labelCls}>Club</label>
-          <BottomSheetSelect value={data.club_id} onChange={(val) => onChange('club_id', val)} placeholder="Select a club" options={clubs.map(c => ({ value: c.id, label: c.name }))} />
+          <select value={data.club_id} onChange={(e) => onChange('club_id', e.target.value)} className={selectCls} required>
+            <option value="">Select a club</option>
+            {clubs.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
         </div>
         <div>
           <label className={labelCls}>Check-in Time</label>
@@ -479,6 +483,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
 
   const inputCls = DESIGN.INPUT;
   const labelCls = DESIGN.LABEL;
+  const selectCls = DESIGN.SELECT;
 
   const handleSubmit = () => {
     if (!data.shotgun_id || !data.rounds_fired) { alert('Shotgun and Rounds Fired are required'); return; }
@@ -501,7 +506,10 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
         </div>
         <div>
           <label className={labelCls}>Shotgun</label>
-          <BottomSheetSelect value={data.shotgun_id} onChange={(val) => onChange('shotgun_id', val)} placeholder="Select a shotgun" options={shotguns.map(s => ({ value: s.id, label: s.name }))} />
+          <select value={data.shotgun_id} onChange={(e) => onChange('shotgun_id', e.target.value)} className={selectCls} required>
+            <option value="">Select a shotgun</option>
+            {shotguns.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
         </div>
         <div>
           <label className={labelCls}>Rounds Fired</label>
@@ -514,19 +522,22 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
           {ammunition.length > 0 && (
             <div className="mt-2">
               <p className="text-[10px] text-muted-foreground mb-1">Or pick from saved:</p>
-              <BottomSheetSelect
+              <select
                 value={data.ammunition_id || ''}
-                onChange={(val) => {
+                onChange={(e) => {
+                  const val = e.target.value;
                   const a = ammunition.find(x => x.id === val);
                   onChange('ammunition_id', val);
                   if (a) onChange('ammunition_used', `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`.trim());
                 }}
-                placeholder="Select saved ammunition"
-                options={ammunition.filter(a => {
+                className={selectCls}
+              >
+                <option value="">Select saved ammunition</option>
+                {ammunition.filter(a => {
                   const selectedShotgun = shotguns.find(s => s.id === data.shotgun_id);
                   return !selectedShotgun || !selectedShotgun.gauge || a.caliber === selectedShotgun.gauge;
-                }).map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
-              />
+                }).map(a => <option key={a.id} value={a.id}>{`${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`}</option>)}
+              </select>
             </div>
           )}
         </div>

@@ -445,6 +445,7 @@ export default function TargetShooting() {
 function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
   const inputCls = DESIGN.INPUT;
   const labelCls = DESIGN.LABEL;
+  const selectCls = DESIGN.SELECT;
 
   return (
     <GlobalModal
@@ -462,7 +463,10 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
         </div>
         <div>
           <label className={labelCls}>Club</label>
-          <BottomSheetSelect value={data.club_id} onChange={(val) => onChange('club_id', val)} placeholder="Select a club" options={clubs.map(c => ({ value: c.id, label: c.name }))} />
+          <select value={data.club_id} onChange={(e) => onChange('club_id', e.target.value)} className={selectCls} required>
+            <option value="">Select a club</option>
+            {clubs.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
         </div>
         <div>
           <label className={labelCls}>Check-in Time</label>
@@ -530,6 +534,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
 
   const inputCls = DESIGN.INPUT;
   const labelCls = DESIGN.LABEL;
+  const selectCls = DESIGN.SELECT;
 
   const updateRifleEntry = (index, field, value) => {
     const updated = [...data.rifles_used];
@@ -588,7 +593,10 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                   <button type="button" onClick={() => removeRifleEntry(index)} className="text-xs text-red-400 hover:text-red-600 font-medium">Remove</button>
                 )}
               </div>
-              <BottomSheetSelect value={rifle.rifle_id} onChange={(val) => updateRifleEntry(index, 'rifle_id', val)} placeholder="Select rifle" options={rifles.map(r => ({ value: r.id, label: r.name }))} />
+              <select value={rifle.rifle_id} onChange={(e) => updateRifleEntry(index, 'rifle_id', e.target.value)} className={selectCls}>
+                <option value="">Select rifle</option>
+                {rifles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+              </select>
               <div className="grid grid-cols-2 gap-2 w-full">
                  <input type="number" placeholder="Rounds" value={rifle.rounds_fired} onChange={(e) => updateRifleEntry(index, 'rounds_fired', e.target.value)} className={`${inputCls} min-w-0`} />
                  <input type="number" placeholder="Meters" value={rifle.meters_range} onChange={(e) => updateRifleEntry(index, 'meters_range', e.target.value)} className={`${inputCls} min-w-0`} />
@@ -596,9 +604,10 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
               <div>
                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide block mb-1.5">Ammunition *</label>
                 {rifle.rifle_id ? (
-                  <BottomSheetSelect
+                  <select
                     value={rifle.ammunition_id || ''}
-                    onChange={(val) => {
+                    onChange={(e) => {
+                      const val = e.target.value;
                       const a = ammunition.find(x => x.id === val);
                       setData(prev => {
                         const updated = [...prev.rifles_used];
@@ -606,14 +615,16 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                         return { ...prev, rifles_used: updated };
                       });
                     }}
-                    placeholder="Select saved ammunition (required)"
-                    options={ammunition.filter(a => {
-                      const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
-                      return !selectedRifle || !selectedRifle.caliber || a.caliber === selectedRifle.caliber;
-                    }).map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
-                  />
+                    className={selectCls}
+                  >
+                    <option value="">Select ammunition (required)</option>
+                    {ammunition.filter(a => {
+                     const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
+                     return !selectedRifle || !selectedRifle.caliber || a.caliber === selectedRifle.caliber;
+                    }).map(a => <option key={a.id} value={a.id}>{`${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`}</option>)}
+                    </select>
                 ) : (
-                  <p className="text-xs text-slate-400">Select a rifle first</p>
+                  <p className="text-xs text-muted-foreground text-xs">Select a rifle first</p>
                 )}
               </div>
             </div>
