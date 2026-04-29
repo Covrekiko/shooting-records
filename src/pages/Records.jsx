@@ -339,19 +339,11 @@ export default function Records() {
                 <>
                   <button
                     onClick={() => setPreviewingPdf(filteredRecords)}
-                    className="p-2 sm:px-3 sm:py-2 bg-secondary text-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
-                    title="Preview PDF"
+                    className="p-2 sm:px-3 sm:py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
+                    title="PDF"
                   >
                     <FileText className="w-4 h-4" />
-                    <span className="hidden sm:inline">Preview PDF</span>
-                  </button>
-                  <button
-                    onClick={() => exportRecordsToPdf(filteredRecords, null, 'shooting-records.pdf', rifles, clubs, shotguns)}
-                    className="p-2 sm:px-3 sm:py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
-                    title="Export PDF"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span className="hidden sm:inline">Export PDF</span>
+                    <span className="hidden sm:inline">PDF</span>
                   </button>
                 </>
               )}

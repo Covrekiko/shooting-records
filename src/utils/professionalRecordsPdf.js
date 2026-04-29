@@ -783,82 +783,39 @@ function formatActivityRounds(record) {
   return record.number_shot || record.rounds_fired || record.total_count || 'Not Recorded';
 }
 
-function buildActivityRows(reportData) {
-  const { clubs = {}, locations = {} } = reportData.lookups;
-  return reportData.records.map((record) => [
-    formatDate(record.date),
-    activityTypeLabel(record),
-    resolveActivityLocation(record, clubs, locations),
-    formatTimeRange(record),
-    formatActivityFirearms(record, reportData.lookups),
-    formatActivityCalibre(record, reportData.lookups),
-    formatActivitySerial(record, reportData.lookups),
-    formatActivityAmmunition(record),
-    formatActivityRounds(record),
-    record.notes || (record.species_list?.length ? record.species_list.map((item) => `${item.species}: ${item.count}`).join(', ') : null) || 'Not Recorded',
-  ]);
+function formatActivityNotes(record) {
+  if (record.notes) return record.notes;
+  if (record.species_list?.length) return record.species_list.map((item) => `${item.species}: ${item.count}`).join(', ');
+  return 'Not Recorded';
 }
 
-function drawActivityTable(doc, rows, cursor) {
-  doc.addPage('a4', 'landscape');
-  cursor = { y: REPORT.margin };
-  const { width, height } = pageMetrics(doc);
-  const x = REPORT.margin;
-  const tableW = width - REPORT.margin * 2;
-  const columns = ['Date', 'Activity Type', 'Club / Range / Location', 'Time', 'Firearm', 'Calibre / Gauge', 'Serial', 'Ammunition', 'Rounds', 'Notes'];
-  const widths = [20, 27, 42, 24, 42, 28, 28, 42, 22, 28];
-  const headerH = 10;
-  const minRowH = 12;
+function drawActivityRecordCard(doc, record, reportData, cursor, index) {
+  const { clubs = {}, locations = {} } = reportData.lookups;
+  cursor = ensureSpace(doc, cursor, 58);
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
+  doc.setFontSize(10.5);
   doc.setTextColor(...REPORT.navy);
-  doc.text('Activity Records', x, cursor.y + 6);
-  cursor.y += 12;
+  doc.text(`${index + 1}. ${activityTypeLabel(record)} — ${formatDate(record.date)}`, REPORT.margin + 2, cursor.y);
+  cursor.y += 5;
 
-  const drawHeaderRow = () => {
-    doc.setFillColor(...REPORT.soft);
-    doc.setDrawColor(...REPORT.border);
-    doc.setLineWidth(0.25);
-    doc.rect(x, cursor.y, tableW, headerH, 'FD');
-    let colX = x;
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.2);
-    doc.setTextColor(...REPORT.gunmetal);
-    columns.forEach((column, index) => {
-      doc.line(colX, cursor.y, colX, cursor.y + headerH);
-      doc.text(doc.splitTextToSize(column, widths[index] - 3), colX + 1.5, cursor.y + 4.2);
-      colX += widths[index];
-    });
-    doc.line(colX, cursor.y, colX, cursor.y + headerH);
-    cursor.y += headerH;
-  };
+  cursor = drawClayCompactCard(doc, 'Activity Details', [
+    { label: 'Date', value: formatDate(record.date) },
+    { label: 'Activity Type', value: activityTypeLabel(record) },
+    { label: 'Club / Range', value: resolveActivityLocation(record, clubs, locations) },
+    { label: 'Time', value: formatTimeRange(record) },
+    { label: 'Rounds / Count', value: formatActivityRounds(record) },
+    { label: 'Ammunition', value: formatActivityAmmunition(record) },
+  ], cursor);
 
-  drawHeaderRow();
-  rows.forEach((row) => {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6.8);
-    const wrapped = row.map((cell, index) => doc.splitTextToSize(valueOrMissing(cell), widths[index] - 3));
-    const rowH = Math.max(minRowH, Math.max(...wrapped.map((lines) => lines.length)) * 3.6 + 5);
-    if (cursor.y + rowH > height - 20) {
-      doc.addPage('a4', 'landscape');
-      cursor = { y: REPORT.margin };
-      drawHeaderRow();
-    }
-    doc.setDrawColor(...REPORT.border);
-    doc.setLineWidth(0.2);
-    doc.rect(x, cursor.y, tableW, rowH);
-    let colX = x;
-    doc.setTextColor(...REPORT.text);
-    wrapped.forEach((lines, index) => {
-      doc.line(colX, cursor.y, colX, cursor.y + rowH);
-      doc.text(lines, colX + 1.5, cursor.y + 4.5);
-      colX += widths[index];
-    });
-    doc.line(colX, cursor.y, colX, cursor.y + rowH);
-    cursor.y += rowH;
-  });
-  return cursor;
+  cursor = drawClayCompactCard(doc, 'Firearm Used', [
+    { label: 'Firearm', value: formatActivityFirearms(record, reportData.lookups) },
+    { label: 'Calibre / Gauge', value: formatActivityCalibre(record, reportData.lookups) },
+    { label: 'Serial Number', value: formatActivitySerial(record, reportData.lookups) },
+    { label: 'Notes', value: formatActivityNotes(record) },
+  ], cursor);
+
+  return { ...cursor, y: cursor.y + 2 };
 }
 
 function renderActivityLogRecords(doc, reportData) {
@@ -869,7 +826,11 @@ function renderActivityLogRecords(doc, reportData) {
     { label: 'Date of Birth', value: reportData.participant.dateOfBirth },
     { label: 'Address', value: reportData.participant.address },
   ], cursor, { columns: 2, rowHeight: 14 });
-  drawActivityTable(doc, buildActivityRows(reportData), cursor);
+
+  cursor = drawSectionTitle(doc, 'ACTIVITY RECORDS', cursor);
+  reportData.records.forEach((record, index) => {
+    cursor = drawActivityRecordCard(doc, record, reportData, cursor, index);
+  });
 }
 
 function renderRecords(doc, reportData) {
