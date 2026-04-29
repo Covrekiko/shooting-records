@@ -759,6 +759,7 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
            const photoUrl = typeof photo === 'string' ? photo : photo.url;
            try {
              doc.addImage(photoUrl, 'JPEG', photoX, photoY, photoWidth, photoHeight);
+             doc.link(photoX, photoY, photoWidth, photoHeight, { url: photoUrl });
            } catch (e) {
              doc.setDrawColor(200, 200, 200);
              doc.rect(photoX, photoY, photoWidth, photoHeight);
