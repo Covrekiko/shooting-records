@@ -273,17 +273,17 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
      }
 
      // ═══ SESSION TITLE ═══
-     doc.setFontSize(16);
+     doc.setFontSize(18);
      doc.setFont(undefined, 'bold');
      doc.setTextColor(...STYLES.headingColor);
      doc.text('TARGET SHOOTING SESSION REPORT', margin, yPosition);
-     yPosition += 8;
+     yPosition += 7;
 
-     doc.setFontSize(11);
+     doc.setFontSize(10);
      doc.setFont(undefined, 'normal');
-     doc.setTextColor(100, 100, 100);
+     doc.setTextColor(120, 120, 120);
      doc.text('Detailed Activity Record', margin, yPosition);
-     yPosition += 10;
+     yPosition += 12;
 
      // ═══ SECTION 1: SESSION OVERVIEW ═══
      doc.setFillColor(...STYLES.lightGray);
@@ -292,59 +292,64 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
      doc.setFont(undefined, 'bold');
      doc.setTextColor(...STYLES.headingColor);
      doc.text('SESSION OVERVIEW', margin + 3, yPosition + 3.5);
-     yPosition += 8;
+     yPosition += 9;
 
-     // Overview grid
+     // Two-column layout with good spacing
      const colWidth = (pageWidth - 2 * margin) / 2;
+     const labelX1 = margin + 2;
+     const valueX1 = margin + 40;
+     const labelX2 = margin + colWidth + 2;
+     const valueX2 = margin + colWidth + 40;
+
+     // Row 1
      doc.setFontSize(9);
      doc.setFont(undefined, 'bold');
      doc.setTextColor(...STYLES.darkGray);
-
-     doc.text('Session Date:', margin, yPosition);
+     doc.text('Session Date:', labelX1, yPosition);
      doc.setFont(undefined, 'normal');
      doc.setTextColor(...STYLES.textColor);
-     doc.text(record.date, margin + 35, yPosition);
+     doc.text(record.date || '-', valueX1, yPosition);
 
      doc.setFont(undefined, 'bold');
      doc.setTextColor(...STYLES.darkGray);
-     doc.text('Session Type:', margin + colWidth, yPosition);
+     doc.text('Session Type:', labelX2, yPosition);
      doc.setFont(undefined, 'normal');
      doc.setTextColor(...STYLES.textColor);
-     doc.text('Target Shooting', margin + colWidth + 35, yPosition);
-     yPosition += 6;
+     doc.text('Target Shooting', valueX2, yPosition);
+     yPosition += 8;
+
+     // Row 2
+     doc.setFont(undefined, 'bold');
+     doc.setTextColor(...STYLES.darkGray);
+     doc.text('Check-In:', labelX1, yPosition);
+     doc.setFont(undefined, 'normal');
+     doc.setTextColor(...STYLES.textColor);
+     doc.text(record.checkin_time || '-', valueX1, yPosition);
 
      doc.setFont(undefined, 'bold');
      doc.setTextColor(...STYLES.darkGray);
-     doc.text('Check-In:', margin, yPosition);
+     doc.text('Check-Out:', labelX2, yPosition);
      doc.setFont(undefined, 'normal');
      doc.setTextColor(...STYLES.textColor);
-     doc.text(record.checkin_time || 'N/A', margin + 35, yPosition);
+     doc.text(record.checkout_time || '-', valueX2, yPosition);
+     yPosition += 8;
+
+     // Row 3 — Club / Range (resolve from multiple sources)
+     const resolvedClubName = record.club_name || 
+       (record.club_id && clubs[record.club_id]?.name) || 
+       record.location_name || 
+       record.range_name ||
+       record.place_name ||
+       record.venue_name ||
+       'Not recorded';
 
      doc.setFont(undefined, 'bold');
      doc.setTextColor(...STYLES.darkGray);
-     doc.text('Check-Out:', margin + colWidth, yPosition);
+     doc.text('Club / Range:', labelX1, yPosition);
      doc.setFont(undefined, 'normal');
      doc.setTextColor(...STYLES.textColor);
-     doc.text(record.checkout_time || 'N/A', margin + colWidth + 35, yPosition);
-     yPosition += 6;
-
-     // Club/Range
-     if (record.club_id && clubs[record.club_id]) {
-       doc.setFont(undefined, 'bold');
-       doc.setTextColor(...STYLES.darkGray);
-       doc.text('Club / Range:', margin, yPosition);
-       doc.setFont(undefined, 'normal');
-       doc.setTextColor(...STYLES.textColor);
-       doc.text(clubs[record.club_id].name || 'Unknown', margin + 35, yPosition);
-       yPosition += 6;
-       if (clubs[record.club_id].location) {
-         doc.setFont(undefined, 'normal');
-         doc.setFontSize(8);
-         doc.text(clubs[record.club_id].location, margin + 35, yPosition);
-         yPosition += 5;
-       }
-     }
-     yPosition += 4;
+     doc.text(resolvedClubName, valueX1, yPosition);
+     yPosition += 10;
 
      // ═══ SECTION 2: FIREARMS & AMMUNITION ═══
      if (record.rifles_used && record.rifles_used.length > 0) {
@@ -354,113 +359,135 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
        doc.setFont(undefined, 'bold');
        doc.setTextColor(...STYLES.headingColor);
        doc.text('FIREARMS & AMMUNITION', margin + 3, yPosition + 3.5);
-       yPosition += 8;
+       yPosition += 9;
 
        record.rifles_used.forEach((rifle, rIdx) => {
          const rifleData = rifles[rifle.rifle_id];
 
-         // Firearm card background
-         doc.setDrawColor(200, 200, 200);
-         doc.rect(margin, yPosition, pageWidth - 2 * margin, 0.3);
-         yPosition += 3;
+         if (yPosition > pageHeight - 60) {
+           doc.addPage();
+           pageNum++;
+           addPageId(doc, docId, pageNum, pageWidth);
+           yPosition = margin;
+         }
 
-         // Firearm title
+         // Firearm header
          doc.setFontSize(10);
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.headingColor);
-         doc.text(`Firearm #${rIdx + 1}`, margin + 3, yPosition);
-         yPosition += 5;
+         doc.text(`Firearm #${rIdx + 1} — ${rifleData?.name || 'Unknown Rifle'}`, margin + 3, yPosition);
+         yPosition += 6;
 
-         // Firearm details
-         doc.setFontSize(9);
+         // Firearm details box
+         doc.setDrawColor(220, 220, 220);
+         doc.setLineWidth(0.5);
+         doc.rect(margin + 2, yPosition, pageWidth - 2 * margin - 4, 30);
+         yPosition += 3;
+
+         doc.setFontSize(8.5);
+         let detailY = yPosition;
+
+         // Left column
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
-         doc.text('Name:', margin + 5, yPosition);
+         doc.text('Name:', margin + 8, detailY);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
-         doc.text(rifleData?.name || 'Unknown', margin + 30, yPosition);
-         yPosition += 5;
+         doc.text(rifleData?.name || '-', margin + 28, detailY);
 
-         if (rifleData) {
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Make:', margin + 8, detailY + 5);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         doc.text(rifleData?.make || '-', margin + 28, detailY + 5);
+
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Model:', margin + 8, detailY + 10);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         doc.text(rifleData?.model || '-', margin + 28, detailY + 10);
+
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Calibre:', margin + 8, detailY + 15);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         doc.text(rifleData?.caliber || '-', margin + 28, detailY + 15);
+
+         // Right column
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Rounds Fired:', margin + 100, detailY);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         doc.text(String(rifle.rounds_fired || '-'), margin + 135, detailY);
+
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Range Dist:', margin + 100, detailY + 5);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         doc.text(`${rifle.meters_range || '-'} m`, margin + 135, detailY + 5);
+
+         if (rifleData?.serial_number) {
            doc.setFont(undefined, 'bold');
            doc.setTextColor(...STYLES.darkGray);
-           doc.text('Make:', margin + 5, yPosition);
+           doc.text('Serial:', margin + 100, detailY + 10);
            doc.setFont(undefined, 'normal');
            doc.setTextColor(...STYLES.textColor);
-           doc.text(rifleData.make || '-', margin + 30, yPosition);
-
-           doc.setFont(undefined, 'bold');
-           doc.setTextColor(...STYLES.darkGray);
-           doc.text('Model:', margin + 100, yPosition);
-           doc.setFont(undefined, 'normal');
-           doc.setTextColor(...STYLES.textColor);
-           doc.text(rifleData.model || '-', margin + 125, yPosition);
-           yPosition += 5;
-
-           doc.setFont(undefined, 'bold');
-           doc.setTextColor(...STYLES.darkGray);
-           doc.text('Caliber:', margin + 5, yPosition);
-           doc.setFont(undefined, 'normal');
-           doc.setTextColor(...STYLES.textColor);
-           doc.text(rifleData.caliber || '-', margin + 30, yPosition);
-
-           if (rifleData.serial_number) {
-             doc.setFont(undefined, 'bold');
-             doc.setTextColor(...STYLES.darkGray);
-             doc.text('Serial:', margin + 100, yPosition);
-             doc.setFont(undefined, 'normal');
-             doc.setTextColor(...STYLES.textColor);
-             doc.text(rifleData.serial_number, margin + 125, yPosition);
-           }
-           yPosition += 5;
+           doc.text(rifleData.serial_number, margin + 135, detailY + 10);
          }
 
-         // Session details
-         doc.setFont(undefined, 'bold');
-         doc.setTextColor(...STYLES.darkGray);
-         doc.text('Rounds Fired:', margin + 5, yPosition);
-         doc.setFont(undefined, 'normal');
-         doc.setTextColor(...STYLES.textColor);
-         doc.text(`${rifle.rounds_fired || '0'} rounds`, margin + 30, yPosition);
+         yPosition += 33;
+
+         // Ammunition box
+         doc.setFillColor(245, 245, 250);
+         doc.setDrawColor(200, 200, 220);
+         doc.rect(margin + 2, yPosition, pageWidth - 2 * margin - 4, 20);
+         yPosition += 3;
+
+         doc.setFontSize(8.5);
+         let ammoY = yPosition;
 
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
-         doc.text('Range Distance:', margin + 100, yPosition);
+         doc.text('Ammunition:', margin + 8, ammoY);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
-         doc.text(`${rifle.meters_range || '-'} m`, margin + 125, yPosition);
-         yPosition += 5;
-
-         // Ammunition
-         doc.setFont(undefined, 'bold');
-         doc.setTextColor(...STYLES.darkGray);
-         doc.text('Ammunition Brand:', margin + 5, yPosition);
-         doc.setFont(undefined, 'normal');
-         doc.setTextColor(...STYLES.textColor);
-         doc.text(rifle.ammunition_brand || '-', margin + 30, yPosition);
-         yPosition += 5;
+         doc.text(rifle.ammunition_brand || 'Not recorded', margin + 35, ammoY);
 
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
-         doc.text('Bullet Type:', margin + 5, yPosition);
+         doc.text('Type:', margin + 8, ammoY + 5);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
-         doc.text(rifle.bullet_type || '-', margin + 30, yPosition);
+         doc.text(rifle.bullet_type || 'Not recorded', margin + 35, ammoY + 5);
 
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
-         doc.text('Grain Weight:', margin + 100, yPosition);
+         doc.text('Grain:', margin + 8, ammoY + 10);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
-         doc.text(rifle.grain || '-', margin + 125, yPosition);
-         yPosition += 6;
+         doc.text(rifle.grain || 'Not recorded', margin + 35, ammoY + 10);
+
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Calibre:', margin + 100, ammoY);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         doc.text(rifle.caliber || 'Not recorded', margin + 135, ammoY);
+
+         yPosition += 23;
        });
+       yPosition += 3;
      }
 
      // ═══ SECTION 3: TARGET ANALYSIS ═══
      const groupsForRecord = targetGroups.filter(g => g.session_id === record.id);
      if (groupsForRecord && groupsForRecord.length > 0) {
-       if (yPosition > pageHeight - 100) {
+       if (yPosition > pageHeight - 80) {
          doc.addPage();
          pageNum++;
          addPageId(doc, docId, pageNum, pageWidth);
@@ -473,103 +500,111 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
        doc.setFont(undefined, 'bold');
        doc.setTextColor(...STYLES.headingColor);
        doc.text('TARGET ANALYSIS', margin + 3, yPosition + 3.5);
-       yPosition += 8;
+       yPosition += 9;
 
        groupsForRecord.forEach((group, gIdx) => {
-         if (yPosition > pageHeight - 50) {
+         if (yPosition > pageHeight - 60) {
            doc.addPage();
            pageNum++;
            addPageId(doc, docId, pageNum, pageWidth);
            yPosition = margin;
          }
 
-         // Group card
-         doc.setDrawColor(200, 200, 200);
-         doc.rect(margin, yPosition, pageWidth - 2 * margin, 0.3);
-         yPosition += 3;
-
+         // Group header
          doc.setFontSize(10);
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.headingColor);
-         doc.text(`Group ${gIdx + 1}: ${group.group_name || `Group ${gIdx + 1}`}`, margin + 3, yPosition);
-         yPosition += 5;
+         doc.text(`Group ${gIdx + 1} — ${group.group_name || `Group ${gIdx + 1}`}`, margin + 3, yPosition);
+         yPosition += 6;
 
-         doc.setFontSize(9);
+         // Group details box
+         doc.setDrawColor(200, 200, 200);
+         doc.setLineWidth(0.5);
+         const groupDataHeight = 28;
+         doc.rect(margin + 2, yPosition, pageWidth - 2 * margin - 4, groupDataHeight);
+         yPosition += 3;
+
+         doc.setFontSize(8.5);
+         let groupY = yPosition;
+         const col1X = margin + 8;
+         const col2X = margin + 100;
+
+         // Column 1
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
+         doc.text('Shots:', col1X, groupY);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         doc.text(group.number_of_shots ? String(group.number_of_shots) : 'Not recorded', col1X + 20, groupY);
 
-         if (group.number_of_shots) {
-           doc.text('Shots:', margin + 5, yPosition);
-           doc.setFont(undefined, 'normal');
-           doc.setTextColor(...STYLES.textColor);
-           doc.text(String(group.number_of_shots), margin + 30, yPosition);
-           yPosition += 5;
-         }
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Distance:', col1X, groupY + 5);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         doc.text(group.distance_override ? `${group.distance_override} m` : 'Not recorded', col1X + 20, groupY + 5);
 
-         if (group.distance_override) {
-           doc.setFont(undefined, 'bold');
-           doc.setTextColor(...STYLES.darkGray);
-           doc.text('Distance:', margin + 5, yPosition);
-           doc.setFont(undefined, 'normal');
-           doc.setTextColor(...STYLES.textColor);
-           doc.text(`${group.distance_override} m`, margin + 30, yPosition);
-           yPosition += 5;
-         }
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Group Size (MOA):', col1X, groupY + 10);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         doc.text(group.group_size_moa ? group.group_size_moa.toFixed(2) : 'Not recorded', col1X + 20, groupY + 10);
 
-         if (group.group_size_moa || group.group_size_mm || group.group_size_mrad) {
-           doc.setFont(undefined, 'bold');
-           doc.setTextColor(...STYLES.darkGray);
-           doc.text('Group Size:', margin + 5, yPosition);
-           doc.setFont(undefined, 'normal');
-           doc.setTextColor(...STYLES.textColor);
-           const sizes = [];
-           if (group.group_size_moa) sizes.push(`${group.group_size_moa.toFixed(2)} MOA`);
-           if (group.group_size_mm) sizes.push(`${group.group_size_mm} mm`);
-           if (group.group_size_mrad) sizes.push(`${group.group_size_mrad.toFixed(3)} mrad`);
-           doc.text(sizes.join(' | '), margin + 30, yPosition);
-           yPosition += 5;
-         }
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Point of Impact:', col1X, groupY + 15);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         const poiText = (group.point_of_impact_x || group.point_of_impact_y) 
+           ? `X: ${(group.point_of_impact_x || 0).toFixed(1)}mm Y: ${(group.point_of_impact_y || 0).toFixed(1)}mm`
+           : 'Not recorded';
+         doc.text(poiText, col1X + 20, groupY + 15);
 
-         if (group.point_of_impact_x || group.point_of_impact_y) {
-           doc.setFont(undefined, 'bold');
-           doc.setTextColor(...STYLES.darkGray);
-           doc.text('Point of Impact:', margin + 5, yPosition);
-           doc.setFont(undefined, 'normal');
-           doc.setTextColor(...STYLES.textColor);
-           const poiText = `X: ${(group.point_of_impact_x || 0).toFixed(1)}mm | Y: ${(group.point_of_impact_y || 0).toFixed(1)}mm`;
-           doc.text(poiText, margin + 30, yPosition);
-           yPosition += 5;
-         }
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Turret Clicks:', col1X, groupY + 20);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         const clickText = (group.clicks_up_down || group.clicks_left_right)
+           ? `Elev: ${group.clicks_up_down || '-'} Wind: ${group.clicks_left_right || '-'}`
+           : 'Not recorded';
+         doc.text(clickText, col1X + 20, groupY + 20);
 
-         if (group.clicks_up_down || group.clicks_left_right) {
-           doc.setFont(undefined, 'bold');
-           doc.setTextColor(...STYLES.darkGray);
-           doc.text('Turret Clicks:', margin + 5, yPosition);
-           doc.setFont(undefined, 'normal');
-           doc.setTextColor(...STYLES.textColor);
-           const clickText = `Elevation: ${group.clicks_up_down || '-'} | Windage: ${group.clicks_left_right || '-'}`;
-           doc.text(clickText, margin + 30, yPosition);
-           yPosition += 5;
-         }
+         // Column 2
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Group Size (mm):', col2X, groupY);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         doc.text(group.group_size_mm || 'Not recorded', col2X + 30, groupY);
 
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.darkGray);
+         doc.text('Group Size (mrad):', col2X, groupY + 5);
+         doc.setFont(undefined, 'normal');
+         doc.setTextColor(...STYLES.textColor);
+         doc.text(group.group_size_mrad ? group.group_size_mrad.toFixed(3) : 'Not recorded', col2X + 30, groupY + 5);
+
+         yPosition += groupDataHeight + 3;
+
+         // Group notes if present
          if (group.notes) {
+           doc.setFontSize(8);
            doc.setFont(undefined, 'bold');
            doc.setTextColor(...STYLES.darkGray);
-           doc.text('Notes:', margin + 5, yPosition);
+           doc.text('Notes:', margin + 8, yPosition);
+           yPosition += 4;
            doc.setFont(undefined, 'normal');
-           doc.setFontSize(8);
-           doc.setTextColor(...STYLES.textColor);
-           const wrappedNotes = doc.splitTextToSize(group.notes, pageWidth - 2 * margin - 30);
-           wrappedNotes.forEach((line, nIdx) => {
-             doc.text(line, margin + 30, yPosition);
+           const wrappedNotes = doc.splitTextToSize(group.notes, pageWidth - 2 * margin - 16);
+           wrappedNotes.forEach(line => {
+             doc.text(line, margin + 12, yPosition);
              yPosition += 3.5;
            });
-           yPosition += 1;
-         } else {
            yPosition += 2;
          }
 
-         // Target photos
+         // Target photo
          if (group.marked_photo_url || group.ai_marked_photo_url || group.photo_url) {
            if (yPosition > pageHeight - 50) {
              doc.addPage();
@@ -581,11 +616,11 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
            doc.setFontSize(8);
            doc.setFont(undefined, 'bold');
            doc.setTextColor(...STYLES.darkGray);
-           doc.text('Target Photo:', margin + 5, yPosition);
+           doc.text('Target Photo:', margin + 8, yPosition);
            yPosition += 4;
 
-           const photoWidth = 40;
-           const photoHeight = 40;
+           const photoWidth = 50;
+           const photoHeight = 50;
            const photoX = margin + 10;
 
            try {
@@ -593,14 +628,23 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
              doc.addImage(photoUrl, 'JPEG', photoX, yPosition, photoWidth, photoHeight);
              yPosition += photoHeight + 3;
            } catch (e) {
-             doc.setTextColor(150, 0, 0);
+             doc.setDrawColor(200, 200, 200);
+             doc.rect(photoX, yPosition, photoWidth, photoHeight);
              doc.setFontSize(8);
-             doc.text('Image unavailable', photoX, yPosition + 18);
-             yPosition += 25;
+             doc.setFont(undefined, 'normal');
+             doc.setTextColor(150, 0, 0);
+             doc.text('Image unavailable', photoX + 5, yPosition + photoHeight / 2);
+             yPosition += photoHeight + 3;
            }
+         } else {
+           doc.setFontSize(8);
+           doc.setFont(undefined, 'normal');
+           doc.setTextColor(100, 100, 100);
+           doc.text('No target photo recorded', margin + 8, yPosition);
+           yPosition += 4;
          }
 
-         yPosition += 2;
+         yPosition += 4;
        });
      }
 
@@ -619,7 +663,7 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
        doc.setFont(undefined, 'bold');
        doc.setTextColor(...STYLES.headingColor);
        doc.text('SESSION NOTES', margin + 3, yPosition + 3.5);
-       yPosition += 8;
+       yPosition += 9;
 
        doc.setFontSize(9);
        doc.setFont(undefined, 'normal');
@@ -637,7 +681,7 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
        });
      }
 
-     yPosition += 10;
+     yPosition += 12;
    });
 
    return yPosition;
