@@ -204,6 +204,9 @@ export default function Records() {
       }
 
       // STEP 6: Reverse Armory firearm counters (idempotency check first)
+      console.log('[DELETE DEBUG] ===== ENTERING STEP 6: ARMORY REVERSAL =====');
+      console.log('[DELETE DEBUG] ammoRefunded check passed, proceeding to armory reversal');
+      
       // First, log the actual freshRecord structure to debug field mismatches
       console.log('[ARMORY FIELD DEBUG] full freshRecord =', freshRecord);
       console.log('[ARMORY FIELD DEBUG] category =', freshRecord.category);
@@ -282,11 +285,26 @@ export default function Records() {
           } 
           // CLAY SHOOTING - single shotgun with normalization
           else if (freshRecord.category === 'clay_shooting') {
+            console.log('[ARMORY DELETE DEBUG] === CLAY SHOOTING REVERSAL ===');
+            console.log('[ARMORY DELETE DEBUG] checking shotgun_id, firearm_id, weapon_id, gun_id');
+            console.log('[ARMORY DELETE DEBUG] shotgun_id =', freshRecord.shotgun_id);
+            console.log('[ARMORY DELETE DEBUG] firearm_id =', freshRecord.firearm_id);
+            console.log('[ARMORY DELETE DEBUG] weapon_id =', freshRecord.weapon_id);
+            console.log('[ARMORY DELETE DEBUG] gun_id =', freshRecord.gun_id);
+            
             const shotgunId = 
               freshRecord.shotgun_id ||
               freshRecord.firearm_id ||
               freshRecord.weapon_id ||
               freshRecord.gun_id;
+            
+            console.log('[ARMORY DELETE DEBUG] resolved shotgunId =', shotgunId);
+            console.log('[ARMORY DELETE DEBUG] checking rounds_fired, cartridges_fired, total_shots, cartridges_used');
+            console.log('[ARMORY DELETE DEBUG] rounds_fired =', freshRecord.rounds_fired);
+            console.log('[ARMORY DELETE DEBUG] cartridges_fired =', freshRecord.cartridges_fired);
+            console.log('[ARMORY DELETE DEBUG] total_shots =', freshRecord.total_shots);
+            console.log('[ARMORY DELETE DEBUG] cartridges_used =', freshRecord.cartridges_used);
+            
             const cartridgesToSubtract = Number(
               freshRecord.rounds_fired ||
               freshRecord.cartridges_fired ||
@@ -295,10 +313,12 @@ export default function Records() {
               0
             );
             
+            console.log('[ARMORY DELETE DEBUG] resolved cartridgesToSubtract =', cartridgesToSubtract);
+            
             if (!shotgunId) {
-              console.warn('[ARMORY DEBUG] Clay cannot reverse: shotgunId missing from record');
+              console.error('[ARMORY DELETE DEBUG] FAIL: shotgunId missing from record - cannot reverse Armory');
             } else if (cartridgesToSubtract <= 0) {
-              console.warn('[ARMORY DEBUG] Clay cannot reverse: cartridges is 0 or missing');
+              console.warn('[ARMORY DELETE DEBUG] WARN: cartridges is 0 or missing - skipping reversal');
             } else {
               console.log('[ARMORY DEBUG] firearmId =', shotgunId);
               console.log('[ARMORY DEBUG] fetching firearm from Base44');
@@ -385,6 +405,7 @@ export default function Records() {
           
           armoryReversalSuccess = true;
           console.log('[ARMORY DEBUG] all counters reversed successfully');
+          console.log('[DELETE DEBUG] ===== ARMORY REVERSAL COMPLETE =====');
         } catch (armoryErr) {
           console.error('[ARMORY DEBUG] counter reversal failed:', armoryErr);
           alert('⚠️ Armory counter update failed. Record was not deleted.');
