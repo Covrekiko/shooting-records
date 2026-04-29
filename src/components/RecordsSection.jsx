@@ -328,20 +328,6 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 sm:px-6 py-4 sm:py-6" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
 
-        {/* Photos Section */}
-        {currentRecord.photos && currentRecord.photos.length > 0 && (
-          <div className="mb-6 pb-4 border-b border-border">
-            <h3 className="font-bold text-lg mb-3">Evidence Photos</h3>
-            <div className="grid grid-cols-4 gap-2">
-              {currentRecord.photos.map((photo, idx) => {
-                const photoUrl = typeof photo === 'string' ? photo : photo?.url;
-                if (!photoUrl) return null;
-                return <img key={idx} src={photoUrl} alt="record" className="h-28 w-28 object-cover rounded-lg border border-border" />;
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Basic Session Info - 2 col on desktop, 1 on mobile */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 pb-4 border-b border-border">
           <div>
@@ -754,6 +740,20 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
             <h3 className="font-bold text-base sm:text-lg mb-2 text-primary">Session Notes</h3>
             <div className="bg-secondary/20 p-4 rounded-lg">
               <p className="whitespace-pre-wrap text-sm">{currentRecord.notes}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Photos Section — Bottom */}
+        {currentRecord.photos && currentRecord.photos.length > 0 && (
+          <div className="mb-6 pb-4 border-b border-border">
+            <h3 className="font-bold text-lg mb-3">Photos</h3>
+            <div className="grid grid-cols-4 gap-2">
+              {currentRecord.photos.map((photo, idx) => {
+                const photoUrl = typeof photo === 'string' ? photo : photo?.url;
+                if (!photoUrl) return null;
+                return <img key={idx} src={photoUrl} alt="record" className="h-28 w-28 object-cover rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity" onClick={() => window.open(photoUrl, '_blank')} />;
+              })}
             </div>
           </div>
         )}
