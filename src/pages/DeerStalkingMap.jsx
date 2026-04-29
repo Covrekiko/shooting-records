@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { GoogleMap, Marker, Polyline, InfoWindow, useLoadScript } from '@react-google-maps/api';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
 import { useOuting } from '@/context/OutingContext';
 import FloatingActionBar from '@/components/deer-stalking/FloatingActionBar';
 import POIModal from '@/components/deer-stalking/POIModal';
@@ -36,19 +35,20 @@ const GOOGLE_MAPS_LIBRARIES = ['drawing', 'places'];
 export default function DeerStalkingMap() {
   const { activeOuting, loading: outingLoading, startOuting, endOuting, endOutingWithData, updateGpsTrack } = useOuting();
   
-  // Fetch API key from backend
-  const { data: keyData } = useQuery({
-    queryKey: ['googleMapsApiKey'],
-    queryFn: async () => {
-      const response = await base44.functions.invoke('getGoogleMapsApiKey', {});
-      return response.data;
-    },
-    staleTime: Infinity,
-  });
+  const [apiKey, setApiKey] = useState(() => import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
 
-  // Load Google Maps with API key from backend or Vite env
+  // Fetch API key from backend if Vite env key is missing (development environment)
+  useEffect(() => {
+    if (!apiKey) {
+      base44.functions.invoke('getGoogleMapsApiKey', {})
+        .then(res => setApiKey(res.data?.apiKey))
+        .catch(() => {});
+    }
+  }, [apiKey]);
+
+  // Load Google Maps with API key
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: keyData?.apiKey || import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    googleMapsApiKey: apiKey,
     libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
