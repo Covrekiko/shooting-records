@@ -205,16 +205,41 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
 
   return (
     <div className="space-y-3">
-      {records.map((record) => (
+      {records.map((record) => {
+        // Resolve club/range name
+        const resolvedClubName = record.club_name || 
+          (record.club_id && clubs[record.club_id]?.name) || 
+          record.location_name || 
+          record.range_name ||
+          record.place_name ||
+          record.venue_name;
+
+        // Calculate total rounds for card display
+        let roundsDisplay = '';
+        if (category === 'target_shooting' && record.rifles_used) {
+          const totalRounds = record.rifles_used.reduce((sum, r) => sum + (parseInt(r.rounds_fired) || 0), 0);
+          roundsDisplay = totalRounds > 0 ? ` - ${totalRounds} round${totalRounds !== 1 ? 's' : ''}` : '';
+        } else if (category === 'clay_shooting' && record.rounds_fired) {
+          roundsDisplay = ` - ${record.rounds_fired} round${record.rounds_fired !== 1 ? 's' : ''}`;
+        } else if (category === 'deer_management' && record.total_count) {
+          roundsDisplay = ` - ${record.total_count} shot${record.total_count !== 1 ? 's' : ''}`;
+        }
+
+        return (
         <div key={record.id} className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm">{record.location_name || record.place_name || 'Session'}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {format(new Date(record.date), 'MMM d, yyyy')} at {record.checkin_time || record.start_time}
+              <p className="font-semibold text-sm">
+                {category === 'target_shooting' ? 'Target Shooting' : category === 'clay_shooting' ? 'Clay Shooting' : 'Deer Management'}
+                {roundsDisplay}
               </p>
-              {record.created_by && (
-                <p className="text-xs text-muted-foreground mt-1">by {record.created_by}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {format(new Date(record.date), 'MMM d, yyyy')} • {category === 'target_shooting' ? 'Target Shooting' : category === 'clay_shooting' ? 'Clay Shooting' : 'Deer Management'}
+              </p>
+              {resolvedClubName && (
+                <p className="text-xs text-foreground mt-2">
+                  {category === 'deer_management' ? 'Location' : 'Club / Range'}: {resolvedClubName}
+                </p>
               )}
               {record.notes && <p className="text-xs text-foreground mt-2 line-clamp-2">{record.notes}</p>}
             </div>
@@ -244,9 +269,10 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
                  <Trash2 className="w-4 h-4" />
                </button>
              </div>
-          </div>
-        </div>
-      ))}
+             </div>
+             </div>
+             );
+             })}
 
       {/* Full Session Report Modal */}
        {viewingRecord && createPortal(
