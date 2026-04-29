@@ -176,11 +176,6 @@ export default function ClayShooting() {
   const handleCheckin = async (e) => {
     e.preventDefault();
     try {
-      console.log('[CLAY CHECKIN DEBUG] clubs loaded =', clubs.length, clubs);
-      console.log('[CLAY CHECKIN DEBUG] selected club_id =', checkinData.club_id);
-      console.log('[CLAY CHECKIN DEBUG] date =', checkinData.date);
-      console.log('[CLAY CHECKIN DEBUG] checkin_time =', checkinData.checkin_time);
-
       // Prevent duplicate active sessions
       if (activeSession) {
         alert('Already checked in. Please check out first.');
@@ -194,12 +189,6 @@ export default function ClayShooting() {
       }
 
       const selectedClub = clubs.find(c => c.id === checkinData.club_id);
-      console.log('[CLAY CHECKIN DEBUG] creating SessionRecord =', {
-        club_id: checkinData.club_id,
-        location_name: selectedClub?.name || 'Unknown Club',
-        category: 'clay_shooting',
-      });
-
       const session = await base44.entities.SessionRecord.create({
         ...checkinData,
         category: 'clay_shooting',
@@ -211,7 +200,6 @@ export default function ClayShooting() {
         photos: [],
         gps_track: [],
       });
-      console.log('[CLAY CHECKIN DEBUG] session created =', session.id, session.status);
       setActiveSession(session);
 
       // Validate geolocation support before starting tracking
@@ -220,7 +208,6 @@ export default function ClayShooting() {
       }
 
       trackingService.startTracking(session.id, 'clay');
-      console.log('[CLAY CHECKIN DEBUG] tracking started =', session.id);
       setShowCheckin(false);
       setCheckinData({ date: new Date().toISOString().split('T')[0], club_id: '', checkin_time: new Date().toTimeString().slice(0, 5), notes: '' });
     } catch (error) {
