@@ -204,19 +204,50 @@ export default function Records() {
       }
 
       // STEP 6: Reverse Armory firearm counters (idempotency check first)
+      // First, log the actual freshRecord structure to debug field mismatches
+      console.log('[ARMORY FIELD DEBUG] full freshRecord =', freshRecord);
+      console.log('[ARMORY FIELD DEBUG] category =', freshRecord.category);
+      console.log('[ARMORY FIELD DEBUG] recordType =', freshRecord.recordType);
+      console.log('[ARMORY FIELD DEBUG] rifles_used =', freshRecord.rifles_used);
+      console.log('[ARMORY FIELD DEBUG] rifle_id =', freshRecord.rifle_id);
+      console.log('[ARMORY FIELD DEBUG] firearm_id =', freshRecord.firearm_id);
+      console.log('[ARMORY FIELD DEBUG] weapon_id =', freshRecord.weapon_id);
+      console.log('[ARMORY FIELD DEBUG] shotgun_id =', freshRecord.shotgun_id);
+      console.log('[ARMORY FIELD DEBUG] rounds_fired =', freshRecord.rounds_fired);
+      console.log('[ARMORY FIELD DEBUG] total_count =', freshRecord.total_count);
+      console.log('[ARMORY FIELD DEBUG] shots_fired =', freshRecord.shots_fired);
+      console.log('[ARMORY FIELD DEBUG] armoryCountersReversed =', freshRecord.armoryCountersReversed);
+      console.log('[ARMORY FIELD DEBUG] countersReversedAt =', freshRecord.countersReversedAt);
+
       let armoryReversalSuccess = false;
       if (freshRecord.armoryCountersReversed !== true) {
         console.log('[ARMORY DEBUG] starting armory counter reversal');
         console.log('[ARMORY DEBUG] category =', freshRecord.category);
         console.log('[ARMORY DEBUG] recordId =', freshRecord.id);
         try {
-          // TARGET SHOOTING - multiple rifles
-          if (freshRecord.category === 'target_shooting' && freshRecord.rifles_used?.length > 0) {
-            for (const rifleEntry of freshRecord.rifles_used) {
+          // TARGET SHOOTING - multiple rifles with fallback to top-level fields
+          const targetRifles = [];
+          if (Array.isArray(freshRecord.rifles_used) && freshRecord.rifles_used.length > 0) {
+            targetRifles.push(...freshRecord.rifles_used.map(r => ({
+              rifle_id: r.rifle_id || r.firearm_id || r.weapon_id,
+              rounds_fired: Number(r.rounds_fired || freshRecord.rounds_fired || 0)
+            })));
+          } else if (freshRecord.rifle_id || freshRecord.firearm_id || freshRecord.weapon_id) {
+            targetRifles.push({
+              rifle_id: freshRecord.rifle_id || freshRecord.firearm_id || freshRecord.weapon_id,
+              rounds_fired: Number(freshRecord.rounds_fired || 0)
+            });
+          }
+
+          if (freshRecord.category === 'target_shooting' && targetRifles.length > 0) {
+            for (const rifleEntry of targetRifles) {
               const rifleId = rifleEntry.rifle_id;
-              const roundsToSubtract = parseInt(rifleEntry.rounds_fired || 0);
+              const roundsToSubtract = rifleEntry.rounds_fired;
               
-              if (!rifleId || roundsToSubtract <= 0) continue;
+              if (!rifleId || roundsToSubtract <= 0) {
+                console.log('[ARMORY DEBUG] skipping rifle entry: rifleId=', rifleId, 'rounds=', roundsToSubtract);
+                continue;
+              }
               
               console.log('[ARMORY DEBUG] firearmId =', rifleId);
               console.log('[ARMORY DEBUG] fetching firearm from Base44');
@@ -239,15 +270,36 @@ export default function Records() {
               await base44.entities.Rifle.update(rifleId, {
                 total_rounds_fired: totalAfter
               });
+              
+              // Verify update
+              const verifyRifle = await base44.entities.Rifle.get(rifleId);
+              console.log('[ARMORY VERIFY] rifle after update =', verifyRifle.total_rounds_fired);
+              if (verifyRifle.total_rounds_fired !== totalAfter) {
+                console.error('[ARMORY VERIFY] mismatch: expected', totalAfter, 'got', verifyRifle.total_rounds_fired);
+              }
               console.log('[ARMORY DEBUG] update success = true');
             }
           } 
-          // CLAY SHOOTING - single shotgun
+          // CLAY SHOOTING - single shotgun with normalization
           else if (freshRecord.category === 'clay_shooting') {
-            const shotgunId = freshRecord.shotgun_id || freshRecord.firearm_id || freshRecord.weapon_id;
-            const cartridgesToSubtract = parseInt(freshRecord.rounds_fired || freshRecord.cartridges_fired || freshRecord.total_shots || 0);
+            const shotgunId = 
+              freshRecord.shotgun_id ||
+              freshRecord.firearm_id ||
+              freshRecord.weapon_id ||
+              freshRecord.gun_id;
+            const cartridgesToSubtract = Number(
+              freshRecord.rounds_fired ||
+              freshRecord.cartridges_fired ||
+              freshRecord.total_shots ||
+              freshRecord.cartridges_used ||
+              0
+            );
             
-            if (shotgunId && cartridgesToSubtract > 0) {
+            if (!shotgunId) {
+              console.warn('[ARMORY DEBUG] Clay cannot reverse: shotgunId missing from record');
+            } else if (cartridgesToSubtract <= 0) {
+              console.warn('[ARMORY DEBUG] Clay cannot reverse: cartridges is 0 or missing');
+            } else {
               console.log('[ARMORY DEBUG] firearmId =', shotgunId);
               console.log('[ARMORY DEBUG] fetching firearm from Base44');
               
@@ -269,15 +321,36 @@ export default function Records() {
               await base44.entities.Shotgun.update(shotgunId, {
                 total_cartridges_fired: totalAfter
               });
+              
+              // Verify update
+              const verifyShotgun = await base44.entities.Shotgun.get(shotgunId);
+              console.log('[ARMORY VERIFY] shotgun after update =', verifyShotgun.total_cartridges_fired);
+              if (verifyShotgun.total_cartridges_fired !== totalAfter) {
+                console.error('[ARMORY VERIFY] mismatch: expected', totalAfter, 'got', verifyShotgun.total_cartridges_fired);
+              }
               console.log('[ARMORY DEBUG] update success = true');
             }
           } 
-          // DEER MANAGEMENT - single rifle
+          // DEER MANAGEMENT - single rifle with normalization
           else if (freshRecord.category === 'deer_management') {
-            const rifleId = freshRecord.rifle_id || freshRecord.firearm_id || freshRecord.weapon_id;
-            const shotsToSubtract = parseInt(freshRecord.rounds_fired || freshRecord.total_count || freshRecord.shots_fired || 0);
+            const rifleId =
+              freshRecord.rifle_id ||
+              freshRecord.firearm_id ||
+              freshRecord.weapon_id ||
+              freshRecord.gun_id;
+            const shotsToSubtract = Number(
+              freshRecord.rounds_fired ||
+              freshRecord.total_count ||
+              freshRecord.shots_fired ||
+              freshRecord.shots ||
+              0
+            );
             
-            if (rifleId && shotsToSubtract > 0) {
+            if (!rifleId) {
+              console.warn('[ARMORY DEBUG] Deer cannot reverse: rifleId missing from record');
+            } else if (shotsToSubtract <= 0) {
+              console.warn('[ARMORY DEBUG] Deer cannot reverse: shots is 0 or missing');
+            } else {
               console.log('[ARMORY DEBUG] firearmId =', rifleId);
               console.log('[ARMORY DEBUG] fetching firearm from Base44');
               
@@ -299,6 +372,13 @@ export default function Records() {
               await base44.entities.Rifle.update(rifleId, {
                 total_rounds_fired: totalAfter
               });
+              
+              // Verify update
+              const verifyRifle = await base44.entities.Rifle.get(rifleId);
+              console.log('[ARMORY VERIFY] rifle after update =', verifyRifle.total_rounds_fired);
+              if (verifyRifle.total_rounds_fired !== totalAfter) {
+                console.error('[ARMORY VERIFY] mismatch: expected', totalAfter, 'got', verifyRifle.total_rounds_fired);
+              }
               console.log('[ARMORY DEBUG] update success = true');
             }
           }
@@ -311,7 +391,7 @@ export default function Records() {
           return;
         }
       } else {
-        console.log('[ARMORY DEBUG] record already marked reversed, skipping');
+        console.warn('[ARMORY DEBUG] record already marked reversed (armoryCountersReversed=true), skipping reversal. If Armory total is still wrong, the previous delete attempt failed. Clear armoryCountersReversed/countersReversedAt for this record and retry, OR use a new test record.');
         armoryReversalSuccess = true;
       }
 
