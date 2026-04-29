@@ -4,7 +4,7 @@ import { Check, ChevronDown } from 'lucide-react';
 
 export default function BottomSheetSelect({ value, onChange, options = [], placeholder = 'Select...', required, className = '' }) {
   const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: 0 });
   const buttonRef = useRef(null);
 
   const selectedLabel = options.find(o => o.value === value)?.label || '';
@@ -12,10 +12,15 @@ export default function BottomSheetSelect({ value, onChange, options = [], place
   const handleClick = () => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom - 20;
+      const spaceAbove = rect.top - 20;
+      const maxH = Math.max(spaceBelow, spaceAbove) - 40;
+      
       setPosition({
         top: rect.bottom,
-        left: rect.left,
-        width: rect.width,
+        left: Math.max(12, rect.left),
+        width: Math.min(rect.width, window.innerWidth - 24),
+        maxHeight: Math.min(260, maxH),
       });
     }
     setOpen(!open);
@@ -51,9 +56,12 @@ export default function BottomSheetSelect({ value, onChange, options = [], place
               top: `${position.top + 4}px`,
               left: `${position.left}px`,
               width: `${position.width}px`,
-              maxHeight: '260px',
+              maxHeight: `${position.maxHeight}px`,
               overflowY: 'auto',
-              pointerEvents: 'auto'
+              overflowX: 'hidden',
+              pointerEvents: 'auto',
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehavior: 'contain',
             }}
           >
             {options.map((opt) => (

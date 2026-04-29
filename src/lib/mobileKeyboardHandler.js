@@ -1,55 +1,76 @@
 /**
  * Mobile Keyboard Handler
- * Adjusts modal position when keyboard appears on mobile devices
+ * Adjusts modal when keyboard appears on mobile devices
+ * Uses 100dvh (dynamic viewport height) which adjusts for keyboard
  */
-export const useMobileKeyboardHandler = (modalRef) => {
-  if (typeof window === 'undefined') return;
+import { useEffect } from 'react';
 
-  const handleKeyboardShow = () => {
-    if (modalRef?.current) {
-      // Scroll modal into view when keyboard appears
+export const useMobileKeyboardHandler = (inputRef) => {
+  useEffect(() => {
+    if (!inputRef?.current) return;
+    
+    // Focus handler: scroll input into view when keyboard appears
+    const handleFocus = () => {
       setTimeout(() => {
-        modalRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const input = inputRef.current;
+        if (input) {
+          const rect = input.getBoundingClientRect();
+          // Check if input is below keyboard area
+          if (rect.bottom > window.innerHeight * 0.75) {
+            input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
       }, 100);
-    }
-  };
+    };
 
-  const handleKeyboardHide = () => {
-    if (modalRef?.current) {
-      // Reset scroll position when keyboard hides
-      const scrollTop = window.scrollY;
-      window.scrollTo(0, scrollTop);
-    }
-  };
+    // Blur handler: reset
+    const handleBlur = () => {
+      // Keyboard will auto-hide on blur
+    };
 
-  // iOS keyboard events
-  const setupIOSKeyboardListeners = () => {
-    window.addEventListener('focus', handleKeyboardShow, true);
-    window.addEventListener('blur', handleKeyboardHide, true);
+    inputRef.current.addEventListener('focus', handleFocus);
+    inputRef.current.addEventListener('blur', handleBlur);
 
     return () => {
-      window.removeEventListener('focus', handleKeyboardShow, true);
-      window.removeEventListener('blur', handleKeyboardHide, true);
+      inputRef.current?.removeEventListener('focus', handleFocus);
+      inputRef.current?.removeEventListener('blur', handleBlur);
     };
-  };
+  }, [inputRef]);
+};
 
-  // Android keyboard events
-  const setupAndroidKeyboardListeners = () => {
-    const initialHeight = window.innerHeight;
+/**
+ * Global keyboard handler setup
+ * Call once on app init to adjust modals for keyboard
+ */
+export const setupMobileKeyboardAdjustment = () => {
+  if (typeof window === 'undefined') return;
 
+  // iOS: Use visualViewport API if available
+  if (typeof window.visualViewport !== 'undefined') {
     const handleResize = () => {
-      const currentHeight = window.innerHeight;
-      if (currentHeight < initialHeight * 0.75) {
-        handleKeyboardShow();
-      } else {
-        handleKeyboardHide();
-      }
+      const vvHeight = window.visualViewport?.height || window.innerHeight;
+      const vh = vvHeight / 100;
+      // Set CSS variable for dvh fallback
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.visualViewport?.addEventListener('resize', handleResize);
+    return () => window.visualViewport?.removeEventListener('resize', handleResize);
+  }
+
+  // Android: Monitor window resize for keyboard
+  const initialHeight = window.innerHeight;
+
+  const handleResize = () => {
+    const currentHeight = window.innerHeight;
+    // If height reduced by more than 25%, keyboard likely showing
+    if (currentHeight < initialHeight * 0.75) {
+      document.body.style.overscrollBehavior = 'contain';
+    } else {
+      document.body.style.overscrollBehavior = 'auto';
+    }
   };
 
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  return isIOS ? setupIOSKeyboardListeners() : setupAndroidKeyboardListeners();
+  window.addEventListener('resize', handleResize);
+  return () => window.removeEventListener('resize', handleResize);
 };

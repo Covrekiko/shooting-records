@@ -30,8 +30,12 @@ export default function BottomSheet({
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
-            className="fixed inset-x-0 bottom-0 z-[50001] flex flex-col max-h-[90vh] bg-white/98 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-white/40 overflow-hidden"
-            style={{ WebkitBackdropFilter: 'blur(20px)' }}
+            className="fixed inset-x-0 bottom-0 z-[50001] flex flex-col bg-white/98 backdrop-blur-xl rounded-t-3xl shadow-2xl border-t border-white/40 overflow-hidden"
+            style={{
+              WebkitBackdropFilter: 'blur(20px)',
+              maxHeight: 'min(90dvh, 100dvh - 60px)',
+              paddingBottom: 'env(safe-area-inset-bottom, 0)',
+            }}
           >
             {/* Handle + Header */}
             <div className="flex flex-col items-center px-4 pt-3 pb-2">
@@ -53,9 +57,9 @@ export default function BottomSheet({
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto px-4 pb-6" style={{ WebkitOverflowScrolling: 'touch' }}>
-              {children}
-            </div>
+             <div className="flex-1 overflow-y-auto overflow-x-hidden px-4" style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
+               {children}
+             </div>
           </motion.div>
         </>
       )}

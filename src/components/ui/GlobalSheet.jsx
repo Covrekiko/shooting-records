@@ -156,7 +156,11 @@ export default function GlobalSheet({
             exit={{ y: '100%' }}
             transition={dragging ? { duration: 0 } : { type: 'spring', damping: 30, stiffness: 300 }}
             className="fixed bottom-0 left-0 right-0 flex flex-col"
-            style={{ zIndex: Z_MODAL, maxHeight: `min(${maxHeight}, 95dvh)` }}
+            style={{
+              zIndex: Z_MODAL,
+              maxHeight: `min(${maxHeight}, 95dvh)`,
+              paddingBottom: 'env(safe-area-inset-bottom, 0)',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             <Wrapper

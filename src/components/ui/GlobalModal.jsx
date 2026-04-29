@@ -80,8 +80,12 @@ export function ModalBody({ children }) {
   return (
     <div
       data-modal-scroll
-      className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-5 py-4"
-      style={{ WebkitOverflowScrolling: 'touch' }}
+      className="flex-1 overflow-y-auto overflow-x-hidden px-5 py-4"
+      style={{
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehavior: 'contain',
+        WebkitTouchCallout: 'none',
+      }}
     >
       <div className="min-w-0 w-full overflow-x-hidden">
         {children}
@@ -206,6 +210,9 @@ export default function GlobalModal({
               paddingRight: '12px',
               paddingTop: 'max(12px, env(safe-area-inset-top, 12px))',
               paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
+              height: '100dvh',
+              overflowY: 'auto',
+              overscrollBehavior: 'contain',
             }}
           >
             <motion.div
@@ -220,11 +227,11 @@ export default function GlobalModal({
             >
               <Wrapper
                 {...wrapperProps}
-                className="bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+                className="bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden w-full"
                 style={{
                   maxWidth: '100%',
                   overflowX: 'hidden',
-                  maxHeight: 'calc(100dvh - max(24px, env(safe-area-inset-top, 12px)) - max(24px, env(safe-area-inset-bottom, 12px)) - 24px)',
+                  maxHeight: 'min(90dvh, calc(100dvh - max(36px, env(safe-area-inset-top, 18px)) - max(36px, env(safe-area-inset-bottom, 18px))))',
                 }}
               >
                 {(title || showClose) && (
