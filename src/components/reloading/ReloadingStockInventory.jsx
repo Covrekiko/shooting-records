@@ -76,6 +76,16 @@ export default function ReloadingStockInventory() {
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <h4 className="font-semibold text-foreground">{comp.name}</h4>
+                        {type.value === 'brass' && (
+                          <p className="text-xs font-semibold mt-1">
+                            {comp.is_used_brass
+                              ? <span className="text-amber-600 dark:text-amber-400">
+                                  Previously fired{comp.times_reloaded > 0 ? ` — ${comp.times_reloaded}x reloaded` : ''}
+                                </span>
+                              : <span className="text-green-600 dark:text-green-400">New brass</span>
+                            }
+                          </p>
+                        )}
                         <p className="text-xs text-muted-foreground mt-1">{comp.notes || 'No notes'}</p>
                       </div>
                       <span className={`${status.color} text-xs font-bold px-2 py-1 rounded bg-white/50 dark:bg-black/30`}>

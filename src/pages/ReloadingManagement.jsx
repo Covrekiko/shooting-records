@@ -88,34 +88,49 @@ export default function ReloadingManagement() {
       // ── STEP 5: Restore components ───────────────────────────────────
       const unitConversions = { grams: 1, kg: 1000, oz: 28.3495, lb: 453.592, grains: 0.06479891 };
       if (session?.components) {
+        // Fetch all user's components once to avoid repeated filter calls
+        const allComponents = await base44.entities.ReloadingComponent.filter({ created_by: user.email });
+
         for (const comp of session.components) {
           try {
-            let component;
-            if (comp.component_id) {
-              const list = await base44.entities.ReloadingComponent.filter({
-                created_by: session.created_by,
-                component_type: comp.type,
-              });
-              component = list.find(c => c.id === comp.component_id);
-            } else if (comp.name) {
-              const list = await base44.entities.ReloadingComponent.filter({
-                created_by: session.created_by,
-                component_type: comp.type,
-              });
-              component = list.find(c => c.name === comp.name);
+            // Find the matching component by ID first, then by name+type as fallback
+            let component = comp.component_id
+              ? allComponents.find(c => c.id === comp.component_id)
+              : allComponents.find(c => c.component_type === comp.type && c.name === comp.name);
+
+            // ── PRIMER DEBUG ─────────────────────────────────────────────
+            if (comp.type === 'primer') {
+              console.log(`[PRIMER REFUND DEBUG] reloadBatchId = ${id}`);
+              console.log(`[PRIMER REFUND DEBUG] primerId = ${comp.component_id || 'none (old session)'}`);
+              console.log(`[PRIMER REFUND DEBUG] primersUsed = ${comp.quantity_used}`);
+              console.log(`[PRIMER REFUND DEBUG] primerStockBefore = ${component?.quantity_remaining ?? 'component not found'}`);
+              console.log(`[PRIMER REFUND DEBUG] refundQuantity = ${comp.quantity_used || 0}`);
             }
+
             if (component) {
               let newRemaining;
               if (comp.type === 'powder') {
                 const usedInGrams = parseFloat(comp.quantity_used) * (unitConversions[comp.unit] || 1);
                 newRemaining = component.quantity_remaining + usedInGrams / (unitConversions[component.unit] || 1);
               } else {
-                newRemaining = component.quantity_remaining + (comp.quantity_used || 0);
+                newRemaining = component.quantity_remaining + Number(comp.quantity_used || 0);
               }
               await base44.entities.ReloadingComponent.update(component.id, { quantity_remaining: newRemaining });
+
+              if (comp.type === 'primer') {
+                console.log(`[PRIMER REFUND DEBUG] primerStockAfter = ${newRemaining}`);
+                console.log(`[PRIMER REFUND DEBUG] primerRefundSuccess = true`);
+                console.log(`[PRIMER REFUND DEBUG] componentInventoryRefreshTriggered = true`);
+              }
+            } else if (comp.type === 'primer') {
+              console.warn(`[PRIMER REFUND DEBUG] primerRefundSuccess = false — component not found in DB`);
+              console.warn(`[PRIMER REFUND DEBUG] comp.component_id = ${comp.component_id}, comp.name = "${comp.name}"`);
             }
           } catch (compError) {
-            console.warn('Could not restore component:', comp.name, compError);
+            console.warn('Could not restore component:', comp.type, comp.name, compError);
+            if (comp.type === 'primer') {
+              console.error(`[PRIMER REFUND DEBUG] primerRefundSuccess = false — error: ${compError.message}`);
+            }
           }
         }
         console.log(`[RELOAD DELETE DEBUG] componentsRestored = true`);
