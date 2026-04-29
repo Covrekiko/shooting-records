@@ -52,6 +52,11 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   const inputCls = 'w-full px-3 py-2.5 border border-input bg-background text-foreground rounded-lg text-sm focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none';
   const labelCls = 'text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block';
 
+  const selectedRifle = rifles.find(r => r.id === formData.rifle_id);
+  const filteredAmmo = selectedRifle
+    ? ammunition.filter(a => a.caliber && selectedRifle.caliber && a.caliber.toLowerCase() === selectedRifle.caliber.toLowerCase())
+    : ammunition;
+
   const deerEntries = formData.species_list.filter(s => DEER_SPECIES.includes(s.species));
   const pestEntries = formData.species_list.filter(s => PEST_SPECIES.includes(s.species));
 
@@ -168,7 +173,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
 
             <div>
               <label className={labelCls}>Rifle Used</label>
-              <select value={formData.rifle_id} onChange={e => set('rifle_id', e.target.value)} className={inputCls}>
+              <select value={formData.rifle_id} onChange={e => { set('rifle_id', e.target.value); set('ammunition_id', ''); set('ammunition_used', ''); }} className={inputCls}>
                 <option value="">Select rifle</option>
                 {rifles.map(r => <option key={r.id} value={r.id}>{r.name} ({r.caliber})</option>)}
               </select>
@@ -182,7 +187,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                 set('ammunition_used', ammo ? `${ammo.brand} ${ammo.caliber}` : '');
               }} className={inputCls}>
                 <option value="">Select ammunition</option>
-                {ammunition.map(a => <option key={a.id} value={a.id}>{a.brand} {a.caliber}</option>)}
+                {filteredAmmo.map(a => <option key={a.id} value={a.id}>{a.brand} {a.caliber}</option>)}
               </select>
             </div>
           </>
