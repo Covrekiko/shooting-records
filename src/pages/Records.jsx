@@ -203,7 +203,84 @@ export default function Records() {
         }
       }
 
-      // STEP 6: Soft delete the record (mark as deleted, do not hard delete)
+      // STEP 6: Reverse Armory firearm counters (idempotency check first)
+      let armoryReversalSuccess = false;
+      if (freshRecord.armoryCountersReversed !== true) {
+        console.log('[ARMORY REFUND DEBUG] starting armory counter reversal');
+        try {
+          if (freshRecord.category === 'target_shooting' && freshRecord.rifles_used) {
+            // TARGET SHOOTING: multiple rifles with individual rounds
+            for (const rifleEntry of freshRecord.rifles_used) {
+              if (!rifleEntry.rifle_id || parseInt(rifleEntry.rounds_fired) <= 0) continue;
+              
+              const rifle = rifles[rifleEntry.rifle_id];
+              if (!rifle) {
+                console.warn('[ARMORY REFUND DEBUG] rifle not found:', rifleEntry.rifle_id);
+                continue;
+              }
+              
+              const roundsToSubtract = parseInt(rifleEntry.rounds_fired) || 0;
+              const totalBefore = rifle.total_rounds_fired || 0;
+              const totalAfter = Math.max(0, totalBefore - roundsToSubtract);
+              const sinceCleaningBefore = rifle.rounds_at_last_cleaning || 0;
+              const sinceCleaningAfter = Math.max(0, sinceCleaningBefore - roundsToSubtract);
+              
+              console.log(`[ARMORY REFUND DEBUG] recordId=${freshRecord.id} category=target_shooting rifleId=${rifleEntry.rifle_id} roundsToSubtract=${roundsToSubtract} totalBefore=${totalBefore} totalAfter=${totalAfter} sinceCleaningBefore=${sinceCleaningBefore} sinceCleaningAfter=${sinceCleaningAfter}`);
+              
+              await base44.entities.Rifle.update(rifleEntry.rifle_id, {
+                total_rounds_fired: totalAfter,
+                rounds_at_last_cleaning: sinceCleaningAfter,
+              });
+            }
+          } else if (freshRecord.category === 'clay_shooting' && freshRecord.shotgun_id) {
+            // CLAY SHOOTING: single shotgun with cartridges
+            const shotgun = shotguns[freshRecord.shotgun_id];
+            if (shotgun) {
+              const roundsToSubtract = parseInt(freshRecord.rounds_fired) || 0;
+              const totalBefore = shotgun.total_cartridges_fired || 0;
+              const totalAfter = Math.max(0, totalBefore - roundsToSubtract);
+              const sinceCleaningBefore = shotgun.cartridges_at_last_cleaning || 0;
+              const sinceCleaningAfter = Math.max(0, sinceCleaningBefore - roundsToSubtract);
+              
+              console.log(`[ARMORY REFUND DEBUG] recordId=${freshRecord.id} category=clay_shooting shotgunId=${freshRecord.shotgun_id} roundsToSubtract=${roundsToSubtract} totalBefore=${totalBefore} totalAfter=${totalAfter} sinceCleaningBefore=${sinceCleaningBefore} sinceCleaningAfter=${sinceCleaningAfter}`);
+              
+              await base44.entities.Shotgun.update(freshRecord.shotgun_id, {
+                total_cartridges_fired: totalAfter,
+                cartridges_at_last_cleaning: sinceCleaningAfter,
+              });
+            }
+          } else if (freshRecord.category === 'deer_management' && freshRecord.rifle_id) {
+            // DEER MANAGEMENT: single rifle with shot count
+            const rifle = rifles[freshRecord.rifle_id];
+            if (rifle) {
+              const roundsToSubtract = parseInt(freshRecord.total_count || freshRecord.rounds_fired || 0);
+              const totalBefore = rifle.total_rounds_fired || 0;
+              const totalAfter = Math.max(0, totalBefore - roundsToSubtract);
+              const sinceCleaningBefore = rifle.rounds_at_last_cleaning || 0;
+              const sinceCleaningAfter = Math.max(0, sinceCleaningBefore - roundsToSubtract);
+              
+              console.log(`[ARMORY REFUND DEBUG] recordId=${freshRecord.id} category=deer_management rifleId=${freshRecord.rifle_id} roundsToSubtract=${roundsToSubtract} totalBefore=${totalBefore} totalAfter=${totalAfter} sinceCleaningBefore=${sinceCleaningBefore} sinceCleaningAfter=${sinceCleaningAfter}`);
+              
+              await base44.entities.Rifle.update(freshRecord.rifle_id, {
+                total_rounds_fired: totalAfter,
+                rounds_at_last_cleaning: sinceCleaningAfter,
+              });
+            }
+          }
+          
+          armoryReversalSuccess = true;
+          console.log('[ARMORY REFUND DEBUG] countersReversed=true');
+        } catch (armoryErr) {
+          console.error('[ARMORY REFUND DEBUG] counter reversal failed:', armoryErr);
+          alert('⚠️ Armory counter reversal failed. Delete cancelled.');
+          return;
+        }
+      } else {
+        console.log('[ARMORY REFUND DEBUG] countersReversed already true, skipping');
+        armoryReversalSuccess = true;
+      }
+
+      // STEP 7: Soft delete the record (mark as deleted, do not hard delete)
       console.log('[DELETE DEBUG] attempting SessionRecord.update (soft delete):', freshRecord.id);
       try {
         const now = new Date().toISOString();
@@ -213,6 +290,8 @@ export default function Records() {
           status: 'deleted',
           ammoRefunded: true,
           ammoRefundedAt: now,
+          armoryCountersReversed: true,
+          countersReversedAt: now,
         });
         console.log('[DELETE DEBUG] soft delete (update) response = success');
       } catch (updateErr) {
@@ -221,7 +300,7 @@ export default function Records() {
         console.error('[DELETE DEBUG] delete failed data:', updateErr.response?.data);
         console.error('[DELETE DEBUG] delete failed message:', updateErr.message);
 
-        // STEP 7: Rollback ammo refund if soft delete fails
+        // STEP 8: Rollback ammo refund if soft delete fails
         if (refundResult?.success && freshRecord.ammoRefunded !== true) {
           console.warn('[DELETE DEBUG] delete failed, rolling back ammo refund...');
           try {
@@ -254,7 +333,7 @@ export default function Records() {
         return;
       }
 
-      // STEP 8: Delete succeeded — update local state
+      // STEP 9: Delete succeeded — update local state
       setAllRecords(allRecords.filter((r) => r.id !== record.id));
 
       // Force reload
