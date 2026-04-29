@@ -195,7 +195,7 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
               </>
               )}
 
-          {rec.recordType === 'clay' && (
+              {rec.recordType === 'clay' && (
             <>
               {getClub(rec.club_id) && (
                 <Section title="Venue">
