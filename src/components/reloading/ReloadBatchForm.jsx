@@ -234,43 +234,47 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
       const createdSession = await base44.entities.ReloadingSession.create(reloadSession);
 
-      // Create a unique Ammunition entry per reload batch so stock is traceable
-      // Each batch gets its own entry: brand="Reloaded", bullet name + caliber + batch#
+      // Create a unique Ammunition entry per reload batch — tagged with reload_batch:<id> for reliable reversal
       const bulletComp = components.bullet.find(c => c.id === formData.bullet_id);
       const bulletLabel = bulletComp ? (bulletComp.bullet_name || bulletComp.name) : '';
-      const batchBrand = `Reloaded - ${formData.caliber}${bulletLabel ? ` ${bulletLabel}` : ''}`;
-      const batchBulletType = bulletLabel || '';
-      const batchNotes = `Batch ${formData.batch_number}`;
+      const batchBrand = 'Reloaded';
+      const batchBulletType = bulletLabel || 'Custom';
+      const batchNotes = `reload_batch:${createdSession.id} | Batch ${formData.batch_number}${bulletLabel ? ` | ${bulletLabel}` : ''}`;
 
-      // Check if an entry for this exact batch already exists (idempotency)
-      const existingBatchAmmo = await base44.entities.Ammunition.filter({
-        created_by: user.email,
-        brand: batchBrand,
-      });
-      const batchEntry = existingBatchAmmo.find(a => a.notes && a.notes.includes(formData.batch_number));
+      // Check if an entry for this exact batch already exists (idempotency guard)
+      const existingBatchAmmo = await base44.entities.Ammunition.filter({ created_by: user.email });
+      const batchEntry = existingBatchAmmo.find(a => a.notes && a.notes.includes(`reload_batch:${createdSession.id}`));
 
-      console.log(`[AMMO DEBUG] action: reload_batch_created sourceId: ${createdSession.id} ammoId: ${batchEntry?.id || 'new'} quantityChange: +${cartridgesLoaded}`);
+      console.log(`[RELOAD DEBUG] batch created = ${formData.batch_number}`);
+      console.log(`[RELOAD DEBUG] caliber = ${formData.caliber}`);
+      console.log(`[RELOAD DEBUG] quantity produced = ${cartridgesLoaded}`);
+      console.log(`[RELOAD DEBUG] global ammo stock item created = ${batchEntry ? 'existing (duplicate guard)' : 'new'}`);
 
       if (batchEntry) {
-        // Already exists (duplicate submit guard) — just top up
+        // Duplicate submit guard — top up
         await base44.entities.Ammunition.update(batchEntry.id, {
           quantity_in_stock: (batchEntry.quantity_in_stock || 0) + cartridgesLoaded,
           cost_per_unit: costBreakdown.costPerCartridge,
         });
-        console.log(`[AMMO DEBUG] stockAfter: ${(batchEntry.quantity_in_stock || 0) + cartridgesLoaded}`);
+        console.log(`[RELOAD DEBUG] ammoStockItemId = ${batchEntry.id}`);
+        console.log(`[RELOAD DEBUG] stock quantity added = ${cartridgesLoaded} (topped up)`);
       } else {
         // New entry for this batch
-        await base44.entities.Ammunition.create({
+        const newAmmo = await base44.entities.Ammunition.create({
           brand: batchBrand,
           caliber: formData.caliber,
           bullet_type: batchBulletType,
+          grain: bulletComp?.weight ? String(bulletComp.weight) : '',
           quantity_in_stock: cartridgesLoaded,
           units: 'rounds',
           cost_per_unit: costBreakdown.costPerCartridge,
           date_purchased: formData.date,
+          low_stock_threshold: 10,
           notes: batchNotes,
         });
-        console.log(`[AMMO DEBUG] stockAfter: ${cartridgesLoaded} (new entry)`);
+        console.log(`[RELOAD DEBUG] ammoStockItemId = ${newAmmo.id}`);
+        console.log(`[RELOAD DEBUG] stock quantity added = ${cartridgesLoaded}`);
+        console.log(`[RELOAD DEBUG] appears in ammo selector query = true (brand=Reloaded, caliber=${formData.caliber})`);
       }
 
       onSubmit();

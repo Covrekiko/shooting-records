@@ -114,20 +114,34 @@ export default function ReloadingManagement() {
       }
 
       // Reverse the global Ammunition stock added when this batch was created
+      // Look up by reload_batch:<id> tag for reliable reversal
       if (session && session.rounds_loaded > 0) {
         try {
           const user = await base44.auth.me();
           const ammoList = await base44.entities.Ammunition.filter({ created_by: user.email });
-          const matchedAmmo = ammoList.find(a =>
-            a.brand === 'Reloaded' &&
-            a.caliber === session.caliber
-          );
+          // Primary: match by reload_batch tag (new batches)
+          let matchedAmmo = ammoList.find(a => a.notes && a.notes.includes(`reload_batch:${id}`));
+          // Fallback: match by brand+caliber for old batches that didn't have the tag
+          if (!matchedAmmo) {
+            matchedAmmo = ammoList.find(a =>
+              (a.brand === 'Reloaded' || (a.brand || '').startsWith('Reloaded')) &&
+              a.caliber === session.caliber &&
+              a.notes && a.notes.includes(session.batch_number)
+            );
+          }
+          if (!matchedAmmo) {
+            // Last resort: any Reloaded entry for this caliber
+            matchedAmmo = ammoList.find(a =>
+              (a.brand === 'Reloaded' || (a.brand || '').startsWith('Reloaded')) &&
+              a.caliber === session.caliber
+            );
+          }
           if (matchedAmmo) {
             const newQty = Math.max(0, (matchedAmmo.quantity_in_stock || 0) - session.rounds_loaded);
             await base44.entities.Ammunition.update(matchedAmmo.id, { quantity_in_stock: newQty });
-            console.log(`🟢 Reversed ${session.rounds_loaded} reloaded rounds for ${session.caliber} → stock now: ${newQty}`);
+            console.log(`[RELOAD DEBUG] batch deleted: reversed ${session.rounds_loaded} rounds for ${session.caliber} on ammo id ${matchedAmmo.id} → stock now: ${newQty}`);
           } else {
-            console.warn(`⚠️ No 'Reloaded' ammo found for caliber ${session.caliber} — nothing to reverse`);
+            console.warn(`[RELOAD DEBUG] No matching ammo stock found for batch ${session.batch_number} caliber ${session.caliber} — nothing to reverse`);
           }
         } catch (e) {
           console.warn('Could not reverse ammo stock for reloaded batch:', e.message);
@@ -156,37 +170,24 @@ export default function ReloadingManagement() {
         const safeUpdate = { ...data, rounds_loaded: editingSession.rounds_loaded };
         await base44.entities.ReloadingSession.update(editingSession.id, safeUpdate);
       } else {
-        await base44.entities.ReloadingSession.create(data);
+        const createdSession = await base44.entities.ReloadingSession.create(data);
         
         // Auto-add to ammunition if enabled
         if (data.create_ammo) {
           const user = await base44.auth.me();
-          const existingAmmo = await base44.entities.Ammunition.filter({
-            created_by: user.email,
+          // Create a per-batch ammo entry tagged with reload_batch:<id> for reliable reversal
+          const batchNotes = `reload_batch:${createdSession.id} | Batch ${data.batch_number}`;
+          await base44.entities.Ammunition.create({
             brand: 'Reloaded',
             caliber: data.caliber,
+            bullet_type: 'Custom',
+            quantity_in_stock: data.rounds_loaded,
+            units: 'rounds',
+            cost_per_unit: data.rounds_loaded > 0 ? data.total_cost / data.rounds_loaded : 0,
+            date_purchased: data.date,
+            low_stock_threshold: 10,
+            notes: batchNotes,
           });
-
-          if (existingAmmo.length > 0) {
-            // Update existing ammo — add to current stock
-            const ammo = existingAmmo[0];
-            await base44.entities.Ammunition.update(ammo.id, {
-              quantity_in_stock: (ammo.quantity_in_stock || 0) + data.rounds_loaded,
-            });
-          } else {
-            // Create new ammo entry
-            await base44.entities.Ammunition.create({
-              brand: 'Reloaded',
-              caliber: data.caliber,
-              bullet_type: 'Custom',
-              quantity_in_stock: data.rounds_loaded,
-              units: 'rounds',
-              cost_per_unit: data.rounds_loaded > 0 ? data.total_cost / data.rounds_loaded : 0,
-              date_purchased: data.date,
-              low_stock_threshold: 50,
-              notes: `Reloaded batch ${data.batch_number}`,
-            });
-          }
         }
       }
       setShowForm(false);

@@ -618,10 +618,21 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                     className={selectCls}
                   >
                     <option value="">Select ammunition (required)</option>
+                    {(() => {
+                      const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
+                      const filtered = ammunition.filter(a => !selectedRifle || !selectedRifle.caliber || a.caliber === selectedRifle.caliber);
+                      console.log(`[AMMO SELECTOR DEBUG] selector = Target Checkout`);
+                      console.log(`[AMMO SELECTOR DEBUG] total global ammo items = ${ammunition.length}`);
+                      console.log(`[AMMO SELECTOR DEBUG] factory items = ${ammunition.filter(a => a.brand !== 'Reloaded').length}`);
+                      console.log(`[AMMO SELECTOR DEBUG] reloaded items = ${ammunition.filter(a => a.brand === 'Reloaded').length}`);
+                      console.log(`[AMMO SELECTOR DEBUG] caliber filter = ${selectedRifle?.caliber || 'none'}`);
+                      console.log(`[AMMO SELECTOR DEBUG] visible items = ${filtered.length}`);
+                      return null;
+                    })()}
                     {ammunition.filter(a => {
-                       const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
-                       return !selectedRifle || !selectedRifle.caliber || a.caliber === selectedRifle.caliber;
-                     }).map(a => (
+                      const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
+                      return !selectedRifle || !selectedRifle.caliber || a.caliber === selectedRifle.caliber;
+                    }).map(a => (
                        <option key={a.id} value={a.id}>
                          {`${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`}
                        </option>
