@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
-import PhotoUpload from '@/components/PhotoUpload.jsx';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
 
@@ -14,7 +13,6 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
     ammunition_id: '',
     ammunition_used: '',
     notes: '',
-    photos: [],
   });
 
   const set = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
@@ -115,40 +113,19 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                 {ammunition.map(a => <option key={a.id} value={a.id}>{a.brand} {a.caliber}</option>)}
               </select>
             </div>
-
-            <div>
-              <label className={labelCls}>Notes</label>
-              <textarea
-                value={formData.notes}
-                onChange={e => set('notes', e.target.value)}
-                className={inputCls}
-                rows={3}
-                placeholder="Optional notes about the outing..."
-              />
-            </div>
-
-            <div>
-              <label className={labelCls}>Photos</label>
-              <PhotoUpload
-                photos={formData.photos}
-                onPhotosChange={photos => set('photos', photos)}
-              />
-            </div>
           </>
         )}
 
-        {!formData.shot_anything && (
-          <div>
-            <label className={labelCls}>Notes</label>
-            <textarea
-              value={formData.notes}
-              onChange={e => set('notes', e.target.value)}
-              className={inputCls}
-              rows={3}
-              placeholder="Optional notes about the outing..."
-            />
-          </div>
-        )}
+        <div>
+          <label className={labelCls}>Notes</label>
+          <textarea
+            value={formData.notes}
+            onChange={e => set('notes', e.target.value)}
+            className={inputCls}
+            rows={3}
+            placeholder="Optional notes about the outing..."
+          />
+        </div>
       </div>
     </GlobalModal>
   );
