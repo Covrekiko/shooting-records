@@ -284,6 +284,9 @@ export default function Records() {
 
       // STEP 9: Delete succeeded — update local state
       setAllRecords(allRecords.filter((r) => r.id !== record.id));
+
+      // Force reload
+      setTimeout(() => loadRecords(), 500);
     } catch (error) {
       console.error('🔴 [handleDelete] Unexpected error:', error);
       alert('Error deleting record: ' + error.message);
