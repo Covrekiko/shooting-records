@@ -272,8 +272,22 @@ export default function DeerStalkingMap() {
       return;
     }
     try {
-      if (checkoutData.shot_anything && checkoutData.ammunition_id && checkoutData.total_count) {
-        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count), 'deer_management', activeOuting.id);
+      // Collect GPS track from tracking service BEFORE stopping
+      const { trackingService } = await import('@/lib/trackingService');
+      const finalTrack = trackingService.getTrack().length > 0
+        ? trackingService.getTrack()
+        : (activeOuting.gps_track || []);
+      console.log('🟢 Stalk Map Checkout: Collected', finalTrack.length, 'GPS points');
+
+      // Update rifle round counts if something was shot
+      const roundsFired = parseInt(checkoutData.total_count) || 0;
+      if (checkoutData.shot_anything && checkoutData.rifle_id && roundsFired > 0) {
+        const currentRifle = rifles.find(r => r.id === checkoutData.rifle_id);
+        if (currentRifle) {
+          await base44.entities.Rifle.update(checkoutData.rifle_id, {
+            total_rounds_fired: (currentRifle.total_rounds_fired || 0) + roundsFired,
+          });
+        }
       }
 
       const submitData = { ...checkoutData, active_checkin: false };
@@ -281,10 +295,22 @@ export default function DeerStalkingMap() {
         submitData.species_list = [];
         submitData.total_count = null;
         submitData.rifle_id = null;
+        submitData.ammunition_id = null;
         submitData.ammunition_used = null;
       }
 
-      await endOutingWithData(activeOuting.id, submitData, activeOuting.gps_track || []);
+      // Decrement ammo stock if something was shot
+      if (checkoutData.shot_anything && checkoutData.ammunition_id && checkoutData.total_count) {
+        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count), 'deer_management', activeOuting.id);
+      }
+
+      // Save to database FIRST, then stop tracking
+      await endOutingWithData(activeOuting.id, submitData, finalTrack);
+
+      // Stop tracking AFTER successful save
+      trackingService.stopTracking();
+      console.log('🟢 Stalk Map Checkout complete - tracking stopped after save');
+
       setShowCheckout(false);
       loadData();
     } catch (err) {
