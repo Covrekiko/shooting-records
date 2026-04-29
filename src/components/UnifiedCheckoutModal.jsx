@@ -21,10 +21,11 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   const [selectedPest, setSelectedPest] = useState('');
   const [photos, setPhotos] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [showPhotoOptions, setShowPhotoOptions] = useState(false);
 
   const handlePhotoUpload = async (e) => {
     const files = e.target.files;
-    if (!files) return;
+    if (!files || files.length === 0) return;
     setUploading(true);
     try {
       for (const file of files) {
@@ -33,6 +34,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
       }
     } finally {
       setUploading(false);
+      setShowPhotoOptions(false);
     }
   };
 
@@ -189,24 +191,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
               <p className="text-xs text-primary font-semibold">Total: {totalCount} animal{totalCount !== 1 ? 's' : ''}</p>
             )}
 
-            <div>
-              <label className={labelCls}>Photos (optional)</label>
-              <label className={`flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary transition-all text-sm ${uploading ? 'opacity-50' : ''}`}>
-                📷 {uploading ? 'Uploading...' : 'Add Photos'}
-                <input type="file" multiple accept="image/*" onChange={handlePhotoUpload} disabled={uploading} className="hidden" />
-              </label>
-              {photos.length > 0 && (
-                <div className="mt-2 grid grid-cols-3 gap-2">
-                  {photos.map((photo, idx) => (
-                    <div key={idx} className="relative">
-                      <img src={photo} alt="harvest" className="w-full h-20 object-cover rounded-xl border border-border" />
-                      <button type="button" onClick={() => setPhotos(prev => prev.filter((_, i) => i !== idx))}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+
 
             <div>
               <label className={labelCls}>Rifle Used</label>
@@ -226,6 +211,49 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                 <option value="">Select ammunition</option>
                 {filteredAmmo.map(a => <option key={a.id} value={a.id}>{a.brand} {a.caliber}</option>)}
               </select>
+            </div>
+
+            {/* Photos — bottom of shot section */}
+            <div>
+              <label className={labelCls}>Photos (optional)</label>
+
+              {/* Hidden inputs */}
+              <input id="photo-gallery" type="file" multiple accept="image/*" onChange={handlePhotoUpload} disabled={uploading} className="hidden" />
+              <input id="photo-camera" type="file" accept="image/*" capture="environment" onChange={handlePhotoUpload} disabled={uploading} className="hidden" />
+
+              {/* Chooser button */}
+              {!showPhotoOptions ? (
+                <button
+                  type="button"
+                  disabled={uploading}
+                  onClick={() => setShowPhotoOptions(true)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-border rounded-xl hover:border-primary transition-all text-sm disabled:opacity-50"
+                >
+                  📷 {uploading ? 'Uploading...' : 'Add Photos'}
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <label htmlFor="photo-camera" className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-xl cursor-pointer text-sm font-semibold hover:bg-primary/90 transition-colors">
+                    📸 Take Photo
+                  </label>
+                  <label htmlFor="photo-gallery" className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-secondary text-secondary-foreground rounded-xl cursor-pointer text-sm font-semibold hover:bg-secondary/80 transition-colors">
+                    🖼️ Gallery
+                  </label>
+                  <button type="button" onClick={() => setShowPhotoOptions(false)} className="px-3 py-3 rounded-xl border border-border text-muted-foreground hover:bg-secondary text-sm">✕</button>
+                </div>
+              )}
+
+              {photos.length > 0 && (
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {photos.map((photo, idx) => (
+                    <div key={idx} className="relative">
+                      <img src={photo} alt="harvest" className="w-full h-20 object-cover rounded-xl border border-border" />
+                      <button type="button" onClick={() => setPhotos(prev => prev.filter((_, i) => i !== idx))}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </>
         )}
