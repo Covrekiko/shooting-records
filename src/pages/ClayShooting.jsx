@@ -453,7 +453,9 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
           <label className={labelCls}>Club</label>
           <select value={data.club_id} onChange={(e) => onChange('club_id', e.target.value)} className={selectCls} required>
             <option value="">Select a club</option>
-            {clubs.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            {(clubs || []).map(c => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
           </select>
         </div>
         <div>

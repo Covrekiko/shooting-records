@@ -529,7 +529,9 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Rifle (optional)</label>
             <select value={formData.rifle_id} onChange={(e) => setFormData({ ...formData, rifle_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none">
               <option value="">None</option>
-              {rifles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+              {(rifles || []).map(r => (
+                <option key={r.id} value={r.id}>{r.name}</option>
+              ))}
             </select>
           </div>
 
@@ -551,7 +553,9 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Primer</label>
           <select value={formData.primer_id} onChange={(e) => setFormData({ ...formData, primer_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required>
             <option value="">Select primer</option>
-            {components.primer.map(p => <option key={p.id} value={p.id}>{p.name} - {p.quantity_remaining} in stock (£{p.cost_per_unit.toFixed(4)}/ea)</option>)}
+            {(components.primer || []).map(p => (
+              <option key={p.id} value={p.id}>{p.name} - {p.quantity_remaining} in stock (£{Number(p.cost_per_unit || 0).toFixed(4)}/ea)</option>
+            ))}
           </select>
           {stockWarnings.primer && (
             <p className="text-xs font-semibold mt-2.5 text-destructive">{stockWarnings.primer}</p>
@@ -562,17 +566,18 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Powder</label>
           <select value={formData.powder_id} onChange={(e) => setFormData({ ...formData, powder_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required>
             <option value="">Select powder</option>
-            {components.powder.map(p => {
-              // Display powder with normalized unit
+            {(components.powder || []).map(p => {
               let displayUnit = p.unit;
               let displayRemaining = p.quantity_remaining;
-              if (p.unit === 'grams' && p.quantity_remaining >= 1000) {
+              if (p.unit === 'grams' && Number(p.quantity_remaining || 0) >= 1000) {
                 displayUnit = 'kg';
-                displayRemaining = (p.quantity_remaining / 1000).toFixed(2);
+                displayRemaining = (Number(p.quantity_remaining || 0) / 1000).toFixed(2);
               } else if (p.unit === 'grams') {
-                displayRemaining = p.quantity_remaining.toFixed(2);
+                displayRemaining = Number(p.quantity_remaining || 0).toFixed(2);
               }
-              return <option key={p.id} value={p.id}>{p.name} - {displayRemaining} {displayUnit} remaining (£{p.cost_per_unit.toFixed(4)}/g)</option>;
+              return (
+                <option key={p.id} value={p.id}>{p.name} - {displayRemaining} {displayUnit} remaining (£{Number(p.cost_per_unit || 0).toFixed(4)}/g)</option>
+              );
             })}
           </select>
           {stockWarnings.powder && (
@@ -615,8 +620,8 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                 className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none flex-1"
               >
                 <option value="">— Select new brass —</option>
-                {components.brass.filter(b => !b.is_used_brass).map(b => (
-                  <option key={b.id} value={b.id}>{b.name}{b.caliber ? ` (${b.caliber})` : ''} — {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>
+                {(components.brass || []).filter(b => !b.is_used_brass).map(b => (
+                  <option key={b.id} value={b.id}>{b.name}{b.caliber ? ` (${b.caliber})` : ''} — {b.quantity_remaining} in stock (£{Number(b.cost_per_unit || 0).toFixed(4)}/ea)</option>
                 ))}
               </select>
               <button
@@ -648,7 +653,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
             >
               <option value="">— Select used brass —</option>
-              {components.brass.filter(b => b.is_used_brass).map(b => (
+              {(components.brass || []).filter(b => b.is_used_brass).map(b => (
                 <option key={b.id} value={b.id}>
                   {b.name}{b.caliber ? ` (${b.caliber})` : ''}{b.batch_number ? ` #${b.batch_number}` : ''} — {b.quantity_remaining ?? b.quantity_total} in stock, reloaded {b.times_reloaded || 0}x
                 </option>
@@ -705,7 +710,9 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Bullet</label>
           <select value={formData.bullet_id} onChange={(e) => setFormData({ ...formData, bullet_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required>
             <option value="">Select bullet</option>
-            {components.bullet.map(b => <option key={b.id} value={b.id}>{b.name} - {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
+            {(components.bullet || []).map(b => (
+              <option key={b.id} value={b.id}>{b.name} - {b.quantity_remaining} in stock (£{Number(b.cost_per_unit || 0).toFixed(4)}/ea)</option>
+            ))}
           </select>
           {stockWarnings.bullet && (
              <p className="text-xs font-semibold mt-2.5 text-destructive">{stockWarnings.bullet}</p>
