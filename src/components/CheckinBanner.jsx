@@ -1,5 +1,5 @@
-import { MapPin, X } from 'lucide-react';
 import { useState } from 'react';
+import { MapPin, X } from 'lucide-react';
 
 export default function CheckinBanner({ location, distance, onDismiss, onCheckin }) {
   const [dismissed, setDismissed] = useState(false);
