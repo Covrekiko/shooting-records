@@ -56,15 +56,19 @@ export default function DeerStalkingMap() {
   }, [apiKey]);
 
   const loadGoogleMapsScript = (key) => {
-    if (window.google) {
+    if (window.google?.maps) {
       setIsLoaded(true);
       return;
     }
+    if (document.getElementById('google-maps-script')) {
+      return; // Script already loading
+    }
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=${GOOGLE_MAPS_LIBRARIES.join(',')}&loading=async`;
+    script.id = 'google-maps-script';
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=${GOOGLE_MAPS_LIBRARIES.join(',')}&callback=initGoogleMaps`;
     script.async = true;
     script.defer = true;
-    script.onload = () => setIsLoaded(true);
+    window.initGoogleMaps = () => setIsLoaded(true);
     script.onerror = () => console.error('Failed to load Google Maps');
     document.head.appendChild(script);
   };
