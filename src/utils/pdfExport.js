@@ -99,10 +99,11 @@ export async function generateMonthlySummaryPDF(records, month, year, options = 
   doc.text(`Monthly Summary: ${new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}`, 10, yPos);
   yPos += 12;
 
-  // Summary stats
-  const targetRecords = records.filter((r) => r.recordType === 'target');
-  const clayRecords = records.filter((r) => r.recordType === 'clay');
-  const deerRecords = records.filter((r) => r.recordType === 'deer');
+  // Summary stats - filter to completed records only
+  const validRecords = records.filter(r => r.status === 'completed' || !r.status);
+  const targetRecords = validRecords.filter((r) => r.recordType === 'target');
+  const clayRecords = validRecords.filter((r) => r.recordType === 'clay');
+  const deerRecords = validRecords.filter((r) => r.recordType === 'deer');
 
   doc.setFontSize(11);
   doc.setFont(undefined, 'bold');
@@ -137,7 +138,7 @@ export async function generateMonthlySummaryPDF(records, month, year, options = 
   doc.setFont(undefined, 'normal');
   doc.setFontSize(10);
 
-  records.forEach((record) => {
+  validRecords.forEach((record) => {
     if (yPos > pageHeight - 20) {
       doc.addPage();
       yPos = 10;
@@ -180,12 +181,13 @@ export async function generateCategoryReportPDF(records, category, options = {})
   yPos += 8;
 
   doc.setFont(undefined, 'normal');
+  const validRecords = records.filter(r => r.status === 'completed' || !r.status);
   const stats = [
-    [`Total Sessions: ${records.length}`],
+    [`Total Sessions: ${validRecords.length}`],
     [
-      `Total Rounds: ${records.reduce((sum, r) => sum + (r.rounds_fired || r.number_shot || 0), 0)}`,
+      `Total Rounds: ${validRecords.reduce((sum, r) => sum + (r.rounds_fired || r.number_shot || 0), 0)}`,
     ],
-    [`Date Range: ${records[0]?.date} to ${records[records.length - 1]?.date}`],
+    [`Date Range: ${validRecords[0]?.date} to ${validRecords[validRecords.length - 1]?.date}`],
   ];
 
   stats.forEach((stat) => {

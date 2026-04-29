@@ -71,6 +71,10 @@ export default function MobilePdfViewer({ pdfUrl, onClose }) {
     setScale((prev) => Math.max(0.8, prev - 0.2));
   };
 
+  useEffect(() => {
+    setLoading(true);
+  }, [pdfUrl]);
+
   return (
     <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center p-0 z-50">
       <div className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-4xl h-[95dvh] sm:h-[90vh] flex flex-col shadow-2xl border border-slate-200/70 dark:border-slate-700">
@@ -103,7 +107,7 @@ export default function MobilePdfViewer({ pdfUrl, onClose }) {
             <Document
               file={pdfUrl}
               onLoadSuccess={onDocumentLoadSuccess}
-              onLoadError={() => setLoading(false)}
+              onLoadError={(err) => { console.error('PDF load error:', err); setLoading(false); }}
               loading={<div className="text-center py-8">Loading PDF...</div>}
             >
               <Page

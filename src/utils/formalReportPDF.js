@@ -151,19 +151,21 @@ export async function generateFormalReport(records, user, options = {}) {
   yPos = 35;
   
   yPos = addSection(doc, 'EXECUTIVE SUMMARY', yPos);
+
+  // Filter to only completed, valid records
+  const validRecords = records.filter(r => r.status === 'completed' || !r.status);
+  const targetRecords = validRecords.filter((r) => r.recordType === 'target');
+  const clayRecords = validRecords.filter((r) => r.recordType === 'clay');
+  const deerRecords = validRecords.filter((r) => r.recordType === 'deer');
   
-  const targetRecords = records.filter((r) => r.recordType === 'target');
-  const clayRecords = records.filter((r) => r.recordType === 'clay');
-  const deerRecords = records.filter((r) => r.recordType === 'deer');
-  
-  const totalRounds = records.reduce((sum, r) => sum + (r.rounds_fired || r.number_shot || 0), 0);
+  const totalRounds = validRecords.reduce((sum, r) => sum + (r.rounds_fired || r.number_shot || 0), 0);
   
   doc.setFontSize(10);
   doc.setTextColor(DARK_TEXT[0], DARK_TEXT[1], DARK_TEXT[2]);
   doc.setFont(undefined, 'normal');
   
   const summaryStats = [
-    ['Total Sessions:', `${records.length}`],
+    ['Total Sessions:', `${validRecords.length}`],
     ['Target Shooting:', `${targetRecords.length} sessions`],
     ['Clay Shooting:', `${clayRecords.length} sessions`],
     ['Deer Management:', `${deerRecords.length} activities`],
@@ -215,8 +217,8 @@ export async function generateFormalReport(records, user, options = {}) {
   // Page 3+: Detailed Records
   let recordsPerPage = 8;
   let recordIndex = 0;
-  
-  while (recordIndex < records.length) {
+
+  while (recordIndex < validRecords.length) {
     doc.addPage();
     pageNum++;
     addHeader(doc, pageNum, 'TBD');
@@ -224,7 +226,7 @@ export async function generateFormalReport(records, user, options = {}) {
     
     yPos = addSection(doc, 'DETAILED ACTIVITY RECORDS', yPos);
     
-    const pageRecords = records.slice(recordIndex, recordIndex + recordsPerPage);
+    const pageRecords = validRecords.slice(recordIndex, recordIndex + recordsPerPage);
     
     pageRecords.forEach((record, idx) => {
       if (yPos > pageHeight - 30) {

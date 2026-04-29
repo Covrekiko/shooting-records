@@ -39,8 +39,11 @@ export default function Reports() {
     try {
       const currentUser = await base44.auth.me();
 
-      // Load from the single global SessionRecord entity
-      const sessionRecords = await base44.entities.SessionRecord.filter({ created_by: currentUser.email });
+      // Load ONLY completed records from the single global SessionRecord entity
+      const sessionRecords = await base44.entities.SessionRecord.filter({ 
+        created_by: currentUser.email,
+        status: 'completed'
+      });
 
       const allRecords = sessionRecords.map((r) => {
         const recordTypeMap = {
