@@ -386,58 +386,66 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
 
          doc.setFontSize(8.5);
          let detailY = yPosition;
+         const labelWidth = 32;
+         const labelX = margin + 8;
+         const valueX = labelX + labelWidth;
+         const rightLabelX = margin + 100;
+         const rightValueX = rightLabelX + labelWidth;
+         const maxValueWidth = rightLabelX - valueX - 2;
 
          // Left column
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
-         doc.text('Name:', margin + 8, detailY);
+         doc.text('Name:', labelX, detailY);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
-         doc.text(rifleData?.name || '-', margin + 28, detailY);
+         const nameWrapped = doc.splitTextToSize(rifleData?.name || '-', maxValueWidth);
+         doc.text(nameWrapped[0] || '-', valueX, detailY);
 
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
-         doc.text('Make:', margin + 8, detailY + 5);
+         doc.text('Make:', labelX, detailY + 5);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
-         doc.text(rifleData?.make || '-', margin + 28, detailY + 5);
+         doc.text(rifleData?.make || '-', valueX, detailY + 5);
 
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
-         doc.text('Model:', margin + 8, detailY + 10);
+         doc.text('Model:', labelX, detailY + 10);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
-         doc.text(rifleData?.model || '-', margin + 28, detailY + 10);
+         doc.text(rifleData?.model || '-', valueX, detailY + 10);
 
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
-         doc.text('Calibre:', margin + 8, detailY + 15);
+         doc.text('Calibre:', labelX, detailY + 15);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
-         doc.text(rifleData?.caliber || '-', margin + 28, detailY + 15);
+         doc.text(rifleData?.caliber || '-', valueX, detailY + 15);
 
          // Right column
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
-         doc.text('Rounds Fired:', margin + 100, detailY);
+         doc.text('Rounds Fired:', rightLabelX, detailY);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
-         doc.text(String(rifle.rounds_fired || '-'), margin + 135, detailY);
+         doc.text(String(rifle.rounds_fired || '-'), rightValueX, detailY);
 
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
-         doc.text('Range Dist:', margin + 100, detailY + 5);
+         doc.text('Range Dist:', rightLabelX, detailY + 5);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
-         doc.text(`${rifle.meters_range || '-'} m`, margin + 135, detailY + 5);
+         doc.text(`${rifle.meters_range || '-'} m`, rightValueX, detailY + 5);
 
          if (rifleData?.serial_number) {
            doc.setFont(undefined, 'bold');
            doc.setTextColor(...STYLES.darkGray);
-           doc.text('Serial:', margin + 100, detailY + 10);
+           doc.text('Serial:', rightLabelX, detailY + 10);
            doc.setFont(undefined, 'normal');
            doc.setTextColor(...STYLES.textColor);
-           doc.text(rifleData.serial_number, margin + 135, detailY + 10);
+           const serialWrapped = doc.splitTextToSize(rifleData.serial_number, pageWidth - rightValueX - margin - 4);
+           doc.text(serialWrapped[0] || '-', rightValueX, detailY + 10);
          }
 
          yPosition += 33;
@@ -450,34 +458,39 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
 
          doc.setFontSize(8.5);
          let ammoY = yPosition;
+         const ammoLabelX = margin + 8;
+         const ammoValueX = ammoLabelX + labelWidth;
+         const ammoMaxValueWidth = rightLabelX - ammoValueX - 2;
 
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
-         doc.text('Ammunition:', margin + 8, ammoY);
+         doc.text('Ammunition:', ammoLabelX, ammoY);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
-         doc.text(rifle.ammunition_brand || 'Not recorded', margin + 35, ammoY);
+         const ammoWrapped = doc.splitTextToSize(rifle.ammunition_brand || 'Not recorded', ammoMaxValueWidth);
+         doc.text(ammoWrapped[0], ammoValueX, ammoY);
 
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
-         doc.text('Type:', margin + 8, ammoY + 5);
+         doc.text('Type:', ammoLabelX, ammoY + 5);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
-         doc.text(rifle.bullet_type || 'Not recorded', margin + 35, ammoY + 5);
+         const typeWrapped = doc.splitTextToSize(rifle.bullet_type || 'Not recorded', ammoMaxValueWidth);
+         doc.text(typeWrapped[0], ammoValueX, ammoY + 5);
 
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
-         doc.text('Grain:', margin + 8, ammoY + 10);
+         doc.text('Grain:', ammoLabelX, ammoY + 10);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
-         doc.text(rifle.grain || 'Not recorded', margin + 35, ammoY + 10);
+         doc.text(rifle.grain || 'Not recorded', ammoValueX, ammoY + 10);
 
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
-         doc.text('Calibre:', margin + 100, ammoY);
+         doc.text('Calibre:', rightLabelX, ammoY);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
-         doc.text(rifle.caliber || 'Not recorded', margin + 135, ammoY);
+         doc.text(rifle.caliber || 'Not recorded', rightValueX, ammoY);
 
          yPosition += 23;
        });
