@@ -412,7 +412,7 @@ export default function Records() {
         )}
         
         {previewingPdf && createPortal(
-           <PdfPreviewModal records={previewingPdf} userInfo={null} rifles={rifles} clubs={clubs} shotguns={shotguns} onClose={() => setPreviewingPdf(null)} />,
+           <PdfPreviewModal records={previewingPdf} userInfo={null} rifles={rifles} clubs={clubs} shotguns={shotguns} locations={deerLocations} selectedCategory={filters.category} onClose={() => setPreviewingPdf(null)} />,
            document.body
          )}
         
@@ -681,14 +681,14 @@ function getBadgeLabel(type) {
   if (type === 'deer') return 'Deer Management';
 }
 
-function PdfPreviewModal({ records, userInfo, rifles, clubs, shotguns, onClose }) {
+function PdfPreviewModal({ records, userInfo, rifles, clubs, shotguns, locations, selectedCategory, onClose }) {
    const [pdfUrl, setPdfUrl] = useState(null);
    const [loading, setLoading] = useState(true);
    useBodyScrollLock(true);
 
    useEffect(() => {
      (async () => {
-       const blob = await getRecordsPdfBlob(records, userInfo, rifles, clubs, shotguns);
+       const blob = await getRecordsPdfBlob(records, userInfo, rifles, clubs, shotguns, locations, [], {}, { overview: true, selectedCategory });
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       setLoading(false);
@@ -726,7 +726,7 @@ function PdfPreviewModal({ records, userInfo, rifles, clubs, shotguns, onClose }
         </div>
         <div className="p-4 border-t border-slate-200/70 dark:border-slate-700 flex justify-end gap-2">
           <button
-            onClick={() => exportRecordsToPdf(records, null, 'shooting-records.pdf', rifles, clubs, shotguns)}
+            onClick={() => exportRecordsToPdf(records, null, 'shooting-records.pdf', rifles, clubs, shotguns, locations, [], {}, { overview: true, selectedCategory })}
             className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:opacity-90 flex items-center gap-2 text-sm font-medium"
           >
             <Download className="w-4 h-4" />

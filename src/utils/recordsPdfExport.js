@@ -24,12 +24,12 @@ const STYLES = {
   darkGray: [60, 60, 60],
 };
 
-export async function exportRecordsToPdf(records, userInfo = null, fileName = 'shooting-records.pdf', rifles = {}, clubs = {}, shotguns = {}, locations = {}, targetGroups = [], clayData = {}) {
-  return exportProfessionalRecordsToPdf(records, userInfo, fileName, rifles, clubs, shotguns, locations, targetGroups, clayData);
+export async function exportRecordsToPdf(records, userInfo = null, fileName = 'shooting-records.pdf', rifles = {}, clubs = {}, shotguns = {}, locations = {}, targetGroups = [], clayData = {}, options = {}) {
+  return exportProfessionalRecordsToPdf(records, userInfo, fileName, rifles, clubs, shotguns, locations, targetGroups, clayData, options);
 }
 
-export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, clubs = {}, shotguns = {}, locations = {}, targetGroups = [], clayData = {}) {
-  return getProfessionalRecordsPdfBlob(records, userInfo, rifles, clubs, shotguns, locations, targetGroups, clayData);
+export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, clubs = {}, shotguns = {}, locations = {}, targetGroups = [], clayData = {}, options = {}) {
+  return getProfessionalRecordsPdfBlob(records, userInfo, rifles, clubs, shotguns, locations, targetGroups, clayData, options);
 }
 
 function createFrontPage(doc, userInfo, pageWidth, pageHeight, docId) {
