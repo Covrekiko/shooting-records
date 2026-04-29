@@ -31,8 +31,10 @@ const defaultCenter = {
 
 export default function DeerStalkingMap() {
   const { activeOuting, loading: outingLoading, startOuting, endOuting, endOutingWithData, updateGpsTrack } = useOuting();
+  // API key should be in VITE_GOOGLE_MAPS_API_KEY (set via .env or build config)
+  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    googleMapsApiKey: apiKey,
   });
 
   const [markers, setMarkers] = useState([]);
