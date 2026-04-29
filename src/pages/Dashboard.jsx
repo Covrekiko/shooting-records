@@ -241,7 +241,8 @@ const ChartsSection = React.memo(function ChartsSection({ chartData }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const [user, setUser] = useState(null);
+  const { user: authUser, refreshUser } = useAuth();
+  const [user, setUser] = useState(authUser || null);
   const [stats, setStats] = useState(null);
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -253,8 +254,11 @@ export default function Dashboard() {
   const loadData = useCallback(async () => {
     try {
       console.log('[API DEBUG] Dashboard.loadData called');
-      const currentUser = await base44.auth.me();
-      
+      const currentUser = authUser || await refreshUser();
+      if (!currentUser) {
+        setLoading(false);
+        return;
+      }
       setUser(currentUser);
       
       if (currentUser.role === 'admin') {
@@ -300,7 +304,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [authUser, refreshUser]);
 
   useEffect(() => {
     loadData();

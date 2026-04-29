@@ -7,6 +7,8 @@ import { preCacheUserData } from '@/lib/offlineSupport';
 import { offlineDB, ENTITY_STORE_MAP } from '@/lib/offlineDB';
 
 const AuthContext = createContext();
+const AUTH_RETRY_COOLDOWN_MS = 60000;
+let lastAuthFailureAt = 0;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -105,6 +107,16 @@ export const AuthProvider = ({ children }) => {
     try {
       // Now check if the user is authenticated
       setIsLoadingAuth(true);
+      if (Date.now() - lastAuthFailureAt < AUTH_RETRY_COOLDOWN_MS) {
+        const cached = await getCachedUserProfile().catch(() => null);
+        if (cached) {
+          setUser({ ...cached, profileComplete: true });
+          setIsAuthenticated(true);
+          setAuthError(null);
+        }
+        setIsLoadingAuth(false);
+        return;
+      }
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
@@ -115,6 +127,7 @@ export const AuthProvider = ({ children }) => {
       preCacheUserData(currentUser.email).catch(() => {});
     } catch (error) {
       console.error('User auth check failed:', error);
+      lastAuthFailureAt = Date.now();
 
       // Rate-limit cooldown: don't retry on 429
       if (error.status === 429) {
@@ -217,6 +230,10 @@ export const AuthProvider = ({ children }) => {
   const refreshUser = async () => {
     try {
       // Force fresh fetch by invalidating SDK cache
+      if (Date.now() - lastAuthFailureAt < AUTH_RETRY_COOLDOWN_MS) {
+        const cached = await getCachedUserProfile().catch(() => null);
+        if (cached) return cached;
+      }
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       // Update cache with fresh data
@@ -224,6 +241,9 @@ export const AuthProvider = ({ children }) => {
       return currentUser;
     } catch (error) {
       console.error('Error refreshing user:', error);
+      lastAuthFailureAt = Date.now();
+      const cached = await getCachedUserProfile().catch(() => null);
+      if (cached) return cached;
       throw error;
     }
   };

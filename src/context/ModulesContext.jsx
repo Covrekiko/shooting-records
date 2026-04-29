@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
+import { getCachedUserProfile } from '@/lib/syncEngine';
 
 // All possible modules
 export const ALL_MODULES = [
@@ -26,7 +27,8 @@ export function ModulesProvider({ children }) {
         return;
       }
       try {
-        const user = await base44.auth.me();
+        let user = await getCachedUserProfile().catch(() => null);
+        if (!user) user = await base44.auth.me();
         if (user?.enabledModules && Array.isArray(user.enabledModules)) {
           setEnabledModules(user.enabledModules);
         } else {
