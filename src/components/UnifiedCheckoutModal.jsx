@@ -3,6 +3,7 @@ import GlobalModal from '@/components/ui/GlobalModal.jsx';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
 const PEST_SPECIES = ['Fox', 'Rabbit', 'Grey Squirrel', 'Brown Rat', 'Mink', 'Stoat', 'Weasel', 'Mole', 'Pigeon (Feral)', 'Pigeon (Wood)', 'Crow', 'Magpie', 'Jackdaw', 'Jay', 'Rook', 'Canada Goose', 'Other (Pest)'];
+const OTHER_SPECIES = ['Other', 'Other (Pest)'];
 
 export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition, onSubmit, onClose }) {
   const [formData, setFormData] = useState({
@@ -15,17 +16,27 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
     ammunition_used: '',
     notes: '',
   });
+  const [selectedDeer, setSelectedDeer] = useState('');
   const [selectedPest, setSelectedPest] = useState('');
 
   const set = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
 
-  const handleSpeciesChange = (species, count) => {
-    const existing = formData.species_list.filter(s => s.species !== species);
-    if (count && parseInt(count) > 0) {
-      set('species_list', [...existing, { species, count: String(count) }]);
-    } else {
-      set('species_list', existing);
+  const updateEntry = (species, field, value) => {
+    set('species_list', formData.species_list.map(s =>
+      s.species === species ? { ...s, [field]: value } : s
+    ));
+  };
+
+  const removeEntry = (species) => {
+    set('species_list', formData.species_list.filter(s => s.species !== species));
+  };
+
+  const addSpecies = (species, setter) => {
+    if (!species) return;
+    if (!formData.species_list.find(s => s.species === species)) {
+      set('species_list', [...formData.species_list, { species, count: '1', note: '' }]);
     }
+    setter('');
   };
 
   const totalCount = formData.species_list.reduce((sum, s) => sum + (parseInt(s.count) || 0), 0);
@@ -40,6 +51,39 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
 
   const inputCls = 'w-full px-3 py-2.5 border border-input bg-background text-foreground rounded-lg text-sm focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none';
   const labelCls = 'text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block';
+
+  const deerEntries = formData.species_list.filter(s => DEER_SPECIES.includes(s.species));
+  const pestEntries = formData.species_list.filter(s => PEST_SPECIES.includes(s.species));
+
+  const SpeciesRow = ({ entry }) => (
+    <div key={entry.species} className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        <span className="text-sm flex-1 text-foreground">{entry.species}</span>
+        <input
+          type="number"
+          inputMode="numeric"
+          min="1"
+          value={entry.count}
+          onChange={e => updateEntry(entry.species, 'count', e.target.value)}
+          className="w-20 px-3 py-2 border border-input bg-background text-foreground rounded-lg text-sm outline-none focus:border-primary"
+        />
+        <button
+          type="button"
+          onClick={() => removeEntry(entry.species)}
+          className="text-muted-foreground hover:text-destructive text-xl leading-none px-1"
+        >×</button>
+      </div>
+      {OTHER_SPECIES.includes(entry.species) && (
+        <input
+          type="text"
+          value={entry.note || ''}
+          onChange={e => updateEntry(entry.species, 'note', e.target.value)}
+          placeholder="Describe species…"
+          className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg text-sm outline-none focus:border-primary ml-0"
+        />
+      )}
+    </div>
+  );
 
   return (
     <GlobalModal
@@ -70,41 +114,35 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
 
         {formData.shot_anything && (
           <>
+            {/* Species Harvested — dropdown add */}
             <div>
               <label className={labelCls}>Species Harvested</label>
-              <div className="space-y-2">
-                {DEER_SPECIES.map(species => {
-                  const entry = formData.species_list.find(s => s.species === species);
-                  return (
-                    <div key={species} className="flex items-center gap-3">
-                      <span className="text-sm w-36 text-foreground">{species}</span>
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        placeholder="0"
-                        value={entry?.count || ''}
-                        onChange={e => handleSpeciesChange(species, e.target.value)}
-                        className="w-20 px-3 py-2 border border-input bg-background text-foreground rounded-lg text-sm outline-none focus:border-primary"
-                      />
-                    </div>
-                  );
-                })}
+              <div className="flex gap-2">
+                <select value={selectedDeer} onChange={e => setSelectedDeer(e.target.value)} className={inputCls}>
+                  <option value="">Select species…</option>
+                  {DEER_SPECIES.filter(p => !formData.species_list.find(s => s.species === p)).map(p => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  disabled={!selectedDeer}
+                  onClick={() => addSpecies(selectedDeer, setSelectedDeer)}
+                  className="px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold disabled:opacity-40 shrink-0"
+                >Add</button>
               </div>
-              {totalCount > 0 && (
-                <p className="text-xs text-primary font-semibold mt-2">Total: {totalCount} animal{totalCount !== 1 ? 's' : ''}</p>
+              {deerEntries.length > 0 && (
+                <div className="mt-2 space-y-2">
+                  {deerEntries.map(entry => <SpeciesRow key={entry.species} entry={entry} />)}
+                </div>
               )}
             </div>
 
-            {/* Pest Control */}
+            {/* Pest Control — dropdown add */}
             <div>
               <label className={labelCls}>Pest Control</label>
               <div className="flex gap-2">
-                <select
-                  value={selectedPest}
-                  onChange={e => setSelectedPest(e.target.value)}
-                  className={inputCls}
-                >
+                <select value={selectedPest} onChange={e => setSelectedPest(e.target.value)} className={inputCls}>
                   <option value="">Select species…</option>
                   {PEST_SPECIES.filter(p => !formData.species_list.find(s => s.species === p)).map(p => (
                     <option key={p} value={p}>{p}</option>
@@ -113,39 +151,20 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                 <button
                   type="button"
                   disabled={!selectedPest}
-                  onClick={() => {
-                    if (!selectedPest) return;
-                    set('species_list', [...formData.species_list, { species: selectedPest, count: '1' }]);
-                    setSelectedPest('');
-                  }}
+                  onClick={() => addSpecies(selectedPest, setSelectedPest)}
                   className="px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold disabled:opacity-40 shrink-0"
-                >
-                  Add
-                </button>
+                >Add</button>
               </div>
-              {formData.species_list.filter(s => PEST_SPECIES.includes(s.species)).length > 0 && (
-                <div className="mt-2 space-y-1.5">
-                  {formData.species_list.filter(s => PEST_SPECIES.includes(s.species)).map(entry => (
-                    <div key={entry.species} className="flex items-center gap-3">
-                      <span className="text-sm flex-1 text-foreground">{entry.species}</span>
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        min="0"
-                        value={entry.count}
-                        onChange={e => handleSpeciesChange(entry.species, e.target.value)}
-                        className="w-20 px-3 py-2 border border-input bg-background text-foreground rounded-lg text-sm outline-none focus:border-primary"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => set('species_list', formData.species_list.filter(s => s.species !== entry.species))}
-                        className="text-muted-foreground hover:text-destructive text-lg leading-none"
-                      >×</button>
-                    </div>
-                  ))}
+              {pestEntries.length > 0 && (
+                <div className="mt-2 space-y-2">
+                  {pestEntries.map(entry => <SpeciesRow key={entry.species} entry={entry} />)}
                 </div>
               )}
             </div>
+
+            {totalCount > 0 && (
+              <p className="text-xs text-primary font-semibold">Total: {totalCount} animal{totalCount !== 1 ? 's' : ''}</p>
+            )}
 
             <div>
               <label className={labelCls}>Rifle Used</label>
