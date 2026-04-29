@@ -430,9 +430,8 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
   const labelCls = DESIGN.LABEL;
   const selectCls = DESIGN.SELECT;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(e);
+  const handleSubmit = () => {
+    onSubmit();
   };
 
   return (
