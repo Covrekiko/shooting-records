@@ -1,0 +1,88 @@
+{
+  "name": "MapMarker",
+  "type": "object",
+  "properties": {
+    "marker_type": {
+      "type": "string",
+      "enum": [
+        "deer_sighting",
+        "animal",
+        "high_seat",
+        "feeding_area",
+        "tracks_signs",
+        "other"
+      ],
+      "description": "Type of point of interest"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "Latitude coordinate"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Longitude coordinate"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes about the marker"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Photo URLs"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "marker_type",
+    "latitude",
+    "longitude"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

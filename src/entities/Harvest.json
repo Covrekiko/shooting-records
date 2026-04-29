@@ -1,0 +1,91 @@
+{
+  "name": "Harvest",
+  "type": "object",
+  "properties": {
+    "latitude": {
+      "type": "number",
+      "description": "Latitude coordinate"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Longitude coordinate"
+    },
+    "species": {
+      "type": "string",
+      "description": "Deer species"
+    },
+    "sex": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female",
+        "unknown"
+      ],
+      "description": "Sex of the deer"
+    },
+    "harvest_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Date and time of harvest"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes about the harvest"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Photo URLs"
+    }
+  },
+  "required": [
+    "latitude",
+    "longitude",
+    "species",
+    "harvest_date"
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

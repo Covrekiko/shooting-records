@@ -4,6 +4,7 @@ import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
 import { cacheUserProfile, getCachedUserProfile } from '@/lib/syncEngine';
 import { preCacheUserData } from '@/lib/offlineSupport';
+import { offlineDB, ENTITY_STORE_MAP } from '@/lib/offlineDB';
 
 const AuthContext = createContext();
 
@@ -142,7 +143,43 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = (shouldRedirect = true) => {
+  const logout = async (shouldRedirect = true) => {
+    try {
+      // SECURITY FIX: Clear all user-specific offline data before logout
+      const userStores = [
+        'user_profile',
+        'sessions',
+        'rifles',
+        'shotguns',
+        'clubs',
+        'locations',
+        'ammunition',
+        'areas',
+        'map_markers',
+        'harvests',
+        'deer_outings',
+        'reloading_sessions',
+        'reloading_components',
+        'reloading_stock',
+        'reloading_inventory',
+        'cleaning_history',
+        'ammo_spending',
+        'sync_queue',
+      ];
+      
+      for (const store of userStores) {
+        try {
+          await offlineDB.clearStore(store);
+        } catch (err) {
+          console.warn(`Could not clear offline store '${store}':`, err);
+        }
+      }
+      
+      console.log('✅ Offline cache cleared on logout');
+    } catch (err) {
+      console.error('Error clearing offline cache on logout:', err);
+    }
+    
     setUser(null);
     setIsAuthenticated(false);
     
