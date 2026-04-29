@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import ChildScreenHeader from '@/components/ChildScreenHeader';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Droplet } from 'lucide-react';
 
 const inp = 'w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring/40';
 const lbl = 'block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5';
@@ -67,6 +67,22 @@ export default function Shotguns() {
     }
   };
 
+  const handleCleanRounds = async (shotgun) => {
+    if (!confirm(`Reset cleaning counter for ${shotgun.name}?`)) return;
+    try {
+      await base44.entities.Shotgun.update(shotgun.id, {
+        cartridges_at_last_cleaning: shotgun.total_cartridges_fired || 0,
+      });
+      setShotguns(shotguns.map((s) => 
+        s.id === shotgun.id 
+          ? { ...s, cartridges_at_last_cleaning: s.total_cartridges_fired || 0 }
+          : s
+      ));
+    } catch (error) {
+      console.error('Error cleaning rounds:', error);
+    }
+  };
+
   const startEdit = (shotgun) => {
     setFormData(shotgun);
     setEditingId(shotgun.id);
@@ -127,27 +143,43 @@ export default function Shotguns() {
         </GlobalModal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {shotguns.map((shotgun) => (
-            <div key={shotgun.id} className="bg-card border border-border rounded-lg p-4">
-              <h3 className="font-semibold text-lg">{shotgun.name}</h3>
-              <p className="text-sm text-muted-foreground">{shotgun.make} {shotgun.model}</p>
-              <p className="text-sm text-muted-foreground">{shotgun.gauge}{shotgun.barrel_length && ` · ${shotgun.barrel_length}`}</p>
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={() => startEdit(shotgun)}
-                  className="flex-1 px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center justify-center gap-1"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDelete(shotgun.id)}
-                  className="flex-1 px-3 py-1 text-sm bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded transition-colors flex items-center justify-center gap-1"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+          {shotguns.map((shotgun) => {
+            const cartridgesSinceCleaning = (shotgun.total_cartridges_fired || 0) - (shotgun.cartridges_at_last_cleaning || 0);
+            return (
+              <div key={shotgun.id} className="bg-card border border-border rounded-lg p-4">
+                <h3 className="font-semibold text-lg">{shotgun.name}</h3>
+                <p className="text-sm text-muted-foreground">{shotgun.make} {shotgun.model}</p>
+                <p className="text-sm text-muted-foreground">{shotgun.gauge}{shotgun.barrel_length && ` · ${shotgun.barrel_length}`}</p>
+                <div className="text-xs text-muted-foreground mt-3 space-y-1">
+                  <p>Total Cartridges: <span className="font-semibold">{shotgun.total_cartridges_fired || 0}</span></p>
+                  <p>Since Cleaning: <span className="font-semibold text-primary">{cartridgesSinceCleaning}</span></p>
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <button
+                    onClick={() => startEdit(shotgun)}
+                    className="flex-1 px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center justify-center gap-1"
+                    title="Edit"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleCleanRounds(shotgun)}
+                    className="flex-1 px-3 py-1 text-sm bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500 hover:text-white rounded transition-colors flex items-center justify-center gap-1"
+                    title="Reset cleaning counter"
+                  >
+                    <Droplet className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(shotgun.id)}
+                    className="flex-1 px-3 py-1 text-sm bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded transition-colors flex items-center justify-center gap-1"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </main>
     </div>
