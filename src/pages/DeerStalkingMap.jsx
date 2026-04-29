@@ -32,12 +32,13 @@ const defaultCenter = {
 export default function DeerStalkingMap() {
   const { activeOuting, loading: outingLoading, startOuting, endOuting, endOutingWithData, updateGpsTrack } = useOuting();
   
-  // Debug logs
-  console.log('[MAP DEBUG] key exists:', !!import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
-  console.log('[MAP DEBUG] key prefix:', import.meta.env.VITE_GOOGLE_MAPS_API_KEY?.slice(0, 6));
+  // Debug logs - support both Vite env and fallback
+  const mapsKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || window?.GOOGLE_MAPS_API_KEY || '';
+  console.log('[MAP DEBUG] key exists:', !!mapsKey);
+  console.log('[MAP DEBUG] key source:', mapsKey ? (import.meta.env.VITE_GOOGLE_MAPS_API_KEY ? 'vite' : 'window') : 'none');
   
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    googleMapsApiKey: mapsKey,
   });
 
   const [markers, setMarkers] = useState([]);

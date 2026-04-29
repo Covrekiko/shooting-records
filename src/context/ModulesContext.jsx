@@ -18,29 +18,32 @@ export function ModulesProvider({ children }) {
   const [enabledModules, setEnabledModules] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const loadModules = useCallback(async () => {
-    // If no token, skip loading — auth will handle the gate
-    if (!appParams.token) {
-      setLoading(false);
-      return;
-    }
-    try {
-      const user = await base44.auth.me();
-      if (user?.enabledModules && Array.isArray(user.enabledModules)) {
-        setEnabledModules(user.enabledModules);
-      } else {
-        // Not yet configured — signal onboarding needed
-        setEnabledModules(undefined);
+  useEffect(() => {
+    const loadModules = async () => {
+      // If no token, skip loading — auth will handle the gate
+      if (!appParams.token) {
+        setLoading(false);
+        return;
       }
-    } catch {
-      // Offline fallback: default to all modules so the app still works
-      setEnabledModules(ALL_MODULES.map(m => m.key));
-    } finally {
-      setLoading(false);
-    }
+      try {
+        console.log('[API DEBUG] ModulesContext.loadModules called');
+        const user = await base44.auth.me();
+        if (user?.enabledModules && Array.isArray(user.enabledModules)) {
+          setEnabledModules(user.enabledModules);
+        } else {
+          // Not yet configured — signal onboarding needed
+          setEnabledModules(undefined);
+        }
+      } catch (err) {
+        console.error('[ModulesContext] Load failed:', err.status === 429 ? '429 rate limit' : err.message);
+        // Offline fallback: default to all modules so the app still works
+        setEnabledModules(ALL_MODULES.map(m => m.key));
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadModules();
   }, []);
-
-  useEffect(() => { loadModules(); }, [loadModules]);
 
   const saveModules = async (modules) => {
     await base44.auth.updateMe({ enabledModules: modules });
@@ -53,7 +56,7 @@ export function ModulesProvider({ children }) {
   };
 
   return (
-    <ModulesContext.Provider value={{ enabledModules, loading, isEnabled, saveModules, loadModules }}>
+    <ModulesContext.Provider value={{ enabledModules, loading, isEnabled, saveModules }}>
       {children}
     </ModulesContext.Provider>
   );
