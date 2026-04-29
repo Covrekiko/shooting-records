@@ -766,6 +766,44 @@ function formatActivityNotes(record) {
   return 'Not Recorded';
 }
 
+function formatCoordinate(point) {
+  if (!point) return null;
+  const lat = point.lat ?? point.latitude;
+  const lng = point.lng ?? point.longitude;
+  if (lat === undefined || lng === undefined) return null;
+  return `${Number(lat).toFixed(6)}, ${Number(lng).toFixed(6)}`;
+}
+
+function getGpsTrack(record) {
+  return record.gps_track || record.gpsTrack || record.track || record.route_points || record.routePoints || record.gps_points || record.gpsPoints || [];
+}
+
+function getSavedDistance(record) {
+  return record.distance_travelled || record.distance_traveled || record.tracking_distance || record.gps_distance || record.distance || null;
+}
+
+function buildGpsLocationRows(record, locationName) {
+  const track = Array.isArray(getGpsTrack(record)) ? getGpsTrack(record) : [];
+  const startPoint = track[0] || record.start_location;
+  const endPoint = track.length > 0 ? track[track.length - 1] : record.end_location;
+  const checkInCoords = formatCoordinate(startPoint) || formatCoordinate({ lat: record.checkin_lat || record.start_lat || record.latitude, lng: record.checkin_lng || record.start_lng || record.longitude });
+  const checkOutCoords = formatCoordinate(endPoint) || formatCoordinate({ lat: record.checkout_lat || record.end_lat, lng: record.checkout_lng || record.end_lng });
+  const distance = getSavedDistance(record);
+
+  if (track.length === 0 && !checkInCoords && !checkOutCoords && !locationName) {
+    return [{ label: 'Tracking Status', value: 'No GPS points saved', full: true }];
+  }
+
+  return [
+    ...(locationName ? [{ label: 'Location', value: locationName, full: true }] : []),
+    ...(checkInCoords ? [{ label: 'Check-In Coordinates', value: checkInCoords, full: true }] : []),
+    ...(checkOutCoords ? [{ label: 'Check-Out Coordinates', value: checkOutCoords, full: true }] : []),
+    { label: 'GPS Points Saved', value: track.length || '0' },
+    { label: 'Distance', value: distance ? `${distance}` : 'Not recorded' },
+    { label: 'Tracking Status', value: track.length > 0 ? 'Recorded' : (locationName ? 'GPS coordinates not recorded' : 'No GPS points saved'), full: true },
+  ];
+}
+
 function drawCategoryTitle(doc, title) {
   const { width } = pageMetrics(doc);
   doc.setFont('helvetica', 'bold');
@@ -903,6 +941,7 @@ function drawTargetOverviewRecord(doc, record, reportData, cursor) {
       { label: 'Calibre', value: firearm.caliber || rifle.caliber || record.caliber },
       { label: 'Rounds Fired', value: firearm.rounds_fired ?? record.rounds_fired ?? 0 },
     ] },
+    { title: 'GPS / Location', rows: buildGpsLocationRows(record, resolveActivityLocation(record, clubs, locations)) },
     { title: 'Notes', rows: [{ label: 'Notes', value: formatActivityNotes(record), full: true }] },
   ], cursor);
 }
@@ -934,6 +973,7 @@ function drawClayOverviewRecord(doc, record, reportData, cursor) {
       { label: 'Shot Size', value: record.shot_size },
       { label: 'Load / Weight', value: record.load_grams || record.grams },
     ] },
+    { title: 'GPS / Location', rows: buildGpsLocationRows(record, resolveActivityLocation(record, clubs, locations)) },
     { title: 'Notes', rows: [{ label: 'Notes', value: formatActivityNotes(record), full: true }] },
   ], cursor);
 }
@@ -971,6 +1011,7 @@ function drawDeerOverviewRecord(doc, record, reportData, cursor) {
       { label: 'Calibre', value: record.caliber || rifle.caliber },
       { label: 'Rounds Fired', value: record.rounds_fired || record.total_count || record.number_shot || 0 },
     ] },
+    { title: 'GPS / Location', rows: buildGpsLocationRows(record, record.location_name || record.place_name || locations[record.location_id]?.name || locations[record.location_id]?.place_name) },
     { title: 'Notes', rows: [{ label: 'Notes', value: formatActivityNotes(record), full: true }] },
   ], cursor);
 }
