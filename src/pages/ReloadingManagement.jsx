@@ -170,7 +170,7 @@ export default function ReloadingManagement() {
           const user = await base44.auth.me();
           // Create a per-batch ammo entry tagged with reload_batch:<id> for reliable reversal
           const batchNotes = `reload_batch:${createdSession.id} | Batch ${data.batch_number}`;
-          await base44.entities.Ammunition.create({
+          const ammoRecord = await base44.entities.Ammunition.create({
             brand: 'Reloaded',
             caliber: data.caliber,
             bullet_type: 'Custom',
@@ -179,8 +179,17 @@ export default function ReloadingManagement() {
             cost_per_unit: data.rounds_loaded > 0 ? data.total_cost / data.rounds_loaded : 0,
             date_purchased: data.date,
             low_stock_threshold: 10,
+            ammo_type: 'reloaded',
+            source_type: 'reload_batch',
+            reload_session_id: createdSession.id,
+            source_id: createdSession.id,
             notes: batchNotes,
           });
+          console.log(`[RELOADED AMMO DEBUG] reload batch created = ${createdSession.id}`);
+          console.log(`[RELOADED AMMO DEBUG] ammunition created = ${ammoRecord.id}`);
+          console.log(`[RELOADED AMMO DEBUG] ammo_type = reloaded`);
+          console.log(`[RELOADED AMMO DEBUG] source_type = reload_batch`);
+          console.log(`[RELOADED AMMO DEBUG] quantity_in_stock = ${data.rounds_loaded}`);
         }
       }
       setShowForm(false);

@@ -234,8 +234,16 @@ export function getSelectableAmmunition(ammunition, selectedCaliber) {
   const selectedNorm = normalizeCaliber(selectedCaliber);
 
   return ammunition.filter(ammo => {
+    // Skip ammo with no stock (but log reloaded ammo for debugging)
+    if ((ammo.quantity_in_stock || 0) <= 0) {
+      if (ammo.ammo_type === 'reloaded' || ammo.source_type === 'reload_batch') {
+        console.log(`[AMMO FILTER DEBUG] skipping reloaded ammo with zero stock: ${ammo.brand} ${ammo.caliber}`);
+      }
+      return false;
+    }
+
+    // Skip ammo with no caliber
     if (!ammo.caliber) return true;
-    if ((ammo.quantity_in_stock || 0) <= 0) return false;
 
     const ammoNorm = normalizeCaliber(ammo.caliber);
     return ammoNorm === selectedNorm || ammoNorm.startsWith(selectedNorm) || selectedNorm.startsWith(ammoNorm);
