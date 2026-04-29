@@ -36,7 +36,6 @@ export default function AmmunitionInventory() {
       setAmmo(ammoList);
     } catch (error) {
       console.error('Error loading ammunition:', error);
-      // Don't clear existing ammo on error — keep last known state visible
     } finally {
       setLoading(false);
     }

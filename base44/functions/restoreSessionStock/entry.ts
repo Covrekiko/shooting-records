@@ -112,26 +112,18 @@ Deno.serve(async (req) => {
     }
 
     // ─── CLEAN UP AmmoSpending LOG ENTRIES ───────────────────────────────
-    // Remove any spending log entries that reference this session ID OR the linked outing ID.
-    // This handles the case where ammo was decremented using the DeerOuting ID (activeOuting.id)
-    // but the record being deleted is a SessionRecord with a different ID.
+    // Remove any spending log entries that reference this session ID
     try {
       const allSpending = await base44.entities.AmmoSpending.filter({ created_by: user.email });
       let deletedLogs = 0;
-
-      // Also collect the outing_id from the session record so we can match spending logged with that ID
-      const outingId = session.outing_id || null;
-
       for (const record of allSpending) {
-        const matchesSession = record.notes && record.notes.includes(`session:${sessionId}`);
-        const matchesOuting = outingId && record.notes && record.notes.includes(`session:${outingId}`);
-        if (matchesSession || matchesOuting) {
+        if (record.notes && record.notes.includes(`session:${sessionId}`)) {
           await base44.entities.AmmoSpending.delete(record.id);
           deletedLogs++;
         }
       }
       if (deletedLogs > 0) {
-        console.log(`🟢 Cleaned up ${deletedLogs} AmmoSpending log entries for session ${sessionId} (outingId: ${outingId})`);
+        console.log(`🟢 Cleaned up ${deletedLogs} AmmoSpending log entries for session ${sessionId}`);
       }
     } catch (e) {
       console.warn(`⚠️ Could not clean AmmoSpending logs:`, e.message);
