@@ -80,8 +80,8 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
     >
       <div>
 
-          {/* Photos */}
-          {rec.photos?.length > 0 && (
+          {/* Photos - Hidden for Target Shooting (shown below) */}
+          {rec.photos?.length > 0 && rec.recordType !== 'target' && (
             <div className="mb-5">
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3 px-1">Photos</p>
               <div className="flex gap-2 overflow-x-auto pb-1">
@@ -223,6 +223,30 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
                 </div>
               )}
             </>
+          )}
+
+          {/* Checkout/Session Photos for Target Shooting */}
+          {rec.recordType === 'target' && rec.photos?.length > 0 && (
+            <div className="mb-5">
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3 px-1">Session Photos</p>
+              <div className="grid grid-cols-4 gap-2">
+                {rec.photos.map((photo, i) => {
+                  const photoUrl = typeof photo === 'string' ? photo : photo.url;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => window.open(photoUrl, '_blank')}
+                      className="relative group overflow-hidden rounded-lg border border-border"
+                    >
+                      <img src={photoUrl} alt={`Photo ${i + 1}`} className="h-24 w-24 object-cover" onError={(e) => e.target.style.display = 'none'} />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                        <span className="text-white text-xs font-bold opacity-0 group-hover:opacity-100">Open</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           )}
 
           {/* Notes */}
