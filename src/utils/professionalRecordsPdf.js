@@ -683,10 +683,202 @@ function renderDeerSession(doc, record, reportData, cursor) {
   return cursor;
 }
 
+function drawActivityLogHeader(doc, reportData, cursor) {
+  const { width } = pageMetrics(doc);
+  doc.setFillColor(...REPORT.navy);
+  doc.roundedRect(REPORT.margin, cursor.y, width - REPORT.margin * 2, 28, 2, 2, 'F');
+  doc.setTextColor(...REPORT.white);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.text('SHOOTING ACTIVITY RECORD', REPORT.margin + 6, cursor.y + 11);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text('Firearms Usage & Attendance Log', REPORT.margin + 6, cursor.y + 18);
+  doc.setDrawColor(...REPORT.copper);
+  doc.setLineWidth(1.2);
+  doc.line(REPORT.margin + 6, cursor.y + 23, width - REPORT.margin - 6, cursor.y + 23);
+  doc.setFontSize(8);
+  doc.text(`Document ID: ${reportData.documentId}`, width - REPORT.margin - 6, cursor.y + 10, { align: 'right' });
+  doc.text(`Generated: ${reportData.generatedAtLabel}`, width - REPORT.margin - 6, cursor.y + 17, { align: 'right' });
+  return { ...cursor, y: cursor.y + 36 };
+}
+
+function resolveActivityLocation(record, clubs = {}, locations = {}) {
+  return record.club_name
+    || record.range_name
+    || record.location_name
+    || record.place_name
+    || record.venue_name
+    || (record.club_id && clubs[record.club_id]?.name)
+    || (record.location_id && (clubs[record.location_id]?.name || locations[record.location_id]?.name || locations[record.location_id]?.place_name))
+    || 'Not Recorded';
+}
+
+function activityTypeLabel(record) {
+  if (record.category === 'target_shooting' || record.recordType === 'target') return 'Target Shooting';
+  if (record.category === 'clay_shooting' || record.recordType === 'clay') return 'Clay Shooting';
+  if (record.category === 'deer_management' || record.recordType === 'deer') return 'Deer Management';
+  return 'Shooting Activity';
+}
+
+function formatTimeRange(record) {
+  const start = record.checkin_time || record.start_time;
+  const end = record.checkout_time || record.end_time;
+  if (start && end) return `${start}–${end}`;
+  return start || end || 'Not Recorded';
+}
+
+function joinClean(parts, separator = ' ') {
+  return parts.filter((part) => part !== null && part !== undefined && part !== '').join(separator) || 'Not Recorded';
+}
+
+function formatActivityFirearms(record, lookups) {
+  const { rifles = {}, shotguns = {} } = lookups;
+  if (record.category === 'target_shooting' || record.recordType === 'target') {
+    const firearms = record.rifles_used?.length ? record.rifles_used : [{ rifle_id: record.rifle_id, rounds_fired: record.rounds_fired, caliber: record.caliber }];
+    return firearms.map((firearm, index) => {
+      const rifle = rifles[firearm.rifle_id] || {};
+      return joinClean([`${index + 1}.`, rifle.name || firearm.rifle_name, rifle.make || firearm.make, rifle.model || firearm.model], ' ');
+    }).join('\n');
+  }
+  if (record.category === 'clay_shooting' || record.recordType === 'clay') {
+    const shotgun = shotguns[record.shotgun_id] || {};
+    return joinClean([shotgun.name, shotgun.make, shotgun.model], ' ');
+  }
+  const rifle = rifles[record.rifle_id] || {};
+  return joinClean([rifle.name, rifle.make, rifle.model], ' ');
+}
+
+function formatActivityCalibre(record, lookups) {
+  const { rifles = {}, shotguns = {} } = lookups;
+  if (record.category === 'target_shooting' || record.recordType === 'target') {
+    const firearms = record.rifles_used?.length ? record.rifles_used : [{ rifle_id: record.rifle_id, caliber: record.caliber }];
+    return firearms.map((firearm, index) => `${index + 1}. ${firearm.caliber || rifles[firearm.rifle_id]?.caliber || 'Not Recorded'}`).join('\n');
+  }
+  if (record.category === 'clay_shooting' || record.recordType === 'clay') return shotguns[record.shotgun_id]?.gauge || record.gauge || 'Not Recorded';
+  return record.caliber || rifles[record.rifle_id]?.caliber || 'Not Recorded';
+}
+
+function formatActivitySerial(record, lookups) {
+  const { rifles = {}, shotguns = {} } = lookups;
+  if (record.category === 'target_shooting' || record.recordType === 'target') {
+    const firearms = record.rifles_used?.length ? record.rifles_used : [{ rifle_id: record.rifle_id }];
+    return firearms.map((firearm, index) => `${index + 1}. ${rifles[firearm.rifle_id]?.serial_number || firearm.serial_number || 'Not Recorded'}`).join('\n');
+  }
+  if (record.category === 'clay_shooting' || record.recordType === 'clay') return shotguns[record.shotgun_id]?.serial_number || 'Not Recorded';
+  return rifles[record.rifle_id]?.serial_number || 'Not Recorded';
+}
+
+function formatActivityAmmunition(record) {
+  if (record.category === 'target_shooting' || record.recordType === 'target') {
+    const firearms = record.rifles_used?.length ? record.rifles_used : [{ ammunition_brand: record.ammunition_used, bullet_type: record.bullet_type, grain: record.grain }];
+    return firearms.map((firearm, index) => `${record.rifles_used?.length ? `${index + 1}. ` : ''}${joinClean([firearm.ammunition_brand || record.ammunition_used, firearm.bullet_type, firearm.grain ? `${firearm.grain}gr` : null], ' ')}`).join('\n');
+  }
+  return joinClean([record.ammunition_used, record.shot_size, record.load_grams ? `${record.load_grams}g` : null], ' ');
+}
+
+function formatActivityRounds(record) {
+  if (record.category === 'target_shooting' || record.recordType === 'target') {
+    const firearms = record.rifles_used?.length ? record.rifles_used : [{ rounds_fired: record.rounds_fired }];
+    return firearms.map((firearm, index) => `${record.rifles_used?.length ? `${index + 1}. ` : ''}${firearm.rounds_fired ?? 0}`).join('\n');
+  }
+  if (record.category === 'clay_shooting' || record.recordType === 'clay') return `${record.rounds_fired ?? 0} cartridges`;
+  return record.number_shot || record.rounds_fired || record.total_count || 'Not Recorded';
+}
+
+function buildActivityRows(reportData) {
+  const { clubs = {}, locations = {} } = reportData.lookups;
+  return reportData.records.map((record) => [
+    formatDate(record.date),
+    activityTypeLabel(record),
+    resolveActivityLocation(record, clubs, locations),
+    formatTimeRange(record),
+    formatActivityFirearms(record, reportData.lookups),
+    formatActivityCalibre(record, reportData.lookups),
+    formatActivitySerial(record, reportData.lookups),
+    formatActivityAmmunition(record),
+    formatActivityRounds(record),
+    record.notes || (record.species_list?.length ? record.species_list.map((item) => `${item.species}: ${item.count}`).join(', ') : null) || 'Not Recorded',
+  ]);
+}
+
+function drawActivityTable(doc, rows, cursor) {
+  doc.addPage('a4', 'landscape');
+  cursor = { y: REPORT.margin };
+  const { width, height } = pageMetrics(doc);
+  const x = REPORT.margin;
+  const tableW = width - REPORT.margin * 2;
+  const columns = ['Date', 'Activity Type', 'Club / Range / Location', 'Time', 'Firearm', 'Calibre / Gauge', 'Serial', 'Ammunition', 'Rounds', 'Notes'];
+  const widths = [20, 27, 42, 24, 42, 28, 28, 42, 22, 28];
+  const headerH = 10;
+  const minRowH = 12;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(...REPORT.navy);
+  doc.text('Activity Records', x, cursor.y + 6);
+  cursor.y += 12;
+
+  const drawHeaderRow = () => {
+    doc.setFillColor(...REPORT.soft);
+    doc.setDrawColor(...REPORT.border);
+    doc.setLineWidth(0.25);
+    doc.rect(x, cursor.y, tableW, headerH, 'FD');
+    let colX = x;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.2);
+    doc.setTextColor(...REPORT.gunmetal);
+    columns.forEach((column, index) => {
+      doc.line(colX, cursor.y, colX, cursor.y + headerH);
+      doc.text(doc.splitTextToSize(column, widths[index] - 3), colX + 1.5, cursor.y + 4.2);
+      colX += widths[index];
+    });
+    doc.line(colX, cursor.y, colX, cursor.y + headerH);
+    cursor.y += headerH;
+  };
+
+  drawHeaderRow();
+  rows.forEach((row) => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    const wrapped = row.map((cell, index) => doc.splitTextToSize(valueOrMissing(cell), widths[index] - 3));
+    const rowH = Math.max(minRowH, Math.max(...wrapped.map((lines) => lines.length)) * 3.6 + 5);
+    if (cursor.y + rowH > height - 20) {
+      doc.addPage('a4', 'landscape');
+      cursor = { y: REPORT.margin };
+      drawHeaderRow();
+    }
+    doc.setDrawColor(...REPORT.border);
+    doc.setLineWidth(0.2);
+    doc.rect(x, cursor.y, tableW, rowH);
+    let colX = x;
+    doc.setTextColor(...REPORT.text);
+    wrapped.forEach((lines, index) => {
+      doc.line(colX, cursor.y, colX, cursor.y + rowH);
+      doc.text(lines, colX + 1.5, cursor.y + 4.5);
+      colX += widths[index];
+    });
+    doc.line(colX, cursor.y, colX, cursor.y + rowH);
+    cursor.y += rowH;
+  });
+  return cursor;
+}
+
+function renderActivityLogRecords(doc, reportData) {
+  let cursor = drawActivityLogHeader(doc, reportData, { y: REPORT.margin });
+  cursor = drawParticipantInfo(doc, reportData, cursor);
+  drawActivityTable(doc, buildActivityRows(reportData), cursor);
+}
+
 function renderRecords(doc, reportData) {
   let cursor = { y: REPORT.margin };
   const isClayOnly = reportData.records.length > 0 && reportData.records.every((record) => record.category === 'clay_shooting' || record.recordType === 'clay');
   const isTargetOnly = reportData.records.length > 0 && reportData.records.every((record) => record.category === 'target_shooting' || record.recordType === 'target');
+
+  if (!isClayOnly && !isTargetOnly) {
+    renderActivityLogRecords(doc, reportData);
+    return;
+  }
 
   if (isClayOnly) {
     cursor = drawClayReportHeader(doc, reportData, cursor);
