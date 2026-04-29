@@ -277,10 +277,11 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
 }
 
 function SessionReportModal({ record, onClose, rifles, shotguns, clubs, locations, category, showTargetAnalysis = false }) {
-   const [currentRecord, setCurrentRecord] = useState(record);
-   const [targetGroups, setTargetGroups] = useState([]);
-   const [loadingGroups, setLoadingGroups] = useState(false);
-   useBodyScrollLock(true);
+    const [currentRecord, setCurrentRecord] = useState(record);
+    const [targetGroups, setTargetGroups] = useState([]);
+    const [loadingGroups, setLoadingGroups] = useState(false);
+    const [viewingPhoto, setViewingPhoto] = useState(null);
+    useBodyScrollLock(true);
 
    useEffect(() => {
       const refreshRecord = async () => {
@@ -752,7 +753,7 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
               {currentRecord.photos.map((photo, idx) => {
                 const photoUrl = typeof photo === 'string' ? photo : photo?.url;
                 if (!photoUrl) return null;
-                return <img key={idx} src={photoUrl} alt="record" className="h-28 w-28 object-cover rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity" onClick={() => window.open(photoUrl, '_blank')} />;
+                return <img key={idx} src={photoUrl} alt="record" className="h-28 w-28 object-cover rounded-lg border border-border cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setViewingPhoto(photoUrl)} />;
               })}
             </div>
           </div>
@@ -774,10 +775,22 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
             Close Report
           </button>
           </div>
-      </div>
-      </div>
-      );
-      }
+          </div>
+
+          {/* Photo Viewer Modal */}
+          {viewingPhoto && (
+          <div className="fixed inset-0 bg-black/80 z-[50002] flex items-center justify-center p-4" onClick={() => setViewingPhoto(null)}>
+          <div className="relative max-w-4xl max-h-[90vh] flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
+           <button onClick={() => setViewingPhoto(null)} className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white rounded-full p-2 transition-colors z-10">
+             <X className="w-6 h-6" />
+           </button>
+           <img src={viewingPhoto} alt="full size" className="max-w-full max-h-[90vh] object-contain rounded-lg" />
+          </div>
+          </div>
+          )}
+          </div>
+          );
+          }
 
       function PdfPreviewModal({ pdfUrl, onClose, record }) {
         useBodyScrollLock(true);
