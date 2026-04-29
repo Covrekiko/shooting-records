@@ -65,18 +65,11 @@ export default function BrassLifecycleManager({ brass, onUpdated }) {
     }
   };
 
-  // For used brass, show only reload count, hide limit and log fired controls
-  const isUsedBrass = brass.is_used_brass;
-
   return (
     <div className="mt-2 pt-2 border-t border-border space-y-2">
       {/* Status badge */}
       <div className="flex flex-wrap items-center gap-2">
-        {isUsedBrass ? (
-          <span className="text-xs text-muted-foreground">
-            {timesReloaded} reload{timesReloaded !== 1 ? 's' : ''}
-          </span>
-        ) : atLimit ? (
+        {atLimit ? (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-destructive/10 text-destructive text-xs font-bold">
             <AlertTriangle className="w-3 h-3" /> Reload limit reached — retire or trim
           </span>
@@ -91,15 +84,14 @@ export default function BrassLifecycleManager({ brass, onUpdated }) {
         ) : (
           <span className="text-xs text-muted-foreground">{timesReloaded} reload{timesReloaded !== 1 ? 's' : ''} • No limit set</span>
         )}
-        {!isUsedBrass && brass.times_fired > 0 && (
+        {brass.times_fired > 0 && (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-xs text-muted-foreground">
             <Crosshair className="w-3 h-3" /> {brass.times_fired} rounds fired
           </span>
         )}
       </div>
 
-      {/* Actions row — hidden for used brass */}
-      {!isUsedBrass && (
+      {/* Actions row */}
       <div className="flex flex-wrap gap-2">
         {/* Set limit */}
         {editing === 'limit' ? (
@@ -180,7 +172,6 @@ export default function BrassLifecycleManager({ brass, onUpdated }) {
           </button>
         )}
       </div>
-      )}
     </div>
   );
 }
