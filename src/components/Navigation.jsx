@@ -58,7 +58,7 @@ const NAV_SECTIONS = [
   {
     label: 'Armory',
     items: [
-      { path: '/ammo-summary', label: 'Armory Status', icon: Shield },
+      { path: '/ammo-summary', label: 'Armory', icon: Shield },
       { path: '/reloading', label: 'Reloading', icon: RefreshCw, module: 'reloading' },
       { path: '/load-development', label: 'Load Development', icon: FlaskConical, module: 'reloading' },
     ],
