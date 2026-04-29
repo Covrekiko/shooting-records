@@ -619,9 +619,13 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                   >
                     <option value="">Select ammunition (required)</option>
                     {ammunition.filter(a => {
-                     const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
-                     return !selectedRifle || !selectedRifle.caliber || a.caliber === selectedRifle.caliber;
-                    }).map(a => <option key={a.id} value={a.id}>{`${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`}</option>)}
+                       const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
+                       return !selectedRifle || !selectedRifle.caliber || a.caliber === selectedRifle.caliber;
+                     }).map(a => (
+                       <option key={a.id} value={a.id}>
+                         {`${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`}
+                       </option>
+                     ))}
                     </select>
                 ) : (
                   <p className="text-xs text-muted-foreground text-xs">Select a rifle first</p>
