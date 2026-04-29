@@ -9,11 +9,10 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
     end_time: new Date().toTimeString().slice(0, 5),
     shot_anything: false,
     species_list: [],
+    total_count: '',
     rifle_id: '',
-    caliber: '',
     ammunition_id: '',
     ammunition_used: '',
-    rounds_fired: '',
     notes: '',
     photos: [],
   });
@@ -29,31 +28,13 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
     }
   };
 
-  const handleRifleSelect = (rifleId) => {
-    const rifle = rifles.find(r => r.id === rifleId);
-    set('rifle_id', rifleId);
-    set('caliber', rifle?.caliber || '');
-  };
-
-  const handleAmmoSelect = (ammoId) => {
-    const ammo = ammunition.find(a => a.id === ammoId);
-    set('ammunition_id', ammoId);
-    set('ammunition_used', ammo ? `${ammo.brand} ${ammo.caliber}` : '');
-  };
-
   const totalCount = formData.species_list.reduce((sum, s) => sum + (parseInt(s.count) || 0), 0);
 
   const handleSubmit = () => {
     onSubmit({
       ...formData,
       total_count: formData.shot_anything ? String(totalCount) : null,
-      number_shot: formData.shot_anything ? totalCount : 0,
       species_list: formData.shot_anything ? formData.species_list : [],
-      rounds_fired: formData.shot_anything ? (parseInt(formData.rounds_fired) || totalCount) : 0,
-      rifle_id: formData.shot_anything ? formData.rifle_id : null,
-      caliber: formData.shot_anything ? formData.caliber : null,
-      ammunition_id: formData.shot_anything ? formData.ammunition_id : null,
-      ammunition_used: formData.shot_anything ? formData.ammunition_used : null,
     });
   };
 
@@ -71,19 +52,11 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
       secondaryAction="Cancel"
     >
       <div className="space-y-4">
-
-        {/* End Time */}
         <div>
           <label className={labelCls}>End Time</label>
-          <input
-            type="time"
-            value={formData.end_time}
-            onChange={e => set('end_time', e.target.value)}
-            className={inputCls}
-          />
+          <input type="time" value={formData.end_time} onChange={e => set('end_time', e.target.value)} className={inputCls} />
         </div>
 
-        {/* Shot anything toggle */}
         <div className="flex items-center gap-3 p-3 bg-secondary rounded-lg">
           <input
             type="checkbox"
@@ -95,10 +68,8 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
           <label htmlFor="shot_anything" className="text-sm font-medium cursor-pointer">I shot something today</label>
         </div>
 
-        {/* Shot section */}
         {formData.shot_anything && (
           <>
-            {/* Species Harvested */}
             <div>
               <label className={labelCls}>Species Harvested</label>
               <div className="space-y-2">
@@ -125,63 +96,26 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
               )}
             </div>
 
-            {/* Rifle Used */}
             <div>
               <label className={labelCls}>Rifle Used</label>
-              <select
-                value={formData.rifle_id}
-                onChange={e => handleRifleSelect(e.target.value)}
-                className={inputCls}
-              >
+              <select value={formData.rifle_id} onChange={e => set('rifle_id', e.target.value)} className={inputCls}>
                 <option value="">Select rifle</option>
-                {rifles.map(r => (
-                  <option key={r.id} value={r.id}>{r.name} ({r.caliber})</option>
-                ))}
+                {rifles.map(r => <option key={r.id} value={r.id}>{r.name} ({r.caliber})</option>)}
               </select>
             </div>
 
-            {/* Caliber (auto-filled, editable) */}
-            <div>
-              <label className={labelCls}>Caliber</label>
-              <input
-                type="text"
-                value={formData.caliber}
-                onChange={e => set('caliber', e.target.value)}
-                placeholder="e.g. .308 Win"
-                className={inputCls}
-              />
-            </div>
-
-            {/* Ammunition Used */}
             <div>
               <label className={labelCls}>Ammunition Used</label>
-              <select
-                value={formData.ammunition_id}
-                onChange={e => handleAmmoSelect(e.target.value)}
-                className={inputCls}
-              >
+              <select value={formData.ammunition_id} onChange={e => {
+                const ammo = ammunition.find(a => a.id === e.target.value);
+                set('ammunition_id', e.target.value);
+                set('ammunition_used', ammo ? `${ammo.brand} ${ammo.caliber}` : '');
+              }} className={inputCls}>
                 <option value="">Select ammunition</option>
-                {ammunition.map(a => (
-                  <option key={a.id} value={a.id}>{a.brand} {a.caliber}</option>
-                ))}
+                {ammunition.map(a => <option key={a.id} value={a.id}>{a.brand} {a.caliber}</option>)}
               </select>
             </div>
 
-            {/* Rounds Fired */}
-            <div>
-              <label className={labelCls}>Rounds Fired</label>
-              <input
-                type="number"
-                inputMode="numeric"
-                min="0"
-                placeholder="Number of rounds fired"
-                value={formData.rounds_fired}
-                onChange={e => set('rounds_fired', e.target.value)}
-                className={inputCls}
-              />
-            </div>
-
-            {/* Notes */}
             <div>
               <label className={labelCls}>Notes</label>
               <textarea
@@ -193,7 +127,6 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
               />
             </div>
 
-            {/* Photos */}
             <div>
               <label className={labelCls}>Photos</label>
               <PhotoUpload
@@ -204,7 +137,6 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
           </>
         )}
 
-        {/* Notes when nothing shot */}
         {!formData.shot_anything && (
           <div>
             <label className={labelCls}>Notes</label>
@@ -217,7 +149,6 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
             />
           </div>
         )}
-
       </div>
     </GlobalModal>
   );

@@ -280,7 +280,7 @@ export default function DeerStalkingMap() {
       console.log('🟢 Stalk Map Checkout: Collected', finalTrack.length, 'GPS points');
 
       // Update rifle round counts if something was shot
-      const roundsFired = parseInt(checkoutData.rounds_fired) || parseInt(checkoutData.total_count) || 0;
+      const roundsFired = parseInt(checkoutData.total_count) || 0;
       if (checkoutData.shot_anything && checkoutData.rifle_id && roundsFired > 0) {
         const currentRifle = rifles.find(r => r.id === checkoutData.rifle_id);
         if (currentRifle) {
