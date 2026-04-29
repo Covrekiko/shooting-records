@@ -376,8 +376,12 @@ export default function DeerStalkingMap() {
   }
 
   return (
-    <div className="w-full h-screen bg-slate-900 relative overflow-hidden cursor-crosshair" style={{ "--gm-attribution-display": "none" }}>
-      <style>{`.gm-style-cc { display: none !important; }`}</style>
+    <div className="w-full h-screen bg-slate-900 relative overflow-hidden cursor-crosshair">
+      <style>{`
+        .gm-style-cc { display: none !important; }
+        .gm-attribution { display: none !important; }
+        .gm-style-mmc { display: none !important; }
+      `}</style>
       <div className={`absolute inset-0 z-0 ${showPOI || showHarvest || showOuting ? 'pointer-events-none' : ''}`}>
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
