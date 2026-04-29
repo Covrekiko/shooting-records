@@ -56,7 +56,15 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
   const handlePdfPreview = async (record) => {
     try {
       setGeneratingPdf(record.id);
-      const blob = await getRecordsPdfBlob([record], null, rifles, clubs, shotguns);
+      const targetGroups = {};
+      
+      // Load target groups for target shooting records
+      if (category === 'target_shooting') {
+        const groups = await base44.entities.TargetGroup.filter({ session_id: record.id });
+        targetGroups[record.id] = groups;
+      }
+      
+      const blob = await getRecordsPdfBlob([record], null, rifles, clubs, shotguns, targetGroups);
       const url = URL.createObjectURL(blob);
       setPreviewingPdf({ record, url });
     } catch (error) {
