@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
+import { base44 } from '@/api/base44Client';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
 const PEST_SPECIES = ['Fox', 'Rabbit', 'Grey Squirrel', 'Brown Rat', 'Mink', 'Stoat', 'Weasel', 'Mole', 'Pigeon (Feral)', 'Pigeon (Wood)', 'Crow', 'Magpie', 'Jackdaw', 'Jay', 'Rook', 'Canada Goose', 'Other (Pest)'];
@@ -18,6 +19,22 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   });
   const [selectedDeer, setSelectedDeer] = useState('');
   const [selectedPest, setSelectedPest] = useState('');
+  const [photos, setPhotos] = useState([]);
+  const [uploading, setUploading] = useState(false);
+
+  const handlePhotoUpload = async (e) => {
+    const files = e.target.files;
+    if (!files) return;
+    setUploading(true);
+    try {
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        setPhotos(prev => [...prev, file_url]);
+      }
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const set = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
 
@@ -44,6 +61,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   const handleSubmit = () => {
     onSubmit({
       ...formData,
+      photos,
       total_count: formData.shot_anything ? String(totalCount) : null,
       species_list: formData.shot_anything ? formData.species_list : [],
     });
@@ -192,6 +210,25 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
             </div>
           </>
         )}
+
+        <div>
+          <label className={labelCls}>Photos (optional)</label>
+          <label className={`flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary transition-all text-sm ${uploading ? 'opacity-50' : ''}`}>
+            📷 {uploading ? 'Uploading...' : 'Add Photos'}
+            <input type="file" multiple accept="image/*" onChange={handlePhotoUpload} disabled={uploading} className="hidden" capture={undefined} />
+          </label>
+          {photos.length > 0 && (
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {photos.map((photo, idx) => (
+                <div key={idx} className="relative">
+                  <img src={photo} alt="outing" className="w-full h-20 object-cover rounded-xl border border-border" />
+                  <button type="button" onClick={() => setPhotos(prev => prev.filter((_, i) => i !== idx))}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div>
           <label className={labelCls}>Notes</label>
