@@ -53,6 +53,10 @@
       "type": "boolean",
       "default": false,
       "description": "Is outing currently active"
+    },
+    "session_record_id": {
+      "type": "string",
+      "description": "Linked SessionRecord ID after outing completion"
     }
   },
   "required": [

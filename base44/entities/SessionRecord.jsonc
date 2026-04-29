@@ -95,6 +95,10 @@
           "meters_range": {
             "type": "integer"
           },
+          "ammunition_id": {
+            "type": "string",
+            "description": "Reference to Ammunition entity for this rifle"
+          },
           "ammunition_brand": {
             "type": "string"
           },
@@ -129,7 +133,7 @@
     },
     "ammunition_id": {
       "type": "string",
-      "description": "Ammunition reference ID"
+      "description": "Ammunition reference ID (clay & deer)"
     },
     "caliber": {
       "type": "string",

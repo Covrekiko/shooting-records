@@ -132,25 +132,30 @@ export default function Records() {
     setFilteredRecords(filtered);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (record) => {
     if (!confirm('Delete this record? This will restore all ammunition stock.')) return;
     try {
-      // Warn if offline — stock restore requires server
+      // Prevent delete if offline
       const isOnline = navigator.onLine;
       if (!isOnline) {
-        if (!confirm('You are offline. Deleting now will remove the record locally but ammunition stock cannot be restored until you are back online. Continue?')) return;
+        alert('You are offline. You must be online to delete records and restore ammunition stock. Please connect to the internet and try again.');
+        return;
       }
 
-      // Call backend to restore stock (online only)
-      if (isOnline) {
-        await base44.functions.invoke('restoreSessionStock', { sessionId: id });
+      // Refund ammunition using client-side helper
+      const { refundAmmoForRecord } = await import('@/lib/ammoUtils');
+      const refundResult = await refundAmmoForRecord(record, record.category);
+
+      if (!refundResult.success) {
+        alert('Error restoring ammunition: ' + refundResult.error);
+        return;
       }
 
       // Delete the record
-      await base44.entities.SessionRecord.delete(id);
+      await base44.entities.SessionRecord.delete(record.id);
 
       // Update local state
-      setAllRecords(allRecords.filter((r) => r.id !== id));
+      setAllRecords(allRecords.filter((r) => r.id !== record.id));
 
       // Force reload
       setTimeout(() => loadRecords(), 500);
@@ -313,7 +318,7 @@ export default function Records() {
         ) : (
           <div className="space-y-3">
             {filteredRecords.map((record) => (
-              <RecordCard key={record.id} record={record} onDelete={() => handleDelete(record.id)} user={user} onView={setViewingRecord} recordUser={users[record.created_by]} onViewTrack={setViewingTrack} onViewPhoto={setViewingPhoto} rifles={rifles} shotguns={shotguns} clubs={clubs} locations={deerLocations} onEdit={() => setManualRecordModal({ isNew: false, record })} />
+              <RecordCard key={record.id} record={record} onDelete={() => handleDelete(record)} user={user} onView={setViewingRecord} recordUser={users[record.created_by]} onViewTrack={setViewingTrack} onViewPhoto={setViewingPhoto} rifles={rifles} shotguns={shotguns} clubs={clubs} locations={deerLocations} onEdit={() => setManualRecordModal({ isNew: false, record })} />
             ))}
           </div>
         )}

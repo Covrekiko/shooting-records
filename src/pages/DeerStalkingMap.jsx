@@ -272,19 +272,37 @@ export default function DeerStalkingMap() {
       return;
     }
     try {
-      if (checkoutData.shot_anything && checkoutData.ammunition_id && checkoutData.total_count) {
-        await decrementAmmoStock(checkoutData.ammunition_id, parseInt(checkoutData.total_count), 'deer_management', activeOuting.id);
-      }
-
       const submitData = { ...checkoutData, active_checkin: false };
       if (!checkoutData.shot_anything) {
         submitData.species_list = [];
         submitData.total_count = null;
         submitData.rifle_id = null;
         submitData.ammunition_used = null;
+        submitData.ammunition_id = null;
       }
 
-      await endOutingWithData(activeOuting.id, submitData, activeOuting.gps_track || []);
+      // Create SessionRecord first
+      const sessionRecord = await base44.entities.SessionRecord.create({
+        category: 'deer_management',
+        date: new Date(activeOuting.start_time).toISOString().split('T')[0],
+        location_id: activeOuting.area_id,
+        location_name: activeOuting.location_name,
+        start_time: new Date(activeOuting.start_time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+        end_time: new Date(activeOuting.end_time || Date.now()).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+        gps_track: activeOuting.gps_track || [],
+        outing_id: activeOuting.id,
+        ...submitData,
+        status: 'completed'
+      });
+
+      // Decrement ammo AFTER session is created
+      if (submitData.shot_anything && submitData.ammunition_id && submitData.total_count) {
+        await decrementAmmoStock(submitData.ammunition_id, parseInt(submitData.total_count), 'deer_management', sessionRecord.id);
+      }
+
+      // Update DeerOuting to reference SessionRecord
+      await base44.entities.DeerOuting.update(activeOuting.id, { session_record_id: sessionRecord.id });
+
       setShowCheckout(false);
       loadData();
     } catch (err) {

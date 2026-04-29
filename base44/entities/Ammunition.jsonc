@@ -39,9 +39,80 @@
     },
     "notes": {
       "type": "string"
+    },
+    "ammo_type": {
+      "type": "string",
+      "enum": [
+        "factory",
+        "reloaded"
+      ],
+      "default": "factory",
+      "description": "Factory or reloaded ammunition"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "reload_batch",
+        "purchased"
+      ],
+      "description": "Source of ammunition"
+    },
+    "source_id": {
+      "type": "string",
+      "description": "ID of reload batch if reloaded"
+    },
+    "reload_session_id": {
+      "type": "string",
+      "description": "ReloadingSession ID for reloaded ammo"
+    },
+    "batch_number": {
+      "type": "string",
+      "description": "Batch identifier for reloaded ammo"
     }
   },
   "required": [
     "brand"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
 }

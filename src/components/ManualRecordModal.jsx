@@ -154,6 +154,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
           shotgun_id: formData.shotgun_id,
           rounds_fired: formData.rounds_fired ? parseInt(formData.rounds_fired) : 0,
           ammunition_used: formData.ammunition_used,
+          ammunition_id: formData.ammunition_id,
         };
       } else if (recordType === 'deer') {
         data = {
@@ -346,13 +347,19 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                 unit="rounds"
               />
                 <div>
-                  <label className="block text-sm font-medium mb-2">Ammunition Used</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Federal 12 Gauge"
-                    value={formData.ammunition_used}
-                    onChange={(e) => setFormData({ ...formData, ammunition_used: e.target.value })}
-                    className="w-full px-3 py-2 border border-border rounded-lg bg-background"
+                  <label className="block text-sm font-medium mb-2">Ammunition</label>
+                  <BottomSheetSelect
+                    value={formData.ammunition_id || ''}
+                    onChange={(val) => {
+                      const selectedAmmo = ammunition.find(a => a.id === val);
+                      setFormData(prev => ({
+                        ...prev,
+                        ammunition_id: val,
+                        ammunition_used: selectedAmmo ? `${selectedAmmo.brand}${selectedAmmo.caliber ? ` ${selectedAmmo.caliber}` : ''}`.trim() : prev.ammunition_used,
+                      }));
+                    }}
+                    placeholder="Select saved ammunition"
+                    options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}` }))}
                   />
                 </div>
               </div>

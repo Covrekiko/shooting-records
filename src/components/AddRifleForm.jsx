@@ -21,6 +21,7 @@ export default function AddRifleForm({ rifles, ammunition, formData, setFormData
       rifle_id: rifle,
       rounds_fired: parseInt(roundsFired),
       meters_range: parseInt(distance),
+      ammunition_id: ammoId,
       ammunition_brand: ammoBrand,
       caliber: selectedRifle?.caliber || '',
       bullet_type: selectedAmmo?.bullet_type || '',
