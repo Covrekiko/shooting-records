@@ -151,8 +151,8 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
                       </div>
                     ) : null}
                   </div>
-                  </div>
-                  )}
+                </div>
+              )}
 
                   {rec.recordType === 'target' && targetGroups.length > 0 && (
                 <div className="mb-5">
