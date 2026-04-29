@@ -53,35 +53,32 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
     try {
       const isOnline = navigator.onLine;
       if (!isOnline) {
-        if (!confirm('You are offline. Deleting now will remove the record locally but ammunition stock cannot be restored until you are back online. Continue?')) return;
+        alert('You must be online to delete records and restore ammunition. Please connect to the internet and try again.');
+        return;
       }
 
-      console.log(`[AMMO DELETE DEBUG] Starting delete for record id: ${record.id} category: ${category}`);
+      console.log(`[DELETE REFUND] Starting delete for record id: ${record.id} category: ${category}`);
 
-      // Use the refundAmmoForRecord helper to restore stock
-      if (isOnline) {
-        const { refundAmmoForRecord } = await import('@/lib/ammoUtils');
-        const refundResult = await refundAmmoForRecord(record, category);
-        console.log(`[AMMO DELETE DEBUG] ammunition refund: success=${refundResult.success} refunded=${refundResult.refunded} rounds`);
-        
-        if (!refundResult.success) {
-          throw new Error('Ammunition refund failed: ' + refundResult.error);
-        }
+      // Call backend function for complete delete + refund
+      const result = await base44.functions.invoke('deleteSessionRecordWithRefund', {
+        sessionId: record.id,
+      });
+
+      if (!result.data.success) {
+        throw new Error(result.data.message || 'Refund failed');
       }
 
-      // For clay shooting, delete all related stands and shots
-      if (category === 'clay_shooting' && isOnline) {
+      console.log(`[DELETE REFUND] success:`, result.data);
+
+      // For clay shooting, also clean up stands/shots
+      if (category === 'clay_shooting') {
         try {
           await base44.functions.invoke('deleteClaySessionStands', { sessionId: record.id });
         } catch (e) {
-          console.warn('⚠️ Warning: Could not delete clay stands/shots via backend:', e.message);
-          // Continue with session deletion anyway
+          console.warn('⚠️ Warning: Could not delete clay stands/shots:', e.message);
+          // Non-fatal — session already deleted
         }
       }
-
-      // Delete the record from the database
-      await base44.entities.SessionRecord.delete(record.id);
-      console.log(`[AMMO DELETE DEBUG] record deleted successfully`);
 
       // Reload records from database
       const currentUser = await base44.auth.me();
@@ -92,7 +89,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
       });
       setRecords(updatedRecords);
 
-      // Notify parent to refresh analytics
+      // Notify parent to refresh analytics + dashboard
       if (onRecordDeleted) onRecordDeleted();
     } catch (error) {
       console.error('❌ DELETE ERROR:', error);
