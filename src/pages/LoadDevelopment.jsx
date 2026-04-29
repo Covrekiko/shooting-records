@@ -3,14 +3,12 @@ import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { Plus, Search, ChevronRight, FlaskConical, Trash2, ArrowLeft, Eye } from 'lucide-react';
 import { format } from 'date-fns';
-import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import CreateTestModal from '@/components/load-development/CreateTestModal';
 import TestDetailPage from '@/components/load-development/TestDetailPage';
 import TestViewModal from '@/components/load-development/TestViewModal';
 import { generateLoadTestPDF } from '@/utils/loadTestPDF';
 
-import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 
 const STATUS_COLORS = {
   Draft: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
@@ -101,8 +99,6 @@ export default function LoadDevelopment() {
     const matchCaliber = !filterCaliber || t.caliber === filterCaliber;
     return matchSearch && matchStatus && matchCaliber;
   });
-
-  useBodyScrollLock(!!(showCreate || viewTest));
 
   if (selectedTest) {
     return (
@@ -204,10 +200,10 @@ export default function LoadDevelopment() {
         ) : (
           <div className="space-y-3">
             {filtered.map(test => (
-              <button
+              <div
                 key={test.id}
                 onClick={() => setSelectedTest(test)}
-                className="w-full bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 hover:shadow-sm transition-all group"
+                className="w-full bg-card border border-border rounded-xl p-4 text-left hover:border-primary/40 hover:shadow-sm transition-all group cursor-pointer"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
@@ -245,34 +241,26 @@ export default function LoadDevelopment() {
                     <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary" />
                   </div>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         )}
       </main>
 
-      {viewTest && !viewLoading && (
-        <TestViewModal
-          test={viewTest}
-          variants={viewData.variants}
-          results={viewData.results}
-          onClose={() => setViewTest(null)}
-          onEdit={() => { setSelectedTest(viewTest); setViewTest(null); }}
-          onExportPDF={() => {
-            const doc = generateLoadTestPDF(viewTest, viewData.variants, viewData.results);
-            doc.save(`load-test-${viewTest.name.replace(/\s+/g, '-')}.pdf`);
-          }}
-        />
-      )}
+      <TestViewModal
+        open={!!(viewTest && !viewLoading)}
+        test={viewTest}
+        variants={viewData.variants}
+        results={viewData.results}
+        onClose={() => setViewTest(null)}
+        onEdit={() => { setSelectedTest(viewTest); setViewTest(null); }}
+        onExportPDF={viewTest ? () => {
+          const doc = generateLoadTestPDF(viewTest, viewData.variants, viewData.results);
+          doc.save(`load-test-${viewTest.name.replace(/\s+/g, '-')}.pdf`);
+        } : undefined}
+      />
 
-      {showCreate && createPortal(
-        <div className="fixed inset-0 bg-black/50 z-[50000] flex items-end sm:items-center justify-center">
-          <div className="bg-card rounded-t-3xl sm:rounded-2xl w-full sm:max-w-xl max-h-[90vh] overflow-y-auto">
-            <CreateTestModal onClose={() => setShowCreate(false)} onCreated={handleCreated} />
-          </div>
-        </div>,
-        document.body
-      )}
+      <CreateTestModal open={showCreate} onClose={() => setShowCreate(false)} onCreated={handleCreated} />
     </div>
   );
 }

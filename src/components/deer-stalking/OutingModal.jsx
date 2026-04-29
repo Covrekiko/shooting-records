@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import GlobalModal from '@/components/ui/GlobalModal.jsx';
+import { DESIGN } from '@/lib/designConstants';
 
-export default function OutingModal({ onClose, onSubmit, locations = [], selectedArea = null }) {
+export default function OutingModal({ onClose, onSubmit, selectedArea = null }) {
   const [areas, setAreas] = useState([]);
   const [data, setData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -10,117 +12,70 @@ export default function OutingModal({ onClose, onSubmit, locations = [], selecte
     start_time: new Date().toTimeString().slice(0, 5),
   });
 
+  const inp = DESIGN.INPUT;
+  const lbl = DESIGN.LABEL;
+
   useEffect(() => {
-    loadAreas();
+    base44.auth.me().then(user =>
+      base44.entities.Area.filter({ created_by: user.email }).then(list => setAreas(list || []))
+    );
   }, []);
 
   useEffect(() => {
     if (selectedArea) {
-      setData(prev => ({
-        ...prev,
-        location_id: selectedArea.id,
-        place_name: selectedArea.name,
-      }));
+      setData(prev => ({ ...prev, location_id: selectedArea.id, place_name: selectedArea.name }));
     }
   }, [selectedArea]);
 
-  const loadAreas = async () => {
-    try {
-      const currentUser = await base44.auth.me();
-      const areasList = await base44.entities.Area.filter({ created_by: currentUser.email });
-      setAreas(areasList || []);
-    } catch (error) {
-      console.error('Error loading areas:', error);
-    }
+  const handleAreaSelect = (areaId) => {
+    const selected = areas.find(a => a.id === areaId);
+    if (selected) setData({ ...data, location_id: selected.id, place_name: selected.name });
+    else setData({ ...data, location_id: areaId });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = () => {
     onSubmit(data);
   };
 
-  const handleChange = (field, value) => {
-    setData({ ...data, [field]: value });
-  };
-
-  const handleAreaSelect = (areaId) => {
-    const selected = areas.find(a => a.id === areaId);
-    if (selected) {
-      setData({
-        ...data,
-        location_id: selected.id,
-        place_name: selected.name,
-      });
-    }
-  };
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[9997]">
-      <div className="bg-card rounded-lg max-w-md w-full p-6 relative z-[9998]">
-        <h2 className="text-xl font-bold mb-4">Check In</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Date</label>
-            <input
-              type="date"
-              value={data.date}
-              onChange={(e) => handleChange('date', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Select Area</label>
-            <select
-              value={data.location_id}
-              onChange={(e) => handleAreaSelect(e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-            >
-              <option value="">Select your area</option>
-              {areas.map((area) => (
-                <option key={area.id} value={area.id}>
-                  {area.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Place Name</label>
-            <input
-              type="text"
-              value={data.place_name}
-              onChange={(e) => handleChange('place_name', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">Check-in Time</label>
-            <input
-              type="time"
-              value={data.start_time}
-              onChange={(e) => handleChange('start_time', e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-              required
-            />
-          </div>
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90"
-            >
-              Check In
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 px-4 py-2 border border-border rounded-lg hover:bg-secondary"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+    <GlobalModal
+      open={true}
+      onClose={onClose}
+      title="Check In"
+      onSubmit={handleSubmit}
+      primaryAction="Check In"
+      secondaryAction="Cancel"
+    >
+      <div className="space-y-4">
+        <div>
+          <label className={lbl}>Date</label>
+          <input type="date" value={data.date}
+            onChange={(e) => setData({ ...data, date: e.target.value })}
+            className={inp} required />
+        </div>
+        <div>
+          <label className={lbl}>Select Area</label>
+          <select value={data.location_id}
+            onChange={(e) => handleAreaSelect(e.target.value)}
+            className={inp}>
+            <option value="">Select your area</option>
+            {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className={lbl}>Place Name</label>
+          <input type="text" value={data.place_name}
+            onChange={(e) => setData({ ...data, place_name: e.target.value })}
+            placeholder={selectedArea ? `Suggested: ${selectedArea.name}` : 'Enter location name'}
+            className={inp} required />
+        </div>
+        <div>
+          <label className={lbl}>Check-in Time</label>
+          <input type="time" value={data.start_time}
+            onChange={(e) => setData({ ...data, start_time: e.target.value })}
+            className={inp} required />
+        </div>
       </div>
-    </div>
+    </GlobalModal>
   );
 }

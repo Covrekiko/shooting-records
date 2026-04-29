@@ -14,7 +14,7 @@ import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
-import ModalShell from '@/components/ModalShell';
+import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { motion } from 'framer-motion';
 import { DESIGN } from '@/lib/designConstants';
 import TargetAnalysisPanel from '@/components/target-analysis/TargetAnalysisPanel';
@@ -168,8 +168,7 @@ export default function TargetShooting() {
     }
   }, [location, clubs]);
 
-  const handleCheckin = async (e) => {
-    e.preventDefault();
+  const handleCheckin = async () => {
     try {
       // Prevent duplicate active sessions
       if (activeSession) {
@@ -425,25 +424,11 @@ export default function TargetShooting() {
         document.body
       )}
 
-      {createPortal(
-        <>
-          {(showCheckin || showCheckout) && <div className="fixed inset-0 z-[50000] bg-black/50" onClick={() => { setShowCheckin(false); setShowCheckout(false); }} />}
-          {showCheckin && (
-            <div className="fixed inset-0 z-[50001] flex flex-col justify-end sm:justify-center sm:items-center pointer-events-none">
-              <div className="pointer-events-auto w-full sm:max-w-md">
-                <CheckinModal data={checkinData} clubs={clubs} onSubmit={handleCheckin} onChange={(f, v) => setCheckinData({ ...checkinData, [f]: v })} onClose={() => setShowCheckin(false)} />
-              </div>
-            </div>
-          )}
-          {showCheckout && activeSession && (
-            <div className="fixed inset-0 z-[50001] flex flex-col justify-end sm:justify-center sm:items-center pointer-events-none">
-              <div className="pointer-events-auto w-full sm:max-w-md">
-                <CheckoutModal rifles={rifles} ammunition={ammunition} onSubmit={handleCheckout} onClose={() => setShowCheckout(false)} gpsTrack={gpsTrack} onViewTrack={setViewingTrack} sessionRecordId={activeSession.id} />
-              </div>
-            </div>
-          )}
-        </>,
-        document.body
+      {showCheckin && (
+        <CheckinModal data={checkinData} clubs={clubs} onSubmit={handleCheckin} onChange={(f, v) => setCheckinData({ ...checkinData, [f]: v })} onClose={() => setShowCheckin(false)} />
+      )}
+      {showCheckout && activeSession && (
+        <CheckoutModal rifles={rifles} ammunition={ammunition} onSubmit={handleCheckout} onClose={() => setShowCheckout(false)} gpsTrack={gpsTrack} onViewTrack={setViewingTrack} sessionRecordId={activeSession.id} />
       )}
     </div>
   );
@@ -455,23 +440,15 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
   const labelCls = DESIGN.LABEL;
 
   return (
-    <ModalShell
-      title="Check In"
+    <GlobalModal
+      open={true}
       onClose={onClose}
-      footer={
-        <div className="flex gap-3">
-           <motion.button type="submit" form="ts-checkin-form" whileTap={{ scale: 0.97 }}
-             className={`flex-1 ${DESIGN.BUTTON_PRIMARY}`}>
-             Check In
-           </motion.button>
-           <motion.button type="button" onClick={onClose} whileTap={{ scale: 0.97 }}
-             className={`flex-1 ${DESIGN.BUTTON_SECONDARY}`}>
-             Cancel
-           </motion.button>
-         </div>
-      }
+      title="Check In"
+      onSubmit={onSubmit}
+      primaryAction="Check In"
+      secondaryAction="Cancel"
     >
-      <form id="ts-checkin-form" onSubmit={onSubmit} className="px-5 py-4 space-y-4">
+      <div className="space-y-4">
         <div>
           <label className={labelCls}>Date</label>
           <input type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} className={inputCls} required />
@@ -488,8 +465,8 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
           <label className={labelCls}>Notes (optional)</label>
           <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className={inputCls} rows="3" />
         </div>
-      </form>
-    </ModalShell>
+      </div>
+    </GlobalModal>
   );
 }
 
@@ -572,23 +549,15 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
   };
 
   return (
-    <ModalShell
-      title="Check Out"
+    <GlobalModal
+      open={true}
       onClose={onClose}
-      footer={
-        <div className="flex gap-3">
-           <motion.button type="button" onClick={handleSubmit} whileTap={{ scale: 0.97 }}
-             className={`flex-1 ${DESIGN.BUTTON_PRIMARY}`}>
-             Check Out
-           </motion.button>
-           <motion.button type="button" onClick={onClose} whileTap={{ scale: 0.97 }}
-             className={`flex-1 ${DESIGN.BUTTON_SECONDARY}`}>
-             Cancel
-           </motion.button>
-         </div>
-        }
-        >
-      <div className="px-5 py-4 space-y-4">
+      title="Check Out"
+      onSubmit={handleSubmit}
+      primaryAction="Check Out"
+      secondaryAction="Cancel"
+    >
+      <div className="space-y-4">
         <div>
           <label className={labelCls}>Check-out Time</label>
           <input type="time" value={data.checkout_time} onChange={(e) => setData(prev => ({ ...prev, checkout_time: e.target.value }))} className={inputCls} required />
@@ -613,10 +582,10 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                 )}
               </div>
               <BottomSheetSelect value={rifle.rifle_id} onChange={(val) => updateRifleEntry(index, 'rifle_id', val)} placeholder="Select rifle" options={rifles.map(r => ({ value: r.id, label: r.name }))} />
-              <div className="grid grid-cols-2 gap-2">
-                <input type="number" placeholder="Rounds" value={rifle.rounds_fired} onChange={(e) => updateRifleEntry(index, 'rounds_fired', e.target.value)} className={inputCls} />
-                <input type="number" placeholder="Meters" value={rifle.meters_range} onChange={(e) => updateRifleEntry(index, 'meters_range', e.target.value)} className={inputCls} />
-              </div>
+              <div className="grid grid-cols-2 gap-2 w-full">
+                 <input type="number" placeholder="Rounds" value={rifle.rounds_fired} onChange={(e) => updateRifleEntry(index, 'rounds_fired', e.target.value)} className={`${inputCls} min-w-0`} />
+                 <input type="number" placeholder="Meters" value={rifle.meters_range} onChange={(e) => updateRifleEntry(index, 'meters_range', e.target.value)} className={`${inputCls} min-w-0`} />
+               </div>
               <div>
                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide block mb-1.5">Ammunition *</label>
                 {rifle.rifle_id ? (
@@ -697,6 +666,6 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
 
         {sessionRecordId && <TargetAnalysisSummary sessionRecordId={sessionRecordId} />}
       </div>
-    </ModalShell>
+    </GlobalModal>
   );
 }

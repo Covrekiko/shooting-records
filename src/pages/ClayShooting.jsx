@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import CheckinBanner from '@/components/CheckinBanner';
@@ -15,8 +14,7 @@ import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
-import MissingFieldsAlert from '@/components/MissingFieldsAlert';
-import ModalShell from '@/components/ModalShell';
+import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { motion } from 'framer-motion';
 import { DESIGN } from '@/lib/designConstants';
 import { useAutoCheckin } from '@/hooks/useAutoCheckin';
@@ -385,10 +383,7 @@ export default function ClayShooting() {
            <RecordsSection category="clay_shooting" title="Session Records" emptyMessage="No clay shooting sessions recorded yet" onRecordDeleted={reloadAnalytics} />
          </div>
 
-        {viewingTrack && createPortal(
-          <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />,
-          document.body
-        )}
+        {viewingTrack && <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />}
 
         {showScorecard && activeSession && (
           <ClayScorecard
@@ -400,25 +395,11 @@ export default function ClayShooting() {
         )}
       </main>
 
-      {createPortal(
-        <>
-          {(showCheckin || showCheckout) && <div className="fixed inset-0 z-[50000] bg-black/50" onClick={() => { setShowCheckin(false); setShowCheckout(false); }} />}
-          {showCheckin && (
-            <div className="fixed inset-0 z-[50001] flex flex-col justify-end sm:justify-center sm:items-center pointer-events-none">
-              <div className="pointer-events-auto w-full sm:max-w-md">
-                <CheckinModal data={checkinData} clubs={clubs} onSubmit={handleCheckin} onChange={(f, v) => setCheckinData({ ...checkinData, [f]: v })} onClose={() => setShowCheckin(false)} />
-              </div>
-            </div>
-          )}
-          {showCheckout && activeSession && (
-            <div className="fixed inset-0 z-[50001] flex flex-col justify-end sm:justify-center sm:items-center pointer-events-none">
-              <div className="pointer-events-auto w-full sm:max-w-sm">
-                <CheckoutModal shotguns={shotguns} ammunition={ammunition} onSubmit={handleCheckout} onClose={() => setShowCheckout(false)} gpsTrack={gpsTrack} onViewTrack={setViewingTrack} sessionId={activeSession?.id} onShowScorecard={() => { setShowCheckout(false); setShowScorecard(true); }} />
-              </div>
-            </div>
-          )}
-        </>,
-        document.body
+      {showCheckin && (
+        <CheckinModal data={checkinData} clubs={clubs} onSubmit={handleCheckin} onChange={(f, v) => setCheckinData({ ...checkinData, [f]: v })} onClose={() => setShowCheckin(false)} />
+      )}
+      {showCheckout && activeSession && (
+        <CheckoutModal shotguns={shotguns} ammunition={ammunition} onSubmit={handleCheckout} onClose={() => setShowCheckout(false)} gpsTrack={gpsTrack} onViewTrack={setViewingTrack} sessionId={activeSession?.id} onShowScorecard={() => { setShowCheckout(false); setShowScorecard(true); }} />
       )}
     </div>
   );
@@ -426,55 +407,42 @@ export default function ClayShooting() {
 
 // ─── Check-in Modal ───────────────────────────────────────────────
 function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
-  const [showAlert, setShowAlert] = useState(false);
   const inputCls = DESIGN.INPUT;
   const labelCls = DESIGN.LABEL;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!data.date || !data.club_id || !data.checkin_time) { setShowAlert(true); } else { onSubmit(e); }
+    onSubmit(e);
   };
 
   return (
-    <>
-      <ModalShell
-        title="Check In"
-        onClose={onClose}
-        footer={
-          <div className="flex gap-3">
-             <motion.button type="submit" form="clay-checkin-form" whileTap={{ scale: 0.97 }}
-               className={`flex-1 ${DESIGN.BUTTON_PRIMARY}`}>
-               Check In
-             </motion.button>
-             <motion.button type="button" onClick={onClose} whileTap={{ scale: 0.97 }}
-               className={`flex-1 ${DESIGN.BUTTON_SECONDARY}`}>
-               Cancel
-             </motion.button>
-           </div>
-        }
-      >
-        <form id="clay-checkin-form" onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
-          <div>
-            <label className={labelCls}>Date</label>
-            <input type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} className={inputCls} required />
-          </div>
-          <div>
-            <label className={labelCls}>Club</label>
-            <BottomSheetSelect value={data.club_id} onChange={(val) => onChange('club_id', val)} placeholder="Select a club" options={clubs.map(c => ({ value: c.id, label: c.name }))} />
-          </div>
-          <div>
-            <label className={labelCls}>Check-in Time</label>
-            <input type="time" value={data.checkin_time} onChange={(e) => onChange('checkin_time', e.target.value)} className={inputCls} required />
-          </div>
-          <div>
-            <label className={labelCls}>Notes (optional)</label>
-            <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className={inputCls} rows="3" />
-          </div>
-        </form>
-      </ModalShell>
-      {showAlert && createPortal(<div className="fixed inset-0 z-[50000] bg-black/50" />, document.body)}
-      {showAlert && createPortal(<MissingFieldsAlert fields={['Date', 'Club', 'Check-in Time']} onClose={() => setShowAlert(false)} />, document.body)}
-    </>
+    <GlobalModal
+      open={true}
+      onClose={onClose}
+      title="Check In"
+      onSubmit={handleSubmit}
+      primaryAction="Check In"
+      secondaryAction="Cancel"
+    >
+      <div className="space-y-4">
+        <div>
+          <label className={labelCls}>Date</label>
+          <input type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} className={inputCls} required />
+        </div>
+        <div>
+          <label className={labelCls}>Club</label>
+          <BottomSheetSelect value={data.club_id} onChange={(val) => onChange('club_id', val)} placeholder="Select a club" options={clubs.map(c => ({ value: c.id, label: c.name }))} />
+        </div>
+        <div>
+          <label className={labelCls}>Check-in Time</label>
+          <input type="time" value={data.checkin_time} onChange={(e) => onChange('checkin_time', e.target.value)} className={inputCls} required />
+        </div>
+        <div>
+          <label className={labelCls}>Notes (optional)</label>
+          <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className={inputCls} rows="3" />
+        </div>
+      </div>
+    </GlobalModal>
   );
 }
 
@@ -499,7 +467,6 @@ async function handlePhotoUpload(files, data, onChange) {
 // ─── Check-out Modal ──────────────────────────────────────────────
 function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onViewTrack, sessionId, onShowScorecard }) {
   const [data, setData] = useState({ checkout_time: new Date().toTimeString().slice(0, 5), shotgun_id: '', rounds_fired: '', ammunition_id: '', ammunition_used: '', notes: '', photos: [] });
-  const [showAlert, setShowAlert] = useState(false);
   const [scorecardStats, setScorecardStats] = useState(null);
   const onChange = (field, value) => setData(prev => ({ ...prev, [field]: value }));
 
@@ -513,119 +480,95 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
   const inputCls = DESIGN.INPUT;
   const labelCls = DESIGN.LABEL;
 
-  const handleCheckoutClick = () => {
-    if (!data.shotgun_id || !data.rounds_fired) { setShowAlert(true); return; }
+  const handleSubmit = () => {
+    if (!data.shotgun_id || !data.rounds_fired) { alert('Shotgun and Rounds Fired are required'); return; }
     onSubmit(data);
   };
 
   return (
-    <>
-      <ModalShell
-        title="Check Out"
-        onClose={onClose}
-        footer={
-          <div className="flex gap-3">
-             <motion.button type="button" onClick={handleCheckoutClick} whileTap={{ scale: 0.97 }}
-               className={`flex-1 ${DESIGN.BUTTON_PRIMARY}`}>
-               Check Out
-             </motion.button>
-             <motion.button type="button" onClick={onClose} whileTap={{ scale: 0.97 }}
-               className={`flex-1 ${DESIGN.BUTTON_SECONDARY}`}>
-               Cancel
-             </motion.button>
-           </div>
-        }
-      >
-        <div className="px-5 py-4 space-y-4">
-          <div>
-            <label className={labelCls}>Check-out Time</label>
-            <input type="time" value={data.checkout_time} onChange={(e) => onChange('checkout_time', e.target.value)} className={inputCls} required />
-          </div>
-          <div>
-            <label className={labelCls}>Shotgun</label>
-            <BottomSheetSelect value={data.shotgun_id} onChange={(val) => onChange('shotgun_id', val)} placeholder="Select a shotgun" options={shotguns.map(s => ({ value: s.id, label: s.name }))} />
-          </div>
-          <div>
-            <label className={labelCls}>Rounds Fired</label>
-            <input type="number" min="0" value={data.rounds_fired} onChange={(e) => onChange('rounds_fired', e.target.value)} className={inputCls} required />
-          </div>
-          <div>
-            <label className={labelCls}>Ammunition <span className="text-slate-400 font-normal">(optional)</span></label>
-            <input
-              type="text"
-              value={data.ammunition_used || ''}
-              onChange={(e) => onChange('ammunition_used', e.target.value)}
-              placeholder="e.g. Hull Comp X 28g No.7"
-              className={inputCls}
-            />
-            {ammunition.length > 0 && (
-              <div className="mt-2">
-                <p className="text-[10px] text-slate-400 mb-1">Or pick from saved:</p>
-                <BottomSheetSelect
-                  value={data.ammunition_id || ''}
-                  onChange={(val) => {
-                    const a = ammunition.find(x => x.id === val);
-                    onChange('ammunition_id', val);
-                    if (a) onChange('ammunition_used', `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`.trim());
-                  }}
-                  placeholder="Select saved ammunition"
-                  options={ammunition.filter(a => {
-                    const selectedShotgun = shotguns.find(s => s.id === data.shotgun_id);
-                    return !selectedShotgun || !selectedShotgun.gauge || a.caliber === selectedShotgun.gauge;
-                  }).map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
-                />
-              </div>
-            )}
-          </div>
-          <div>
-            <label className={labelCls}>Notes</label>
-            <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className={inputCls} rows="2" />
-          </div>
-          <div>
-            <label className={labelCls}>Photos</label>
-            <div className="flex gap-2 mb-2">
-              <label className="flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-slate-600 dark:text-slate-300 transition-colors">
-                Choose File
-                <input type="file" accept="image/*" multiple onChange={(e) => handlePhotoUpload(e.target.files, data, onChange)} className="hidden" />
-              </label>
-              <label className="flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-slate-600 dark:text-slate-300 transition-colors">
-                Camera
-                <input type="file" accept="image/*" capture="environment" multiple onChange={(e) => handlePhotoUpload(e.target.files, data, onChange)} className="hidden" />
-              </label>
+    <GlobalModal
+      open={true}
+      onClose={onClose}
+      title="Check Out"
+      onSubmit={handleSubmit}
+      primaryAction="Check Out"
+      secondaryAction="Cancel"
+    >
+      <div className="space-y-4">
+        <div>
+          <label className={labelCls}>Check-out Time</label>
+          <input type="time" value={data.checkout_time} onChange={(e) => onChange('checkout_time', e.target.value)} className={inputCls} required />
+        </div>
+        <div>
+          <label className={labelCls}>Shotgun</label>
+          <BottomSheetSelect value={data.shotgun_id} onChange={(val) => onChange('shotgun_id', val)} placeholder="Select a shotgun" options={shotguns.map(s => ({ value: s.id, label: s.name }))} />
+        </div>
+        <div>
+          <label className={labelCls}>Rounds Fired</label>
+          <input type="number" min="0" value={data.rounds_fired} onChange={(e) => onChange('rounds_fired', e.target.value)} className={inputCls} required />
+        </div>
+        <div>
+          <label className={labelCls}>Ammunition <span className="text-muted-foreground font-normal">(optional)</span></label>
+          <input type="text" value={data.ammunition_used || ''} onChange={(e) => onChange('ammunition_used', e.target.value)}
+            placeholder="e.g. Hull Comp X 28g No.7" className={inputCls} />
+          {ammunition.length > 0 && (
+            <div className="mt-2">
+              <p className="text-[10px] text-muted-foreground mb-1">Or pick from saved:</p>
+              <BottomSheetSelect
+                value={data.ammunition_id || ''}
+                onChange={(val) => {
+                  const a = ammunition.find(x => x.id === val);
+                  onChange('ammunition_id', val);
+                  if (a) onChange('ammunition_used', `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`.trim());
+                }}
+                placeholder="Select saved ammunition"
+                options={ammunition.filter(a => {
+                  const selectedShotgun = shotguns.find(s => s.id === data.shotgun_id);
+                  return !selectedShotgun || !selectedShotgun.gauge || a.caliber === selectedShotgun.gauge;
+                }).map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
+              />
             </div>
-            {data.photos && data.photos.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {data.photos.map((photo, idx) => (
-                  <div key={idx} className="relative group">
-                    <img src={photo} alt="preview" className="h-16 w-16 object-cover rounded-xl border border-slate-200" />
-                    <button type="button" onClick={() => onChange('photos', data.photos.filter((_, i) => i !== idx))}
-                      className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs shadow">×</button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          {scorecardStats && scorecardStats.total_stands > 0 && (
-            <ClayCheckoutSummary
-              sessionId={sessionId}
-              scorecard={scorecardStats}
-              shotguns={shotguns}
-              ammunition={ammunition}
-              onShowScorecard={onShowScorecard}
-            />
-          )}
-
-          {gpsTrack && gpsTrack.length > 0 && (
-            <motion.button type="button" onClick={() => onViewTrack(gpsTrack)} whileTap={{ scale: 0.97 }}
-              className="w-full px-3 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300">
-              <Map className="w-4 h-4" />
-              View GPS Track
-            </motion.button>
           )}
         </div>
-      </ModalShell>
-      {showAlert && createPortal(<div className="fixed inset-0 z-[50000] bg-black/50" />, document.body)}
-      {showAlert && createPortal(<MissingFieldsAlert fields={['Shotgun', 'Rounds Fired']} onClose={() => setShowAlert(false)} />, document.body)}
-    </>
+        <div>
+          <label className={labelCls}>Notes</label>
+          <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className={inputCls} rows="2" />
+        </div>
+        <div>
+          <label className={labelCls}>Photos</label>
+          <div className="flex gap-2 mb-2">
+            <label className="flex-1 px-3 py-2.5 bg-secondary hover:bg-secondary/80 rounded-xl text-center cursor-pointer font-semibold text-xs transition-colors">
+              Choose File
+              <input type="file" accept="image/*" multiple onChange={(e) => handlePhotoUpload(e.target.files, data, onChange)} className="hidden" />
+            </label>
+            <label className="flex-1 px-3 py-2.5 bg-secondary hover:bg-secondary/80 rounded-xl text-center cursor-pointer font-semibold text-xs transition-colors">
+              Camera
+              <input type="file" accept="image/*" capture="environment" multiple onChange={(e) => handlePhotoUpload(e.target.files, data, onChange)} className="hidden" />
+            </label>
+          </div>
+          {data.photos && data.photos.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {data.photos.map((photo, idx) => (
+                <div key={idx} className="relative group">
+                  <img src={photo} alt="preview" className="h-16 w-16 object-cover rounded-xl border border-border" />
+                  <button type="button" onClick={() => onChange('photos', data.photos.filter((_, i) => i !== idx))}
+                    className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs shadow">×</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        {scorecardStats && scorecardStats.total_stands > 0 && (
+          <ClayCheckoutSummary sessionId={sessionId} scorecard={scorecardStats} shotguns={shotguns} ammunition={ammunition} onShowScorecard={onShowScorecard} />
+        )}
+        {gpsTrack && gpsTrack.length > 0 && (
+          <motion.button type="button" onClick={() => onViewTrack(gpsTrack)} whileTap={{ scale: 0.97 }}
+            className="w-full px-3 py-2.5 bg-secondary hover:bg-secondary/80 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-medium text-foreground">
+            <Map className="w-4 h-4" />
+            View GPS Track
+          </motion.button>
+        )}
+      </div>
+    </GlobalModal>
   );
 }

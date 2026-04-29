@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
-import { X, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { searchCalibers } from '@/utils/caliberCatalog';
 import AddBrassModal from './AddBrassModal';
 
@@ -440,25 +440,14 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
   }
 
   return (
-    <div className="flex flex-col bg-card min-h-0 flex-1">
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 pt-6 pb-5 border-b border-border flex-shrink-0">
-        <h2 className="text-xl font-bold text-foreground">New Reload Batch</h2>
-        <button onClick={onClose} className="w-9 h-9 flex items-center justify-center rounded-lg bg-muted hover:opacity-70 transition-opacity">
-          <X className="w-5 h-5 text-muted-foreground" />
-        </button>
-      </div>
-
-      {/* Form Content */}
-      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6"
-        style={{ WebkitOverflowScrolling: 'touch' }}>
+    <div className="space-y-5 w-full min-w-0">
       {validationError && (
-       <div className="border border-destructive rounded-lg p-4 text-sm font-medium bg-destructive/10 text-destructive">
+       <div className="border border-destructive rounded-lg p-3 text-sm font-medium bg-destructive/10 text-destructive">
          {validationError}
        </div>
       )}
-      <form id="reload-batch-form" onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-2 gap-3">
+      <form id="reload-batch-form" onSubmit={handleSubmit} className="space-y-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Date</label>
             <input
@@ -513,7 +502,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <input type="text" value={formData.batch_number} onChange={(e) => setFormData({ ...formData, batch_number: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Rifle (optional)</label>
             <select value={formData.rifle_id} onChange={(e) => setFormData({ ...formData, rifle_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none">
@@ -728,28 +717,24 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
              </div>
            </div>
          )}
+        <div className="pt-2 flex gap-3">
+          <button
+            form="reload-batch-form"
+            type="submit"
+            className="flex-1 h-11 rounded-xl font-semibold text-sm bg-primary text-primary-foreground hover:opacity-90 active:scale-95 transition-all"
+          >
+            Create Batch
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 h-11 rounded-xl font-semibold text-sm bg-secondary text-secondary-foreground hover:bg-secondary/80 active:scale-95 transition-all"
+          >
+            Cancel
+          </button>
+        </div>
       </form>
-      </div>
 
-      {/* Footer */}
-      <div className="flex gap-3 px-6 py-5 border-t border-border flex-shrink-0 safe-area-bottom bg-card">
-        <button
-          form="reload-batch-form"
-          type="submit"
-          className="flex-1 py-3.5 rounded-lg font-semibold text-base bg-primary text-primary-foreground hover:opacity-90 active:scale-95 transition-all"
-        >
-          Create Batch
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex-1 py-3.5 border border-border rounded-lg font-semibold text-base text-muted-foreground hover:opacity-70 active:scale-95 transition-all"
-        >
-          Cancel
-        </button>
-      </div>
-
-      {/* Add Brass Modal */}
       <AddBrassModal
         isOpen={showAddBrassModal}
         onClose={() => setShowAddBrassModal(false)}

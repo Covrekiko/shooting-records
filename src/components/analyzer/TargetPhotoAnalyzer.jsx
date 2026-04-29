@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ArrowLeft, Save, Loader2, Trash2, Plus, RotateCcw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import AIPhotoComparison from './AIPhotoComparison';
@@ -25,7 +25,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const [marks, setMarks] = useState(editGroup?.bullet_marks || []);
   const [centrePoint, setCentrePoint] = useState(editGroup?.centre_mark || null);
   const [aimPoint, setAimPoint] = useState(editGroup?.aim_mark || null);
-  const [mode, setMode] = useState('bullets'); // bullets | centre | aim
+  const [mode, setMode] = useState(''); // bullets | centre | aim
   const [scaleRef, setScaleRef] = useState(editGroup?.scale_reference || '1cm grid');
   const [scaleInput, setScaleInput] = useState('1');
   const [scaleUnit, setScaleUnit] = useState(editGroup?.scale_unit || 'cm'); // mm, cm, in
@@ -47,9 +47,30 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const [bestGroup, setBestGroup] = useState(editGroup?.best_group || false);
   const [setScaleMode, setSetScaleMode] = useState(false);
   const [scalePoints, setScalePoints] = useState([]);
+  const [scaleDragPoint, setScaleDragPoint] = useState(null); // Live cursor position while drawing line
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
   const [imgSize, setImgSize] = useState(null);
+
+  // Pan/zoom state
+  // Pan/zoom state
+  const [zoom, setZoom] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const panStart = useRef(null);
+  const lastPan = useRef({ x: 0, y: 0 });
+  const lastPinchDist = useRef(null);
+  const didPan = useRef(false);
+  const containerRef = useRef(null);
+  
+  // Scale state - stored separately to persist independently
+  const scaleStateRef = useRef({
+    calibPoints: [],
+    scalePx: editGroup?.scale_mm_per_px || null,
+    scaleValue: editGroup?.scale_reference ? 
+      parseFloat(editGroup.scale_reference.match(/\d+/)?.[0] || scaleInput) : 
+      parseFloat(scaleInput),
+    scaleUnitVal: editGroup?.scale_unit || 'cm'
+  });
 
   useEffect(() => {
     if (!scalePx || marks.length < 2) {
@@ -107,6 +128,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     setScalePx(null);
     setResults(null);
     setUploading(true);
+    if (!FEATURE_AI_TARGET_ANALYSIS) setAnalysisMode('manual');
 
     // 30-second timeout safety net
     let timedOut = false;
@@ -133,6 +155,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
 
       URL.revokeObjectURL(localPreviewUrl);
       setPhoto(file_url);
+      if (!FEATURE_AI_TARGET_ANALYSIS) setAnalysisMode('manual');
     } catch (error) {
       console.error('[TargetPhotoAnalyzer] Upload failed:', error);
       // Keep the local preview and show a retry option
@@ -147,17 +170,158 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     }
   };
 
+  // Sync scale state ref with component state on changes
+  useEffect(() => {
+    scaleStateRef.current.scaleValue = parseFloat(scaleInput) || 0;
+    scaleStateRef.current.scaleUnitVal = scaleUnit;
+    
+    // Recalculate if calibration points exist
+    if (scaleStateRef.current.calibPoints.length === 2) {
+      const pts = scaleStateRef.current.calibPoints;
+      const pixelDist = Math.sqrt(
+        Math.pow(pts[1].x - pts[0].x, 2) + 
+        Math.pow(pts[1].y - pts[0].y, 2)
+      );
+      if (pixelDist > 0) {
+        const realWorldMm = convertToMm(scaleStateRef.current.scaleValue, scaleStateRef.current.scaleUnitVal);
+        const newScalePx = realWorldMm / pixelDist;
+        scaleStateRef.current.scalePx = newScalePx;
+        setScalePx(newScalePx);
+      }
+    }
+  }, [scaleInput, scaleUnit]);
+  
+  // Reset zoom/pan when a new photo is loaded
+  useEffect(() => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+    lastPan.current = { x: 0, y: 0 };
+    
+    // Reset scale state for new photo
+    scaleStateRef.current = {
+      calibPoints: [],
+      scalePx: null,
+      scaleValue: parseFloat(scaleInput) || 1,
+      scaleUnitVal: scaleUnit
+    };
+  }, [photo]);
+
+  const clampPan = useCallback((px, py, z, containerEl, imgEl) => {
+    if (!containerEl || !imgEl) return { x: px, y: py };
+    const cw = containerEl.offsetWidth;
+    const ch = containerEl.offsetHeight;
+    // image rendered at 100% width of container, aspect ratio preserved
+    const naturalAspect = (imgEl.naturalHeight || 1) / (imgEl.naturalWidth || 1);
+    const imgH = cw * naturalAspect;
+    const scaledW = cw * z;
+    const scaledH = imgH * z;
+    const maxX = Math.max(0, (scaledW - cw) / 2);
+    const maxY = Math.max(0, (scaledH - ch) / 2);
+    return {
+      x: Math.min(maxX, Math.max(-maxX, px)),
+      y: Math.min(maxY, Math.max(-maxY, py)),
+    };
+  }, []);
+
   const getRelativeCoords = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const scaleX = imgRef.current.naturalWidth / rect.width;
-    const scaleY = imgRef.current.naturalHeight / rect.height;
+    // Get coords in natural image pixel space, accounting for zoom/pan
+    const container = containerRef.current;
+    const img = imgRef.current;
+    if (!container || !img) return { x: 0, y: 0 };
+    const cRect = container.getBoundingClientRect();
     const touch = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
     const clientX = touch ? touch.clientX : e.clientX;
     const clientY = touch ? touch.clientY : e.clientY;
+    // Position relative to container centre (since transform-origin is center)
+    const relX = clientX - cRect.left - cRect.width / 2;
+    const relY = clientY - cRect.top - cRect.height / 2;
+    // Undo zoom and pan
+    const imgX = (relX - pan.x) / zoom + cRect.width / 2;
+    const imgY = (relY - pan.y) / zoom + cRect.height / 2;
+    // Convert to natural image coords
+    const displayedImgWidth = cRect.width; // img is w-full
+    const naturalAspect = (img.naturalHeight || 1) / (img.naturalWidth || 1);
+    const displayedImgHeight = displayedImgWidth * naturalAspect;
+    const scaleX = img.naturalWidth / displayedImgWidth;
+    const scaleY = img.naturalHeight / displayedImgHeight;
     return {
-      x: (clientX - rect.left) * scaleX,
-      y: (clientY - rect.top) * scaleY,
+      x: imgX * scaleX,
+      y: imgY * scaleY,
     };
+  };
+
+  const handleContainerTouchStart = (e) => {
+    if (e.touches.length === 2) {
+      // Two-finger: zoom/pan start
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      lastPinchDist.current = Math.sqrt(dx * dx + dy * dy);
+      panStart.current = {
+        x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+        y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+      };
+      lastPan.current = { ...pan };
+      return;
+    }
+    if (e.touches.length === 1) {
+      // One finger: mark only (no panning)
+      didPan.current = false;
+      panStart.current = null;
+    }
+  };
+
+  const handleContainerTouchMove = (e) => {
+    e.preventDefault();
+    // If in scale mode with first point, track cursor for line preview
+    if (setScaleMode && scalePoints.length === 1) {
+      const coords = getRelativeCoords(e);
+      setScaleDragPoint(coords);
+    }
+    if (e.touches.length === 2) {
+      // Pinch zoom + two-finger drag pan
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (lastPinchDist.current) {
+        const ratio = dist / lastPinchDist.current;
+        setZoom(prev => Math.min(6, Math.max(1, prev * ratio)));
+      }
+      lastPinchDist.current = dist;
+      // Pan with two fingers
+      const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      if (panStart.current) {
+        const panDx = centerX - panStart.current.x;
+        const panDy = centerY - panStart.current.y;
+        const newPan = clampPan(
+          lastPan.current.x + panDx,
+          lastPan.current.y + panDy,
+          zoom,
+          containerRef.current,
+          imgRef.current
+        );
+        setPan(newPan);
+      }
+      return;
+    }
+    // One finger: do nothing (prevent accidental pans)
+  };
+
+  const handleContainerMouseMove = (e) => {
+    // Live line preview when drawing scale on desktop
+    if (setScaleMode && scalePoints.length === 1) {
+      const coords = getRelativeCoords(e);
+      setScaleDragPoint(coords);
+    }
+  };
+
+  const handleContainerTouchEnd = (e) => {
+    lastPinchDist.current = null;
+    panStart.current = null;
+    // Mark only if it was a one-finger tap (no zoom/pan in progress) and not in scale mode
+    if (e.touches.length === 0 && e.changedTouches.length === 1 && !setScaleMode) {
+      handleImageTap(e);
+    }
   };
 
   const convertToMm = (value, unit) => {
@@ -168,38 +332,53 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     return v;
   };
 
-  // Recalculate scalePx from stored calibration points whenever value/unit changes
-  useEffect(() => {
-    if (calibPoints.length !== 2) return;
-    const dist = Math.sqrt(
-      Math.pow(calibPoints[1].x - calibPoints[0].x, 2) +
-      Math.pow(calibPoints[1].y - calibPoints[0].y, 2)
-    );
-    if (dist === 0) return;
-    const refMm = convertToMm(scaleInput, scaleUnit);
-    if (!refMm || isNaN(refMm) || refMm <= 0) return;
-    setScalePx(refMm / dist);
-  }, [scaleInput, scaleUnit, calibPoints]);
-
   const handleImageTap = (e) => {
-    if (!photo) return;
+    if (!photo || !imgRef.current) return;
     const coords = getRelativeCoords(e);
 
+    // Scale setting mode: only collect scale points, prevent other markings
     if (setScaleMode) {
       const newPts = [...scalePoints, coords];
       setScalePoints(newPts);
+      setScaleDragPoint(null); // Clear preview line
       if (newPts.length === 2) {
-        const dist = Math.sqrt(Math.pow(newPts[1].x - newPts[0].x, 2) + Math.pow(newPts[1].y - newPts[0].y, 2));
-        const valueInMm = convertToMm(scaleInput, scaleUnit);
-        const mmPerPx = valueInMm / dist;
+        // Calculate pixel distance between tapped points
+        const pixelDist = Math.sqrt(
+          Math.pow(newPts[1].x - newPts[0].x, 2) + 
+          Math.pow(newPts[1].y - newPts[0].y, 2)
+        );
+        if (pixelDist === 0) {
+          alert('Points are too close. Please tap points further apart.');
+          setScalePoints([]);
+          return;
+        }
+        
+        // Convert input value to mm
+        const realWorldMm = convertToMm(scaleInput, scaleUnit);
+        if (!realWorldMm || isNaN(realWorldMm) || realWorldMm <= 0) {
+          alert('Invalid scale value. Please enter a positive number.');
+          setScalePoints([]);
+          return;
+        }
+        
+        // Calculate mm per pixel
+        const mmPerPx = realWorldMm / pixelDist;
+        
+        // Update state ref and component state atomically
+        scaleStateRef.current.calibPoints = newPts;
+        scaleStateRef.current.scalePx = mmPerPx;
+        scaleStateRef.current.scaleValue = parseFloat(scaleInput);
+        scaleStateRef.current.scaleUnitVal = scaleUnit;
+        
         setScalePx(mmPerPx);
-        setCalibPoints(newPts); // store for live recalibration
+        setCalibPoints(newPts);
         setSetScaleMode(false);
         setScalePoints([]);
       }
       return;
     }
 
+    // Normal marking mode: only add marks if a mode is selected
     if (mode === 'bullets') {
       setMarks(prev => [...prev, coords]);
     } else if (mode === 'centre') {
@@ -212,6 +391,13 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const handleSave = async () => {
     if (!results && marks.length < 2) { alert('Add at least 2 bullet marks to calculate group size'); return; }
     setSaving(true);
+    
+    // Use current scalePx and scale state for persistence
+    const activeScalePx = scaleStateRef.current.scalePx || scalePx;
+    const scaleRefLabel = scaleStateRef.current.calibPoints.length === 2 
+      ? `Calibrated: ${scaleInput} ${scaleUnit}`
+      : scaleRef;
+    
     const payload = {
       group_name: groupName || `Group ${marks.length > 0 ? 'Unknown' : 'Empty'}`,
       number_of_shots: marks.length,
@@ -230,9 +416,10 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
       bullet_holes: marks,
       centre_x: centrePoint?.x || null,
       centre_y: centrePoint?.y || null,
-      scale_mm_per_px: scalePx,
+      scale_mm_per_px: activeScalePx,
       scale_unit: scaleUnit,
-      scale_reference: scaleRef,
+      scale_reference: scaleRefLabel,
+      scale_calibration_points: scaleStateRef.current.calibPoints,
       shooting_position: shootingPosition || null,
       distance_override: distanceOverride ? parseFloat(distanceOverride) : null,
       distance_unit: distanceUnit,
@@ -252,10 +439,12 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const getDisplayCoords = (point) => {
     if (!imgRef.current || !point) return null;
     const img = imgRef.current;
-    const rect = img.getBoundingClientRect();
+    // Use the img's rendered size (offsetWidth/Height) since marks are inside the transform div
+    const w = img.offsetWidth || img.clientWidth || 1;
+    const h = img.offsetHeight || img.clientHeight || 1;
     return {
-      x: point.x / img.naturalWidth * rect.width,
-      y: point.y / img.naturalHeight * rect.height,
+      x: point.x / (img.naturalWidth || 1) * w,
+      y: point.y / (img.naturalHeight || 1) * h,
     };
   };
 
@@ -395,26 +584,139 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               <button type="button" onClick={() => { setScaleInput('1'); setScaleUnit('cm'); setScaleRef('1cm grid'); }} className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold">1cm grid</button>
               <button type="button" onClick={() => { setScaleInput('1'); setScaleUnit('in'); setScaleRef('1in grid'); }} className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold">1in grid</button>
             </div>
-            <button type="button" onClick={() => { setSetScaleMode(true); setScalePoints([]); }}
+            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSetScaleMode(prev => !prev); setScalePoints([]); }}
               className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all ${setScaleMode ? 'bg-amber-500 text-white' : 'bg-secondary hover:bg-secondary/80'}`}>
               {setScaleMode
                 ? `Tap 2 points on photo (${scalePoints.length}/2 placed)`
                 : scalePx
-                  ? `✓ Scale set: ${scaleInput} ${scaleUnit} = ${Math.round(convertToMm(scaleInput, scaleUnit) / scalePx * 10) / 10}px — Recalibrate`
+                  ? `✓ Scale set: ${scaleInput} ${scaleUnit} = ${Math.round(convertToMm(scaleInput, scaleUnit) / scalePx * 10) / 10}px — ${setScaleMode ? 'Cancel' : 'Recalibrate'}`
                   : 'Tap 2 known points to set scale'}
             </button>
           </div>
 
-          {/* Mode selector */}
-          <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
+          {/* Interactive Image — pinch to zoom, hold+drag to pan, tap to mark */}
+          <div
+            ref={containerRef}
+            className="relative mb-1 rounded-2xl overflow-hidden border border-border bg-black select-none max-h-96 md:max-h-none"
+            style={{ touchAction: mode ? 'none' : 'auto', aspectRatio: 'auto' }}
+            onTouchStart={handleContainerTouchStart}
+            onTouchMove={handleContainerTouchMove}
+            onTouchEnd={handleContainerTouchEnd}
+            onMouseMove={handleContainerMouseMove}
+          >
+            {/* Zoom indicator */}
+            {zoom > 1.05 && (
+              <div className="absolute top-2 right-2 z-10 bg-black/60 text-white text-xs font-bold px-2 py-1 rounded-lg pointer-events-none">
+                {zoom.toFixed(1)}×
+              </div>
+            )}
+            {/* Gesture hints */}
+            {zoom > 1.05 && (
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 bg-black/60 text-white text-[10px] px-2 py-1 rounded-lg pointer-events-none">
+                2 fingers to zoom & pan
+              </div>
+            )}
+            {/* Image + marks — both transform together so marks stay aligned */}
+            <div
+              style={{
+                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                transformOrigin: 'center center',
+                willChange: 'transform',
+              }}
+            >
+              <img
+                ref={imgRef}
+                src={photo}
+                className="w-full block object-contain cursor-crosshair"
+                alt="Target"
+                draggable={false}
+                onClick={handleImageTap}
+                style={{ userSelect: 'none', pointerEvents: 'auto' }}
+              />
+              {/* Overlay marks — inside the transform div so they zoom/pan with the image */}
+              <div className="absolute inset-0 pointer-events-none mark-overlay">
+                {marks.map((m, i) => {
+                  const d = getDisplayCoords(m);
+                  if (!d) return null;
+                  return (
+                    <div key={i} className="absolute" style={{ left: d.x - 10, top: d.y - 10, width: 20, height: 20 }}>
+                      <div className="w-5 h-5 rounded-full bg-red-500 border-2 border-white flex items-center justify-center text-white text-[8px] font-bold shadow-lg">{i + 1}</div>
+                    </div>
+                  );
+                })}
+                {centrePoint && (() => {
+                  const d = getDisplayCoords(centrePoint);
+                  if (!d) return null;
+                  return (
+                    <div className="absolute" style={{ left: d.x - 12, top: d.y - 12 }}>
+                      <div className="w-6 h-6 rounded-full border-3 border-blue-500 flex items-center justify-center bg-blue-500/30">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                      </div>
+                    </div>
+                  );
+                })()}
+                {aimPoint && (() => {
+                  const d = getDisplayCoords(aimPoint);
+                  if (!d) return null;
+                  return (
+                    <div className="absolute" style={{ left: d.x - 12, top: d.y - 12 }}>
+                      <div className="w-6 h-6 flex items-center justify-center">
+                        <div className="absolute w-6 h-0.5 bg-green-500" />
+                        <div className="absolute w-0.5 h-6 bg-green-500" />
+                      </div>
+                    </div>
+                  );
+                })()}
+                {scalePoints.map((p, i) => {
+                  const d = getDisplayCoords(p);
+                  if (!d) return null;
+                  return (
+                    <div key={i} className="absolute" style={{ left: d.x - 6, top: d.y - 6 }}>
+                      <div className="w-3 h-3 bg-amber-500 border-2 border-white rounded-full" />
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Scale line preview — outside transform so it's always visible */}
+              {setScaleMode && scalePoints.length === 1 && scaleDragPoint && (() => {
+                const p1 = getDisplayCoords(scalePoints[0]);
+                const p2 = getDisplayCoords(scaleDragPoint);
+                if (!p1 || !p2) return null;
+                const img = imgRef.current;
+                if (!img) return null;
+                const w = img.offsetWidth || 1;
+                const h = img.offsetHeight || 1;
+                return (
+                  <svg className="absolute inset-0 pointer-events-none z-10" style={{ width: w, height: h }}>
+                    <line x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="#fbbf24" strokeWidth="3" opacity="0.9" strokeLinecap="round" />
+                  </svg>
+                );
+              })()}
+            </div>
+          </div>
+
+          {/* Zoom reset button */}
+          {zoom > 1.05 && (
+            <div className="flex justify-center mb-2">
+              <button type="button"
+                onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); lastPan.current = { x: 0, y: 0 }; }}
+                className="px-4 py-1.5 bg-secondary rounded-xl text-xs font-semibold">
+                Reset Zoom
+              </button>
+            </div>
+          )}
+
+          {/* Mode selection - below image */}
+          <div className="grid grid-cols-3 gap-2 mb-3">
             {[
-              { id: 'centre', label: '⊕ Centre of Target', color: 'bg-blue-500 text-white' },
-              { id: 'aim', label: '✚ Point of Aim', color: 'bg-green-500 text-white' },
-              { id: 'bullets', label: '🎯 Bullet Holes', color: 'bg-red-500 text-white' },
+              { id: 'centre', icon: '⊕', label: 'Centre', color: 'bg-blue-500 text-white', title: 'Mark centre of target' },
+              { id: 'aim', icon: '✚', label: 'Aim Point', color: 'bg-green-500 text-white', title: 'Mark point of aim' },
+              { id: 'bullets', icon: '🎯', label: 'Bullet Holes', color: 'bg-red-500 text-white', title: 'Mark bullet holes' },
             ].map(m => (
-              <button key={m.id} type="button" onClick={() => setMode(m.id)}
-                className={`px-4 py-2.5 rounded-xl font-semibold text-sm flex-shrink-0 transition-all ${mode === m.id ? m.color : 'bg-secondary hover:bg-secondary/80'}`}>
-                {m.label}
+              <button key={m.id} type="button" onClick={() => setMode(mode === m.id ? '' : m.id)}
+                className={`py-3 rounded-xl font-semibold text-sm flex flex-col items-center gap-1.5 transition-all ${mode === m.id ? m.color : 'bg-secondary hover:bg-secondary/80'}`}>
+                <span className="text-2xl">{m.icon}</span>
+                <span className="text-xs leading-tight">{m.label}</span>
               </button>
             ))}
           </div>
@@ -438,65 +740,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
                 onChange={e => { setUploadError(null); setPhoto(null); handlePhotoUpload(e.target.files[0]); e.target.value = ''; }}
               />
             </label>
-          </div>
-
-          {/* Interactive Image */}
-          <div className="relative mb-3 rounded-2xl overflow-hidden border border-border bg-black select-none"
-            style={{ touchAction: 'none' }}>
-            <img
-              ref={imgRef}
-              src={photo}
-              className="w-full"
-              alt="Target"
-              onClick={handleImageTap}
-              onTouchEnd={(e) => { e.preventDefault(); handleImageTap(e); }}
-              style={{ cursor: setScaleMode ? 'crosshair' : (mode === 'bullets' ? 'crosshair' : 'crosshair'), userSelect: 'none' }}
-              draggable={false}
-            />
-            {/* Overlay marks */}
-            <div className="absolute inset-0 pointer-events-none">
-              {marks.map((m, i) => {
-                const d = getDisplayCoords(m);
-                if (!d) return null;
-                return (
-                  <div key={i} className="absolute" style={{ left: d.x - 10, top: d.y - 10, width: 20, height: 20 }}>
-                    <div className="w-5 h-5 rounded-full bg-red-500 border-2 border-white flex items-center justify-center text-white text-[8px] font-bold shadow-lg">{i + 1}</div>
-                  </div>
-                );
-              })}
-              {centrePoint && (() => {
-                const d = getDisplayCoords(centrePoint);
-                if (!d) return null;
-                return (
-                  <div className="absolute" style={{ left: d.x - 12, top: d.y - 12 }}>
-                    <div className="w-6 h-6 rounded-full border-3 border-blue-500 flex items-center justify-center bg-blue-500/30">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                    </div>
-                  </div>
-                );
-              })()}
-              {aimPoint && (() => {
-                const d = getDisplayCoords(aimPoint);
-                if (!d) return null;
-                return (
-                  <div className="absolute" style={{ left: d.x - 12, top: d.y - 12 }}>
-                    <div className="w-6 h-6 flex items-center justify-center">
-                      <div className="absolute w-6 h-0.5 bg-green-500" />
-                      <div className="absolute w-0.5 h-6 bg-green-500" />
-                    </div>
-                  </div>
-                );
-              })()}
-              {scalePoints.map((p, i) => {
-                const d = getDisplayCoords(p);
-                if (!d) return null;
-                return (
-                  <div key={i} className="absolute" style={{ left: d.x - 6, top: d.y - 6 }}>
-                    <div className="w-3 h-3 bg-amber-500 border-2 border-white rounded-full" />
-                  </div>
-                );
-              })}
-            </div>
           </div>
 
           <p className="text-xs text-muted-foreground text-center mb-3">
