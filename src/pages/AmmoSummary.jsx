@@ -11,7 +11,18 @@ export default function AmmoSummary() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadData();
+  loadData();
+  }, []);
+
+  useEffect(() => {
+  const handleVisibilityChange = () => {
+  if (document.visibilityState === 'visible') {
+  loadData();
+  }
+  };
+
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
   const loadData = async () => {
