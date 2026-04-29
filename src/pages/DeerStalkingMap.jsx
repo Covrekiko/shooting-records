@@ -29,16 +29,16 @@ const defaultCenter = {
   lng: -0.1278,
 };
 
+// Stable libraries array — defined outside component to prevent recreation on re-render
+const GOOGLE_MAPS_LIBRARIES = ['drawing', 'places'];
+
 export default function DeerStalkingMap() {
   const { activeOuting, loading: outingLoading, startOuting, endOuting, endOutingWithData, updateGpsTrack } = useOuting();
   
-  // Try multiple sources for Maps key: Vite build-time env, runtime window object, or component wrapper
-  const viteKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  const windowKey = window?.GOOGLE_MAPS_API_KEY;
-  const mapsKey = viteKey || windowKey || '';
-  
+  // Load Google Maps with Vite build-time API key
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: mapsKey,
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+    libraries: GOOGLE_MAPS_LIBRARIES,
   });
 
   const [markers, setMarkers] = useState([]);
@@ -369,12 +369,7 @@ export default function DeerStalkingMap() {
       <div className="fixed inset-0 flex items-center justify-center bg-slate-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-3"></div>
-          <p className="text-white text-xs text-slate-400">
-            {!mapsKey ? 'Maps API key loading...' : 'Map initializing...'}
-          </p>
-          {!mapsKey && (
-            <p className="text-red-400 text-xs mt-2">⚠ Google Maps key not available</p>
-          )}
+          <p className="text-white text-xs text-slate-400">Map initializing...</p>
         </div>
       </div>
     );
