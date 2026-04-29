@@ -39,20 +39,23 @@ export default function Reports() {
     try {
       const currentUser = await base44.auth.me();
 
-      // Load ONLY completed records from the single global SessionRecord entity
+      // Load ONLY completed records from the single global SessionRecord entity, exclude deleted records
       const sessionRecords = await base44.entities.SessionRecord.filter({ 
         created_by: currentUser.email,
         status: 'completed'
       });
 
-      const allRecords = sessionRecords.map((r) => {
-        const recordTypeMap = {
-          'target_shooting': 'target',
-          'clay_shooting': 'clay',
-          'deer_management': 'deer',
-        };
-        return { ...r, recordType: recordTypeMap[r.category] || r.category };
-      }).sort((a, b) => new Date(b.date) - new Date(a.date));
+      const allRecords = sessionRecords
+        .filter((r) => r.isDeleted !== true && r.status !== 'deleted') // Exclude soft-deleted records
+        .map((r) => {
+          const recordTypeMap = {
+            'target_shooting': 'target',
+            'clay_shooting': 'clay',
+            'deer_management': 'deer',
+          };
+          return { ...r, recordType: recordTypeMap[r.category] || r.category };
+        })
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
 
       setRecords(allRecords);
     } catch (error) {

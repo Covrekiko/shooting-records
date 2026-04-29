@@ -96,15 +96,18 @@ export default function Records() {
 
       const sessionRecords = await getRepository('SessionRecord').filter(query);
 
-      // Map category to recordType for compatibility
-      const records = sessionRecords.map((r) => {
-        const recordTypeMap = {
-          'target_shooting': 'target',
-          'clay_shooting': 'clay',
-          'deer_management': 'deer'
-        };
-        return { ...r, recordType: recordTypeMap[r.category] || r.category };
-      }).sort((a, b) => new Date(b.date) - new Date(a.date));
+      // Map category to recordType for compatibility + filter out deleted records
+      const records = sessionRecords
+        .filter((r) => r.isDeleted !== true && r.status !== 'deleted') // Exclude soft-deleted records
+        .map((r) => {
+          const recordTypeMap = {
+            'target_shooting': 'target',
+            'clay_shooting': 'clay',
+            'deer_management': 'deer'
+          };
+          return { ...r, recordType: recordTypeMap[r.category] || r.category };
+        })
+        .sort((a, b) => new Date(b.date) - new Date(a.date));
 
       setAllRecords(records);
     } catch (error) {
@@ -143,12 +146,13 @@ export default function Records() {
       }
 
       // DEBUG: Log record details
-      console.log('[DELETE DEBUG] record =', record);
-      console.log('[DELETE DEBUG] record.id =', record.id);
-      console.log('[DELETE DEBUG] record.category =', record.category);
-      console.log('[DELETE DEBUG] record.recordType =', record.recordType);
+      console.log('[DELETE DEBUG] record from UI:', record);
+      console.log('[DELETE DEBUG] record.id:', record?.id);
+      console.log('[DELETE DEBUG] record category:', record?.category);
+      console.log('[DELETE DEBUG] record status:', record?.status);
+      console.log('[DELETE DEBUG] record created_by:', record?.created_by);
 
-      // STEP 1: Validate record.id exists and is not stale
+      // STEP 1: Validate record.id exists
       if (!record.id) {
         console.error('[DELETE DEBUG] record.id is missing or invalid');
         alert('Error: Record ID is missing. Cannot delete.');
@@ -158,26 +162,35 @@ export default function Records() {
       // STEP 2: Load fresh record from Base44 before any changes
       let freshRecord;
       try {
-        console.log('[DELETE DEBUG] loading fresh record from Base44...');
+        console.log('[DELETE DEBUG] loading fresh SessionRecord:', record.id);
         freshRecord = await base44.entities.SessionRecord.get(record.id);
         if (!freshRecord) {
           console.error('[DELETE DEBUG] fresh record not found in Base44');
           alert('Error: Record no longer exists in database.');
           return;
         }
-        console.log('[DELETE DEBUG] fresh record loaded:', freshRecord);
+        console.log('[DELETE DEBUG] fresh SessionRecord:', freshRecord);
       } catch (err) {
-        console.error('[DELETE DEBUG] failed to load fresh record:', err);
+        console.error('[DELETE DEBUG] fresh load failed:', err);
+        console.error('[DELETE DEBUG] fresh load error response:', err.response);
+        console.error('[DELETE DEBUG] fresh load error data:', err.response?.data);
         alert('Error loading record from database: ' + err.message);
         return;
       }
 
-      // STEP 3: Prevent double refund (idempotency check)
+      // STEP 3: Check if already deleted
+      if (freshRecord.isDeleted === true || freshRecord.status === 'deleted') {
+        console.warn('[DELETE DEBUG] record already marked as deleted, removing from UI');
+        setAllRecords(allRecords.filter((r) => r.id !== record.id));
+        return;
+      }
+
+      // STEP 4: Prevent double refund (idempotency check)
       let refundResult = null;
       if (freshRecord.ammoRefunded === true) {
         console.warn('[DELETE DEBUG] record already refunded, skipping refund');
       } else {
-        // STEP 4: Refund ammunition using fresh record
+        // STEP 5: Refund ammunition using fresh record
         console.log('[DELETE DEBUG] refund start');
         const { refundAmmoForRecord } = await import('@/lib/ammoUtils');
         refundResult = await refundAmmoForRecord(freshRecord, freshRecord.category);
@@ -185,24 +198,30 @@ export default function Records() {
 
         if (!refundResult.success) {
           console.error('[DELETE DEBUG] refund failed:', refundResult.error);
-          alert('Error restoring ammunition: ' + refundResult.error);
+          alert('Ammunition refund failed. Record was not deleted.');
           return;
         }
       }
 
-      // STEP 5: Delete the record from Base44
-      console.log('[DELETE DEBUG] deleting SessionRecord id =', record.id);
+      // STEP 6: Soft delete the record (mark as deleted, do not hard delete)
+      console.log('[DELETE DEBUG] attempting SessionRecord.update (soft delete):', freshRecord.id);
       try {
-        await base44.entities.SessionRecord.delete(record.id);
-        console.log('[DELETE DEBUG] delete response = success');
-      } catch (deleteErr) {
-        console.error('[DELETE DEBUG] delete error status =', deleteErr.response?.status);
-        console.error('[DELETE DEBUG] delete error data =', deleteErr.response?.data);
-        console.error('[DELETE DEBUG] delete error message =', deleteErr.message);
-        console.error('Delete error full:', deleteErr);
-        console.error('Delete error response:', deleteErr.response);
+        const now = new Date().toISOString();
+        await base44.entities.SessionRecord.update(freshRecord.id, {
+          isDeleted: true,
+          deletedAt: now,
+          status: 'deleted',
+          ammoRefunded: true,
+          ammoRefundedAt: now,
+        });
+        console.log('[DELETE DEBUG] soft delete (update) response = success');
+      } catch (updateErr) {
+        console.error('[DELETE DEBUG] delete failed full error:', updateErr);
+        console.error('[DELETE DEBUG] delete failed status:', updateErr.response?.status);
+        console.error('[DELETE DEBUG] delete failed data:', updateErr.response?.data);
+        console.error('[DELETE DEBUG] delete failed message:', updateErr.message);
 
-        // STEP 6: Rollback ammo refund if delete fails
+        // STEP 7: Rollback ammo refund if soft delete fails
         if (refundResult?.success && freshRecord.ammoRefunded !== true) {
           console.warn('[DELETE DEBUG] delete failed, rolling back ammo refund...');
           try {
@@ -231,11 +250,11 @@ export default function Records() {
           }
         }
 
-        alert('Error deleting record: ' + deleteErr.message);
+        alert('Error deleting record: ' + updateErr.message);
         return;
       }
 
-      // STEP 7: Delete succeeded — update local state
+      // STEP 8: Delete succeeded — update local state
       setAllRecords(allRecords.filter((r) => r.id !== record.id));
 
       // Force reload

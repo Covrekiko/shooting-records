@@ -265,22 +265,26 @@ export default function Dashboard() {
       setUser(user);
       
       if (user.role === 'admin') {
-        const [users, allRecords] = await Promise.all([
+        const [users, allRecordsRaw] = await Promise.all([
           base44.entities.User.list(),
           getRepository('SessionRecord').filter({ created_by: user.email, status: 'completed' }),
         ]);
+        // Filter out soft-deleted records
+        const allRecords = allRecordsRaw.filter((r) => r.isDeleted !== true && r.status !== 'deleted');
         const targetRecords = allRecords.filter((r) => r.category === 'target_shooting');
         const clayRecords = allRecords.filter((r) => r.category === 'clay_shooting');
         const deerRecords = allRecords.filter((r) => r.category === 'deer_management');
         setStats({ totalUsers: users.length, totalRecords: allRecords.length, targetRecords: targetRecords.length, clayRecords: clayRecords.length, deerRecords: deerRecords.length });
       } else {
-        const [allRecords, rifles, shotguns, clubs, locations] = await Promise.all([
+        const [allRecordsRaw, rifles, shotguns, clubs, locations] = await Promise.all([
           getRepository('SessionRecord').filter({ created_by: user.email, status: 'completed' }),
           getRepository('Rifle').filter({ created_by: user.email }),
           getRepository('Shotgun').filter({ created_by: user.email }),
           getRepository('Club').filter({ created_by: user.email }),
           getRepository('Area').filter({ created_by: user.email }),
         ]);
+        // Filter out soft-deleted records
+        const allRecords = allRecordsRaw.filter((r) => r.isDeleted !== true && r.status !== 'deleted');
         const targetShoots = allRecords.filter((r) => r.category === 'target_shooting');
         const clayShoots = allRecords.filter((r) => r.category === 'clay_shooting');
         const deerMgmt = allRecords.filter((r) => r.category === 'deer_management');
