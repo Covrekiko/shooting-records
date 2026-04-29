@@ -138,19 +138,34 @@ export default function Records() {
   };
 
   // HELPER: Reverse Armory counters for any record type
-  const reverseArmoryCountersForRecord = async (record) => {
-    console.error('🔥🔥🔥 [ARMORY REVERSAL] START 🔥🔥🔥', { id: record.id, category: record.category, shotgun_id: record.shotgun_id, rounds_fired: record.rounds_fired });
+   const reverseArmoryCountersForRecord = async (record) => {
+     console.error('[ARMORY CHECK] armoryCountersReversed =', record.armoryCountersReversed);
+     console.error('[ARMORY CHECK] status =', record.status);
+     console.error('[ARMORY CHECK] isDeleted =', record.isDeleted);
+     console.error('🔥🔥🔥 [ARMORY REVERSAL] START 🔥🔥🔥', { id: record.id, category: record.category, shotgun_id: record.shotgun_id, rounds_fired: record.rounds_fired });
 
-    const category = record.category || record.recordType || record.type;
+     const category = record.category || record.recordType || record.type;
 
-    // Idempotency: skip if already reversed
-    if (record.armoryCountersReversed === true) {
-      console.warn('[ARMORY REVERSAL] already marked as reversed, skipping', { id: record.id, countersReversedAt: record.countersReversedAt });
-      return { success: true, skipped: true };
-    }
+     // Idempotency: skip if already reversed
+     if (record.armoryCountersReversed === true) {
+       console.warn('[ARMORY REVERSAL] already marked as reversed, skipping', { id: record.id, countersReversedAt: record.countersReversedAt });
+       return { success: true, skipped: true };
+     }
 
     // CLAY SHOOTING
     if (category === 'clay_shooting') {
+      console.error('[ARMORY CLAY FIELD CHECK]', {
+        id: record.id,
+        category: record.category,
+        shotgun_id: record.shotgun_id,
+        firearm_id: record.firearm_id,
+        weapon_id: record.weapon_id,
+        gun_id: record.gun_id,
+        rounds_fired: record.rounds_fired,
+        cartridges_fired: record.cartridges_fired,
+        total_shots: record.total_shots,
+        cartridges_used: record.cartridges_used
+      });
       const shotgunId = record.shotgun_id || record.firearm_id || record.weapon_id || record.gun_id;
       const cartridges = Number(record.rounds_fired || record.cartridges_fired || record.total_shots || record.cartridges_used || 0);
 
@@ -265,6 +280,7 @@ export default function Records() {
   };
 
   const handleDelete = async (record) => {
+    console.error('🧨 ACTIVE RECORDS.JSX HANDLEDELETE CALLED', record.id);
     console.error('🚨 ACTIVE handleDelete VERSION: ARMORY_STEP_6_2026_04_29_2225');
     if (!confirm('Delete this record? This will restore all ammunition stock.')) return;
     try {
@@ -695,11 +711,11 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
               <Edit className="w-4 h-4" />
             </button>
             <button
-              onClick={onDelete}
-              className="px-3 py-1 text-sm bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded transition-colors flex items-center gap-1"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+               onClick={() => { console.error('🧨 DELETE BUTTON CLICKED FROM RECORDCARD', record.id); onDelete(); }}
+               className="px-3 py-1 text-sm bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded transition-colors flex items-center gap-1"
+             >
+               <Trash2 className="w-4 h-4" />
+             </button>
           </div>
         </div>
       </div>
