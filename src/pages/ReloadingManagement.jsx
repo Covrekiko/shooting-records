@@ -76,7 +76,7 @@ export default function ReloadingManagement() {
 
       // ── STEP 3: Block if rounds were used in records ─────────────────
       if (roundsUsed > 0) {
-        alert(`Cannot delete this batch — ${roundsUsed} round(s) have already been used in session records. Archive the batch instead or edit it manually.`);
+        alert(`Cannot delete this batch — ${roundsUsed} round(s) have already been used in shooting records. The batch is kept for historical accuracy. No further action needed.`);
         return;
       }
 
@@ -97,45 +97,42 @@ export default function ReloadingManagement() {
 
         for (const comp of session.components) {
           try {
-            // Find the matching component by ID first, then by name+type as fallback
-            let component = comp.component_id
-              ? allComponents.find(c => c.id === comp.component_id)
-              : allComponents.find(c => c.component_type === comp.type && c.name === comp.name);
-
-            // ── PRIMER DEBUG (FIX 5) ────────────────────────────────────
-            const normalizedType = comp.type?.toLowerCase()?.replace('primers', 'primer') || '';
+            // Normalise component type FIRST — handles Primer/primers/PRIMER/primer from old batches
+            const normalizedType = comp.type?.toLowerCase()?.replace(/^primers?$/, 'primer') || '';
             const isPrimer = normalizedType === 'primer';
+            const isUsedBrass = normalizedType === 'brass' && comp.is_used_brass;
 
-            if (isPrimer) {
-              console.log(`[PRIMER REFUND DEBUG] reloadBatchId = ${id}`);
-              console.log(`[PRIMER REFUND DEBUG] primerId = ${comp.component_id || 'none (old session)'}`);
-              console.log(`[PRIMER REFUND DEBUG] primersUsed = ${Number(comp.quantity_used || 0)}`);
-              console.log(`[PRIMER REFUND DEBUG] stockBefore = ${component?.quantity_remaining ?? 'component not found'}`);
-            }
+            // Find matching component: by ID first, then by normalizedType + name as fallback
+            const component = comp.component_id
+              ? allComponents.find(c => c.id === comp.component_id)
+              : allComponents.find(c => c.component_type === normalizedType && c.name === comp.name);
+
+            console.log(`[RELOAD DELETE] type=${comp.type} normalizedType=${normalizedType} component_id=${comp.component_id || 'none'} found=${!!component}`);
 
             if (component) {
-              let newRemaining;
+              let updateFields;
               if (normalizedType === 'powder') {
                 const usedInGrams = parseFloat(comp.quantity_used || 0) * (unitConversions[comp.unit] || 1);
-                newRemaining = component.quantity_remaining + usedInGrams / (unitConversions[component.unit] || 1);
+                const newRemaining = component.quantity_remaining + usedInGrams / (unitConversions[component.unit] || 1);
+                updateFields = { quantity_remaining: newRemaining };
+              } else if (isUsedBrass) {
+                // Restore quantity AND decrement times_reloaded for used brass
+                const newRemaining = component.quantity_remaining + Number(comp.quantity_used || 0);
+                updateFields = {
+                  quantity_remaining: newRemaining,
+                  times_reloaded: Math.max(0, (component.times_reloaded || 0) - 1),
+                };
               } else {
-                newRemaining = component.quantity_remaining + Number(comp.quantity_used || 0);
+                const newRemaining = component.quantity_remaining + Number(comp.quantity_used || 0);
+                updateFields = { quantity_remaining: newRemaining };
               }
-              await base44.entities.ReloadingComponent.update(component.id, { quantity_remaining: newRemaining });
-
-              if (isPrimer) {
-                console.log(`[PRIMER REFUND DEBUG] stockAfter = ${newRemaining}`);
-                console.log(`[PRIMER REFUND DEBUG] success = true`);
-              }
-            } else if (isPrimer) {
-              console.warn(`[PRIMER REFUND DEBUG] success = false — component not found in DB`);
-              console.warn(`[PRIMER REFUND DEBUG] component_id = ${comp.component_id}, name = "${comp.name}"`);
+              await base44.entities.ReloadingComponent.update(component.id, updateFields);
+              console.log(`[RELOAD DELETE] restored ${normalizedType}: +${comp.quantity_used} → new remaining = ${updateFields.quantity_remaining}`);
+            } else {
+              console.warn(`[RELOAD DELETE] Could not find component for type=${normalizedType} name="${comp.name}" — stock not restored`);
             }
           } catch (compError) {
             console.warn('Could not restore component:', comp.type, comp.name, compError);
-            if (comp.type === 'primer') {
-              console.error(`[PRIMER REFUND DEBUG] primerRefundSuccess = false — error: ${compError.message}`);
-            }
           }
         }
         console.log(`[RELOAD DELETE DEBUG] componentsRestored = true`);
