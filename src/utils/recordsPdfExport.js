@@ -503,7 +503,7 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
        yPosition += 9;
 
        groupsForRecord.forEach((group, gIdx) => {
-         if (yPosition > pageHeight - 60) {
+         if (yPosition > pageHeight - 50) {
            doc.addPage();
            pageNum++;
            addPageId(doc, docId, pageNum, pageWidth);
@@ -515,88 +515,124 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.headingColor);
          doc.text(`Group ${gIdx + 1} — ${group.group_name || `Group ${gIdx + 1}`}`, margin + 3, yPosition);
-         yPosition += 6;
+         yPosition += 7;
 
-         // Group details box
-         doc.setDrawColor(200, 200, 200);
-         doc.setLineWidth(0.5);
-         const groupDataHeight = 28;
-         doc.rect(margin + 2, yPosition, pageWidth - 2 * margin - 4, groupDataHeight);
-         yPosition += 3;
-
+         // Basic info: Shots + Distance
          doc.setFontSize(8.5);
-         let groupY = yPosition;
-         const col1X = margin + 8;
-         const col2X = margin + 100;
-
-         // Column 1
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
-         doc.text('Shots:', col1X, groupY);
+         doc.text('Shots:', margin + 8, yPosition);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
-         doc.text(group.number_of_shots ? String(group.number_of_shots) : 'Not recorded', col1X + 20, groupY);
+         doc.text(group.number_of_shots ? String(group.number_of_shots) : 'Not recorded', margin + 28, yPosition);
+         yPosition += 5;
 
          doc.setFont(undefined, 'bold');
          doc.setTextColor(...STYLES.darkGray);
-         doc.text('Distance:', col1X, groupY + 5);
+         doc.text('Distance:', margin + 8, yPosition);
          doc.setFont(undefined, 'normal');
          doc.setTextColor(...STYLES.textColor);
-         doc.text(group.distance_override ? `${group.distance_override} m` : 'Not recorded', col1X + 20, groupY + 5);
+         doc.text(group.distance_override ? `${group.distance_override} m` : 'Not recorded', margin + 28, yPosition);
+         yPosition += 8;
 
+         // Measurements subsection
+         const hasMeasurements = group.group_size_moa || group.group_size_mm || group.group_size_mrad;
          doc.setFont(undefined, 'bold');
-         doc.setTextColor(...STYLES.darkGray);
-         doc.text('Group Size (MOA):', col1X, groupY + 10);
-         doc.setFont(undefined, 'normal');
-         doc.setTextColor(...STYLES.textColor);
-         doc.text(group.group_size_moa ? group.group_size_moa.toFixed(2) : 'Not recorded', col1X + 20, groupY + 10);
+         doc.setTextColor(...STYLES.headingColor);
+         doc.setFontSize(8.5);
+         doc.text('Measurements', margin + 8, yPosition);
+         yPosition += 5;
 
-         doc.setFont(undefined, 'bold');
-         doc.setTextColor(...STYLES.darkGray);
-         doc.text('Point of Impact:', col1X, groupY + 15);
-         doc.setFont(undefined, 'normal');
-         doc.setTextColor(...STYLES.textColor);
-         const poiText = (group.point_of_impact_x || group.point_of_impact_y) 
-           ? `X: ${(group.point_of_impact_x || 0).toFixed(1)}mm Y: ${(group.point_of_impact_y || 0).toFixed(1)}mm`
-           : 'Not recorded';
-         doc.text(poiText, col1X + 20, groupY + 15);
-
-         doc.setFont(undefined, 'bold');
-         doc.setTextColor(...STYLES.darkGray);
-         doc.text('Turret Clicks:', col1X, groupY + 20);
-         doc.setFont(undefined, 'normal');
-         doc.setTextColor(...STYLES.textColor);
-         const clickText = (group.clicks_up_down || group.clicks_left_right)
-           ? `Elev: ${group.clicks_up_down || '-'} Wind: ${group.clicks_left_right || '-'}`
-           : 'Not recorded';
-         doc.text(clickText, col1X + 20, groupY + 20);
-
-         // Column 2
-         doc.setFont(undefined, 'bold');
-         doc.setTextColor(...STYLES.darkGray);
-         doc.text('Group Size (mm):', col2X, groupY);
-         doc.setFont(undefined, 'normal');
-         doc.setTextColor(...STYLES.textColor);
-         doc.text(group.group_size_mm || 'Not recorded', col2X + 30, groupY);
-
-         doc.setFont(undefined, 'bold');
-         doc.setTextColor(...STYLES.darkGray);
-         doc.text('Group Size (mrad):', col2X, groupY + 5);
-         doc.setFont(undefined, 'normal');
-         doc.setTextColor(...STYLES.textColor);
-         doc.text(group.group_size_mrad ? group.group_size_mrad.toFixed(3) : 'Not recorded', col2X + 30, groupY + 5);
-
-         yPosition += groupDataHeight + 3;
-
-         // Group notes if present
-         if (group.notes) {
-           doc.setFontSize(8);
-           doc.setFont(undefined, 'bold');
-           doc.setTextColor(...STYLES.darkGray);
-           doc.text('Notes:', margin + 8, yPosition);
-           yPosition += 4;
+         if (hasMeasurements) {
            doc.setFont(undefined, 'normal');
-           const wrappedNotes = doc.splitTextToSize(group.notes, pageWidth - 2 * margin - 16);
+           doc.setFontSize(8);
+           doc.setTextColor(...STYLES.textColor);
+           if (group.group_size_moa) {
+             doc.text(`MOA: ${group.group_size_moa.toFixed(2)}`, margin + 12, yPosition);
+             yPosition += 4;
+           }
+           if (group.group_size_mm) {
+             doc.text(`Size (mm): ${group.group_size_mm}`, margin + 12, yPosition);
+             yPosition += 4;
+           }
+           if (group.group_size_mrad) {
+             doc.text(`MRAD: ${group.group_size_mrad.toFixed(3)}`, margin + 12, yPosition);
+             yPosition += 4;
+           }
+         } else {
+           doc.setFont(undefined, 'normal');
+           doc.setFontSize(8);
+           doc.setTextColor(...STYLES.textColor);
+           doc.text('Not recorded', margin + 12, yPosition);
+           yPosition += 4;
+         }
+         yPosition += 2;
+
+         // Point of Impact subsection
+         const hasPOI = group.point_of_impact_x || group.point_of_impact_y;
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.headingColor);
+         doc.setFontSize(8.5);
+         doc.text('Point of Impact', margin + 8, yPosition);
+         yPosition += 5;
+
+         if (hasPOI) {
+           doc.setFont(undefined, 'normal');
+           doc.setFontSize(8);
+           doc.setTextColor(...STYLES.textColor);
+           doc.text(`X: ${(group.point_of_impact_x || 0).toFixed(1)}mm`, margin + 12, yPosition);
+           yPosition += 4;
+           doc.text(`Y: ${(group.point_of_impact_y || 0).toFixed(1)}mm`, margin + 12, yPosition);
+           yPosition += 4;
+         } else {
+           doc.setFont(undefined, 'normal');
+           doc.setFontSize(8);
+           doc.setTextColor(...STYLES.textColor);
+           doc.text('Not recorded', margin + 12, yPosition);
+           yPosition += 4;
+         }
+         yPosition += 2;
+
+         // Adjustment subsection
+         const hasAdjustment = group.clicks_up_down || group.clicks_left_right;
+         doc.setFont(undefined, 'bold');
+         doc.setTextColor(...STYLES.headingColor);
+         doc.setFontSize(8.5);
+         doc.text('Adjustment', margin + 8, yPosition);
+         yPosition += 5;
+
+         if (hasAdjustment) {
+           doc.setFont(undefined, 'normal');
+           doc.setFontSize(8);
+           doc.setTextColor(...STYLES.textColor);
+           if (group.clicks_up_down) {
+             doc.text(`Elevation: ${group.clicks_up_down} clicks`, margin + 12, yPosition);
+             yPosition += 4;
+           }
+           if (group.clicks_left_right) {
+             doc.text(`Windage: ${group.clicks_left_right} clicks`, margin + 12, yPosition);
+             yPosition += 4;
+           }
+         } else {
+           doc.setFont(undefined, 'normal');
+           doc.setFontSize(8);
+           doc.setTextColor(...STYLES.textColor);
+           doc.text('Not recorded', margin + 12, yPosition);
+           yPosition += 4;
+         }
+         yPosition += 2;
+
+         // Notes
+         if (group.notes) {
+           doc.setFont(undefined, 'bold');
+           doc.setTextColor(...STYLES.headingColor);
+           doc.setFontSize(8.5);
+           doc.text('Notes', margin + 8, yPosition);
+           yPosition += 5;
+           doc.setFont(undefined, 'normal');
+           doc.setFontSize(8);
+           doc.setTextColor(...STYLES.textColor);
+           const wrappedNotes = doc.splitTextToSize(group.notes, pageWidth - 2 * margin - 20);
            wrappedNotes.forEach(line => {
              doc.text(line, margin + 12, yPosition);
              yPosition += 3.5;
@@ -606,27 +642,27 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
 
          // Target photo
          if (group.marked_photo_url || group.ai_marked_photo_url || group.photo_url) {
-           if (yPosition > pageHeight - 50) {
+           if (yPosition > pageHeight - 60) {
              doc.addPage();
              pageNum++;
              addPageId(doc, docId, pageNum, pageWidth);
              yPosition = margin;
            }
 
-           doc.setFontSize(8);
            doc.setFont(undefined, 'bold');
-           doc.setTextColor(...STYLES.darkGray);
-           doc.text('Target Photo:', margin + 8, yPosition);
-           yPosition += 4;
+           doc.setTextColor(...STYLES.headingColor);
+           doc.setFontSize(8.5);
+           doc.text('Target Photo', margin + 8, yPosition);
+           yPosition += 6;
 
-           const photoWidth = 50;
-           const photoHeight = 50;
+           const photoWidth = 55;
+           const photoHeight = 55;
            const photoX = margin + 10;
 
            try {
              const photoUrl = group.marked_photo_url || group.ai_marked_photo_url || group.photo_url;
              doc.addImage(photoUrl, 'JPEG', photoX, yPosition, photoWidth, photoHeight);
-             yPosition += photoHeight + 3;
+             yPosition += photoHeight + 4;
            } catch (e) {
              doc.setDrawColor(200, 200, 200);
              doc.rect(photoX, yPosition, photoWidth, photoHeight);
@@ -634,17 +670,17 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
              doc.setFont(undefined, 'normal');
              doc.setTextColor(150, 0, 0);
              doc.text('Image unavailable', photoX + 5, yPosition + photoHeight / 2);
-             yPosition += photoHeight + 3;
+             yPosition += photoHeight + 4;
            }
          } else {
-           doc.setFontSize(8);
            doc.setFont(undefined, 'normal');
-           doc.setTextColor(100, 100, 100);
+           doc.setFontSize(8);
+           doc.setTextColor(...STYLES.textColor);
            doc.text('No target photo recorded', margin + 8, yPosition);
-           yPosition += 4;
+           yPosition += 5;
          }
 
-         yPosition += 4;
+         yPosition += 5;
        });
      }
 
