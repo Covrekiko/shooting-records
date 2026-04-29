@@ -190,6 +190,25 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
             )}
 
             <div>
+              <label className={labelCls}>Photos (optional)</label>
+              <label className={`flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary transition-all text-sm ${uploading ? 'opacity-50' : ''}`}>
+                📷 {uploading ? 'Uploading...' : 'Add Photos'}
+                <input type="file" multiple accept="image/*" onChange={handlePhotoUpload} disabled={uploading} className="hidden" />
+              </label>
+              {photos.length > 0 && (
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {photos.map((photo, idx) => (
+                    <div key={idx} className="relative">
+                      <img src={photo} alt="harvest" className="w-full h-20 object-cover rounded-xl border border-border" />
+                      <button type="button" onClick={() => setPhotos(prev => prev.filter((_, i) => i !== idx))}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
               <label className={labelCls}>Rifle Used</label>
               <select value={formData.rifle_id} onChange={e => { set('rifle_id', e.target.value); set('ammunition_id', ''); set('ammunition_used', ''); }} className={inputCls}>
                 <option value="">Select rifle</option>
@@ -210,25 +229,6 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
             </div>
           </>
         )}
-
-        <div>
-          <label className={labelCls}>Photos (optional)</label>
-          <label className={`flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary transition-all text-sm ${uploading ? 'opacity-50' : ''}`}>
-            📷 {uploading ? 'Uploading...' : 'Add Photos'}
-            <input type="file" multiple accept="image/*" onChange={handlePhotoUpload} disabled={uploading} className="hidden" capture={undefined} />
-          </label>
-          {photos.length > 0 && (
-            <div className="mt-2 grid grid-cols-3 gap-2">
-              {photos.map((photo, idx) => (
-                <div key={idx} className="relative">
-                  <img src={photo} alt="outing" className="w-full h-20 object-cover rounded-xl border border-border" />
-                  <button type="button" onClick={() => setPhotos(prev => prev.filter((_, i) => i !== idx))}
-                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
 
         <div>
           <label className={labelCls}>Notes</label>
