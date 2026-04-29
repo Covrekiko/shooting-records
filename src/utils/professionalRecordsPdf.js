@@ -225,49 +225,54 @@ function drawParticipantInfo(doc, reportData, cursor) {
 function drawDataTable(doc, columns, rows, cursor, options = {}) {
   const { width } = pageMetrics(doc);
   const x = options.x || REPORT.margin;
-  const tableW = options.width || width - REPORT.margin * 2;
-  const widths = options.widths || columns.map(() => tableW / columns.length);
-  const headerH = options.headerHeight || 10;
-  const rowH = options.rowHeight || 10;
-  const fontSize = options.fontSize || 8.5;
-  const padding = options.padding || 3;
+  const providedWidths = options.widths;
+  const tableW = options.width || (providedWidths ? providedWidths.reduce((sum, item) => sum + item, 0) : width - REPORT.margin * 2);
+  const widths = providedWidths || columns.map(() => tableW / columns.length);
+  const headerH = 9;
+  const rowH = options.rowHeight || 9;
   cursor = ensureSpace(doc, cursor, headerH + rowH + 6);
 
-  let colX = x;
-  doc.setLineWidth(0.45);
-  doc.setDrawColor(120, 130, 145);
-  doc.setFillColor(232, 236, 241);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(fontSize);
-  doc.setTextColor(...REPORT.gunmetal);
-  columns.forEach((column, index) => {
-    doc.rect(colX, cursor.y, widths[index], headerH, 'FD');
-    const label = doc.splitTextToSize(String(column), widths[index] - padding * 2)[0] || String(column);
-    doc.text(label, colX + widths[index] / 2, cursor.y + 6.5, { align: 'center' });
-    colX += widths[index];
-  });
-  cursor.y += headerH;
-
-  rows.forEach((row) => {
-    cursor = ensureSpace(doc, cursor, rowH + 8);
-    colX = x;
-    doc.setLineWidth(0.4);
-    doc.setDrawColor(120, 130, 145);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(fontSize);
-    doc.setTextColor(...REPORT.text);
-    row.forEach((cell, index) => {
-      doc.rect(colX, cursor.y, widths[index], rowH);
-      const align = options.leftColumns?.includes(index) ? 'left' : 'center';
-      const textX = align === 'left' ? colX + padding : colX + widths[index] / 2;
-      const text = doc.splitTextToSize(valueOrMissing(cell), widths[index] - padding * 2)[0] || 'Not recorded';
-      doc.text(text, textX, cursor.y + 6.5, { align });
+  const drawHeader = () => {
+    doc.setFillColor(...REPORT.soft);
+    doc.setDrawColor(155, 164, 176);
+    doc.setLineWidth(0.35);
+    doc.rect(x, cursor.y, tableW, headerH, 'FD');
+    let colX = x;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(options.fontSize || 8.5);
+    doc.setTextColor(...REPORT.gunmetal);
+    columns.forEach((column, index) => {
+      doc.line(colX, cursor.y, colX, cursor.y + headerH);
+      doc.text(column, colX + widths[index] / 2, cursor.y + 6, { align: 'center' });
       colX += widths[index];
     });
+    doc.line(colX, cursor.y, colX, cursor.y + headerH);
+    cursor.y += headerH;
+  };
+
+  drawHeader();
+  rows.forEach((row) => {
+    cursor = ensureSpace(doc, cursor, rowH + 8);
+    let colX = x;
+    doc.setDrawColor(155, 164, 176);
+    doc.setLineWidth(0.35);
+    doc.rect(x, cursor.y, tableW, rowH);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(options.fontSize || 8.5);
+    doc.setTextColor(...REPORT.text);
+    row.forEach((cell, index) => {
+      doc.line(colX, cursor.y, colX, cursor.y + rowH);
+      const align = options.leftColumns?.includes(index) ? 'left' : 'center';
+      const textX = align === 'left' ? colX + 3 : colX + widths[index] / 2;
+      const text = doc.splitTextToSize(valueOrMissing(cell), widths[index] - 6)[0] || 'Not recorded';
+      doc.text(text, textX, cursor.y + 6, { align });
+      colX += widths[index];
+    });
+    doc.line(colX, cursor.y, colX, cursor.y + rowH);
     cursor.y += rowH;
   });
 
-  return { ...cursor, y: cursor.y + 6 };
+  return { ...cursor, y: cursor.y + 5 };
 }
 
 function buildClayReportData(record, reportData) {
@@ -318,50 +323,52 @@ function drawClayPageTitle(doc, title, cursor, reportData = null) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(...REPORT.muted);
-    doc.text(`Document ID: ${reportData.documentId}`, REPORT.margin, cursor.y + 15);
-    doc.text(`Generated: ${reportData.generatedAtLabel}`, REPORT.margin, cursor.y + 20);
+    doc.text(`Document ID: ${reportData.documentId}`, width - REPORT.margin, cursor.y + 5, { align: 'right' });
+    doc.text(`Generated: ${reportData.generatedAtLabel}`, width - REPORT.margin, cursor.y + 11, { align: 'right' });
   }
   doc.setDrawColor(...REPORT.copper);
   doc.setLineWidth(0.8);
-  doc.line(REPORT.margin, cursor.y + 25, width - REPORT.margin, cursor.y + 25);
-  return { ...cursor, y: cursor.y + 34 };
+  doc.line(REPORT.margin, cursor.y + 14, width - REPORT.margin, cursor.y + 14);
+  return { ...cursor, y: cursor.y + 24 };
 }
 
 function drawClayCompactCard(doc, title, rows, cursor) {
   const { width } = pageMetrics(doc);
   const cardW = width - REPORT.margin * 2;
-  const labelW = 44;
-  const rowHeight = 8.5;
-  const cardH = 12 + rows.length * rowHeight + 5;
+  const colW = (cardW - 10) / 2;
+  const rowHeight = 8;
+  const rowsPerLine = Math.ceil(rows.length / 2);
+  const cardH = 10 + rowsPerLine * rowHeight + 4;
   cursor = ensureSpace(doc, cursor, cardH + 4);
 
   doc.setFillColor(...REPORT.white);
-  doc.setDrawColor(150, 160, 174);
-  doc.setLineWidth(0.35);
+  doc.setDrawColor(...REPORT.border);
   doc.roundedRect(REPORT.margin, cursor.y, cardW, cardH, 1.5, 1.5, 'FD');
-  doc.setFillColor(...REPORT.soft);
-  doc.rect(REPORT.margin, cursor.y, cardW, 10, 'F');
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(...REPORT.navy);
-  doc.text(title, REPORT.margin + 4, cursor.y + 6.6);
+  doc.text(title, REPORT.margin + 4, cursor.y + 6.5);
+  doc.setDrawColor(...REPORT.border);
+  doc.line(REPORT.margin + 4, cursor.y + 9, width - REPORT.margin - 4, cursor.y + 9);
 
   rows.forEach((row, index) => {
-    const y = cursor.y + 10 + index * rowHeight;
-    doc.setDrawColor(210, 216, 224);
-    doc.line(REPORT.margin, y, width - REPORT.margin, y);
+    const col = index % 2;
+    const line = Math.floor(index / 2);
+    const x = REPORT.margin + 4 + col * colW;
+    const y = cursor.y + 15 + line * rowHeight;
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8.4);
+    doc.setFontSize(8.2);
     doc.setTextColor(...REPORT.muted);
-    doc.text(row.label, REPORT.margin + 4, y + 5.8);
+    doc.text(`${row.label}:`, x, y);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.8);
+    doc.setFontSize(8.7);
     doc.setTextColor(...REPORT.text);
-    const valueLines = doc.splitTextToSize(valueOrMissing(row.value), cardW - labelW - 10);
-    doc.text(valueLines[0] || 'Not Recorded', REPORT.margin + labelW, y + 5.8);
+    const labelWidth = doc.getTextWidth(`${row.label}: `);
+    const valueLines = doc.splitTextToSize(valueOrMissing(row.value), colW - labelWidth - 8);
+    doc.text(valueLines[0] || 'Not Recorded', x + labelWidth + 1.5, y);
   });
 
-  return { ...cursor, y: cursor.y + cardH + 5 };
+  return { ...cursor, y: cursor.y + cardH + 4 };
 }
 
 function renderClaySession(doc, record, reportData, cursor, options = {}) {
@@ -425,7 +432,7 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
       data.scoreData.hits,
       data.scoreData.missed,
       `${data.scoreData.percentage}%`,
-    ]], cursor, { widths: [48, 42, 42, 48], fontSize: 8.4, rowHeight: 10, headerHeight: 10, padding: 3 });
+    ]], cursor, { widths: [52, 36, 36, 52], fontSize: 8.3, rowHeight: 9 });
 
     if (data.scoreData.stands.length > 0) {
       doc.setFont('helvetica', 'bold');
@@ -438,7 +445,7 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
         ['Stand', 'Discipline', 'Targets', 'Hits', 'Missed', 'Score'],
         data.scoreData.stands.map((stand) => [stand.standNumber, stand.discipline, stand.targets, stand.hits, stand.missed, `${stand.hits}/${stand.targets}`]),
         cursor,
-        { widths: [24, 56, 30, 24, 30, 30], leftColumns: [1], rowHeight: 10, headerHeight: 10, fontSize: 8.4, padding: 3 }
+        { widths: [18, 54, 28, 22, 26, 30], leftColumns: [1], rowHeight: 9, fontSize: 8.3 }
       );
     }
   }
