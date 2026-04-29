@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { resolveClayClubName, buildClayScoreCardData, calculateDuration, normalizePhotos } from '@/lib/claySessionUtils';
+import { exportProfessionalRecordsToPdf, getProfessionalRecordsPdfBlob } from '@/utils/professionalRecordsPdf';
 
 function generateDocumentId() {
   const timestamp = Date.now().toString(36).toUpperCase();
@@ -24,146 +25,12 @@ const STYLES = {
 };
 
 export async function exportRecordsToPdf(records, userInfo = null, fileName = 'shooting-records.pdf', rifles = {}, clubs = {}, shotguns = {}, locations = {}, targetGroups = [], clayData = {}) {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const docId = generateDocumentId();
-    let pageNum = 1;
-
-    // Always fetch fresh user data from the current session
-    let userData = userInfo;
-    if (!userData) {
-      try {
-        const { base44 } = await import('@/api/base44Client');
-        const authUser = await base44.auth.me();
-        // Fetch full user entity data with all profile fields (firstName, lastName, dateOfBirth, address fields, etc.)
-        const fullUserData = await base44.entities.User.get(authUser.id);
-        userData = {
-          email: authUser.email,
-          firstName: fullUserData.firstName || '',
-          middleName: fullUserData.middleName || '',
-          lastName: fullUserData.lastName || '',
-          dateOfBirth: fullUserData.dateOfBirth || '',
-          addressLine1: fullUserData.addressLine1 || '',
-          addressLine2: fullUserData.addressLine2 || '',
-          city: fullUserData.city || '',
-          postcode: fullUserData.postcode || '',
-          country: fullUserData.country || '',
-        };
-      } catch (e) {
-        console.warn('Could not fetch fresh user data:', e);
-      }
-    }
-
-   if (userData) {
-     createFrontPage(doc, userData, pageWidth, pageHeight, docId);
-     addPageId(doc, docId, pageNum, pageWidth);
-     pageNum++;
-     doc.addPage();
-     addPageId(doc, docId, pageNum, pageWidth);
-   }
-
-  let yPosition = STYLES.margin;
-
-  const targetRecords = records.filter(r => r.recordType === 'target' || r.category === 'target_shooting');
-  const clayRecords = records.filter(r => r.recordType === 'clay' || r.category === 'clay_shooting');
-  const deerRecords = records.filter(r => r.recordType === 'deer' || r.category === 'deer_management');
-
-  if (targetRecords.length > 0) {
-    yPosition = renderTargetShootingSection(doc, targetRecords, yPosition, pageWidth, pageHeight, rifles, clubs, docId, pageNum);
-    pageNum = doc.getNumberOfPages();
-  }
-
-  if (clayRecords.length > 0) {
-    doc.addPage();
-    pageNum++;
-    addPageId(doc, docId, pageNum, pageWidth);
-    yPosition = STYLES.margin;
-    yPosition = renderClayShootingSection(doc, clayRecords, yPosition, pageWidth, pageHeight, shotguns, clubs, docId, pageNum, clayData, locations);
-    pageNum = doc.getNumberOfPages();
-  }
-
-  if (deerRecords.length > 0) {
-    doc.addPage();
-    pageNum++;
-    addPageId(doc, docId, pageNum, pageWidth);
-    yPosition = STYLES.margin;
-    yPosition = renderDeerManagementSection(doc, deerRecords, yPosition, pageWidth, pageHeight, rifles, docId, pageNum);
-  }
-
-  doc.save(fileName);
+  return exportProfessionalRecordsToPdf(records, userInfo, fileName, rifles, clubs, shotguns, locations, targetGroups, clayData);
 }
 
 export async function getRecordsPdfBlob(records, userInfo = null, rifles = {}, clubs = {}, shotguns = {}, locations = {}, targetGroups = [], clayData = {}) {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const docId = generateDocumentId();
-    let pageNum = 1;
-
-    // Always fetch fresh user data from the current session
-    let userData = userInfo;
-    if (!userData) {
-      try {
-        const { base44 } = await import('@/api/base44Client');
-        const authUser = await base44.auth.me();
-        // Fetch full user entity data with all profile fields (firstName, lastName, dateOfBirth, address fields, etc.)
-        const fullUserData = await base44.entities.User.get(authUser.id);
-        userData = {
-          email: authUser.email,
-          firstName: fullUserData.firstName || '',
-          middleName: fullUserData.middleName || '',
-          lastName: fullUserData.lastName || '',
-          dateOfBirth: fullUserData.dateOfBirth || '',
-          addressLine1: fullUserData.addressLine1 || '',
-          addressLine2: fullUserData.addressLine2 || '',
-          city: fullUserData.city || '',
-          postcode: fullUserData.postcode || '',
-          country: fullUserData.country || '',
-        };
-      } catch (e) {
-        console.warn('Could not fetch fresh user data:', e);
-      }
-    }
-
-    if (userData) {
-      createFrontPage(doc, userData, pageWidth, pageHeight, docId);
-      addPageId(doc, docId, pageNum, pageWidth);
-      pageNum++;
-      doc.addPage();
-      addPageId(doc, docId, pageNum, pageWidth);
-    }
-
-    let yPosition = STYLES.margin;
-
-    const targetRecords = records.filter(r => r.category === 'target_shooting');
-    const clayRecords = records.filter(r => r.category === 'clay_shooting');
-    const deerRecords = records.filter(r => r.category === 'deer_management');
-
-    if (targetRecords.length > 0) {
-      yPosition = renderTargetShootingSection(doc, targetRecords, yPosition, pageWidth, pageHeight, rifles, clubs, docId, pageNum, targetGroups);
-      pageNum = doc.getNumberOfPages();
-    }
-
-    if (clayRecords.length > 0) {
-      doc.addPage();
-      pageNum++;
-      addPageId(doc, docId, pageNum, pageWidth);
-      yPosition = STYLES.margin;
-      yPosition = renderClayShootingSection(doc, clayRecords, yPosition, pageWidth, pageHeight, shotguns, clubs, docId, pageNum, clayData, locations);
-      pageNum = doc.getNumberOfPages();
-    }
-
-    if (deerRecords.length > 0) {
-      doc.addPage();
-      pageNum++;
-      addPageId(doc, docId, pageNum, pageWidth);
-      yPosition = STYLES.margin;
-      yPosition = renderDeerManagementSection(doc, deerRecords, yPosition, pageWidth, pageHeight, rifles, locations, docId, pageNum);
-    }
-
-    return doc.output('blob');
-  }
+  return getProfessionalRecordsPdfBlob(records, userInfo, rifles, clubs, shotguns, locations, targetGroups, clayData);
+}
 
 function createFrontPage(doc, userInfo, pageWidth, pageHeight, docId) {
    const { margin } = STYLES;
