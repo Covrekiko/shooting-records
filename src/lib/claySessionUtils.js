@@ -30,7 +30,11 @@ export function buildClayScoreCardData(record = {}, scorecard = null, stands = [
       const shots = shotsByStand[stand.id] || stand.shots || [];
       const targetResults = shots
         .sort((a, b) => (a.shot_number || 0) - (b.shot_number || 0))
-        .map((shot) => shot.result === 'hit' ? 'H' : shot.result === 'no_bird' ? 'NB' : 'M');
+        .map((shot) => {
+          if (shot.result === 'hit' || shot.result === 'dead') return 'H';
+          if (shot.result === 'no_bird') return 'NB';
+          return 'M';
+        });
 
       const hits = Number(stand.hits ?? targetResults.filter(result => result === 'H').length ?? 0);
       const missed = Number(stand.misses ?? targetResults.filter(result => result === 'M').length ?? 0);
