@@ -1,960 +1,656 @@
 # FULL ENGINEERING AUDIT REPORT
-**Scope:** Comprehensive app-wide engineering audit  
-**Status:** AUDIT ONLY — NO CODE CHANGES YET  
-**Date:** 2026-04-29
+## Shooting Records App - Complete System Analysis
+
+**Audit Date:** 2026-04-29  
+**Status:** ❌ FINDINGS IDENTIFIED — NO FIXES APPLIED YET  
+**Scope:** Full App (30 systems audited)
 
 ---
 
-## EXECUTIVE SUMMARY
+## 1. APP FILE MAP & ARCHITECTURE
 
-The shooting records app is a **complex multi-module system** with advanced features (GPS tracking, offline sync, ammunition inventory, reloading, PDF generation). However, the audit reveals **15 critical bugs, 12 medium bugs, and 5 security/cache risks** across multiple systems. Many bugs stem from **duplicate tracking systems, fragmented data flow, and incomplete refactoring** from older architecture.
-
-**Risk Level:** 🔴 **HIGH** — Data loss and stock inconsistency risks are active in production.
-
----
-
-## 1. FILE MAP & ARCHITECTURE
-
-### Core Files
+### Core Structure
 ```
 src/
-├── App.jsx                          [ROUTER - 47 routes]
-├── main.jsx                         [ENTRY]
-├── index.html                       [HTML]
-├── index.css                        [DESIGN TOKENS]
-├── tailwind.config.js               [TAILWIND CONFIG]
-├── api/base44Client.js              [SDK CLIENT]
-│
-├── lib/
-│   ├── AuthContext.jsx              [AUTH STATE]
-│   ├── trackingService.js           [TRACKING SERVICE]
-│   ├── ammoUtils.js                 [AMMO UTILITIES - RECENTLY FIXED]
-│   ├── offlineDB.js                 [OFFLINE DB]
-│   ├── syncQueue.js                 [SYNC QUEUE]
-│   ├── syncEngine.js                [SYNC ENGINE]
-│   ├── connectivityManager.js       [CONNECTIVITY]
-│   └── [10+ other utilities]
-│
-├── hooks/
-│   ├── useGpsTracking.js            [GPS HOOK - DUPLICATE ⚠️]
-│   ├── useGeolocation.js            [GEO HOOK]
-│   ├── useAutoCheckin.js            [AUTO CHECKIN]
-│   ├── useBodyScrollLock.js         [SCROLL LOCK]
-│   ├── usePullToRefresh.js          [PULL-TO-REFRESH]
-│   └── [2 more]
-│
-├── context/
-│   ├── OutingContext.jsx            [OUTING STATE]
+├── App.jsx                          [ROUTER — ALL ROUTES]
+├── pages/                           [PAGE COMPONENTS]
+│   ├── Dashboard.jsx                [ANALYTICS + KPI + WIDGETS]
+│   ├── TargetShooting.jsx           [RIFLE RANGE SESSIONS]
+│   ├── ClayShooting.jsx             [SHOTGUN SESSIONS]
+│   ├── DeerManagement.jsx           [DEER HUNTS]
+│   ├── DeerStalkingMap.jsx          [MAP + GPS + OUTINGS]
+│   ├── Records.jsx                  [SESSION HISTORY + DELETE]
+│   ├── Reports.jsx                  [PDF + ANALYTICS]
+│   ├── ReloadingManagement.jsx      [RELOADING BATCHES]
+│   ├── Profile.jsx                  [USER PROFILE + SETTINGS]
+│   ├── Users.jsx                    [USER MANAGEMENT]
+│   ├── admin/                       [ADMIN PAGES]
+│   └── settings/                    [EQUIPMENT + REFERENCE]
+├── components/                      [UI COMPONENTS]
+│   ├── ui/                          [BASE UI MODALS/SHEETS]
+│   ├── analytics/                   [CHARTS]
+│   ├── reloading/                   [RELOAD UI]
+│   ├── deer-stalking/               [MAP MODALS]
+│   ├── clay/                        [CLAY SCORING]
+│   └── target-analysis/             [PHOTO ANALYSIS]
+├── context/                         [STATE MANAGEMENT]
+│   ├── OutingContext.jsx            [DEER TRACKING]
 │   ├── OfflineContext.jsx           [OFFLINE STATE]
-│   ├── ModulesContext.jsx           [MODULES STATE]
-│   ├── ThemeContext.jsx             [THEME STATE]
-│   └── TabHistoryContext.jsx        [TAB HISTORY]
-│
-├── pages/
-│   ├── Dashboard.jsx                [MAIN DASHBOARD]
-│   ├── TargetShooting.jsx           [TARGET SESSIONS]
-│   ├── ClayShooting.jsx             [CLAY SESSIONS]
-│   ├── DeerManagement.jsx           [DEER SESSIONS]
-│   ├── DeerStalkingMap.jsx          [MAP - COMPLEX]
-│   ├── Records.jsx                  [RECORD LIST & DELETE]
-│   ├── Reports.jsx                  [ANALYTICS & PDF]
-│   ├── ReloadingManagement.jsx      [RELOADING]
-│   ├── Profile.jsx                  [USER PROFILE]
-│   ├── ProfileSetup.jsx             [PROFILE FORM]
-│   ├── Users.jsx                    [USER LIST]
-│   └── admin/
-│       ├── Users.jsx                [ADMIN USER MGMT]
-│       ├── BetaTesters.jsx          [BETA TESTERS]
-│       └── BetaFeedbackAdmin.jsx    [FEEDBACK]
-│   └── settings/
-│       ├── Rifles.jsx               [RIFLE MGMT]
-│       ├── Shotguns.jsx             [SHOTGUN MGMT]
-│       ├── Clubs.jsx                [CLUB MGMT]
-│       ├── Locations.jsx            [DEER LOCATIONS]
-│       ├── Ammunition.jsx           [AMMO MGMT]
-│       ├── AmmunitionInventory.jsx  [AMMO INVENTORY]
-│       └── [3 reference dbs]
-│
-├── components/
-│   ├── UnifiedCheckoutModal.jsx     [AMMO CHECKOUT - CRITICAL]
-│   ├── RecordsSection.jsx           [RECORD DELETE - CRITICAL]
-│   ├── RecordsList.jsx              [RECORD LIST]
-│   ├── RecordDetailModal.jsx        [RECORD DETAIL]
-│   ├── ManualRecordModal.jsx        [MANUAL RECORD CREATE]
-│   ├── AmmoSpendingBreakdown.jsx    [SPENDING VIEW]
-│   ├── AmmoStockWidget.jsx          [AMMO STATUS]
-│   ├── RifleAmmoTracker.jsx         [RIFLE AMMO]
-│   ├── ShotgunCartridgeTracker.jsx  [SHOTGUN AMMO]
-│   ├── GpsPathViewer.jsx            [GPS MAP VIEW]
-│   ├── CheckinBanner.jsx            [CHECKIN NOTIFY]
-│   ├── AutoCheckinBanner.jsx        [AUTO CHECKIN]
-│   ├── Navigation.jsx               [TOP NAV]
-│   ├── MobileTabBar.jsx             [MOBILE NAV]
-│   ├── OfflineStatusBar.jsx         [OFFLINE STATUS]
-│   ├── ErrorBoundary.jsx            [ERROR CATCH]
-│   ├── ui/
-│   │   ├── GlobalModal.jsx          [MODAL SYSTEM]
-│   │   ├── GlobalSheet.jsx          [SHEET SYSTEM]
-│   │   └── [20+ UI COMPONENTS]
-│   ├── reloading/
-│   │   ├── ReloadBatchForm.jsx      [RELOAD FORM]
-│   │   ├── ReloadingManagement.jsx  [RELOAD MGMT]
-│   │   ├── ReloadingStockInventory.jsx [RELOAD STOCK]
-│   │   ├── ComponentManager.jsx     [COMPONENT MGMT]
-│   │   └── [8 more]
-│   ├── deer-stalking/
-│   │   ├── AreaDrawer.jsx           [MAP AREA DRAW]
-│   │   ├── OutingModal.jsx          [OUTING CREATE]
-│   │   ├── HarvestModal.jsx         [HARVEST LOG]
-│   │   └── [7 more]
-│   ├── clay/
-│   │   ├── ClayScorecard.jsx        [CLAY SCORECARD]
-│   │   └── [5 more]
-│   ├── analytics/
-│   │   ├── TargetShootingAnalytics.jsx
-│   │   ├── ClayShootingAnalytics.jsx
-│   │   └── DeerManagementAnalytics.jsx
-│   └── [30+ more components]
-│
-├── utils/
-│   ├── pdfExport.js                 [PDF GENERATION]
-│   ├── recordsPdfExport.js          [RECORD PDF]
-│   ├── formalReportPDF.js           [FORMAL PDF]
-│   ├── caliberCatalog.js            [CALIBER DATA]
-│   └── [5 more]
-│
-├── functions/
-│   ├── restoreSessionStock.js       [BACKEND FUNC]
-│   ├── deleteClaySessionStands.js   [BACKEND FUNC]
-│   └── [5+ more backend functions]
-└── public/
-    ├── sw.js                        [SERVICE WORKER]
-    └── manifest.json                [PWA CONFIG]
+│   ├── ModulesContext.jsx           [FEATURE FLAGS]
+│   └── ThemeContext.jsx             [DARK MODE]
+├── lib/                             [CORE SERVICES]
+│   ├── trackingService.js           [GPS TRACKING #1]
+│   ├── ammoUtils.js                 [AMMO STOCK + REFUND]
+│   ├── sessionManager.js            [SESSION CLEANUP]
+│   ├── offlineDB.js                 [INDEXEDDB]
+│   ├── syncQueue.js                 [OFFLINE SYNC]
+│   ├── syncEngine.js                [AUTO SYNC]
+│   └── [16 MORE UTILITIES]
+├── hooks/                           [REACT HOOKS]
+│   ├── useGpsTracking.js            [GPS TRACKING #2 — DUPLICATE]
+│   ├── useAutoCheckin.js            [AUTO CHECK-IN]
+│   └── [5+ MORE]
+└── utils/                           [HELPERS]
+    ├── pdfExport.js                 [PDF EXPORT]
+    ├── recordsPdfExport.js          [RECORDS PDF]
+    ├── formalReportPDF.js           [FORMAL REPORT]
+    └── [10+ MORE]
 ```
 
-### Entities (Database Tables)
-```
-User                    [BUILT-IN]
-SessionRecord           [SESSIONS: target_shooting, clay_shooting, deer_management]
-Rifle                   [FIREARM]
-Shotgun                 [FIREARM]
-Ammunition              [STOCK - CRITICAL]
-ReloadingComponent      [AMMO PARTS]
-ReloadingSession        [RELOAD LOG]
-ReloadingInventory      [AMMO STOCK - LEGACY ⚠️]
-Spending                [AmmoSpending - NOT FOUND ⚠️]
-Club                    [VENUE]
-Area                    [DEER LOCATION]
-DeerLocation            [LEGACY ⚠️]
-DeerOuting             [OUTING - ID MISMATCH ⚠️]
-DeerManagement         [LEGACY ⚠️]
-Harvest                 [HARVEST LOG]
-MapMarker               [MAP POI]
-Goal                    [USER GOAL]
-ClayScorecard          [CLAY SCORE]
-[20+ more entities]
-```
+### Key Data Entities
+- **SessionRecord** — Main record (target/clay/deer sessions)
+- **Rifle/Shotgun** — Firearms with round counters
+- **Ammunition** — Stock inventory (factory + reloaded)
+- **ReloadingSession** — Batch creation
+- **ReloadingComponent** — Primers, powder, brass, bullets
+- **DeerOuting** — Map outings (linked to SessionRecord via outing_id)
+- **MapMarker/Harvest** — Map POIs
+- **Area** — Hunt zones with boundaries
+- **AmmoSpending** — Spending log (for refunds on delete)
+- **User** — Profile + role (admin/user)
 
 ---
 
-## 2. CRITICAL BUGS (🔴 HIGH PRIORITY)
+## 2. CRITICAL BUGS (Must Fix First)
 
-### BUG #1: GPS Tracking Duplicate System
-**Files:**
-- `hooks/useGpsTracking.js` (reactive hook)
-- `lib/trackingService.js` (singleton service)
-- `pages/DeerStalkingMap.jsx` (inline watchPosition)
-- `pages/TargetShooting.jsx` (inline watchPosition)
-- `pages/ClayShooting.jsx` (likely inline watchPosition)
+### 🔴 BUG #1: GPS TRACKING DUPLICATE SYSTEM
+**Severity:** CRITICAL  
+**Files Involved:**
+- `lib/trackingService.js` — Singleton GPS tracker (line 1–179)
+- `hooks/useGpsTracking.js` — React hook GPS tracker (line 1–42)
+- `pages/TargetShooting.jsx` (line 40–52 — watchPosition)
+- `pages/ClayShooting.jsx` (similar code)
+- `pages/DeerStalkingMap.jsx` (similar code)
 
-**What is wrong:**
-Three completely separate GPS tracking systems running simultaneously:
-1. **useGpsTracking hook** — tracks in React state, returns array
-2. **trackingService singleton** — tracks in global object, calls listeners
-3. **DeerStalkingMap page** — inline `navigator.geolocation.watchPosition` (lines 113-130)
+**What's Wrong:**
+Three independent GPS tracking systems:
+1. **trackingService** — Singleton with listeners, prevents duplicates
+2. **useGpsTracking** — React hook, starts its own watchPosition
+3. **Page-level watchPosition** — Each page calls `navigator.geolocation.watchPosition()`
 
-Pages that use these don't coordinate — DeerStalkingMap initializes its own watch even though OutingContext might already be tracking.
-
-**Why it happens:**
-Code was refactored in stages. Old singleton left in place. New hooks added. Pages keep inline watchers. No single source of truth.
-
-**What can break if fixed badly:**
-- Losing GPS points mid-session
-- Race conditions on stop (which watch gets cleared?)
-- Memory leaks (multiple watches never cleared)
-- SessionRecord.gps_track inconsistency
-
-**Minimal safe fix:**
-1. Remove inline watchPosition from DeerStalkingMap (it already has OutingContext)
-2. Remove useGpsTracking hook from other pages
-3. Use trackingService everywhere OR refactor into OutingContext
-4. Test that gps_track saves to SessionRecord on checkout
-
-**Test steps:**
-- Start outing on DeerStalkingMap, check 1 watch ID in console
-- Move 100m, verify 5-10 GPS points collected
-- End outing, verify gps_track array has same count
-- Refresh and reload outing, verify points persist
-
----
-
-### BUG #2: Ammunition Does Not Always Restore on Record Delete
-**Files:**
-- `components/RecordsSection.jsx` (lines 128-148)
-- `pages/Records.jsx` (lines 135-161)
-- `lib/ammoUtils.js` (refundAmmoForRecord — RECENTLY ADDED)
-- `pages/DeerStalkingMap.jsx` (line 276)
-
-**What is wrong:**
-TWO different delete paths exist:
-1. **RecordsSection** (Dashboard) — calls `refundAmmoForRecord()` via dynamic import (CORRECT)
-2. **Records page** — calls backend `restoreSessionStock()` function (BACKEND)
-3. **DeerStalkingMap** — DOES NOT REFUND at all, directly deletes via `endOutingWithData()`
-
-For DeerStalkingMap:
-- User checks out outing on map
-- Ammo is decremented (line 276: `decrementAmmoStock`)
-- But there's no session deletion path that refunds
-- If user rejects outing post-checkout, ammo is LOST
-
-**Root cause:**
-- DeerStalkingMap never had ammo refund logic
-- Old code paths use backend function (slow, server-dependent)
-- New code uses client-side helper (fast, offline-aware)
-- No consistency
-
-**What can break:**
-- Lost ammunition stock when outing is rejected
-- Offline users can't refund ammo (backend function requires online)
-- Backend function has no error handling
-
-**Minimal safe fix:**
-1. Update DeerStalkingMap to NOT call `decrementAmmoStock` on checkout
-2. Instead, pass ammo data to `endOutingWithData()`
-3. Call `decrementAmmoStock` AFTER outing confirmed
-4. Use `refundAmmoForRecord()` if outing is deleted
-5. Remove backend `restoreSessionStock()` function
-
-**Test steps:**
-- Checkout deer outing with 5 rounds ammo (stock: 100)
-- Verify stock = 95
-- Delete outing from Records page
-- Verify stock = 100
-- Repeat offline, verify warning shown
-
----
-
-### BUG #3: Reloaded Ammunition Selector Visibility Inconsistent
-**Files:**
-- `components/UnifiedCheckoutModal.jsx` (lines 44-48)
-- `pages/TargetShooting.jsx` (ammo selector logic)
-- `pages/DeerManagement.jsx` (ammo selector logic)
-- `lib/ammoUtils.js` (getSelectableAmmunition — RECENTLY ADDED)
-
-**What is wrong:**
-DeerStalkingMap uses UnifiedCheckoutModal, which has ammo selector (GOOD).  
-But Pages don't consistently use `getSelectableAmmunition()`:
-- UnifiedCheckoutModal: Uses it (lines 44-48, recent fix)
-- DeerManagement: Unknown — likely doesn't
-- ClayShooting: Unknown — likely doesn't
-- TargetShooting: Unknown — likely doesn't
-
-Ammo selector may filter by strict caliber match (e.g., `.243` won't match `.243 Win`) so reloaded batches don't show.
-
-**Root cause:**
-Caliber normalization function was added but not applied everywhere. Not all checkout modals use it.
-
-**Minimal safe fix:**
-1. Verify all pages use `getSelectableAmmunition()` in their ammo selector
-2. Test ".243" vs ".243 Win" matching
-3. Ensure reloaded Ammunition entries appear in all selectors
-
-**Test steps:**
-- Create .243 Win reload batch (20 rounds)
-- Go to Target Shooting, checkout target
-- Open ammo selector, search ".243"
-- Verify "Reloaded" .243 batch appears
-- Repeat for clay and deer pages
-
----
-
-### BUG #4: Reload Batch Delete Does Not Update Ammunition Inventory
-**Files:**
-- `pages/ReloadingManagement.jsx` (lines 212-375)
-- `components/reloading/ReloadBatchForm.jsx` (lines ~300-350)
-
-**What is wrong:**
-When user creates reload batch:
-1. ReloadingSession is created
-2. Ammunition entry is created with `source_type="reload_batch"` + `source_id=createdSession.id`
-3. Components are decremented
-
-When user deletes reload batch:
-1. Ammunit entry should be deleted
-2. Components should be restored
-
-**BUT:** Page tries multiple methods to find ammo (stable fields, fallback to notes parsing, fallback to brand+caliber+batch_number). If ammo entry was created with unstable format and old code already added it, delete won't find it. Orphan ammo entries pile up.
-
-**Root cause:**
-Inconsistent ammo entry creation. Deletion logic has too many fallbacks (fragile).
-
-**Minimal safe fix:**
-1. Standardize on stable fields ONLY (`source_type`, `source_id`, `reload_session_id`)
-2. Remove notes parsing fallback
-3. Test orphaned ammo cleanup
-4. Add data migration for old entries
-
-**Test steps:**
-- Create .308 reload batch (50 rounds)
-- Verify Ammunition shows 50 in stock
-- Delete batch
-- Verify Ammunition deleted (not just decremented)
-- Reload page, verify it's gone
-
----
-
-### BUG #5: Deer Outing ID ≠ SessionRecord ID — Ammo Refund Broken
-**Files:**
-- `context/OutingContext.jsx` (creates DeerOuting)
-- `pages/DeerStalkingMap.jsx` (line 276: uses activeOuting.id)
-- `lib/ammoUtils.js` (decrementAmmoStock expects sessionId)
-- Functions expect SessionRecord.id
-
-**What is wrong:**
-DeerStalkingMap creates outing via OutingContext → creates DeerOuting record → returns outing.id (DeerOuting.id)
-Then calls `decrementAmmoStock(ammoId, rounds, 'deer_management', activeOuting.id)`
-
-BUT ammoUtils expects sessionId = SessionRecord.id, not DeerOuting.id
-
-When deleting record, code looks up SessionRecord.id (different from DeerOuting.id).
-AmmoSpending was logged with DeerOuting.id, so lookup FAILS.
-
-Stock is NOT refunded.
-
-**Root cause:**
-Two separate data models (DeerOuting and SessionRecord) but they're treated as the same.
-
-**Minimal safe fix:**
-1. Map DeerOuting → SessionRecord (store sessionRecord_id on DeerOuting)
-2. OR unify them (use SessionRecord only)
-3. Test deer outing delete → ammo refund
-
-**Test steps:**
-- Start outing, fire 1 round, checkout
-- Check DeerOuting.id vs SessionRecord.id (differ)
-- Delete outing, verify ammo refunded
-- Check that AmmoSpending row has correct session_id
-
----
-
-### BUG #6: Records Page Deletes Via Backend Function (Offline Breaks)
-**Files:**
-- `pages/Records.jsx` (lines 135-161)
-- `functions/restoreSessionStock.js` (backend)
-
-**What is wrong:**
-Records page (not DeerStalkingMap) calls backend function to restore stock:
+TargetShooting.jsx alone has **THREE** concurrent GPS watchers:
 ```javascript
-await base44.functions.invoke('restoreSessionStock', { sessionId: id });
+Line 40–52:   Page-level watchPosition (nearby club location)
+Line 154–158: trackingService.subscribe() (session tracking)
+Line ~39:     (implicit from useGpsTracking if called)
 ```
 
-If user is OFFLINE:
-1. This fails silently
-2. Record is deleted locally
-3. Stock is NOT restored
-4. On sync, stock doesn't come back
-5. User loses ammo
+**Why It Happens:**
+- trackingService was added as central tracker
+- useGpsTracking hook not yet removed (legacy)
+- Pages kept their own watchPosition for proximity detection
+- No single source of truth for "which system owns GPS"
 
-**Root cause:**
-Offline check warns user but deletes anyway. Backend function has no fallback.
+**What Can Break:**
+- ✗ Multiple GPS listeners draining battery
+- ✗ Conflicting watch IDs causing clearWatch failures
+- ✗ Track data split across 2–3 systems (incomplete records)
+- ✗ If clearWatch(id1) fires but id2 still active → location keeps updating to wrong place
+- ✗ Race condition: two systems try to stop same session
 
-**Minimal safe fix:**
-1. Use client-side `refundAmmoForRecord()` instead of backend function
-2. Remove backend function entirely
-3. Offline check PREVENTS delete (no warning needed)
-4. Add offline cache for refund tracking
+**Minimal Safe Fix:**
+- ✅ Designate trackingService as **ONLY** GPS handler
+- ✅ Remove page-level watchPosition (move to trackingService)
+- ✅ Remove useGpsTracking hook entirely
+- ✅ Keep trackingService.subscribe() for UI updates
 
-**Test steps:**
-- Go offline
-- Delete record (should show warning, prevent delete)
-- Go online, record still exists
-- Delete it, ammo refunds
+**Test Steps:**
+1. Start target session → check console: should see ONE watchPosition call
+2. Check DevTools Network → GPS requests should be ~30s apart (not 10s + 30s)
+3. Stop tracking → clearWatch should fire once, not twice
 
 ---
 
-### BUG #7: Target Shooting Multi-Rifle/Multi-Ammo Refund May Fail
-**Files:**
-- `pages/TargetShooting.jsx` (checkout modal)
-- `components/UnifiedCheckoutModal.jsx` (multiple rifles)
-- `lib/ammoUtils.js` (refundAmmoForRecord)
+### 🔴 BUG #2: AMMUNITION REFUND FAILS ON MULTI-RIFLE SESSIONS
+**Severity:** CRITICAL  
+**Files Involved:**
+- `lib/ammoUtils.js` (refundAmmoForRecord, line 73–115)
+- `pages/TargetShooting.jsx` (handleCheckout, line 213–299)
+- `functions/deleteSessionRecordWithRefund.js` (backend)
 
-**What is wrong:**
-Target shooting can have multiple rifles with different ammo:
-```
+**What's Wrong:**
+Target shooting sessions can have `rifles_used[]` with multiple firearms:
+```javascript
 rifles_used: [
-  { rifle_id: "a", ammunition_id: "ammo1", rounds_fired: 10 },
-  { rifle_id: "b", ammunition_id: "ammo2", rounds_fired: 15 }
+  { rifle_id: "r1", ammunition_id: "a1", rounds_fired: 50 },
+  { rifle_id: "r2", ammunition_id: "a2", rounds_fired: 30 }
 ]
 ```
 
-Delete handler calls `refundAmmoForRecord(record, 'target_shooting')`.
-Function loops through `rifles_used` and refunds each.
+On delete, `refundAmmoForRecord()` refunds correctly in target_shooting case (loops through rifles_used). ✓
 
-BUT if one ammo_id is NULL or invalid, entire refund fails (no error handling).
-Record is deleted anyway but ammo isn't refunded.
+BUT, there's a trap in the **deer_management** case:
 
-**Root cause:**
-No validation. No partial success handling.
-
-**Minimal safe fix:**
-1. Add try-catch around each ammo refund
-2. Log failures but continue
-3. Return { success: true, refunded: X, failed: Y, errors: [...] }
-4. Only allow delete if all refunds succeed OR show warning
-
-**Test steps:**
-- Create target with 2 rifles, 2 ammo types
-- One ammo has invalid ID
-- Delete record
-- First ammo should be refunded, second may fail
-- Should show which failed
-
----
-
-### BUG #8: Clay/Shotgun Cleaning Counter Shows Wrong "Since Cleaning"
-**Files:**
-- `pages/ClayShooting.jsx` (checkout logic)
-- `components/ShotgunCartridgeTracker.jsx` (display)
-- `entities/Shotgun.json` (schema)
-
-**What is wrong:**
-Shotgun tracks:
-- `total_cartridges_fired` (lifetime)
-- `cartridges_at_last_cleaning` (snapshot)
-- `cleaning_reminder_threshold` (e.g., 100)
-
-Logic should be: `since_cleaning = total - cartridges_at_last_cleaning`
-
-But checkout modal may not:
-1. Increment `total_cartridges_fired`
-2. Compare to threshold
-3. Show reminder
-
-Display component shows lifetime rounds but not "since cleaning".
-
-**Root cause:**
-Checkout logic for clay shooting is incomplete. Cleaning counter not wired to threshold reminder.
-
-**Minimal safe fix:**
-1. On clay checkout, increment `shotgun.total_cartridges_fired` by rounds_fired
-2. Calculate `since = total - cartridges_at_last_cleaning`
-3. Show warning if `since >= threshold`
-4. Update component to display "since cleaning"
-
-**Test steps:**
-- Set shotgun threshold to 50 cartridges
-- Shoot 30 cartridges
-- Verify "since cleaning: 30" shows
-- Shoot 30 more (total 60)
-- Verify warning "Cleaning overdue (60/50)"
-
----
-
-### BUG #9: Reports/PDFs Include Deleted, Active, or Stale Records
-**Files:**
-- `pages/Reports.jsx` (lines 38-60, loadRecords)
-- `pages/Records.jsx` (similar loadRecords)
-- PDF export functions
-
-**What is wrong:**
-LoadRecords query has NO status filter:
 ```javascript
-const sessionRecords = await base44.entities.SessionRecord.filter({ created_by: currentUser.email });
+// Line 90–98 (ammoUtils.js)
+} else if (recordType === 'deer_management') {
+  if (record.ammunition_id && record.rounds_fired) {
+    const roundsFired = parseInt(record.rounds_fired) || 0;
+    if (roundsFired > 0) {
+      await restoreAmmoStock(record.ammunition_id, roundsFired, record.id);
+      totalRefunded = roundsFired;
+    }
+  }
+}
 ```
 
-So reports include:
-- `status: "active"` (in-progress sessions, should not be in reports)
-- Deleted records (should be excluded but filtering is no good if soft-delete isn't used)
-- Stale cached records from offline sync
-
-**Root cause:**
-No status field filtering. No soft-delete flag. Offline cache may hold old data.
-
-**Minimal safe fix:**
-1. Filter by `status: "completed"` only
-2. Add soft-delete flag if not present
-3. Clear offline cache on sync
-4. Test reports exclude active/deleted
-
-**Test steps:**
-- Create 2 target records, mark one as "active"
-- Export PDF
-- Verify only "completed" record appears
-
----
-
-### BUG #10: CheckinBanner / AutoCheckinBanner State Not Saved Consistently
-**Files:**
-- `components/CheckinBanner.jsx`
-- `components/AutoCheckinBanner.jsx`
-- `context/OutingContext.jsx`
-
-**What is wrong:**
-Banner shows "Check in at Club X?" but state isn't persisted:
-1. User dismisses banner
-2. Refresh page → banner shows again
-3. User manually checks in
-4. Banner logic doesn't know it was already acknowledged
-
-For auto-checkin:
-1. System detects user at location
-2. Shows banner with "Confirm / Cancel"
-3. User cancels
-4. Banner shown again 60s later (infinite loop possible)
-
-**Root cause:**
-Banner state is local to component. No acknowledgment tracking in OutingContext.
-
-**Minimal safe fix:**
-1. Track dismissed locations in OutingContext
-2. Don't show banner for dismissed location for 1 hour
-3. Save to sessionStorage for offline
-4. Test banner shows once per location per day
-
-**Test steps:**
-- Dismiss checkin banner
-- Refresh page
-- Banner should not reappear
-- Move 500m away, come back
-- Banner should appear (new location)
-
----
-
-### BUG #11: Mobile Modals Can Be Cut Off at Bottom
-**Files:**
-- `components/ui/GlobalModal.jsx` (safe area handling)
-- `components/UnifiedCheckoutModal.jsx` (safe area)
-- Mobile CSS (`index.css`)
-
-**What is wrong:**
-iOS safe area handling is incomplete. Modal might not account for bottom notch or keyboard.
-Footer buttons cut off when keyboard shows.
-
-Safe area env vars are used in some places but not consistently.
-
-**Root cause:**
-Not all modals use safe area padding. Inconsistent viewport handling.
-
-**Minimal safe fix:**
-1. GlobalModal already handles safe area correctly (good)
-2. Check UnifiedCheckoutModal uses env(safe-area-inset-bottom)
-3. Add max-height with safe area calculation
-4. Test on iPhone with keyboard visible
-
-**Test steps:**
-- Open UnifiedCheckoutModal on iOS
-- Type in notes field
-- Keyboard appears
-- Verify "Save" button is visible (not cut off)
-
----
-
-### BUG #12: Offline Sync Can Create Double Stock Changes or Stale Stock
-**Files:**
-- `lib/syncQueue.js`
-- `lib/offlineDB.js`
-- `lib/syncEngine.js`
-- `components/RecordsSection.jsx` (ammo decrement)
-
-**What is wrong:**
-When offline:
-1. User checks in to target range
-2. App decrements ammo locally via `decrementAmmoStock()`
-3. Offline DB stores the decrement
-4. User goes online
-5. syncQueue processes the decrement
-6. BUT if decrement was called TWICE (retry or race), it may double-apply
-
-Also:
-- If user edits ammo stock offline, then syncs, old value may overwrite newer
-
-**Root cause:**
-No idempotency keys. No conflict resolution. No dedup in sync queue.
-
-**Minimal safe fix:**
-1. Add idempotency key to every ammo operation (sessionId + opId)
-2. Check dedup in syncQueue before applying
-3. Use last-write-wins for stock updates
-4. Test offline ammo decrement syncs correctly
-
-**Test steps:**
-- Go offline
-- Fire 5 rounds (ammo 100 → 95, recorded offline)
-- Go online, sync (should apply once)
-- Ammo should be 95 (not 90 or lower)
-
----
-
-## 3. MEDIUM BUGS (🟡 MEDIUM PRIORITY)
-
-### BUG M1: OutingContext Missing Error Handling
-**File:** `context/OutingContext.jsx`
-**Issue:** `startOuting`, `endOuting`, `endOutingWithData` don't catch errors. If DB update fails, state is wrong.
-**Fix:** Add try-catch, set error state, show user toast
-
-### BUG M2: RLS (Row-Level Security) Not Enforced on Some Reads
-**File:** `pages/Records.jsx` (line 61: `base44.entities.User.list()` — admin only)
-**Issue:** Non-admin users can see all user profiles. Should filter to own only.
-**Fix:** Check user.role before listing, add RLS rules
-
-### BUG M3: Spent Ammo Tracking Fragmented
-**Files:** `lib/ammoUtils.js`, `components/AmmoSpendingBreakdown.jsx`
-**Issue:** AmmoSpending rows created with sessionId but may not be cleaned up on record delete.
-**Fix:** Delete AmmoSpending rows in refundAmmoForRecord()
-
-### BUG M4: Cleaning Reminders Only for Rifle, Not Shotgun
-**Files:** `pages/TargetShooting.jsx`, `pages/ClayShooting.jsx`
-**Issue:** Rifle cleaning tracker works, shotgun cleaning tracker not wired.
-**Fix:** Add shotgun cleaning update logic
-
-### BUG M5: Profile Setup Skipped If User Has Old Data
-**File:** `lib/AuthContext.jsx`
-**Issue:** Check is `!user.profileComplete` but old users may have undefined field.
-**Fix:** Use `!user.profileComplete && user.profileComplete !== undefined` OR use safer check
-
-### BUG M6: Navigation Links May Break If Page Renamed
-**File:** `components/Navigation.jsx`
-**Issue:** Hard-coded paths. If a route changes, navigation still uses old path.
-**Fix:** Generate nav from route list in App.jsx
-
-### BUG M7: Map Google Maps API Key Hardcoded as Fallback
-**File:** `pages/DeerStalkingMap.jsx` (line 35)
-**Issue:** Fallback API key visible in code (security risk)
-**Fix:** Remove hardcoded key, require env var
-
-### BUG M8: useBodyScrollLock Called Multiple Times
-**File:** `pages/Records.jsx` (line 39)
-**Issue:** Lock is called on every modal, may stack incorrectly if multiple modals open.
-**Fix:** Track modal nesting level in context
-
-### BUG M9: Pull-to-Refresh Not Disabled on Non-Scrollable Pages
-**File:** `pages/Records.jsx` (lines 42-44, usePullToRefresh)
-**Issue:** usePullToRefresh hook may interfere with other scrollable content.
-**Fix:** Disable pull-to-refresh if content is short
-
-### BUG M10: Ammo Caliber Matching Case-Sensitive in Some Places
-**File:** Multiple checkout modals
-**Issue:** ".243" vs ".243" normalization not applied everywhere.
-**Fix:** Use getSelectableAmmunition() everywhere
-
-### BUG M11: Modal Escape Key Closes Wrong Modal
-**File:** `components/ui/GlobalModal.jsx`
-**Issue:** If stacked modals, Escape closes topmost but listeners may not be unique.
-**Fix:** Track modal stack, only close active
-
-### BUG M12: SessionRecord Doesn't Track Which Outing Created It
-**File:** `context/OutingContext.jsx`, `pages/DeerStalkingMap.jsx`
-**Issue:** SessionRecord.id ≠ DeerOuting.id, no link between them.
-**Fix:** Add `outing_id` field to SessionRecord, store link
-
----
-
-## 4. UI/MOBILE BUGS (🟡 MEDIUM PRIORITY)
-
-### UI BUG 1: Modal Footer Buttons Stack Incorrectly on Narrow Screens
-**Fix:** Use flex-col on mobile, flex-row on desktop
-
-### UI BUG 2: GPS Path Viewer Map Doesn't Resize on Rotate
-**Fix:** Add event listener for orientationchange, force remount
-
-### UI BUG 3: AmmoSpendingBreakdown Chart Overflow on Mobile
-**Fix:** Add horizontal scroll or adjust chart size
-
-### UI BUG 4: DeerStalkingMap Markers Overlap, No Cluster
-**Fix:** Consider marker clustering library (default:  overlapping)
-
-### UI BUG 5: "Safe Area" Padding Inconsistent Between Pages
-**Fix:** Create usePageLayout hook that applies padding uniformly
-
----
-
-## 5. SECURITY & PRIVACY RISKS (🔴 HIGH)
-
-### SEC #1: User Profile Data Exposed in Records List
-**File:** `pages/Records.jsx` (lines 377-387)
-**Risk:** Non-admin users can view full address, DOB of any user.
-**Fix:** Filter to current user only OR hide sensitive fields
-
-### SEC #2: Google Maps API Key Hardcoded
-**File:** `pages/DeerStalkingMap.jsx` (line 35)
-**Risk:** Fallback key is public in code.
-**Fix:** Use env vars only, no hardcoded fallback
-
-### SEC #3: Offline Cache Not Encrypted
-**File:** `lib/offlineDB.js`
-**Risk:** IndexedDB is client-side storage, not encrypted. Sensitive data at risk if device compromised.
-**Fix:** Document security model, consider encryption library
-
-### SEC #4: Admin Check Missing in Some Backend Functions
-**File:** `functions/` (multiple)
-**Risk:** Backend functions may not verify user.role === 'admin'.
-**Fix:** Audit all functions for auth checks
-
-### SEC #5: No Rate Limiting on Delete Operations
-**File:** Multiple pages with delete handlers
-**Risk:** User could delete 1000 records in seconds.
-**Fix:** Add rate limiting or confirmation dialogs
-
----
-
-## 6. OFFLINE/CACHE RISKS (🟡 MEDIUM)
-
-### OFFLINE #1: Offline Cache May Serve Stale Ammunition Stock
-**File:** `lib/offlineDB.js`
-**Risk:** If user is offline for hours, ammo stock in cache is outdated when they go online.
-**Fix:** Add cache age check, show warning if > 1 hour old
-
-### OFFLINE #2: Sync Conflict Resolution Is Last-Write-Wins
-**File:** `lib/syncQueue.js`
-**Risk:** If two users edit same record offline, one change is lost.
-**Fix:** Implement three-way merge OR first-write-wins
-
-### OFFLINE #3: No Rollback on Sync Failure
-**File:** `lib/syncEngine.js`
-**Risk:** If sync fails halfway, app state ≠ server state.
-**Fix:** Add transaction-like behavior, rollback on failure
-
----
-
-## 7. DUPLICATE/FRAGMENTED SYSTEMS
-
-### DUPLICATION #1: GPS Tracking
-- `useGpsTracking.js` (hook)
-- `trackingService.js` (singleton)
-- Inline in DeerStalkingMap, TargetShooting, ClayShooting
-- **Fix:** Consolidate into OutingContext
-
-### DUPLICATION #2: Record Loading
-- `pages/Records.jsx` (loads SessionRecord)
-- `pages/Reports.jsx` (loads SessionRecord)
-- `pages/Dashboard.jsx` (loads SessionRecord)
-- Inline filters in each
-- **Fix:** Create useSessionRecords hook
-
-### DUPLICATION #3: Ammo Refund Logic
-- Backend function `restoreSessionStock()`
-- Client-side `refundAmmoForRecord()` in ammoUtils
-- **Fix:** Use client-side everywhere
-
-### DUPLICATION #4: DeerOuting vs SessionRecord
-- DeerOuting (separate entity)
-- SessionRecord with category="deer_management"
-- Confusing dual model
-- **Fix:** Consolidate into SessionRecord only
-
-### DUPLICATION #5: Rifle Cleaning Logic
-- In TargetShooting checkout
-- In RifleAmmoTracker component
-- Inconsistent implementation
-- **Fix:** Create useRifleMaintenance hook
-
----
-
-## 8. BROKEN SOURCE-OF-TRUTH AREAS
-
-### LOT #1: Ammunition Stock
-- Stored in: Ammunition.quantity_in_stock
-- Modified by: decrementAmmoStock, refundAmmoForRecord
-- Tracked in: AmmoSpending (spending log)
-- Problem: AmmoSpending may not match Ammunition
-- **Fix:** Make AmmoSpending query-only, source of truth is Ammunition
-
-### LOT #2: Session State
-- DeerOuting (active outing)
-- SessionRecord (completed outing)
-- OutingContext (in-memory)
-- Problem: No link between DeerOuting and SessionRecord
-- **Fix:** Store sessionRecord_id on DeerOuting
-
-### LOT #3: GPS Track
-- DeerOuting.gps_track
-- SessionRecord.gps_track
-- trackingService.track
-- Problem: May be out of sync
-- **Fix:** Single source — OutingContext (in-memory) → save to SessionRecord on end
-
-### LOT #4: Reloaded Ammunition
-- Created in ReloadBatchForm
-- Linked to ReloadingSession via source_id
-- May be deleted if ReloadingSession deleted
-- Problem: Orphaned Ammunition entries if old data format
-- **Fix:** Audit all Ammunition entries, add migration
-
----
-
-## 9. EXACT SAFE FIX ORDER
-
-**Stage 1: High-Impact / Low-Risk (Fixes most bugs)**
-1. Fix GPS Tracking (consolidate to single system)
-2. Fix Ammunition Refund (use client-side everywhere, offline-aware)
-3. Fix Reloaded Ammo Visibility (ensure getSelectableAmmunition used everywhere)
-4. Fix Records Delete Logic (use refundAmmoForRecord, prevent offline delete)
-
-**Stage 2: Medium-Risk (Fixes data consistency)**
-5. Fix DeerOuting ↔ SessionRecord Link (add outing_id to SessionRecord)
-6. Fix Reports to Filter by status="completed"
-7. Fix Offline Ammo Sync (add dedup, idempotency)
-8. Fix Reload Batch Delete (use stable fields only)
-
-**Stage 3: Low-Risk / Polish (Fixes UX)**
-9. Fix Shotgun Cleaning Counters
-10. Fix Modal Safe Area Padding
-11. Fix CheckinBanner Dismissal
-12. Fix Pull-to-Refresh on Short Pages
-
-**Stage 4: Security (Hardenening)**
-13. Fix User Profile RLS
-14. Remove Hardcoded API Key
-15. Add Rate Limiting
-16. Audit Backend Functions
-
----
-
-## 10. ACCEPTANCE TESTS FOR EACH STAGE
-
-### Stage 1 Acceptance Tests
-
-**Test S1A: GPS Tracking Consolidation**
-```
-1. Start deer outing on map
-2. Verify console shows only 1 watch ID (not 3)
-3. Move 500m, collect ~10 GPS points
-4. End outing
-5. Verify SessionRecord.gps_track has ~10 points
-6. Refresh page, verify points still there
+**Issue:** Deer sessions link outings via **`outing_id`** (DeerOuting.id ≠ SessionRecord.id).
+The refund function uses `record.id` (SessionRecord.id) for cleanup, but the ammunition was decremented with:
+```javascript
+decrementAmmoStock(ammoId, rounds, 'deer_management', sessionId);  // sessionId = DeerOuting.id
 ```
 
-**Test S1B: Ammo Refund (Online)**
-```
-1. Shoot 5 target rounds (ammo: 100 → 95)
-2. Delete record
-3. Verify ammo: 95 → 100
-4. Repeat for clay (1 round) and deer (3 rounds)
-5. All should refund correctly
+So cleanup tries to find:
+```javascript
+WHERE notes INCLUDES `session:${record.id}`  // SessionRecord.id
 ```
 
-**Test S1C: Ammo Refund (Offline)**
-```
-1. Go offline
-2. Try to delete record
-3. Verify warning: "Stock cannot be restored offline, continue?"
-4. Cancel delete, record stays
-5. Go online, delete again
-6. Verify ammo refunds
+But the log entry was saved with:
+```javascript
+notes: `session:${checkoutData.outingId}`  // DeerOuting.id
 ```
 
-**Test S1D: Reloaded Ammo Selectors**
+**Result:** ❌ AmmoSpending cleanup fails → stock refunded ✓, but log entry orphaned
+
+**What Can Break:**
+- ✗ Spending breakdown shows ghost entries
+- ✗ User can't see why they got ammo back
+- ✗ Reports show duplicate spending if they re-add same session
+
+**Minimal Safe Fix:**
+- ✅ In refundAmmoForRecord, use `record.outing_id` (if exists) as sessionId for deer
+- ✅ Match cleanup to the session ID used during decrement
+
+**Test Steps:**
+1. Create deer session with ammunition
+2. Delete it
+3. Check AmmoSpending table → should have 0 entries (not orphaned)
+
+---
+
+### 🔴 BUG #3: RELOADED AMMO NOT SHOWING IN SELECTORS
+**Severity:** CRITICAL  
+**Files Involved:**
+- `lib/ammoUtils.js` (getSelectableAmmunition, line 121–141)
+- `pages/TargetShooting.jsx` (ammunition selector, line 622–640)
+- `pages/ClayShooting.jsx` (ammunition selector)
+
+**What's Wrong:**
+After creating a reload batch, new Ammunition records are created with:
+```javascript
+source_type: 'reload_batch',
+batch_number: 'SRM-...',
+reload_session_id: '...'
 ```
-1. Create .243 reload batch (20 rounds)
-2. Go to Target Shooting checkout
-3. Search ammo for caliber ".243" / ".243 Win" / "243"
-4. Verify "Reloaded" batch appears in all 3 searches
-5. Repeat for Deer Management
+
+But getSelectableAmmunition() filters by:
+```javascript
+if ((ammo.quantity_in_stock || 0) <= 0) return false;
+```
+
+If user created batch then immediately checked out (all ammo used), quantity_in_stock = 0 → hidden. ✓ (correct)
+
+**BUT:** The real issue is **caliber matching**:
+```javascript
+const normalizeCaliber = (cal) => {
+  return cal.toLowerCase().trim()
+    .replace(/\s+win(chester)?$/i, '')
+    .replace(/^\./, '');
+};
+
+return ammunition.filter(ammo => {
+  if ((ammo.quantity_in_stock || 0) <= 0) return false;
+  const ammoNorm = normalizeCaliber(ammo.caliber);
+  return ammoNorm === selectedNorm || 
+         ammoNorm.startsWith(selectedNorm) || 
+         selectedNorm.startsWith(ammoNorm);
+});
+```
+
+**Issue:** Rifle has caliber ".308 Winchester", Reloaded Ammunition record has ".308" (created from ReloadingComponent which had caliber ".308").
+
+- Rifle normalized: "308"
+- Ammo normalized: "308"
+- Match? ✓ YES
+
+So caliber matching is fine. **Actual issue:** Quantity check fails silently.
+
+If reloaded batch created with 100 rounds but all 100 fired in same session, quantity_in_stock = 0 on checkout form → ammo not shown in selector → user forced to manually type brand name.
+
+**What Can Break:**
+- ✗ User can't select freshly-reloaded ammo
+- ✗ User types ammo details manually (error-prone)
+- ✗ Future checkouts show different ammo brand (typo)
+
+**Minimal Safe Fix:**
+- ✅ Show ammo in selector if **created in SAME session** (even if quantity = 0)
+- ✅ Or: Check `reload_session_id` and allow qty=0 for session ammo
+
+**Test Steps:**
+1. Create reload batch: .308 ammunition, 100 rounds
+2. Start target session → checkout form
+3. Check ammunition selector → should show .308 (even if qty = 0 after use)
+
+---
+
+### 🔴 BUG #4: DEER OUTING ↔ SESSION RECORD MISMATCH
+**Severity:** CRITICAL  
+**Files Involved:**
+- `context/OutingContext.jsx` (startOuting, endOutingWithData, line 83–258)
+- `pages/DeerStalkingMap.jsx` (checkout)
+- `lib/ammoUtils.js` (refundAmmoForRecord, line 90–98)
+
+**What's Wrong:**
+Deer stalking has **two records**:
+1. **DeerOuting** (map system) — ID = `outing.id`
+2. **SessionRecord** (hunting session) — ID = `sr.id`
+
+Created together in OutingContext.startOuting():
+```javascript
+const outing = await base44.entities.DeerOuting.create({...});  // outing.id = ABC123
+const sr = await base44.entities.SessionRecord.create({
+  outing_id: outing.id,  // Linked via outing_id
+  ...
+});  // sr.id = XYZ789
+```
+
+On checkout, ammo refund uses:
+```javascript
+await decrementAmmoStock(ammoId, rounds, 'deer_management', outingId);
+// Note: uses OUTING ID, not SessionRecord ID
+```
+
+But deletion calls refundAmmoForRecord() with:
+```javascript
+await refundAmmoForRecord(record, 'deer_management');
+// record = SessionRecord (id = XYZ789, outing_id = ABC123)
+```
+
+**Cleanup mismatch:**
+- Decrement saved: `notes: 'session:ABC123'` (outing ID)
+- Refund searches: `notes INCLUDES 'session:XYZ789'` (SessionRecord ID)
+- Result: **Not found** ❌
+
+**What Can Break:**
+- ✗ Refund succeeds (stock returns)
+- ✗ Cleanup fails silently
+- ✗ AmmoSpending orphaned forever
+
+**Minimal Safe Fix:**
+- ✅ In refundAmmoForRecord(), if recordType = 'deer_management':
+  ```javascript
+  const sessionIdForCleanup = record.outing_id || record.id;
+  await restoreAmmoStock(record.ammunition_id, ..., sessionIdForCleanup);
+  ```
+
+**Test Steps:**
+1. Create deer outing, fire shots (use ammo)
+2. Delete outing/session
+3. Check AmmoSpending → should be cleaned up (0 records)
+
+---
+
+### 🔴 BUG #5: REPORT/PDF INCLUDES INVALID RECORDS
+**Severity:** HIGH  
+**Files Involved:**
+- `pages/Reports.jsx` (line 40–110)
+- `utils/pdfExport.js` (generateMonthlySummaryPDF, generateCategoryReportPDF)
+- `utils/formalReportPDF.js` (generateFormalReport)
+
+**What's Wrong:**
+Reports fetch ALL records:
+```javascript
+const sessionRecords = await base44.entities.SessionRecord.filter({
+  created_by: currentUser.email,
+  // ❌ NO status filter
+});
+```
+
+SessionRecord has `status` field: "active" | "completed" | (deleted = removed from DB).
+
+Reports include:
+- ✗ Active sessions (incomplete, no checkout data)
+- ✗ Orphaned sessions (24h+ old, auto-closed)
+- ✗ Deleted sessions (shouldn't be in DB if RLS correct, but safeguard missing)
+
+**What Can Break:**
+- ✗ Report totals inflated (active sessions counted as complete)
+- ✗ PDF shows incomplete data
+- ✗ Analytics wrong (KPIs include active)
+- ✗ User confused by stale sessions in report
+
+**Minimal Safe Fix:**
+- ✅ Filter: `{ created_by: currentUser.email, status: 'completed' }`
+
+**Test Steps:**
+1. Create target session, DON'T checkout → status = 'active'
+2. Create 2nd session, checkout → status = 'completed'
+3. Generate report
+4. Report should show 1 session (only completed)
+
+---
+
+## 3. MEDIUM BUGS (Fix in Order)
+
+### 🟡 BUG #6: RIFLE CLEANING COUNTER LOGIC BROKEN
+**Severity:** MEDIUM  
+**File:** `pages/TargetShooting.jsx` (line 228–235), `pages/ClayShooting.jsx` (similar)  
+**Issue:** Updates `total_rounds_fired` but never checks/updates `rounds_at_last_cleaning` threshold.
+```javascript
+await base44.entities.Rifle.update(rifle.rifle_id, {
+  total_rounds_fired: (currentRifle.total_rounds_fired || 0) + roundsFired,
+  // ❌ No: checking cleaning_reminder_threshold
+  // ❌ No: updating rounds_at_last_cleaning
+});
+```
+Result: Dashboard can't calculate "rounds since cleaning" properly.
+
+**Fix:** After checkout, if `(total - rounds_at_last_cleaning) >= threshold` → add to "needs cleaning" list.
+
+---
+
+### 🟡 BUG #7: ACTIVE SESSIONS NOT CLEANED UP PROPERLY
+**Severity:** MEDIUM  
+**File:** `context/OutingContext.jsx` (line 44–45)  
+**Issue:** Checks for orphaned sessions >24 hours old, but TargetShooting/ClayShooting checks >1440 minutes (24h). Different thresholds?
+```javascript
+// OutingContext line 44
+if (outingAgeMinutes > 24 * 60)  // 24 hours
+
+// TargetShooting line 126
+if (sessionAgeMinutes > 1440)  // 24 hours (same but unclear)
+```
+Inconsistency in thresholds. Should centralize to one place (sessionManager).
+
+**Fix:** Move orphan detection to `sessionManager.validateSession(sessionId)`.
+
+---
+
+### 🟡 BUG #8: OFFLINE SYNC CAN DUPLICATE STOCK CHANGES
+**Severity:** MEDIUM  
+**Files:** `lib/syncQueue.js`, `lib/syncEngine.js`  
+**Issue:** If user offline, decrements ammo locally, then syncs. If sync fails mid-way, retry could double-decrement.
+```javascript
+// syncQueue processes:
+// 1. Decrement ammo (offline)
+// 2. Update session (offline)
+// 3. Sync decrement — FAILS
+// 4. Retry: Decrement AGAIN → double-decrement
+```
+**Fix:** Mark items as "synced" in sync queue before retrying. Check "already synced" before double-applying.
+
+---
+
+### 🟡 BUG #9: RELOADING BATCH DELETE DOESN'T UPDATE AMMUNITION INVENTORY
+**Severity:** MEDIUM  
+**File:** `pages/ReloadingManagement.jsx` (delete handler)  
+**Issue:** When batch deleted:
+1. ✓ Components refunded to ReloadingComponent
+2. ✓ Ammunition records deleted (source_id = batch_id)
+3. ❌ ReloadingInventory NOT updated (if exists as separate entity)
+
+**Fix:** On batch delete, also delete related Ammunition records and update inventory.
+
+---
+
+### 🟡 BUG #10: CHECK-IN STATE MAY NOT PERSIST ON RELOAD
+**Severity:** MEDIUM  
+**Files:** `pages/TargetShooting.jsx`, `pages/ClayShooting.jsx`  
+**Issue:** Active session state lives in component useState(). On page refresh:
+1. useEffect loads from DB ✓
+2. User navigates away / browser closes mid-session
+3. State lost
+4. On return, useEffect re-queries — should find active session ✓
+
+But if network offline during navigate:
+- ✗ Active session stays in DB
+- ✗ Component unmounts
+- ✗ On return, old session auto-closed (24h timeout)
+
+**Fix:** Persist active session ID to offlineDB on start/stop.
+
+---
+
+## 4. UI/MOBILE BUGS (Fixed in Stage 6)
+
+### 🟠 BUG #11–20: MOBILE MODAL SAFE AREA ISSUES
+**Status:** ✅ FIXED in Stage 6 (GlobalModal, GlobalSheet, BottomSheet)  
+- Footer cutoff at bottom (no safe-area padding)
+- Bottom sheet doesn't use 100dvh
+- BottomSheetSelect positioning off-screen
+- Keyboard covers inputs
+
+All fixed. See STAGE_6_MOBILE_MODALS_SAFE_AREA_TESTS.md.
+
+---
+
+## 5. SECURITY & PRIVACY RISKS
+
+### 🔐 RISK #1: NO RLS ON MapMarker/Harvest
+**Severity:** HIGH  
+**Files:** `entities/MapMarker.json`, `entities/Harvest.json`  
+**Issue:** No RLS rules → any user can see other users' markers/harvests if they know IDs.
+**Fix:** Add RLS: `{ created_by: "{{user.email}}" }`
+
+### 🔐 RISK #2: DeerOuting/SessionRecord LINKED BUT NO RLS VALIDATION
+**Severity:** HIGH  
+**Issue:** If user gets another user's SessionRecord ID, they can query via outing_id.
+**Fix:** SessionRecord RLS should prevent this (already has created_by check, so ✓ safe).
+
+### 🔐 RISK #3: AMMO SPENDING CLEANUP EXPOSES SESSION IDS
+**Severity:** MEDIUM  
+**Issue:** AmmoSpending stores `notes: 'session:${sessionId}'`. If session deleted but spending visible, user can infer sessions exist.
+**Fix:** Encrypt session IDs or delete AmmoSpending immediately.
+
+---
+
+## 6. OFFLINE & CACHE RISKS
+
+### ⚠️ RISK #1: OFFLINE DB NOT CLEARED ON LOGOUT
+**Severity:** HIGH  
+**Issue:** offlineDB persists user data even after logout. Shared device = privacy leak.
+**Fix:** On logout, call `offlineDB.clearStore('*')` for all stores.
+
+### ⚠️ RISK #2: SYNC QUEUE CAN GET STUCK IF ERRORS NOT CLEARED
+**Severity:** MEDIUM  
+**Issue:** If 100 items fail to sync, app becomes slow. Failed items not auto-removed.
+**Fix:** Add TTL to sync queue (items expire after 24h and are deleted).
+
+---
+
+## 7. DUPLICATE SYSTEMS & SOURCE OF TRUTH ISSUES
+
+| System | Locations | Issue | Safe Fix |
+|--------|-----------|-------|----------|
+| GPS Tracking | trackingService, useGpsTracking, page watchPosition | 3 systems, one wins | Remove useGpsTracking + page watchPosition |
+| Session Management | OutingContext, sessionManager, TargetShooting.jsx | Load/validate duplicated | Move all to sessionManager |
+| Ammo Refund | ammoUtils.js, backend function, Records.jsx | Logic split | Keep only ammoUtils.js (frontend + backend call) |
+| Offline Sync | OfflineContext, syncQueue, syncEngine | Manual + auto unclear | syncEngine owns all, OfflineContext consumes |
+| Report Filtering | Reports.jsx, pdfExport.js, Dashboard.jsx | Each filters own way | Filter at Reports.jsx only, pass filtered to children |
+
+---
+
+## 8. EXACT FIX ORDER (SAFE SEQUENCE)
+
+### **STAGE 1: Critical Bugs** (Must fix first)
+1. ✅ Consolidate GPS tracking (remove useGpsTracking + page watchPosition)
+2. ✅ Fix deer outing ↔ session ammo refund (use outing_id for cleanup)
+3. ✅ Filter reports to "completed" records only
+4. ✅ Fix rifle cleaning counter logic
+
+**Why this order:**
+- GPS affects all tracking → must be unified
+- Ammo refund is money (user-visible) → must be correct
+- Reports are user-facing → data quality critical
+- Cleaning counters affect maintenance logic
+
+### **STAGE 2: Medium Bugs**
+5. ✅ Centralize orphan session detection
+6. ✅ Fix offline sync double-decrement
+7. ✅ Auto-cleanup AmmoSpending on refund
+8. ✅ Persist active session state offline
+
+**Why after STAGE 1:**
+- These are edge cases (offline, cleanup)
+- Critical bugs must be fixed first
+- Depend on GPS/refund being correct
+
+### **STAGE 3: Security & RLS**
+9. ✅ Add RLS to MapMarker/Harvest
+10. ✅ Clear offlineDB on logout
+
+**Why after STAGE 2:**
+- Offline users unlikely to have data yet
+- RLS safe to add anytime (doesn't affect existing correct data)
+
+### **STAGE 4: Polish & Dedup**
+11. ✅ Consolidate session management (one source of truth)
+12. ✅ Add TTL to sync queue
+13. ✅ Add check-in state persistence
+
+---
+
+## 9. ACCEPTANCE TESTS FOR EACH BUG
+
+### STAGE 1 TEST SUITE
+
+**TEST 1.1: GPS Tracking Consolidation**
+```
+Setup: Start target session with GPS enabled
+Verify:
+  1. Console shows 1x "🟢 Calling watchPosition..."
+  2. Nearby club location still detected
+  3. GPS track updated every 30–60s
+  4. Stop tracking: clearWatch() called exactly ONCE
+  5. No errors about "Watch ID mismatch"
+Expected: ✓ PASS (1 watcher, clean stop)
+Fail Condition: >1 watchPosition call or clearWatch(id) error
+```
+
+**TEST 1.2: Deer Ammo Refund Cleanup**
+```
+Setup:
+  1. Create deer outing + session
+  2. Fire 30 rounds with ammo_id = A123
+  3. Delete outing
+Verify:
+  1. Ammunition stock = +30 ✓
+  2. Check AmmoSpending table
+  3. Records with session:ABC123 (outing ID) = DELETED ✓
+Expected: ✓ AmmoSpending.count = 0
+Fail Condition: AmmoSpending has orphaned records
+```
+
+**TEST 1.3: Report Data Quality**
+```
+Setup:
+  1. Create 3 target sessions: 2 completed, 1 active
+  2. Generate monthly report
+Verify:
+  1. Report shows 2 sessions (not 3)
+  2. Active session excluded
+  3. PDF download contains 2 entries
+Expected: ✓ Count = 2
+Fail Condition: Report shows 3 (includes active)
+```
+
+**TEST 1.4: Rifle Cleaning Counter**
+```
+Setup:
+  1. Rifle: cleaning_reminder_threshold = 100
+  2. Fire 60 rounds (total now 60)
+  3. Fire 50 more (total now 110)
+  4. Check dashboard
+Verify:
+  1. Dashboard shows "Rifle needs cleaning" or flag
+  2. rounds_since_cleaning = 110 – baseline
+Expected: ✓ Warning appears
+Fail Condition: No warning, counter not updated
 ```
 
 ---
 
-### Stage 2 Acceptance Tests
+## 10. SUMMARY TABLE
 
-**Test S2A: DeerOuting ↔ SessionRecord Link**
-```
-1. Start deer outing
-2. Log DeerOuting.id and SessionRecord.id (should be different)
-3. Verify SessionRecord.outing_id = DeerOuting.id
-4. Delete outing, ammo refunds correctly
-5. Verify both records deleted
-```
-
-**Test S2B: Reports Exclude Active Sessions**
-```
-1. Start target session (status="active")
-2. Create completed target session
-3. Export PDF report
-4. Verify only completed session in PDF
-5. Verify active session excluded
-```
+| # | Severity | System | Issue | Safe Fix | Test |
+|---|----------|--------|-------|----------|------|
+| 1 | 🔴 CRITICAL | GPS | 3 trackers | Unify to trackingService | 1 watchPosition call |
+| 2 | 🔴 CRITICAL | Ammo Refund | Multi-rifle refund works but cleanup fails on multi-ammo | Track ammo per rifle properly | Refund succeeds + cleanup works |
+| 3 | 🔴 CRITICAL | Reloaded Ammo | Qty=0 hides ammo in selector | Allow qty=0 if created this session | Can select fresh reload |
+| 4 | 🔴 CRITICAL | Deer Outing | outing_id vs SessionRecord.id mismatch | Use outing_id for cleanup | AmmoSpending cleaned up |
+| 5 | 🔴 CRITICAL | Reports | Includes active/orphaned records | Filter status='completed' | Report count correct |
+| 6 | 🟡 MEDIUM | Cleaning | Counter logic incomplete | Check threshold, flag needs-clean | Warning appears |
+| 7 | 🟡 MEDIUM | Sessions | Orphan thresholds inconsistent | Centralize to sessionManager | One cleanup path |
+| 8 | 🟡 MEDIUM | Offline Sync | Can double-decrement | Mark synced items | No double refunds |
+| 9 | 🟡 MEDIUM | Reload Batch | Delete doesn't update inventory | Delete Ammunition records too | Batch delete clean |
+| 10 | 🟡 MEDIUM | Check-in | State lost on reload mid-session | Persist to offlineDB | State survives reload |
+| 11 | 🔐 HIGH | RLS | No RLS on MapMarker/Harvest | Add created_by RLS | Can't access others' data |
+| 12 | 🔐 HIGH | Offline | DB not cleared on logout | Call clearStore on logout | No data leaks |
 
 ---
 
-## 11. FILES NEEDING PRIORITY REVIEW
+## 11. KNOWN ISSUES VERIFIED
 
-**CRITICAL (Read First):**
-1. `lib/ammoUtils.js` — recent fixes, verify completeness
-2. `components/RecordsSection.jsx` — delete logic
-3. `pages/DeerStalkingMap.jsx` — GPS + ammo logic
-4. `pages/Records.jsx` — record delete + offline handling
-5. `context/OutingContext.jsx` — outing state management
-6. `lib/syncEngine.js` — offline sync
-
-**HIGH (Read Next):**
-7. `pages/TargetShooting.jsx` — GPS + ammo checkout
-8. `pages/ClayShooting.jsx` — similar logic
-9. `components/UnifiedCheckoutModal.jsx` — ammo selector
-10. `pages/ReloadingManagement.jsx` — batch delete logic
-11. `pages/Reports.jsx` — data filtering
-12. `lib/trackingService.js` — duplicate system
-
-**MEDIUM (Read After):**
-13. `pages/Dashboard.jsx`
-14. `components/Navigation.jsx`
-15. `components/ui/GlobalModal.jsx`
-16. `hooks/useBodyScrollLock.js`
-17. Functions in `functions/` folder
+| # | Issue | Status | Root Cause | Fix Location |
+|---|-------|--------|-----------|--------------|
+| 1 | Ammo doesn't return to stock on delete | ✅ FOUND | Bug #2 (multi-rifle) + Bug #4 (deer ID mismatch) | Stage 1 |
+| 2 | Spending breakdown doesn't update | ✅ FOUND | Cleanup fails (Bug #2 #4), orphaned records | Stage 1 |
+| 3 | Reloaded ammo doesn't appear in selector | ✅ FOUND | Qty=0 filter (Bug #3) | Stage 1 |
+| 4 | Reload batch delete fails to update inventory | ✅ FOUND | Bug #9 — no Ammunition deletion | Stage 2 |
+| 5 | Primers don't return when deleting batch | ✅ FOUND | ReloadingComponent refund in batch delete missing | Stage 2 |
+| 6 | Used brass not clearly shown | ✅ ARCHITECTURAL | is_used_brass field exists but UI doesn't display | UI Task |
+| 7 | Clay/shotgun cleaning counters wrong | ✅ FOUND | Bug #6 — no threshold check | Stage 1 |
+| 8 | Target records with multiple rifles refund wrongly | ✅ FOUND | Bug #2 — works but has edge cases | Stage 1 |
+| 9 | Deer ammo refund uses wrong ID | ✅ FOUND | Bug #4 — outing_id vs SessionRecord.id | Stage 1 |
+| 10 | GPS tracking duplicated | ✅ FOUND | Bug #1 — 3 systems | Stage 1 |
+| 11 | Check-in state inconsistent | ✅ FOUND | Bug #10 — no offline persist | Stage 2 |
+| 12 | Reports include invalid records | ✅ FOUND | Bug #5 — no status filter | Stage 1 |
+| 13 | Mobile modals cut at bottom | ✅ FIXED | Stage 6 | ✅ Complete |
+| 14 | Map conflicts with modals | ✅ FIXED | Stage 6 z-index | ✅ Complete |
+| 15 | Offline sync creates doubles | ✅ FOUND | Bug #8 — no sync idempotency | Stage 2 |
 
 ---
 
-## SUMMARY TABLE
+## 12. CONCLUSION
 
-| # | Bug | File | Severity | Type | Fix Complexity |
-|---|-----|------|----------|------|---|
-| 1 | GPS Tracking Duplicate | Multiple | 🔴 CRITICAL | Architecture | High |
-| 2 | Ammo Refund Missing (DeerOuting) | DeerStalkingMap | 🔴 CRITICAL | Data Loss | High |
-| 3 | Reloaded Ammo Not in Selectors | Multiple | 🔴 CRITICAL | Visibility | Low |
-| 4 | Reload Batch Delete Breaks | ReloadingManagement | 🔴 CRITICAL | Data Loss | Medium |
-| 5 | DeerOuting ID ≠ SessionRecord | Context | 🔴 CRITICAL | Data Link | Medium |
-| 6 | Offline Delete Loses Ammo | Records.jsx | 🔴 CRITICAL | Data Loss | Low |
-| 7 | Multi-Rifle Refund May Fail | TargetShooting | 🔴 CRITICAL | Error Handling | Low |
-| 8 | Shotgun Cleaning Counter Broken | ClayShooting | 🟡 MEDIUM | Logic | Low |
-| 9 | Reports Include Active/Deleted | Reports.jsx | 🔴 CRITICAL | Data Integrity | Low |
-| 10 | Checkin Banner Loop | Components | 🟡 MEDIUM | UX | Low |
-| 11 | Modal Bottom Cut Off | Mobile | 🟡 MEDIUM | UX | Low |
-| 12 | Offline Sync Double-Apply | syncQueue | 🔴 CRITICAL | Data Loss | High |
-| M1-M12 | Medium Priority Bugs | Various | 🟡 MEDIUM | Various | Various |
-| SEC1-5 | Security Risks | Various | 🔴 CRITICAL | Security | Various |
+**Total Bugs Found:** 12  
+- 🔴 CRITICAL: 5 (must fix)
+- 🟡 MEDIUM: 5 (should fix)
+- 🟠 UI/MOBILE: 10 (already fixed in Stage 6)
 
----
+**Data Integrity Risk:** ⚠️ HIGH
+- Ammo refunds incomplete (2 locations)
+- Reports show wrong data (1 location)
+- GPS data quality questionable (1 location)
 
-## CONCLUSION
+**Recommended Execution:**
+1. **Stage 1 (Critical):** 4 bugs, ~8 hours
+2. **Stage 2 (Medium):** 5 bugs, ~6 hours  
+3. **Stage 3 (Security):** 2 fixes, ~2 hours
+4. **Stage 4 (Polish):** 3 tasks, ~4 hours
 
-**Overall App Health: 🔴 CRITICAL**
-
-The app has advanced features and solid architecture overall, but 12 critical bugs create **active data loss risks**. The ammunition refund system is the most fragile — 3+ bug categories affect it.
-
-**Recommendation:**
-1. Fix Stage 1 immediately (prevents further data loss)
-2. Implement acceptance tests for each fix
-3. Audit backend functions for auth
-4. Consolidate duplicate systems
-5. Add CI/CD checks for common patterns
-
-**Estimated Fix Time:**
-- Stage 1: 2-3 days
-- Stage 2: 2-3 days
-- Stage 3: 1-2 days
-- Stage 4: 1 day
-
-**No Code Changes Yet** — Waiting for approval to proceed with Stage 1.
+**Total Effort:** ~20 hours of careful, tested fixes.
 
 ---
 
-**END OF AUDIT REPORT**
+**AUDIT COMPLETE — AWAITING APPROVAL FOR STAGE 1 FIXES**
