@@ -163,6 +163,11 @@ export const trackingService = {
     return trackingState.isTracking;
   },
 
+  // Get current state (for debugging/testing)
+  getState() {
+    return { ...trackingState };
+  },
+
   // Get current session info
   getSessionInfo() {
     return {

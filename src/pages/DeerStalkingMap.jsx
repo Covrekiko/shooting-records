@@ -32,7 +32,7 @@ const defaultCenter = {
 export default function DeerStalkingMap() {
   const { activeOuting, loading: outingLoading, startOuting, endOuting, endOutingWithData, updateGpsTrack } = useOuting();
   const { isLoaded } = useLoadScript({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyByd7U3DJDZ6CqjhGmlllVXz3a56B45Df0',
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   });
 
   const [markers, setMarkers] = useState([]);
@@ -102,41 +102,17 @@ export default function DeerStalkingMap() {
     }
   };
 
-  // GPS tracking for active outing
-  useEffect(() => {
-    if (!activeOuting?.id) return;
-
-    let currentTrack = activeOuting.gps_track || [];
-    let lastSaveTime = 0;
-    let isScheduled = false;
-
-    const watchId = navigator.geolocation.watchPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        const timestamp = Date.now();
-        currentTrack = [...currentTrack, { lat: latitude, lng: longitude, timestamp }];
-
-        if (timestamp - lastSaveTime >= 60000 && !isScheduled) {
-          isScheduled = true;
-          lastSaveTime = timestamp;
-          updateGpsTrack(activeOuting.id, currentTrack);
-          isScheduled = false;
-        }
-      },
-      (error) => console.error('❌ Geolocation error:', error),
-      { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }
-    );
-
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, [activeOuting?.id, updateGpsTrack]);
+  // Note: Tracking is managed by trackingService via OutingContext
+  // No duplicate watchers here — trackingService is the single source of truth
 
   const loadData = async () => {
     try {
       setLoading(true);
       const currentUser = await base44.auth.me();
+      // Filter MapMarker and Harvest by current user (privacy)
       const [markersData, harvestsData, areasData] = await Promise.all([
-        base44.entities.MapMarker.list(),
-        base44.entities.Harvest.list(),
+        base44.entities.MapMarker.filter({ created_by: currentUser.email }),
+        base44.entities.Harvest.filter({ created_by: currentUser.email }),
         base44.entities.Area.filter({ created_by: currentUser.email }),
       ]);
       setMarkers(markersData || []);
@@ -677,11 +653,12 @@ export default function DeerStalkingMap() {
         <OutingModal onClose={() => setShowOuting(false)} onSubmit={handleStartOuting} selectedArea={savedAreas.find(a => a.id === selectedAreaId)} />
       )}
 
-      {showCheckout && activeOuting && (
-        <UnifiedCheckoutModal activeOuting={activeOuting} rifles={rifles} ammunition={ammunition} onSubmit={handleCheckoutSubmit} onClose={() => setShowCheckout(false)} />
+      {showCheckout && activeOuting && createPortal(
+        <UnifiedCheckoutModal activeOuting={activeOuting} rifles={rifles} ammunition={ammunition} onSubmit={handleCheckoutSubmit} onClose={() => setShowCheckout(false)} />,
+        document.body
       )}
 
-      {showAreaDrawer && (
+      {showAreaDrawer && createPortal(
         <div className="fixed inset-0 z-[50001] w-full h-full">
           <AreaDrawer
             userLocation={userLocation}
@@ -691,16 +668,18 @@ export default function DeerStalkingMap() {
             onFinish={handleFinishDrawing}
             onCancel={() => { setShowAreaDrawer(false); setDrawnPolygon(null); setAreaBounds(null); }}
           />
-        </div>
+        </div>,
+        document.body
       )}
 
-      {showAreaForm && drawnPolygon && (
+      {showAreaForm && drawnPolygon && createPortal(
         <AreaSaveForm
           polygon={drawnPolygon}
           onSave={handleSaveArea}
           onCancel={() => { setShowAreaForm(false); setDrawnPolygon(null); }}
           onFlyTo={(lat, lng) => { if (mapRef.current) { mapRef.current.panTo({ lat, lng }); mapRef.current.setZoom(15); } }}
-        />
+        />,
+        document.body
       )}
     </div>
   );

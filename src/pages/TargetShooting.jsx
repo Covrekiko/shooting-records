@@ -152,6 +152,7 @@ export default function TargetShooting() {
   }, []);
 
   useEffect(() => {
+    // Subscribe to trackingService updates (unified GPS tracking)
     const unsubscribe = trackingService.subscribe((track) => setGpsTrack(track));
     return () => unsubscribe();
   }, []);
