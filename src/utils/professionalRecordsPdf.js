@@ -313,6 +313,25 @@ function drawClayReportHeader(doc, reportData, cursor) {
   return { ...cursor, y: cursor.y + 28 };
 }
 
+function drawClayPageTitle(doc, title, cursor, reportData = null) {
+  const { width } = pageMetrics(doc);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(...REPORT.navy);
+  doc.text(title, REPORT.margin, cursor.y + 6);
+  if (reportData) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(...REPORT.muted);
+    doc.text(`Document ID: ${reportData.documentId}`, width - REPORT.margin, cursor.y + 5, { align: 'right' });
+    doc.text(`Generated: ${reportData.generatedAtLabel}`, width - REPORT.margin, cursor.y + 11, { align: 'right' });
+  }
+  doc.setDrawColor(...REPORT.copper);
+  doc.setLineWidth(0.8);
+  doc.line(REPORT.margin, cursor.y + 14, width - REPORT.margin, cursor.y + 14);
+  return { ...cursor, y: cursor.y + 24 };
+}
+
 function drawClayCompactCard(doc, title, rows, cursor) {
   const { width } = pageMetrics(doc);
   const cardW = width - REPORT.margin * 2;
@@ -391,11 +410,11 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
 
   if (options.separateScoreAndPhotos) {
     doc.addPage();
-    cursor = { ...cursor, y: REPORT.margin };
+    cursor = drawClayPageTitle(doc, 'SCORE CARD', { y: REPORT.margin }, reportData);
+  } else {
+    cursor = ensureSpace(doc, cursor, data.photos.length === 0 ? 58 : 78);
+    cursor = drawSectionTitle(doc, 'Score Card', cursor);
   }
-
-  cursor = ensureSpace(doc, cursor, data.photos.length === 0 ? 58 : 78);
-  cursor = drawSectionTitle(doc, 'Score Card', cursor);
   if (!data.scoreData) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
@@ -413,7 +432,7 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
       data.scoreData.hits,
       data.scoreData.missed,
       `${data.scoreData.percentage}%`,
-    ]], cursor, { widths: [56, 38, 38, 54], fontSize: 8.3, rowHeight: 9 });
+    ]], cursor, { widths: [52, 36, 36, 52], fontSize: 8.3, rowHeight: 9 });
 
     if (data.scoreData.stands.length > 0) {
       doc.setFont('helvetica', 'bold');
@@ -426,18 +445,19 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
         ['Stand', 'Discipline', 'Targets', 'Hits', 'Missed', 'Score'],
         data.scoreData.stands.map((stand) => [stand.standNumber, stand.discipline, stand.targets, stand.hits, stand.missed, `${stand.hits}/${stand.targets}`]),
         cursor,
-        { widths: [22, 60, 30, 24, 28, 32], leftColumns: [1], rowHeight: 9, fontSize: 8.3 }
+        { widths: [18, 54, 28, 22, 26, 30], leftColumns: [1], rowHeight: 9, fontSize: 8.3 }
       );
     }
   }
 
   if (options.separateScoreAndPhotos) {
     doc.addPage();
-    cursor = { ...cursor, y: REPORT.margin };
+    cursor = drawClayPageTitle(doc, 'PHOTOS', { y: REPORT.margin }, reportData);
+    cursor = drawPhotosSection(doc, data.photos, cursor, null);
+  } else {
+    cursor = drawPhotosSection(doc, data.photos, cursor, 'Photos');
+    if (record.notes) cursor = drawNotes(doc, record.notes, cursor);
   }
-
-  cursor = drawPhotosSection(doc, data.photos, cursor, 'Photos');
-  if (record.notes) cursor = drawNotes(doc, record.notes, cursor);
   return cursor;
 }
 
@@ -492,7 +512,7 @@ function renderTargetSession(doc, record, reportData, cursor) {
 }
 
 function drawPhotosSection(doc, photos, cursor, title = 'PHOTOS') {
-  cursor = drawSectionTitle(doc, title, cursor);
+  if (title) cursor = drawSectionTitle(doc, title, cursor);
   if (!photos.length) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8.5);
@@ -579,7 +599,7 @@ function renderRecords(doc, reportData) {
       if (isClayOnly) cursor = drawClayReportHeader(doc, reportData, cursor);
     }
     if (record.category === 'clay_shooting' || record.recordType === 'clay') {
-      cursor = renderClaySession(doc, record, reportData, cursor, { includeTitle: !isClayOnly, separateScoreAndPhotos: false });
+      cursor = renderClaySession(doc, record, reportData, cursor, { includeTitle: !isClayOnly, separateScoreAndPhotos: isClayOnly });
     } else if (record.category === 'target_shooting' || record.recordType === 'target') {
       cursor = renderTargetSession(doc, record, reportData, cursor);
     } else if (record.category === 'deer_management' || record.recordType === 'deer') {
