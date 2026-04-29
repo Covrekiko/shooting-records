@@ -29,7 +29,7 @@ export default function AmmunitionInventory() {
     loadAmmo();
   }, []);
 
-  const loadAmmo = async () => {
+  const loadAmmo = async (attempt = 0) => {
     setError(null);
     try {
       const currentUser = await base44.auth.me();
@@ -37,6 +37,11 @@ export default function AmmunitionInventory() {
       const ammoList = await base44.entities.Ammunition.filter({ created_by: currentUser.email });
       setAmmo(ammoList);
     } catch (err) {
+      // If rate-limited, retry once after a short delay
+      if (err.message?.includes('Rate limit') && attempt < 2) {
+        setTimeout(() => loadAmmo(attempt + 1), 2000 + attempt * 1000);
+        return;
+      }
       console.error('Error loading ammunition:', err);
       setError(err.message || 'Failed to load ammunition');
     } finally {
