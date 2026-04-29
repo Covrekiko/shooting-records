@@ -317,7 +317,7 @@ export default function ReloadingSessionForm({ session, onSubmit, onClose }) {
                     <div className="flex-1 text-sm">
                       <p className="font-semibold">{comp.brand} {comp.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {comp.quantity_used} {comp.unit} @ £{comp.cost_per_unit.toFixed(2)} = £{comp.total_cost?.toFixed(2) || '0.00'}
+                        {comp.quantity_used} {comp.unit} @ £{(comp.cost_per_unit || 0).toFixed(2)} = £{(comp.total_cost || 0).toFixed(2)}
                       </p>
                     </div>
                     <button
