@@ -287,13 +287,37 @@ function buildClayReportData(record, reportData) {
   };
 }
 
-function renderClaySession(doc, record, reportData, cursor) {
-  const data = buildClayReportData(record, reportData);
-  cursor = drawSectionTitle(doc, 'CLAY SHOOTING SESSION REPORT', cursor);
+function drawClayReportHeader(doc, reportData, cursor) {
+  const { width } = pageMetrics(doc);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(...REPORT.navy);
+  doc.text('CLAY SHOOTING SESSION REPORT', REPORT.margin, cursor.y + 6);
+
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
+  doc.setFontSize(9.5);
   doc.setTextColor(...REPORT.muted);
-  doc.text('Detailed Activity Record', REPORT.margin + 2, cursor.y - 5);
+  doc.text('Detailed Activity Record', REPORT.margin, cursor.y + 13);
+
+  doc.setFontSize(8);
+  doc.text(`Document ID: ${reportData.documentId}`, width - REPORT.margin, cursor.y + 6, { align: 'right' });
+  doc.text(`Generated: ${reportData.generatedAtLabel}`, width - REPORT.margin, cursor.y + 12, { align: 'right' });
+
+  doc.setDrawColor(...REPORT.copper);
+  doc.setLineWidth(0.8);
+  doc.line(REPORT.margin, cursor.y + 19, width - REPORT.margin, cursor.y + 19);
+  return { ...cursor, y: cursor.y + 28 };
+}
+
+function renderClaySession(doc, record, reportData, cursor, options = {}) {
+  const data = buildClayReportData(record, reportData);
+  if (options.includeTitle !== false) {
+    cursor = drawSectionTitle(doc, 'CLAY SHOOTING SESSION REPORT', cursor);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+    doc.setTextColor(...REPORT.muted);
+    doc.text('Detailed Activity Record', REPORT.margin + 2, cursor.y - 5);
+  }
 
   cursor = drawInfoCard(doc, 'Session Overview', [
     { label: 'Session Date', value: formatDate(record.date) },
@@ -348,29 +372,13 @@ function renderClaySession(doc, record, reportData, cursor) {
       doc.setTextColor(...REPORT.navy);
       doc.text(data.scoreData.hasTargetGrid ? 'Target Grid' : 'Stand Breakdown', REPORT.margin + 2, cursor.y);
       cursor.y += 4;
-      if (data.scoreData.hasTargetGrid) {
-        cursor = drawDataTable(
-          doc,
-          ['Stand', 'Discipline', 'T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'Hits', 'Total'],
-          data.scoreData.stands.map((stand) => [
-            stand.standNumber,
-            stand.discipline,
-            ...Array.from({ length: 10 }, (_, index) => stand.targetResults[index] || '-'),
-            stand.hits,
-            stand.targets,
-          ]),
-          cursor,
-          { widths: [13, 27, 8, 8, 8, 8, 8, 8, 8, 8, 8, 9, 12, 12], fontSize: 7, leftColumns: [1] }
-        );
-      } else {
-        cursor = drawDataTable(
-          doc,
-          ['Stand', 'Discipline', 'Hits', 'Targets', 'Missed', 'Percentage'],
-          data.scoreData.stands.map((stand) => [stand.standNumber, stand.discipline, stand.hits, stand.targets, stand.missed, `${stand.percentage}%`]),
-          cursor,
-          { widths: [20, 50, 24, 28, 28, 34], leftColumns: [1] }
-        );
-      }
+      cursor = drawDataTable(
+        doc,
+        ['Stand', 'Discipline', 'Targets', 'Hits', 'Missed', 'Score'],
+        data.scoreData.stands.map((stand) => [stand.standNumber, stand.discipline, stand.targets, stand.hits, stand.missed, `${stand.hits}/${stand.targets}`]),
+        cursor,
+        { widths: [20, 58, 28, 24, 28, 28], leftColumns: [1], rowHeight: 9 }
+      );
     }
   }
 
@@ -500,17 +508,24 @@ function renderDeerSession(doc, record, reportData, cursor) {
 
 function renderRecords(doc, reportData) {
   let cursor = { y: REPORT.margin };
-  cursor = drawHeader(doc, reportData, cursor);
-  cursor = drawParticipantInfo(doc, reportData, cursor);
+  const isClayOnly = reportData.records.length > 0 && reportData.records.every((record) => record.category === 'clay_shooting' || record.recordType === 'clay');
+
+  if (isClayOnly) {
+    cursor = drawClayReportHeader(doc, reportData, cursor);
+  } else {
+    cursor = drawHeader(doc, reportData, cursor);
+    cursor = drawParticipantInfo(doc, reportData, cursor);
+  }
 
   reportData.records.forEach((record, index) => {
     cursor = ensureSpace(doc, cursor, index === 0 ? 30 : 55);
     if (index > 0 && cursor.y > 220) {
       doc.addPage();
       cursor = { y: REPORT.margin };
+      if (isClayOnly) cursor = drawClayReportHeader(doc, reportData, cursor);
     }
     if (record.category === 'clay_shooting' || record.recordType === 'clay') {
-      cursor = renderClaySession(doc, record, reportData, cursor);
+      cursor = renderClaySession(doc, record, reportData, cursor, { includeTitle: !isClayOnly });
     } else if (record.category === 'target_shooting' || record.recordType === 'target') {
       cursor = renderTargetSession(doc, record, reportData, cursor);
     } else if (record.category === 'deer_management' || record.recordType === 'deer') {
