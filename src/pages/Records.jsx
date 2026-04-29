@@ -500,24 +500,25 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
 
 
 
+  // Resolve club/range/location name
+  const resolveLocationName = () => {
+    if (record.club_name) return record.club_name;
+    if (record.club_id && clubs[record.club_id]) return clubs[record.club_id].name;
+    if (record.location_name) return record.location_name;
+    if (record.range_name) return record.range_name;
+    if (record.place_name) return record.place_name;
+    if (record.venue_name) return record.venue_name;
+    if (record.location_id && locations[record.location_id]) return locations[record.location_id].name;
+    return 'Location not recorded';
+  };
+
   return (
     <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-lg break-words" style={{ overflowWrap: 'anywhere' }}>{getRecordTitle()}</h3>
           <p className="text-sm text-muted-foreground mb-2">{record.date} • {getBadgeLabel(record.recordType)}</p>
-
-          {recordUser && (
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p><span className="font-medium">User:</span> {recordUser.full_name}</p>
-              {recordUser.dateOfBirth && (
-                <p><span className="font-medium">DOB:</span> {format(new Date(recordUser.dateOfBirth), 'dd/MM/yyyy')}</p>
-              )}
-              {recordUser.addressLine1 && (
-                <p><span className="font-medium">Address:</span> {recordUser.addressLine1}{recordUser.addressLine2 ? ', ' + recordUser.addressLine2 : ''}</p>
-              )}
-            </div>
-          )}
+          <p className="text-sm text-muted-foreground">{resolveLocationName()}</p>
         </div>
         <div className="flex gap-2 flex-shrink-0">
           <div className="flex gap-2">
