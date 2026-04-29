@@ -1,10 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
+/**
+ * DEPRECATED: useGeolocation with watchPosition
+ * For route/session tracking, use trackingService instead (single source of truth).
+ * 
+ * This hook is kept for backward compatibility but should only be used for:
+ * - One-time location snapshots (getCurrentPosition only)
+ * - Proximity detection (watchPosition acceptable, short-lived)
+ * 
+ * Route tracking MUST go through trackingService.
+ */
 export function useGeolocation() {
   const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [permissionAsked, setPermissionAsked] = useState(false);
+  const watchIdRef = useRef(null);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -33,7 +44,7 @@ export function useGeolocation() {
     }
 
     function startWatching() {
-      const watchId = navigator.geolocation.watchPosition(
+      watchIdRef.current = navigator.geolocation.watchPosition(
         (position) => {
           setLocation({
             latitude: position.coords.latitude,
@@ -58,9 +69,15 @@ export function useGeolocation() {
           timeout: 5000,
         }
       );
-
-      return watchId;
     }
+
+    // Cleanup: clear watch on unmount
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    };
   }, [permissionAsked]);
 
   return { location, loading, error };
