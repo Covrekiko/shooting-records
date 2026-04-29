@@ -35,6 +35,22 @@ export default function AmmoSpendingBreakdown() {
        const user = await base44.auth.me();
        let records = await base44.entities.AmmoSpending.filter({ created_by: user.email });
 
+       // Filter by valid completed sessions only (exclude deleted/orphaned records)
+       const validSessions = await base44.entities.SessionRecord.filter({
+         created_by: user.email,
+         status: 'completed'
+       });
+       const validSessionIds = new Set(validSessions.map(s => s.id));
+
+       // Keep only AmmoSpending from valid, completed sessions
+       records = records.filter(r => {
+         if (!r.notes) return false; // No session link
+         // Extract session ID from notes (format: "session:sr-xyz" or "session:sr-xyz|outing:...")
+         const match = r.notes.match(/session:([^\|]+)/);
+         const sessionId = match ? match[1] : null;
+         return sessionId && validSessionIds.has(sessionId);
+       });
+
       // Filter by timeframe
       const now = new Date();
       if (timeframe === 'month') {

@@ -267,7 +267,7 @@ export default function Dashboard() {
       if (user.role === 'admin') {
         const [users, allRecords] = await Promise.all([
           base44.entities.User.list(),
-          getRepository('SessionRecord').filter({ created_by: user.email }),
+          getRepository('SessionRecord').filter({ created_by: user.email, status: 'completed' }),
         ]);
         const targetRecords = allRecords.filter((r) => r.category === 'target_shooting');
         const clayRecords = allRecords.filter((r) => r.category === 'clay_shooting');
@@ -275,7 +275,7 @@ export default function Dashboard() {
         setStats({ totalUsers: users.length, totalRecords: allRecords.length, targetRecords: targetRecords.length, clayRecords: clayRecords.length, deerRecords: deerRecords.length });
       } else {
         const [allRecords, rifles, shotguns, clubs, locations] = await Promise.all([
-          getRepository('SessionRecord').filter({ created_by: user.email }),
+          getRepository('SessionRecord').filter({ created_by: user.email, status: 'completed' }),
           getRepository('Rifle').filter({ created_by: user.email }),
           getRepository('Shotgun').filter({ created_by: user.email }),
           getRepository('Club').filter({ created_by: user.email }),
