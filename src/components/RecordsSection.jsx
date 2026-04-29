@@ -21,7 +21,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
          const currentUser = await base44.auth.me();
          setUser(currentUser);
 
-         const [recordsList, riflesList, shotgunsList, clubsList, locationsList] = await Promise.all([
+         const [recordsListRaw, riflesList, shotgunsList, clubsList, locationsList] = await Promise.all([
            base44.entities.SessionRecord.filter({
              created_by: currentUser.email,
              category,
@@ -33,6 +33,8 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
            base44.entities.Area.filter({ created_by: currentUser.email }),
          ]);
 
+         // Filter out soft-deleted records
+         const recordsList = recordsListRaw.filter((r) => r.isDeleted !== true && r.status !== 'deleted');
          setRecords(recordsList);
          setRifles(riflesList.reduce((acc, r) => ({ ...acc, [r.id]: r }), {}));
          setShotguns(shotgunsList.reduce((acc, s) => ({ ...acc, [s.id]: s }), {}));
@@ -48,7 +50,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
      loadRecords();
    }, [category]);
 
-  const handleDelete = async (record) => {
+  const handleDelete = async (recordId) => {
     if (!confirm('Delete this record? Ammunition and firearm counts will be restored.')) return;
     try {
       const isOnline = navigator.onLine;
@@ -57,42 +59,117 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
         return;
       }
 
-      console.log(`[DELETE REFUND] Starting delete for record id: ${record.id} category: ${category}`);
+      console.log('[DELETE DEBUG] record from UI, recordId:', recordId);
+      console.log('[DELETE DEBUG] record category:', category);
 
-      // Call backend function for complete delete + refund
-      const result = await base44.functions.invoke('deleteSessionRecordWithRefund', {
-        sessionId: record.id,
-      });
-
-      if (!result.data.success) {
-        throw new Error(result.data.message || 'Refund failed');
+      if (!recordId) {
+        console.error('[DELETE DEBUG] recordId is missing or invalid');
+        alert('Error: Record ID is missing. Cannot delete.');
+        return;
       }
 
-      console.log(`[DELETE REFUND] success:`, result.data);
+      // Load fresh record from Base44 before any changes
+      let freshRecord;
+      try {
+        console.log('[DELETE DEBUG] loading fresh SessionRecord:', recordId);
+        freshRecord = await base44.entities.SessionRecord.get(recordId);
+        if (!freshRecord) {
+          console.error('[DELETE DEBUG] fresh record not found in Base44');
+          alert('Error: Record no longer exists in database.');
+          return;
+        }
+        console.log('[DELETE DEBUG] fresh SessionRecord:', freshRecord);
+      } catch (err) {
+        console.error('[DELETE DEBUG] fresh load failed:', err);
+        console.error('[DELETE DEBUG] fresh load error response:', err.response);
+        console.error('[DELETE DEBUG] fresh load error data:', err.response?.data);
+        alert('Error loading record from database: ' + err.message);
+        return;
+      }
 
-      // For clay shooting, also clean up stands/shots
-      if (category === 'clay_shooting') {
-        try {
-          await base44.functions.invoke('deleteClaySessionStands', { sessionId: record.id });
-        } catch (e) {
-          console.warn('⚠️ Warning: Could not delete clay stands/shots:', e.message);
-          // Non-fatal — session already deleted
+      // Check if already deleted
+      if (freshRecord.isDeleted === true || freshRecord.status === 'deleted') {
+        console.warn('[DELETE DEBUG] record already marked as deleted, removing from UI');
+        setRecords(records.filter((r) => r.id !== recordId));
+        return;
+      }
+
+      // Prevent double refund (idempotency check)
+      let refundResult = null;
+      if (freshRecord.ammoRefunded === true) {
+        console.warn('[DELETE DEBUG] record already refunded, skipping refund');
+      } else {
+        // Refund ammunition using fresh record
+        console.log('[DELETE DEBUG] refund start');
+        const { refundAmmoForRecord } = await import('@/lib/ammoUtils');
+        refundResult = await refundAmmoForRecord(freshRecord, freshRecord.category);
+        console.log('[DELETE DEBUG] refund result =', refundResult);
+
+        if (!refundResult.success) {
+          console.error('[DELETE DEBUG] refund failed:', refundResult.error);
+          alert('Ammunition refund failed. Record was not deleted.');
+          return;
         }
       }
 
-      // Reload records from database
-      const currentUser = await base44.auth.me();
-      const updatedRecords = await base44.entities.SessionRecord.filter({
-        created_by: currentUser.email,
-        category,
-        status: 'completed',
-      });
-      setRecords(updatedRecords);
+      // Soft delete the record (mark as deleted, do not hard delete)
+      console.log('[DELETE DEBUG] attempting SessionRecord.update (soft delete):', freshRecord.id);
+      try {
+        const now = new Date().toISOString();
+        await base44.entities.SessionRecord.update(freshRecord.id, {
+          isDeleted: true,
+          deletedAt: now,
+          status: 'deleted',
+          ammoRefunded: true,
+          ammoRefundedAt: now,
+        });
+        console.log('[DELETE DEBUG] soft delete (update) response = success');
+      } catch (updateErr) {
+        console.error('[DELETE DEBUG] delete failed full error:', updateErr);
+        console.error('[DELETE DEBUG] delete failed status:', updateErr.response?.status);
+        console.error('[DELETE DEBUG] delete failed data:', updateErr.response?.data);
+        console.error('[DELETE DEBUG] delete failed message:', updateErr.message);
+
+        // Rollback ammo refund if soft delete fails
+        if (refundResult?.success && freshRecord.ammoRefunded !== true) {
+          console.warn('[DELETE DEBUG] delete failed, rolling back ammo refund...');
+          try {
+            const { decrementAmmoStock } = await import('@/lib/ammoUtils');
+            // Re-decrement the stock to undo the refund
+            if (freshRecord.category === 'target_shooting' && freshRecord.rifles_used) {
+              const ammoTotals = {};
+              for (const rifle of freshRecord.rifles_used) {
+                if (rifle.ammunition_id && parseInt(rifle.rounds_fired) > 0) {
+                  ammoTotals[rifle.ammunition_id] = (ammoTotals[rifle.ammunition_id] || 0) + parseInt(rifle.rounds_fired);
+                }
+              }
+              for (const [ammoId, totalRounds] of Object.entries(ammoTotals)) {
+                await decrementAmmoStock(ammoId, totalRounds, 'target_shooting', recordId);
+              }
+            } else if (freshRecord.category === 'clay_shooting' && freshRecord.ammunition_id) {
+              await decrementAmmoStock(freshRecord.ammunition_id, parseInt(freshRecord.rounds_fired), 'clay_shooting', recordId);
+            } else if (freshRecord.category === 'deer_management' && freshRecord.ammunition_id) {
+              await decrementAmmoStock(freshRecord.ammunition_id, parseInt(freshRecord.total_count), 'deer_management', recordId);
+            }
+            console.log('[DELETE DEBUG] rollback complete');
+          } catch (rollbackErr) {
+            console.error('[DELETE DEBUG] rollback failed:', rollbackErr);
+            alert('⚠️ Delete failed and rollback encountered an error. Contact support.');
+            return;
+          }
+        }
+
+        alert('Error deleting record: ' + updateErr.message);
+        return;
+      }
+
+      // Delete succeeded — update local state
+      setRecords(records.filter((r) => r.id !== recordId));
 
       // Notify parent to refresh analytics + dashboard
       if (onRecordDeleted) onRecordDeleted();
     } catch (error) {
-      console.error('❌ DELETE ERROR:', error);
+      console.error('❌ [handleDelete] Unexpected error:', error);
       alert('Error deleting record: ' + error.message);
     }
   };
