@@ -32,10 +32,14 @@ const defaultCenter = {
 export default function DeerStalkingMap() {
   const { activeOuting, loading: outingLoading, startOuting, endOuting, endOutingWithData, updateGpsTrack } = useOuting();
   
-  // Debug logs - support both Vite env and fallback
-  const mapsKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || window?.GOOGLE_MAPS_API_KEY || '';
+  // Try multiple sources for Maps key: Vite build-time env, runtime window object, or component wrapper
+  const viteKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  const windowKey = window?.GOOGLE_MAPS_API_KEY;
+  const mapsKey = viteKey || windowKey || '';
+  
+  const keySource = viteKey ? 'vite' : windowKey ? 'window' : 'none';
   console.log('[MAP DEBUG] key exists:', !!mapsKey);
-  console.log('[MAP DEBUG] key source:', mapsKey ? (import.meta.env.VITE_GOOGLE_MAPS_API_KEY ? 'vite' : 'window') : 'none');
+  console.log('[MAP DEBUG] key source:', keySource);
   
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: mapsKey,
@@ -369,7 +373,15 @@ export default function DeerStalkingMap() {
   if (loading || outingLoading || !isLoaded) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-slate-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-3"></div>
+          <p className="text-white text-xs text-slate-400">
+            {!mapsKey ? 'Maps API key loading...' : 'Map initializing...'}
+          </p>
+          {!mapsKey && (
+            <p className="text-red-400 text-xs mt-2">⚠ Google Maps key not available</p>
+          )}
+        </div>
       </div>
     );
   }
