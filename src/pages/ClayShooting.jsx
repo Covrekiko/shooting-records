@@ -173,8 +173,7 @@ export default function ClayShooting() {
     return () => unsubscribe();
   }, [clubs]);
 
-  const handleCheckin = async (e) => {
-    e.preventDefault();
+  const handleCheckin = async () => {
     try {
       console.log('[CLAY CHECKIN DEBUG] clubs loaded =', clubs.length, clubs);
       console.log('[CLAY CHECKIN DEBUG] selected club_id =', checkinData.club_id);
