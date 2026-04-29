@@ -78,12 +78,24 @@ export default function ReloadingStockInventory() {
                         <h4 className="font-semibold text-foreground">{comp.name}</h4>
                         {type.value === 'brass' && (
                           <p className="text-xs font-semibold mt-1">
-                            {comp.is_used_brass
-                              ? <span className="text-amber-600 dark:text-amber-400">
-                                  Previously fired{comp.times_reloaded > 0 ? ` — ${comp.times_reloaded}x reloaded` : ''}
-                                </span>
-                              : <span className="text-green-600 dark:text-green-400">New brass</span>
-                            }
+                            {(() => {
+                              // FIX 6: Support multiple used brass indicators
+                              const isUsedBrass = 
+                                comp.is_used_brass === true ||
+                                comp.condition === 'used' ||
+                                comp.brassCondition === 'used' ||
+                                comp.isPreviouslyFired === true ||
+                                (comp.times_reloaded || 0) > 0;
+
+                              if (isUsedBrass) {
+                                return (
+                                  <span className="text-amber-600 dark:text-amber-400">
+                                    Used brass / Previously fired{comp.times_reloaded > 0 ? ` — ${comp.times_reloaded}x reloaded` : ''}
+                                  </span>
+                                );
+                              }
+                              return <span className="text-green-600 dark:text-green-400">New brass</span>;
+                            })()}
                           </p>
                         )}
                         <p className="text-xs text-muted-foreground mt-1">{comp.notes || 'No notes'}</p>

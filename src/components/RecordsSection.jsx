@@ -48,7 +48,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
      loadRecords();
    }, [category]);
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (record) => {
     if (!confirm('Delete this record? Ammunition and firearm counts will be restored.')) return;
     try {
       const isOnline = navigator.onLine;
@@ -56,31 +56,23 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
         if (!confirm('You are offline. Deleting now will remove the record locally but ammunition stock cannot be restored until you are back online. Continue?')) return;
       }
 
-      console.log(`[AMMO DELETE DEBUG] Starting delete for record id: ${id} category: ${category}`);
+      console.log(`[AMMO DELETE DEBUG] Starting delete for record id: ${record.id} category: ${category}`);
 
-      // Use the backend function to restore all stock reliably (online only)
+      // Use the refundAmmoForRecord helper to restore stock
       if (isOnline) {
-        const restoreResponse = await base44.functions.invoke('restoreSessionStock', { sessionId: id });
-        console.log(`[AMMO DELETE DEBUG] restoreSessionStock response:`, restoreResponse?.data);
-
-        // Check for backend errors — invoke does NOT throw on 4xx/5xx, it returns the response
-        if (restoreResponse?.data?.error) {
-          throw new Error('Stock restore failed: ' + restoreResponse.data.error);
+        const { refundAmmoForRecord } = await import('@/lib/ammoUtils');
+        const refundResult = await refundAmmoForRecord(record, category);
+        console.log(`[AMMO DELETE DEBUG] ammunition refund: success=${refundResult.success} refunded=${refundResult.refunded} rounds`);
+        
+        if (!refundResult.success) {
+          throw new Error('Ammunition refund failed: ' + refundResult.error);
         }
-
-        const restorations = restoreResponse?.data?.restorations || [];
-        console.log(`[AMMO DELETE DEBUG] inventory refresh triggered: true, restorations: ${restorations.length}`);
-        restorations.forEach(r => {
-          if (r.type === 'ammo') {
-            console.log(`[AMMO DELETE DEBUG] ammo stock item id: ${r.id} refund quantity: ${r.qty} stock after: ${r.new_stock} stock update success: true`);
-          }
-        });
       }
 
       // For clay shooting, delete all related stands and shots
       if (category === 'clay_shooting' && isOnline) {
         try {
-          await base44.functions.invoke('deleteClaySessionStands', { sessionId: id });
+          await base44.functions.invoke('deleteClaySessionStands', { sessionId: record.id });
         } catch (e) {
           console.warn('⚠️ Warning: Could not delete clay stands/shots via backend:', e.message);
           // Continue with session deletion anyway
@@ -88,7 +80,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
       }
 
       // Delete the record from the database
-      await base44.entities.SessionRecord.delete(id);
+      await base44.entities.SessionRecord.delete(record.id);
       console.log(`[AMMO DELETE DEBUG] record deleted successfully`);
 
       // Reload records from database

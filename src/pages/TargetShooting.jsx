@@ -10,7 +10,7 @@ import RecordsSection from '@/components/RecordsSection';
 import { Plus, Map, Crosshair, ScanLine, Microscope, Calculator } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import BallisticCalculator from '@/components/target-analysis/BallisticCalculator';
-import { decrementAmmoStock } from '@/lib/ammoUtils';
+import { decrementAmmoStock, refundAmmoForRecord, getSelectableAmmunition } from '@/lib/ammoUtils';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
@@ -619,32 +619,24 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                   >
                     <option value="">Select ammunition (required)</option>
                     {(() => {
-                      const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
-                      const filtered = ammunition.filter(a => {
-                        if (!selectedRifle || !selectedRifle.caliber || !a.caliber) return true;
-                        const rc = selectedRifle.caliber.toLowerCase().trim();
-                        const ac = a.caliber.toLowerCase().trim();
-                        return ac === rc || ac.startsWith(rc) || rc.startsWith(ac);
-                      });
-                      console.log(`[AMMO SELECTOR DEBUG] selector = Target Checkout`);
-                      console.log(`[AMMO SELECTOR DEBUG] total global ammo items = ${ammunition.length}`);
-                      console.log(`[AMMO SELECTOR DEBUG] factory items = ${ammunition.filter(a => a.brand !== 'Reloaded').length}`);
-                      console.log(`[AMMO SELECTOR DEBUG] reloaded items = ${ammunition.filter(a => a.brand === 'Reloaded').length}`);
-                      console.log(`[AMMO SELECTOR DEBUG] caliber filter = ${selectedRifle?.caliber || 'none'}`);
-                      console.log(`[AMMO SELECTOR DEBUG] visible items = ${filtered.length}`);
-                      return null;
+                       const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
+                       const filtered = selectedRifle ? getSelectableAmmunition(ammunition, selectedRifle.caliber) : ammunition;
+                       console.log(`[AMMO SELECTOR DEBUG] selector = Target Checkout`);
+                       console.log(`[AMMO SELECTOR DEBUG] total global ammo items = ${ammunition.length}`);
+                       console.log(`[AMMO SELECTOR DEBUG] factory items = ${ammunition.filter(a => a.brand !== 'Reloaded').length}`);
+                       console.log(`[AMMO SELECTOR DEBUG] reloaded items = ${ammunition.filter(a => a.brand === 'Reloaded').length}`);
+                       console.log(`[AMMO SELECTOR DEBUG] caliber filter = ${selectedRifle?.caliber || 'none'}`);
+                       console.log(`[AMMO SELECTOR DEBUG] visible items = ${filtered.length}`);
+                       return null;
                     })()}
-                    {ammunition.filter(a => {
-                      const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
-                      if (!selectedRifle || !selectedRifle.caliber || !a.caliber) return true;
-                      const rc = selectedRifle.caliber.toLowerCase().trim();
-                      const ac = a.caliber.toLowerCase().trim();
-                      return ac === rc || ac.startsWith(rc) || rc.startsWith(ac);
-                    }).map(a => (
-                       <option key={a.id} value={a.id}>
-                         {`${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`}
-                       </option>
-                     ))}
+                    {(() => {
+                       const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
+                       return getSelectableAmmunition(ammunition, selectedRifle?.caliber || '').map(a => (
+                        <option key={a.id} value={a.id}>
+                          {`${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`}
+                        </option>
+                      ));
+                    })()}
                     </select>
                 ) : (
                   <p className="text-xs text-muted-foreground text-xs">Select a rifle first</p>

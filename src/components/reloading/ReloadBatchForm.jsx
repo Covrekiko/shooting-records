@@ -259,7 +259,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
         console.log(`[RELOAD DEBUG] ammoStockItemId = ${batchEntry.id}`);
         console.log(`[RELOAD DEBUG] stock quantity added = ${cartridgesLoaded} (topped up)`);
       } else {
-        // New entry for this batch
+        // New entry for this batch — with stable linking fields (FIX 4)
         const newAmmo = await base44.entities.Ammunition.create({
           brand: batchBrand,
           caliber: formData.caliber,
@@ -271,6 +271,12 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           date_purchased: formData.date,
           low_stock_threshold: 10,
           notes: batchNotes,
+          // FIX 4: Stable fields for reliable linking
+          ammo_type: 'reloaded',
+          source_type: 'reload_batch',
+          source_id: createdSession.id,
+          reload_session_id: createdSession.id,
+          batch_number: formData.batch_number,
         });
         console.log(`[RELOAD DEBUG] ammoStockItemId = ${newAmmo.id}`);
         console.log(`[RELOAD DEBUG] stock quantity added = ${cartridgesLoaded}`);

@@ -44,15 +44,19 @@ export default function ReloadingManagement() {
       const session = sessions.find(s => s.id === id);
       const user = await base44.auth.me();
 
-      // ── STEP 1: Find linked ammo stock item ──────────────────────────
+      // ── STEP 1: Find linked ammo stock item (FIX 4) ─────────────────
       const ammoList = await base44.entities.Ammunition.filter({ created_by: user.email });
-      let matchedAmmo = ammoList.find(a => a.notes && a.notes.includes(`reload_batch:${id}`));
+      // Try stable fields first, then fallback to notes parsing
+      let matchedAmmo = ammoList.find(a => a.source_id === id || a.reload_session_id === id);
+      if (!matchedAmmo) {
+       matchedAmmo = ammoList.find(a => a.notes && a.notes.includes(`reload_batch:${id}`));
+      }
       if (!matchedAmmo && session) {
-        matchedAmmo = ammoList.find(a =>
-          (a.brand === 'Reloaded') &&
-          a.caliber === session.caliber &&
-          a.notes && a.notes.includes(session.batch_number)
-        );
+       matchedAmmo = ammoList.find(a =>
+         (a.brand === 'Reloaded') &&
+         a.caliber === session.caliber &&
+         a.notes && a.notes.includes(session.batch_number)
+       );
       }
 
       console.log(`[RELOAD DELETE DEBUG] batchId = ${id}`);
@@ -98,33 +102,34 @@ export default function ReloadingManagement() {
               ? allComponents.find(c => c.id === comp.component_id)
               : allComponents.find(c => c.component_type === comp.type && c.name === comp.name);
 
-            // ── PRIMER DEBUG ─────────────────────────────────────────────
-            if (comp.type === 'primer') {
+            // ── PRIMER DEBUG (FIX 5) ────────────────────────────────────
+            const normalizedType = comp.type?.toLowerCase()?.replace('primers', 'primer') || '';
+            const isPrimer = normalizedType === 'primer';
+
+            if (isPrimer) {
               console.log(`[PRIMER REFUND DEBUG] reloadBatchId = ${id}`);
               console.log(`[PRIMER REFUND DEBUG] primerId = ${comp.component_id || 'none (old session)'}`);
-              console.log(`[PRIMER REFUND DEBUG] primersUsed = ${comp.quantity_used}`);
-              console.log(`[PRIMER REFUND DEBUG] primerStockBefore = ${component?.quantity_remaining ?? 'component not found'}`);
-              console.log(`[PRIMER REFUND DEBUG] refundQuantity = ${comp.quantity_used || 0}`);
+              console.log(`[PRIMER REFUND DEBUG] primersUsed = ${Number(comp.quantity_used || 0)}`);
+              console.log(`[PRIMER REFUND DEBUG] stockBefore = ${component?.quantity_remaining ?? 'component not found'}`);
             }
 
             if (component) {
               let newRemaining;
-              if (comp.type === 'powder') {
-                const usedInGrams = parseFloat(comp.quantity_used) * (unitConversions[comp.unit] || 1);
+              if (normalizedType === 'powder') {
+                const usedInGrams = parseFloat(comp.quantity_used || 0) * (unitConversions[comp.unit] || 1);
                 newRemaining = component.quantity_remaining + usedInGrams / (unitConversions[component.unit] || 1);
               } else {
                 newRemaining = component.quantity_remaining + Number(comp.quantity_used || 0);
               }
               await base44.entities.ReloadingComponent.update(component.id, { quantity_remaining: newRemaining });
 
-              if (comp.type === 'primer') {
-                console.log(`[PRIMER REFUND DEBUG] primerStockAfter = ${newRemaining}`);
-                console.log(`[PRIMER REFUND DEBUG] primerRefundSuccess = true`);
-                console.log(`[PRIMER REFUND DEBUG] componentInventoryRefreshTriggered = true`);
+              if (isPrimer) {
+                console.log(`[PRIMER REFUND DEBUG] stockAfter = ${newRemaining}`);
+                console.log(`[PRIMER REFUND DEBUG] success = true`);
               }
-            } else if (comp.type === 'primer') {
-              console.warn(`[PRIMER REFUND DEBUG] primerRefundSuccess = false — component not found in DB`);
-              console.warn(`[PRIMER REFUND DEBUG] comp.component_id = ${comp.component_id}, comp.name = "${comp.name}"`);
+            } else if (isPrimer) {
+              console.warn(`[PRIMER REFUND DEBUG] success = false — component not found in DB`);
+              console.warn(`[PRIMER REFUND DEBUG] component_id = ${comp.component_id}, name = "${comp.name}"`);
             }
           } catch (compError) {
             console.warn('Could not restore component:', comp.type, comp.name, compError);

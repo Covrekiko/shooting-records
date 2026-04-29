@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { base44 } from '@/api/base44Client';
+import { getSelectableAmmunition } from '@/lib/ammoUtils';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
 const PEST_SPECIES = ['Fox', 'Rabbit', 'Grey Squirrel', 'Brown Rat', 'Mink', 'Stoat', 'Weasel', 'Mole', 'Pigeon (Feral)', 'Pigeon (Wood)', 'Crow', 'Magpie', 'Jackdaw', 'Jay', 'Rook', 'Canada Goose', 'Other (Pest)'];
@@ -80,12 +81,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
 
   const selectedRifle = rifles.find(r => r.id === formData.rifle_id);
   const filteredAmmo = selectedRifle && selectedRifle.caliber
-    ? ammunition.filter(a => {
-        if (!a.caliber) return true;
-        const rc = selectedRifle.caliber.toLowerCase().trim();
-        const ac = a.caliber.toLowerCase().trim();
-        return ac === rc || ac.startsWith(rc) || rc.startsWith(ac);
-      })
+    ? getSelectableAmmunition(ammunition, selectedRifle.caliber)
     : ammunition;
 
   const deerEntries = formData.species_list.filter(s => DEER_SPECIES.includes(s.species));

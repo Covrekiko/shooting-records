@@ -36,7 +36,7 @@ export default function RecordsList({ records, category, onDelete, onView, empty
               )}
               {onDelete && (
                 <button
-                  onClick={() => onDelete(record.id)}
+                  onClick={() => onDelete(record)}
                   className="p-2 hover:bg-destructive/10 text-destructive rounded transition-colors"
                   title="Delete record"
                 >
