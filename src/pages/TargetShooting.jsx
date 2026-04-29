@@ -620,7 +620,12 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                     <option value="">Select ammunition (required)</option>
                     {(() => {
                       const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
-                      const filtered = ammunition.filter(a => !selectedRifle || !selectedRifle.caliber || a.caliber === selectedRifle.caliber);
+                      const filtered = ammunition.filter(a => {
+                        if (!selectedRifle || !selectedRifle.caliber || !a.caliber) return true;
+                        const rc = selectedRifle.caliber.toLowerCase().trim();
+                        const ac = a.caliber.toLowerCase().trim();
+                        return ac === rc || ac.startsWith(rc) || rc.startsWith(ac);
+                      });
                       console.log(`[AMMO SELECTOR DEBUG] selector = Target Checkout`);
                       console.log(`[AMMO SELECTOR DEBUG] total global ammo items = ${ammunition.length}`);
                       console.log(`[AMMO SELECTOR DEBUG] factory items = ${ammunition.filter(a => a.brand !== 'Reloaded').length}`);
@@ -631,7 +636,10 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                     })()}
                     {ammunition.filter(a => {
                       const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
-                      return !selectedRifle || !selectedRifle.caliber || a.caliber === selectedRifle.caliber;
+                      if (!selectedRifle || !selectedRifle.caliber || !a.caliber) return true;
+                      const rc = selectedRifle.caliber.toLowerCase().trim();
+                      const ac = a.caliber.toLowerCase().trim();
+                      return ac === rc || ac.startsWith(rc) || rc.startsWith(ac);
                     }).map(a => (
                        <option key={a.id} value={a.id}>
                          {`${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`}

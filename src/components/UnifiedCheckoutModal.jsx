@@ -79,8 +79,13 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   const labelCls = 'text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block';
 
   const selectedRifle = rifles.find(r => r.id === formData.rifle_id);
-  const filteredAmmo = selectedRifle
-    ? ammunition.filter(a => a.caliber && selectedRifle.caliber && a.caliber.toLowerCase() === selectedRifle.caliber.toLowerCase())
+  const filteredAmmo = selectedRifle && selectedRifle.caliber
+    ? ammunition.filter(a => {
+        if (!a.caliber) return true;
+        const rc = selectedRifle.caliber.toLowerCase().trim();
+        const ac = a.caliber.toLowerCase().trim();
+        return ac === rc || ac.startsWith(rc) || rc.startsWith(ac);
+      })
     : ammunition;
 
   const deerEntries = formData.species_list.filter(s => DEER_SPECIES.includes(s.species));
