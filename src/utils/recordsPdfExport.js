@@ -662,6 +662,7 @@ function renderTargetShootingSection(doc, records, startY, pageWidth, pageHeight
            try {
              const photoUrl = group.marked_photo_url || group.ai_marked_photo_url || group.photo_url;
              doc.addImage(photoUrl, 'JPEG', photoX, yPosition, photoWidth, photoHeight);
+             doc.link(photoX, yPosition, photoWidth, photoHeight, { url: photoUrl });
              yPosition += photoHeight + 4;
            } catch (e) {
              doc.setDrawColor(200, 200, 200);
