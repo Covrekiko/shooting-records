@@ -133,6 +133,90 @@ export async function refundAmmoForRecord(record, recordType) {
 }
 
 /**
+ * ARMORY COUNTER REVERSAL: Reverse firearm counters when deleting a record
+ * Called AFTER ammo refund to maintain data consistency
+ * Handles Target (multi-rifle), Clay (single shotgun), and Deer (single rifle)
+ */
+export async function reverseArmoryCountersForRecord(record, recordCategory) {
+  if (!record || !record.id) return { success: true };
+  
+  // Idempotency check: if already reversed, skip
+  if (record.armoryCountersReversed === true || record.countersReversedAt) {
+    console.log(`[ARMORY REVERSE DEBUG] recordId: ${record.id} already reversed, skipping`);
+    return { success: true };
+  }
+
+  try {
+    if (recordCategory === 'target_shooting' && record.rifles_used?.length > 0) {
+      // TARGET SHOOTING: multiple rifles, each with rounds_fired
+      for (const rifleEntry of record.rifles_used) {
+        if (!rifleEntry.rifle_id || parseInt(rifleEntry.rounds_fired) <= 0) continue;
+
+        const roundsToSubtract = parseInt(rifleEntry.rounds_fired) || 0;
+        const rifle = await base44.entities.Rifle.get(rifleEntry.rifle_id);
+        
+        if (!rifle) {
+          console.warn(`[ARMORY REVERSE DEBUG] rifle not found: ${rifleEntry.rifle_id}`);
+          continue;
+        }
+
+        const totalBefore = rifle.total_rounds_fired || 0;
+        const totalAfter = Math.max(0, totalBefore - roundsToSubtract);
+        const sinceCleaningBefore = rifle.rounds_at_last_cleaning || 0;
+        const sinceCleaningAfter = Math.max(0, sinceCleaningBefore - roundsToSubtract);
+
+        console.log(`[ARMORY REVERSE DEBUG] recordId: ${record.id} category: target_shooting rifleId: ${rifleEntry.rifle_id} roundsToSubtract: ${roundsToSubtract} totalBefore: ${totalBefore} totalAfter: ${totalAfter} sinceCleaningBefore: ${sinceCleaningBefore} sinceCleaningAfter: ${sinceCleaningAfter}`);
+
+        await base44.entities.Rifle.update(rifleEntry.rifle_id, {
+          total_rounds_fired: totalAfter,
+          rounds_at_last_cleaning: sinceCleaningAfter,
+        });
+      }
+    } else if (recordCategory === 'clay_shooting' && record.shotgun_id) {
+      // CLAY SHOOTING: single shotgun with cartridges
+      const shotgun = await base44.entities.Shotgun.get(record.shotgun_id);
+      if (shotgun) {
+        const roundsToSubtract = parseInt(record.rounds_fired) || 0;
+        const totalBefore = shotgun.total_cartridges_fired || 0;
+        const totalAfter = Math.max(0, totalBefore - roundsToSubtract);
+        const sinceCleaningBefore = shotgun.cartridges_at_last_cleaning || 0;
+        const sinceCleaningAfter = Math.max(0, sinceCleaningBefore - roundsToSubtract);
+
+        console.log(`[ARMORY REVERSE DEBUG] recordId: ${record.id} category: clay_shooting shotgunId: ${record.shotgun_id} roundsToSubtract: ${roundsToSubtract} totalBefore: ${totalBefore} totalAfter: ${totalAfter} sinceCleaningBefore: ${sinceCleaningBefore} sinceCleaningAfter: ${sinceCleaningAfter}`);
+
+        await base44.entities.Shotgun.update(record.shotgun_id, {
+          total_cartridges_fired: totalAfter,
+          cartridges_at_last_cleaning: sinceCleaningAfter,
+        });
+      }
+    } else if (recordCategory === 'deer_management' && record.rifle_id) {
+      // DEER MANAGEMENT: single rifle with shot count
+      const rifle = await base44.entities.Rifle.get(record.rifle_id);
+      if (rifle) {
+        const roundsToSubtract = parseInt(record.total_count || record.rounds_fired || 0);
+        const totalBefore = rifle.total_rounds_fired || 0;
+        const totalAfter = Math.max(0, totalBefore - roundsToSubtract);
+        const sinceCleaningBefore = rifle.rounds_at_last_cleaning || 0;
+        const sinceCleaningAfter = Math.max(0, sinceCleaningBefore - roundsToSubtract);
+
+        console.log(`[ARMORY REVERSE DEBUG] recordId: ${record.id} category: deer_management rifleId: ${record.rifle_id} roundsToSubtract: ${roundsToSubtract} totalBefore: ${totalBefore} totalAfter: ${totalAfter} sinceCleaningBefore: ${sinceCleaningBefore} sinceCleaningAfter: ${sinceCleaningAfter}`);
+
+        await base44.entities.Rifle.update(record.rifle_id, {
+          total_rounds_fired: totalAfter,
+          rounds_at_last_cleaning: sinceCleaningAfter,
+        });
+      }
+    }
+
+    console.log(`[ARMORY REVERSE DEBUG] recordId: ${record.id} success: true`);
+    return { success: true };
+  } catch (error) {
+    console.error(`[ARMORY REVERSE ERROR] recordId: ${record.id} category: ${recordCategory} error: ${error.message}`);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
  * FIX 3: Normalize and filter ammunition for selectors
  * Handles factory ammo and reloaded ammo with calibre matching
  */
