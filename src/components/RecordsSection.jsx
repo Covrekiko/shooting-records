@@ -56,9 +56,25 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
         if (!confirm('You are offline. Deleting now will remove the record locally but ammunition stock cannot be restored until you are back online. Continue?')) return;
       }
 
+      console.log(`[AMMO DELETE DEBUG] Starting delete for record id: ${id} category: ${category}`);
+
       // Use the backend function to restore all stock reliably (online only)
       if (isOnline) {
-        await base44.functions.invoke('restoreSessionStock', { sessionId: id });
+        const restoreResponse = await base44.functions.invoke('restoreSessionStock', { sessionId: id });
+        console.log(`[AMMO DELETE DEBUG] restoreSessionStock response:`, restoreResponse?.data);
+
+        // Check for backend errors — invoke does NOT throw on 4xx/5xx, it returns the response
+        if (restoreResponse?.data?.error) {
+          throw new Error('Stock restore failed: ' + restoreResponse.data.error);
+        }
+
+        const restorations = restoreResponse?.data?.restorations || [];
+        console.log(`[AMMO DELETE DEBUG] inventory refresh triggered: true, restorations: ${restorations.length}`);
+        restorations.forEach(r => {
+          if (r.type === 'ammo') {
+            console.log(`[AMMO DELETE DEBUG] ammo stock item id: ${r.id} refund quantity: ${r.qty} stock after: ${r.new_stock} stock update success: true`);
+          }
+        });
       }
 
       // For clay shooting, delete all related stands and shots
@@ -73,6 +89,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
 
       // Delete the record from the database
       await base44.entities.SessionRecord.delete(id);
+      console.log(`[AMMO DELETE DEBUG] record deleted successfully`);
 
       // Reload records from database
       const currentUser = await base44.auth.me();

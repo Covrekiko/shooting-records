@@ -248,6 +248,10 @@ export default function TargetShooting() {
       // Prepare data
       const photoUrls = (formData.photos || []).map(photo => typeof photo === 'string' ? photo : photo.url);
 
+      // Compute top-level summary fields for reliable restore on delete
+      const allAmmoIds = [...new Set((formData.rifles_used || []).map(r => r.ammunition_id).filter(Boolean))];
+      const totalRoundsFired = (formData.rifles_used || []).reduce((sum, r) => sum + (parseInt(r.rounds_fired) || 0), 0);
+
       // Save to database with retry logic
       let updateSuccess = false;
       let updateError = null;
@@ -257,6 +261,9 @@ export default function TargetShooting() {
             status: 'completed',
             checkout_time: formData.checkout_time,
             rifles_used: formData.rifles_used,
+            // Top-level summary for easy restore — first ammo ID used
+            ammunition_id: allAmmoIds[0] || null,
+            rounds_fired: totalRoundsFired,
             notes: formData.notes,
             photos: photoUrls,
             active_checkin: false,
