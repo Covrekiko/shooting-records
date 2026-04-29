@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Trash2, Eye, X } from 'lucide-react';
+import { Trash2, Eye, X, Download, Loader } from 'lucide-react';
 import { format } from 'date-fns';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+import { getRecordsPdfBlob } from '@/utils/recordsPdfExport';
 
-export default function RecordsSection({ category, title, emptyMessage = 'No records yet', onRecordDeleted }) {
+export default function RecordsSection({ category, title, emptyMessage = 'No records yet', onRecordDeleted, showTargetAnalysis = false }) {
    const [records, setRecords] = useState([]);
    const [loading, setLoading] = useState(true);
    const [user, setUser] = useState(null);
@@ -14,6 +15,8 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
    const [shotguns, setShotguns] = useState({});
    const [clubs, setClubs] = useState({});
    const [locations, setLocations] = useState({});
+   const [previewingPdf, setPreviewingPdf] = useState(null);
+   const [generatingPdf, setGeneratingPdf] = useState(null);
 
    useEffect(() => {
      async function loadRecords() {
@@ -50,8 +53,44 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
      loadRecords();
    }, [category]);
 
+  const handlePdfPreview = async (record) => {
+    try {
+      setGeneratingPdf(record.id);
+      const blob = await getRecordsPdfBlob([record], null, rifles, clubs, shotguns);
+      const url = URL.createObjectURL(blob);
+      setPreviewingPdf({ record, url });
+      console.log(`[TARGET PDF DEBUG] pdfPreviewGenerated = true`);
+    } catch (error) {
+      console.error('Error generating PDF preview:', error);
+      alert('Failed to generate PDF preview');
+    } finally {
+      setGeneratingPdf(null);
+    }
+  };
+
+  const handlePdfDownload = async (record) => {
+    try {
+      setGeneratingPdf(record.id);
+      const blob = await getRecordsPdfBlob([record], null, rifles, clubs, shotguns);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `target-shooting-${record.date}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      console.log(`[TARGET PDF DEBUG] pdfDownloadGenerated = true`);
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+      alert('Failed to download PDF');
+    } finally {
+      setGeneratingPdf(null);
+    }
+  };
+
   const handleDelete = async (recordId) => {
-    if (!confirm('Delete this record? Ammunition and firearm counts will be restored.')) return;
+     if (!confirm('Delete this record? Ammunition and firearm counts will be restored.')) return;
     try {
       const isOnline = navigator.onLine;
       if (!isOnline) {
@@ -198,21 +237,41 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
               {record.notes && <p className="text-xs text-foreground mt-2 line-clamp-2">{record.notes}</p>}
             </div>
             <div className="flex gap-2 ml-3 flex-shrink-0">
-              <button
-                onClick={() => setViewingRecord(record)}
-                className="p-2 hover:bg-secondary rounded transition-colors"
-                title="View details"
-              >
-                <Eye className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => handleDelete(record.id)}
-                className="p-2 hover:bg-destructive/10 text-destructive rounded transition-colors"
-                title="Delete record"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
+               <button
+                 onClick={() => setViewingRecord(record)}
+                 className="p-2 hover:bg-secondary rounded transition-colors"
+                 title="View details"
+               >
+                 <Eye className="w-4 h-4" />
+               </button>
+               {showTargetAnalysis && category === 'target_shooting' && (
+                 <>
+                   <button
+                     onClick={() => handlePdfPreview(record)}
+                     disabled={generatingPdf === record.id}
+                     className="p-2 hover:bg-secondary rounded transition-colors disabled:opacity-50"
+                     title="PDF Preview"
+                   >
+                     {generatingPdf === record.id ? <Loader className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                   </button>
+                   <button
+                     onClick={() => handlePdfDownload(record)}
+                     disabled={generatingPdf === record.id}
+                     className="p-2 hover:bg-secondary rounded transition-colors disabled:opacity-50"
+                     title="Download PDF"
+                   >
+                     {generatingPdf === record.id ? <Loader className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                   </button>
+                 </>
+               )}
+               <button
+                 onClick={() => handleDelete(record.id)}
+                 className="p-2 hover:bg-destructive/10 text-destructive rounded transition-colors"
+                 title="Delete record"
+               >
+                 <Trash2 className="w-4 h-4" />
+               </button>
+             </div>
           </div>
         </div>
       ))}
@@ -227,6 +286,17 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
            clubs={clubs}
            locations={locations}
            category={category}
+           showTargetAnalysis={showTargetAnalysis}
+         />,
+         document.body
+       )}
+
+       {/* PDF Preview Modal */}
+       {previewingPdf && createPortal(
+         <PdfPreviewModal 
+           pdfUrl={previewingPdf.url}
+           onClose={() => { setPreviewingPdf(null); URL.revokeObjectURL(previewingPdf.url); }}
+           record={previewingPdf.record}
          />,
          document.body
        )}
@@ -234,21 +304,33 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
   );
 }
 
-function SessionReportModal({ record, onClose, rifles, shotguns, clubs, locations, category }) {
+function SessionReportModal({ record, onClose, rifles, shotguns, clubs, locations, category, showTargetAnalysis = false }) {
    const [currentRecord, setCurrentRecord] = useState(record);
+   const [targetGroups, setTargetGroups] = useState([]);
+   const [loadingGroups, setLoadingGroups] = useState(false);
    useBodyScrollLock(true);
 
    useEffect(() => {
-     const refreshRecord = async () => {
-       try {
-         const updatedRecord = await base44.entities.SessionRecord.get(record.id);
-         setCurrentRecord(updatedRecord);
-       } catch (error) {
-         console.error('Error refreshing record:', error);
-       }
-     };
-     refreshRecord();
-   }, [record.id]);
+      const refreshRecord = async () => {
+        try {
+          const updatedRecord = await base44.entities.SessionRecord.get(record.id);
+          setCurrentRecord(updatedRecord);
+
+          // Load target groups if target analysis should be shown
+          if (showTargetAnalysis && category === 'target_shooting') {
+            setLoadingGroups(true);
+            const groups = await base44.entities.TargetGroup.filter({ session_id: record.id });
+            setTargetGroups(groups.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)));
+            console.log(`[TARGET ANALYSIS LINK DEBUG] activeSessionId = ${record.id}`);
+            console.log(`[TARGET ANALYSIS LINK DEBUG] analysesFound = ${groups.length}`);
+            setLoadingGroups(false);
+          }
+        } catch (error) {
+          console.error('Error refreshing record:', error);
+        }
+      };
+      refreshRecord();
+    }, [record.id, showTargetAnalysis, category]);
 
    const getRifleName = (rifleId) => rifles[rifleId]?.name || 'Unknown Rifle';
    const getRifleDetails = (rifleId) => rifles[rifleId];
@@ -559,6 +641,108 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
           </>
         )}
 
+        {/* Target Analysis Section — ONLY in Recent Sessions view, not Records page */}
+        {showTargetAnalysis && category === 'target_shooting' && (
+          <div className="mb-6 pb-4 border-b border-border">
+            <h3 className="font-bold text-lg mb-4 text-primary">Target Analysis</h3>
+            {loadingGroups ? (
+              <div className="flex justify-center py-4">
+                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : targetGroups.length === 0 ? (
+              <div className="text-center py-4 text-muted-foreground text-sm">
+                No target analysis added
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {targetGroups.map((group, idx) => (
+                  <div key={group.id} className="bg-secondary/30 p-4 rounded-lg border border-border">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="text-xs font-bold text-muted-foreground uppercase">Group {idx + 1}</label>
+                        <p className="font-semibold text-base">{group.group_name || `Group ${idx + 1}`}</p>
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-muted-foreground uppercase">Shots</label>
+                        <p className="font-semibold text-base">{group.number_of_shots || '—'}</p>
+                      </div>
+                      {group.distance_override && (
+                        <div>
+                          <label className="text-xs font-bold text-muted-foreground uppercase">Distance</label>
+                          <p className="font-semibold text-base">{group.distance_override}m</p>
+                        </div>
+                      )}
+                      {group.group_size_moa && (
+                        <div>
+                          <label className="text-xs font-bold text-muted-foreground uppercase">Group Size (MOA)</label>
+                          <p className="font-semibold text-base">{group.group_size_moa.toFixed(2)}</p>
+                        </div>
+                      )}
+                      {group.group_size_mm && (
+                        <div>
+                          <label className="text-xs font-bold text-muted-foreground uppercase">Group Size (mm)</label>
+                          <p className="font-semibold text-base">{group.group_size_mm}</p>
+                        </div>
+                      )}
+                      {group.group_size_mrad && (
+                        <div>
+                          <label className="text-xs font-bold text-muted-foreground uppercase">Group Size (MRAD)</label>
+                          <p className="font-semibold text-base">{group.group_size_mrad.toFixed(3)}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {(group.point_of_impact_x || group.point_of_impact_y) && (
+                      <div className="mb-3 pb-3 border-b border-border">
+                        <label className="text-xs font-bold text-muted-foreground uppercase">POI (Point of Impact)</label>
+                        <p className="text-sm">
+                          {group.point_of_impact_x ? `X: ${group.point_of_impact_x.toFixed(1)}mm ` : ''}
+                          {group.point_of_impact_y ? `Y: ${group.point_of_impact_y.toFixed(1)}mm` : ''}
+                        </p>
+                      </div>
+                    )}
+
+                    {(group.clicks_up_down || group.clicks_left_right || group.click_value) && (
+                      <div className="mb-3 pb-3 border-b border-border">
+                        <label className="text-xs font-bold text-muted-foreground uppercase">Turret Clicks</label>
+                        <p className="text-sm">
+                          {group.clicks_up_down ? `Elevation: ${group.clicks_up_down} ` : ''}
+                          {group.clicks_left_right ? `Windage: ${group.clicks_left_right} ` : ''}
+                          {group.click_value ? `(${group.click_value})` : ''}
+                        </p>
+                      </div>
+                    )}
+
+                    {(group.photo_url || group.marked_photo_url || group.ai_marked_photo_url) && (
+                      <div className="mb-3">
+                        <label className="text-xs font-bold text-muted-foreground uppercase block mb-2">Target Photo</label>
+                        <div className="flex gap-2 flex-wrap">
+                          {group.marked_photo_url && (
+                            <img src={group.marked_photo_url} alt="marked target" className="h-24 w-24 object-cover rounded-lg border border-border" onError={(e) => e.target.style.display = 'none'} />
+                          )}
+                          {group.ai_marked_photo_url && (
+                            <img src={group.ai_marked_photo_url} alt="ai analysis" className="h-24 w-24 object-cover rounded-lg border border-border" onError={(e) => e.target.style.display = 'none'} />
+                          )}
+                          {group.photo_url && !group.marked_photo_url && !group.ai_marked_photo_url && (
+                            <img src={group.photo_url} alt="target" className="h-24 w-24 object-cover rounded-lg border border-border" onError={(e) => e.target.style.display = 'none'} />
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {group.notes && (
+                      <div className="bg-secondary/20 p-2 rounded text-sm">
+                        <label className="text-xs font-bold text-muted-foreground block mb-1">Notes</label>
+                        <p>{group.notes}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Notes Section */}
         {currentRecord.notes && (
           <div className="mb-6 pb-4 border-b border-border">
@@ -586,6 +770,44 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
           </button>
           </div>
       </div>
-    </div>
-  );
-}
+      </div>
+      );
+      }
+
+      function PdfPreviewModal({ pdfUrl, onClose, record }) {
+      const [loading, setLoading] = useState(true);
+      useBodyScrollLock(true);
+
+      return (
+      <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[50001]">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl border border-slate-200/70 dark:border-slate-700">
+        <div className="flex items-center justify-between p-4 border-b border-slate-200/70 dark:border-slate-700">
+          <h2 className="text-xl font-bold">PDF Preview</h2>
+          <button
+            onClick={onClose}
+            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+        <div className="flex-1 overflow-auto">
+          {loading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <iframe src={pdfUrl} className="w-full h-full border-0" onLoad={() => setLoading(false)} />
+          )}
+        </div>
+        <div className="p-4 border-t border-slate-200/70 dark:border-slate-700 flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 text-sm font-medium transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+      </div>
+      );
+      }

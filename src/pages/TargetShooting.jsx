@@ -402,9 +402,9 @@ export default function TargetShooting() {
         </div>
 
         <div className="mt-4">
-          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Sessions</p>
-          <RecordsSection category="target_shooting" title="Session Records" emptyMessage="No target shooting sessions recorded yet" />
-        </div>
+           <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Sessions</p>
+           <RecordsSection category="target_shooting" title="Session Records" emptyMessage="No target shooting sessions recorded yet" showTargetAnalysis={true} />
+         </div>
 
         {viewingTrack && <GpsPathViewer track={viewingTrack} onClose={() => setViewingTrack(null)} />}
       </main>
@@ -615,26 +615,12 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                     className={selectCls}
                   >
                     <option value="">Select ammunition (required)</option>
-                    {(() => {
-                       const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
-                       const filtered = selectedRifle ? getSelectableAmmunition(ammunition, selectedRifle.caliber) : ammunition;
-                       const reloadedCount = ammunition.filter(a => a.ammo_type === 'reloaded' || a.source_type === 'reload_batch' || a.reload_session_id).length;
-                       console.log(`[RELOADED AMMO DEBUG] selector = Target Checkout`);
-                       console.log(`[RELOADED AMMO DEBUG] total global ammo items = ${ammunition.length}`);
-                       console.log(`[RELOADED AMMO DEBUG] factory items = ${ammunition.filter(a => !a.ammo_type && !a.source_type).length}`);
-                       console.log(`[RELOADED AMMO DEBUG] reloaded items (ammo_type) = ${ammunition.filter(a => a.ammo_type === 'reloaded').length}`);
-                       console.log(`[RELOADED AMMO DEBUG] reloaded items (source_type) = ${ammunition.filter(a => a.source_type === 'reload_batch').length}`);
-                       console.log(`[RELOADED AMMO DEBUG] reloaded items (reload_session_id) = ${ammunition.filter(a => a.reload_session_id).length}`);
-                       console.log(`[RELOADED AMMO DEBUG] reloaded items (total) = ${reloadedCount}`);
-                       console.log(`[RELOADED AMMO DEBUG] caliber filter = ${selectedRifle?.caliber || 'none'}`);
-                       console.log(`[RELOADED AMMO DEBUG] visible items after filter = ${filtered.length}`);
-                       return null;
-                    })()}
+
                     {(() => {
                        const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
                        return getSelectableAmmunition(ammunition, selectedRifle?.caliber || '').map(a => (
                         <option key={a.id} value={a.id}>
-                          {`${a.brand}${a.ammo_type === 'reloaded' ? ' (Reloaded)' : ''}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`}
+                          {`${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.ammo_type === 'reloaded' ? ' [Reloaded]' : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`}
                         </option>
                       ));
                     })()}
