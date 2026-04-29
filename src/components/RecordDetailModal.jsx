@@ -151,9 +151,10 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
                       </div>
                     ) : null}
                   </div>
-                </div>
+                  </div>
+                  )}
 
-              {rec.recordType === 'target' && targetGroups.length > 0 && (
+                  {rec.recordType === 'target' && targetGroups.length > 0 && (
                 <div className="mb-5">
                   <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3 px-1">Target Analysis ({targetGroups.length})</p>
                   <div className="space-y-3">
@@ -194,7 +195,6 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
               </>
               )}
 
-              {/* Clay Shooting */}
           {rec.recordType === 'clay' && (
             <>
               {getClub(rec.club_id) && (
@@ -227,7 +227,6 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
             </>
           )}
 
-          {/* Deer Management */}
           {rec.recordType === 'deer' && (
             <>
               {(getLocation(rec.location_id) || rec.place_name) && (
@@ -280,14 +279,12 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
             </>
           )}
 
-          {/* Notes */}
           {rec.notes && (
             <Section title="Notes">
               <p className="text-sm whitespace-pre-wrap">{rec.notes}</p>
             </Section>
           )}
 
-          {/* Footer */}
           <p className="text-[10px] text-muted-foreground text-center mt-2">
             Record ID: {rec.id} · Created {format(new Date(rec.created_date), 'dd/MM/yyyy HH:mm')}
           </p>
