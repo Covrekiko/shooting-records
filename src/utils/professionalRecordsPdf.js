@@ -234,8 +234,8 @@ function drawDataTable(doc, columns, rows, cursor, options = {}) {
 
   const drawHeader = () => {
     doc.setFillColor(...REPORT.soft);
-    doc.setDrawColor(155, 164, 176);
-    doc.setLineWidth(0.35);
+    doc.setDrawColor(...(options.borderColor || REPORT.border));
+    doc.setLineWidth(options.lineWidth || 0.2);
     doc.rect(x, cursor.y, tableW, headerH, 'FD');
     let colX = x;
     doc.setFont('helvetica', 'bold');
@@ -254,8 +254,8 @@ function drawDataTable(doc, columns, rows, cursor, options = {}) {
   rows.forEach((row) => {
     cursor = ensureSpace(doc, cursor, rowH + 8);
     let colX = x;
-    doc.setDrawColor(155, 164, 176);
-    doc.setLineWidth(0.35);
+    doc.setDrawColor(...(options.borderColor || REPORT.border));
+    doc.setLineWidth(options.lineWidth || 0.2);
     doc.rect(x, cursor.y, tableW, rowH);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(options.fontSize || 8.5);
@@ -304,13 +304,13 @@ function drawClayReportHeader(doc, reportData, cursor) {
   doc.text('Detailed Activity Record', REPORT.margin, cursor.y + 13);
 
   doc.setFontSize(8);
-  doc.text(`Document ID: ${reportData.documentId}`, width - REPORT.margin, cursor.y + 6, { align: 'right' });
-  doc.text(`Generated: ${reportData.generatedAtLabel}`, width - REPORT.margin, cursor.y + 12, { align: 'right' });
+  doc.text(`Document ID: ${reportData.documentId}`, REPORT.margin, cursor.y + 19);
+  doc.text(`Generated: ${reportData.generatedAtLabel}`, REPORT.margin, cursor.y + 24);
 
   doc.setDrawColor(...REPORT.copper);
   doc.setLineWidth(0.8);
-  doc.line(REPORT.margin, cursor.y + 19, width - REPORT.margin, cursor.y + 19);
-  return { ...cursor, y: cursor.y + 28 };
+  doc.line(REPORT.margin, cursor.y + 29, width - REPORT.margin, cursor.y + 29);
+  return { ...cursor, y: cursor.y + 38 };
 }
 
 function drawClayPageTitle(doc, title, cursor, reportData = null) {
@@ -323,13 +323,13 @@ function drawClayPageTitle(doc, title, cursor, reportData = null) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
     doc.setTextColor(...REPORT.muted);
-    doc.text(`Document ID: ${reportData.documentId}`, width - REPORT.margin, cursor.y + 5, { align: 'right' });
-    doc.text(`Generated: ${reportData.generatedAtLabel}`, width - REPORT.margin, cursor.y + 11, { align: 'right' });
+    doc.text(`Document ID: ${reportData.documentId}`, REPORT.margin, cursor.y + 13);
+    doc.text(`Generated: ${reportData.generatedAtLabel}`, REPORT.margin, cursor.y + 18);
   }
   doc.setDrawColor(...REPORT.copper);
   doc.setLineWidth(0.8);
-  doc.line(REPORT.margin, cursor.y + 14, width - REPORT.margin, cursor.y + 14);
-  return { ...cursor, y: cursor.y + 24 };
+  doc.line(REPORT.margin, cursor.y + 23, width - REPORT.margin, cursor.y + 23);
+  return { ...cursor, y: cursor.y + 32 };
 }
 
 function drawClayCompactCard(doc, title, rows, cursor) {
@@ -432,7 +432,7 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
       data.scoreData.hits,
       data.scoreData.missed,
       `${data.scoreData.percentage}%`,
-    ]], cursor, { widths: [52, 36, 36, 52], fontSize: 8.3, rowHeight: 9 });
+    ]], cursor, { widths: [52, 36, 36, 52], fontSize: 8.3, rowHeight: 9, borderColor: [155, 164, 176], lineWidth: 0.35 });
 
     if (data.scoreData.stands.length > 0) {
       doc.setFont('helvetica', 'bold');
@@ -445,7 +445,7 @@ function renderClaySession(doc, record, reportData, cursor, options = {}) {
         ['Stand', 'Discipline', 'Targets', 'Hits', 'Missed', 'Score'],
         data.scoreData.stands.map((stand) => [stand.standNumber, stand.discipline, stand.targets, stand.hits, stand.missed, `${stand.hits}/${stand.targets}`]),
         cursor,
-        { widths: [18, 54, 28, 22, 26, 30], leftColumns: [1], rowHeight: 9, fontSize: 8.3 }
+        { widths: [18, 54, 28, 22, 26, 30], leftColumns: [1], rowHeight: 9, fontSize: 8.3, borderColor: [155, 164, 176], lineWidth: 0.35 }
       );
     }
   }
