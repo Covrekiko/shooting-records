@@ -231,6 +231,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
     <div className="space-y-3">
       {records.map((record) => {
         const isClay = category === 'clay_shooting';
+        const isDeer = category === 'deer_management';
         const scoreSummary = isClay ? getClayScoreSummary(clayScorecards[record.id], clayStands[record.id] || []) : null;
         const clubName = isClay ? resolveClayClubName(record, clubs, locations) : (record.location_name || record.place_name || 'Session');
         const shotgunName = isClay ? (shotguns[record.shotgun_id]?.name || 'Not recorded') : null;
@@ -272,7 +273,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
                >
                  <Eye className="w-4 h-4" />
                </button>
-               {(showTargetAnalysis && category === 'target_shooting') || isClay ? (
+               {(showTargetAnalysis && category === 'target_shooting') || isClay || isDeer ? (
                  <button
                    onClick={() => handlePdfPreview(record)}
                    disabled={generatingPdf === record.id}
@@ -869,6 +870,22 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
               </div>
               <div className="flex-1 overflow-auto">
                 <iframe src={pdfUrl} className="w-full h-full border-0" />
+              </div>
+              <div className="p-4 border-t border-slate-200/70 dark:border-slate-700 flex justify-end gap-2">
+                <a
+                  href={pdfUrl}
+                  download={`${record?.category || 'session'}-${record?.date || 'report'}.pdf`}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:opacity-90 flex items-center gap-2 text-sm font-medium"
+                >
+                  <Download className="w-4 h-4" />
+                  Download
+                </a>
+                <button
+                  onClick={onClose}
+                  className="px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 text-sm font-medium transition-colors"
+                >
+                  Close
+                </button>
               </div>
 
             </div>

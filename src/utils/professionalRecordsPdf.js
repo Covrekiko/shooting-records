@@ -668,17 +668,55 @@ function drawNotes(doc, notes, cursor) {
 }
 
 function renderDeerSession(doc, record, reportData, cursor) {
-  cursor = drawSectionTitle(doc, 'DEER MANAGEMENT SESSION REPORT', cursor);
+  const { rifles = {}, locations = {} } = reportData.lookups;
+  const rifle = rifles[record.rifle_id] || {};
+  const locationName = record.location_name || record.place_name || locations[record.location_id]?.name || locations[record.location_id]?.place_name;
+  const duration = calculateDuration(record.start_time || record.checkin_time, record.end_time || record.checkout_time);
+
   cursor = drawInfoCard(doc, 'Session Overview', [
     { label: 'Session Date', value: formatDate(record.date) },
     { label: 'Session Type', value: 'Deer Management' },
-    { label: 'Location', value: record.location_name || record.place_name },
-    { label: 'Start Time', value: record.start_time },
-    { label: 'End Time', value: record.end_time },
-    { label: 'Total Count', value: record.total_count || record.number_shot || 0 },
+    { label: 'Land / Location / Block', value: locationName },
+    { label: 'Check-In', value: record.start_time || record.checkin_time },
+    { label: 'Check-Out', value: record.end_time || record.checkout_time },
+    { label: 'Duration', value: duration || 'Not Recorded' },
+    { label: 'Notes', value: record.notes || 'Not Recorded' },
   ], cursor, { columns: 2, rowHeight: 14 });
-  cursor = drawPhotosSection(doc, normalizePhotos(record.photos || []), cursor);
-  if (record.notes) cursor = drawNotes(doc, record.notes, cursor);
+
+  cursor = drawInfoCard(doc, 'Rifle Used', [
+    { label: 'Rifle', value: joinClean([rifle.name, rifle.make, rifle.model], ' ') },
+    { label: 'Make', value: rifle.make },
+    { label: 'Model', value: rifle.model },
+    { label: 'Calibre', value: record.caliber || rifle.caliber },
+    { label: 'Serial Number', value: rifle.serial_number },
+    { label: 'Rounds Fired', value: record.rounds_fired || record.total_count || record.number_shot || 0 },
+  ], cursor, { columns: 2, rowHeight: 14 });
+
+  cursor = drawInfoCard(doc, 'Ammunition', [
+    { label: 'Brand / Name', value: record.ammunition_used },
+    { label: 'Bullet Type', value: record.bullet_type },
+    { label: 'Grain Weight', value: record.grain },
+    { label: 'Calibre', value: record.caliber || rifle.caliber },
+    { label: 'Rounds Fired', value: record.rounds_fired || record.total_count || record.number_shot || 0 },
+    { label: 'Batch Number', value: record.batch_number },
+  ], cursor, { columns: 2, rowHeight: 14 });
+
+  cursor = drawInfoCard(doc, 'Cull / Deer Details', [
+    { label: 'Species', value: record.deer_species || (record.species_list?.length ? record.species_list.map((item) => `${item.species}: ${item.count}`).join(', ') : null) },
+    { label: 'Sex', value: record.sex },
+    { label: 'Age Class', value: record.age_class },
+    { label: 'Cull Count', value: record.total_count || record.number_shot || 0 },
+    { label: 'Weight', value: record.weight || record.carcass_weight },
+    { label: 'Condition', value: record.condition },
+    { label: 'Shot Placement', value: record.shot_placement },
+    { label: 'Inspection Notes', value: record.inspection_notes || record.gralloch_notes },
+  ], cursor, { columns: 2, rowHeight: 14 });
+
+  cursor = drawInfoCard(doc, 'GPS / Location', buildGpsLocationRows(record, locationName), cursor, { columns: 2, rowHeight: 14 });
+
+  doc.addPage();
+  cursor = drawClayPageTitle(doc, 'PHOTOS', { y: REPORT.margin }, reportData);
+  cursor = drawPhotosSection(doc, normalizePhotos(record.photos || []), cursor, null);
   return cursor;
 }
 
@@ -1060,6 +1098,7 @@ function renderRecords(doc, reportData, options = {}) {
   let cursor = { y: REPORT.margin };
   const isClayOnly = reportData.records.length > 0 && reportData.records.every((record) => record.category === 'clay_shooting' || record.recordType === 'clay');
   const isTargetOnly = reportData.records.length > 0 && reportData.records.every((record) => record.category === 'target_shooting' || record.recordType === 'target');
+  const isDeerOnly = reportData.records.length > 0 && reportData.records.every((record) => record.category === 'deer_management' || record.recordType === 'deer');
 
   if (options.overview) {
     renderActivityLogRecords(doc, reportData, options);
@@ -1075,6 +1114,8 @@ function renderRecords(doc, reportData, options = {}) {
     cursor = drawClayReportHeader(doc, reportData, cursor);
   } else if (isTargetOnly) {
     cursor = drawTargetReportHeader(doc, reportData, cursor);
+  } else if (isDeerOnly) {
+    cursor = drawClayPageTitle(doc, 'DEER MANAGEMENT SESSION REPORT', cursor, reportData);
   } else {
     cursor = drawHeader(doc, reportData, cursor);
     cursor = drawParticipantInfo(doc, reportData, cursor);
@@ -1087,6 +1128,7 @@ function renderRecords(doc, reportData, options = {}) {
       cursor = { y: REPORT.margin };
       if (isClayOnly) cursor = drawClayReportHeader(doc, reportData, cursor);
       if (isTargetOnly) cursor = drawTargetReportHeader(doc, reportData, cursor);
+      if (isDeerOnly) cursor = drawClayPageTitle(doc, 'DEER MANAGEMENT SESSION REPORT', cursor, reportData);
     }
     if (record.category === 'clay_shooting' || record.recordType === 'clay') {
       cursor = renderClaySession(doc, record, reportData, cursor, { includeTitle: !isClayOnly, separateScoreAndPhotos: isClayOnly });
