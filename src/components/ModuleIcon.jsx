@@ -1,11 +1,11 @@
-const ICONS_IMAGE_URL = 'https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/8c832f079_6CDFC91B-8C1C-43DA-B11D-6B33A50D677D.png';
+const ICONS_IMAGE_URL = 'https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/6bd803adc_8876AADC-1AA2-456F-93EA-7A4BDF1B531E.png';
 
 const ICON_POSITIONS = {
   target_shooting: '0% 50%',
   clay_shooting: '20% 50%',
   deer_management: '40% 50%',
   stalk_map: '60% 50%',
-  reloading: '100% 50%',
+  reloading: '80% 50%',
 };
 
 export default function ModuleIcon({ moduleKey, className = '' }) {
