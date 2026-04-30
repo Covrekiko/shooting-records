@@ -11,7 +11,7 @@ import { motion } from 'framer-motion';
 import React from 'react';
 import {
   Target, Crosshair, Map, BookOpen,
-  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck, MessageCircle,
+  BarChart3, ChevronRight, Clock, Zap, Shield, Package, RefreshCw, Layers, FlaskConical, ShieldCheck, MessageCircle,
 } from 'lucide-react';
 import {
   MonthlyActivityChart,
@@ -194,7 +194,7 @@ const DASHBOARD_ICONS = {
   deer: Layers,
   reloading: RefreshCw,
   loadDevelopment: FlaskConical,
-  equipment: Shield,
+  equipment: Package,
   reports: BarChart3,
   admin: ShieldCheck,
 };
