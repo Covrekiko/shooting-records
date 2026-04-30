@@ -181,6 +181,7 @@ function App() {
             <OfflineProvider>
               <ModulesProvider>
                 <OutingProvider>
+                  {console.error('APP PROVIDER TREE VERSION: OUTING_PROVIDER_ACTIVE_2026_04_30')}
                   <Router>
                     <TabHistoryProvider>
                       <OfflineStatusBar />
