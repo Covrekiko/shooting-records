@@ -2,6 +2,7 @@ import { useState } from 'react';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { base44 } from '@/api/base44Client';
 import { getSelectableAmmunition } from '@/lib/ammoUtils';
+import { Camera, Check, Clock, Crosshair, MapPin, Plus, Trash2, Upload, X } from 'lucide-react';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
 const PEST_SPECIES = ['Fox', 'Rabbit', 'Grey Squirrel', 'Brown Rat', 'Mink', 'Stoat', 'Weasel', 'Mole', 'Pigeon (Feral)', 'Pigeon (Wood)', 'Crow', 'Magpie', 'Jackdaw', 'Jay', 'Rook', 'Canada Goose', 'Other (Pest)'];
@@ -76,34 +77,45 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
     });
   };
 
-  const inputCls = 'w-full px-3 py-2.5 border border-input bg-background text-foreground rounded-lg text-sm focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none';
-  const labelCls = 'text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block';
+  const inputCls = 'w-full h-11 px-3 border border-border bg-background text-foreground rounded-xl text-sm focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none';
+  const labelCls = 'text-[11px] font-bold text-muted-foreground uppercase tracking-wide mb-1.5 block';
+  const cardCls = 'rounded-2xl border border-border bg-card shadow-sm';
 
   const selectedRifle = rifles.find(r => r.id === formData.rifle_id);
   const filteredAmmo = selectedRifle && selectedRifle.caliber
     ? getSelectableAmmunition(ammunition, selectedRifle.caliber)
     : ammunition;
+  const harvestSummary = totalCount > 0 ? `${totalCount} animal${totalCount !== 1 ? 's' : ''}` : '0 animals';
+  const rifleSummary = selectedRifle ? `${selectedRifle.name} (${selectedRifle.caliber})` : 'Not selected';
 
   const deerEntries = formData.species_list.filter(s => DEER_SPECIES.includes(s.species));
   const pestEntries = formData.species_list.filter(s => PEST_SPECIES.includes(s.species));
 
-  const SpeciesRow = ({ entry }) => (
-    <div key={entry.species} className="space-y-1.5">
-      <div className="flex items-center gap-2">
-        <span className="text-sm flex-1 text-foreground">{entry.species}</span>
+  const SpeciesRow = ({ entry, pest = false }) => (
+    <div key={entry.species} className="rounded-xl border border-border bg-background/70 p-3 space-y-2">
+      <div className="flex items-center gap-3">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${pest ? 'bg-slate-100 text-slate-600' : 'bg-green-50 text-green-700'}`}>
+          {pest ? '🐾' : '🦌'}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-foreground truncate">{entry.species}</p>
+          <p className="text-xs text-muted-foreground">Quantity: {entry.count}</p>
+        </div>
         <input
           type="number"
           inputMode="numeric"
           min="1"
           value={entry.count}
           onChange={e => updateEntry(entry.species, 'count', e.target.value)}
-          className="w-20 px-3 py-2 border border-input bg-background text-foreground rounded-lg text-sm outline-none focus:border-primary"
+          className="w-20 h-10 px-3 border border-border bg-card text-foreground rounded-xl text-sm outline-none focus:border-primary"
         />
         <button
           type="button"
           onClick={() => removeEntry(entry.species)}
-          className="text-muted-foreground hover:text-destructive text-xl leading-none px-1"
-        >×</button>
+          className="w-10 h-10 rounded-xl border border-red-100 bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
       </div>
       {OTHER_SPECIES.includes(entry.species) && (
         <input
@@ -111,7 +123,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
           value={entry.note || ''}
           onChange={e => updateEntry(entry.species, 'note', e.target.value)}
           placeholder="Describe species…"
-          className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg text-sm outline-none focus:border-primary ml-0"
+          className={inputCls}
         />
       )}
     </div>
@@ -121,150 +133,224 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
     <GlobalModal
       open={true}
       onClose={onClose}
-      title="Check Out"
-      subtitle={activeOuting?.location_name}
+      title={(
+        <span className="flex items-center gap-3 min-w-0">
+          <span className="w-10 h-10 rounded-full bg-green-800 text-white flex items-center justify-center text-lg shadow-sm flex-shrink-0">🦌</span>
+          <span className="min-w-0 block">
+            <span className="text-lg font-bold leading-tight text-foreground block">Check Out</span>
+            <span className="text-xs font-medium text-muted-foreground truncate block">{activeOuting?.location_name || 'Outing'} • Deer Management</span>
+          </span>
+        </span>
+      )}
       onSubmit={handleSubmit}
-      primaryAction="Check Out"
+      primaryAction="Complete Check Out"
       secondaryAction="Cancel"
+      footer={(
+        <>
+          <button type="button" onClick={onClose} className="flex-1 h-11 rounded-xl font-semibold text-sm bg-card border border-border text-foreground hover:bg-secondary transition-colors active:scale-95 flex items-center justify-center gap-2">
+            <X className="w-4 h-4" /> Cancel
+          </button>
+          <button type="submit" className="flex-1 h-11 rounded-xl font-semibold text-sm bg-gradient-to-r from-orange-500 to-primary text-white hover:opacity-90 transition-colors active:scale-95 flex items-center justify-center gap-2">
+            <Check className="w-4 h-4" /> Complete Check Out
+          </button>
+        </>
+      )}
     >
       <div className="space-y-4">
-        <div>
-          <label className={labelCls}>End Time</label>
-          <input type="time" value={formData.end_time} onChange={e => set('end_time', e.target.value)} className={inputCls} />
-        </div>
+        <section className={`${cardCls} p-4`}>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Session Summary</p>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="rounded-xl bg-background/80 border border-border p-3 flex items-center gap-3 min-w-0">
+              <MapPin className="w-5 h-5 text-green-700 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Area</p>
+                <p className="text-sm font-bold text-foreground truncate">{activeOuting?.location_name || 'Outing'}</p>
+              </div>
+            </div>
+            <div className="rounded-xl bg-background/80 border border-border p-3 flex items-center gap-3 min-w-0">
+              <Clock className="w-5 h-5 text-green-700 flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">End Time</p>
+                <input type="time" value={formData.end_time} onChange={e => set('end_time', e.target.value)} className="w-full bg-transparent text-sm font-bold text-foreground outline-none" />
+              </div>
+            </div>
+            <div className="rounded-xl bg-background/80 border border-border p-3 flex items-center gap-3 min-w-0">
+              <span className="text-xl flex-shrink-0">🦌</span>
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Harvest</p>
+                <p className="text-sm font-bold text-foreground truncate">{harvestSummary}</p>
+              </div>
+            </div>
+            <div className="rounded-xl bg-background/80 border border-border p-3 flex items-center gap-3 min-w-0">
+              <Crosshair className="w-5 h-5 text-green-700 flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[10px] font-bold uppercase text-muted-foreground">Rifle</p>
+                <p className="text-sm font-bold text-foreground truncate">{rifleSummary}</p>
+              </div>
+            </div>
+          </div>
+        </section>
 
-        <div className="flex items-center gap-3 p-3 bg-secondary rounded-lg">
-          <input
-            type="checkbox"
-            id="shot_anything"
-            checked={formData.shot_anything}
-            onChange={e => set('shot_anything', e.target.checked)}
-            className="w-4 h-4 rounded"
-          />
-          <label htmlFor="shot_anything" className="text-sm font-medium cursor-pointer">I shot something today</label>
-        </div>
+        <section className="rounded-2xl border border-green-200 bg-green-50/60 p-4 relative overflow-hidden">
+          <div className="flex items-start gap-3 relative z-10">
+            <input
+              type="checkbox"
+              id="shot_anything"
+              checked={formData.shot_anything}
+              onChange={e => set('shot_anything', e.target.checked)}
+              className="mt-0.5 w-5 h-5 rounded accent-green-700"
+            />
+            <label htmlFor="shot_anything" className="cursor-pointer flex-1">
+              <span className="block text-sm font-bold text-foreground">I shot something today</span>
+              <span className="block text-sm text-muted-foreground mt-1">Record harvested deer or pest control from this outing.</span>
+            </label>
+          </div>
+          <div className="absolute right-4 bottom-1 text-5xl opacity-10">🦌</div>
+        </section>
 
         {formData.shot_anything && (
           <>
-            {/* Species Harvested — dropdown add */}
-            <div>
-              <label className={labelCls}>Species Harvested</label>
-              <div className="flex gap-2">
+            <section className={`${cardCls} p-4 space-y-4`}>
+              <div className="flex items-start gap-2">
+                <span className="text-lg">🦌</span>
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">Species Harvested</h3>
+                  <p className="text-xs text-muted-foreground mt-1">Add deer species and quantity taken during this outing.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_9rem_10rem] gap-3">
                 <select value={selectedDeer} onChange={e => setSelectedDeer(e.target.value)} className={inputCls}>
                   <option value="">Select species…</option>
                   {DEER_SPECIES.filter(p => !formData.species_list.find(s => s.species === p)).map(p => (
                     <option key={p} value={p}>{p}</option>
                   ))}
                 </select>
+                <input type="number" inputMode="numeric" min="1" value="1" readOnly className={inputCls} />
                 <button
                   type="button"
                   disabled={!selectedDeer}
                   onClick={() => addSpecies(selectedDeer, setSelectedDeer)}
-                  className="px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold disabled:opacity-40 shrink-0"
-                >Add</button>
+                  className="h-11 rounded-xl bg-green-800 text-white text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2 hover:bg-green-900 transition-colors"
+                ><Plus className="w-4 h-4" /> Add</button>
               </div>
               {deerEntries.length > 0 && (
-                <div className="mt-2 space-y-2">
+                <div className="space-y-2">
                   {deerEntries.map(entry => <SpeciesRow key={entry.species} entry={entry} />)}
                 </div>
               )}
-            </div>
+              <div className="rounded-xl border border-orange-100 bg-orange-50/60 px-4 py-3 flex items-center justify-between text-sm">
+                <span className="font-bold text-orange-700">Total Harvest</span>
+                <span className="font-bold text-orange-700">{harvestSummary}</span>
+              </div>
+            </section>
 
-            {/* Pest Control — dropdown add */}
-            <div>
-              <label className={labelCls}>Pest Control</label>
-              <div className="flex gap-2">
+            <section className={`${cardCls} p-4 space-y-4`}>
+              <div className="flex items-start gap-2">
+                <Crosshair className="w-4 h-4 text-green-700 mt-0.5" />
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">Pest Control</h3>
+                  <p className="text-xs text-muted-foreground mt-1">Add pest species and quantity if recorded.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_9rem_10rem] gap-3">
                 <select value={selectedPest} onChange={e => setSelectedPest(e.target.value)} className={inputCls}>
                   <option value="">Select species…</option>
                   {PEST_SPECIES.filter(p => !formData.species_list.find(s => s.species === p)).map(p => (
                     <option key={p} value={p}>{p}</option>
                   ))}
                 </select>
+                <input type="number" inputMode="numeric" min="1" value="1" readOnly className={inputCls} />
                 <button
                   type="button"
                   disabled={!selectedPest}
                   onClick={() => addSpecies(selectedPest, setSelectedPest)}
-                  className="px-3 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold disabled:opacity-40 shrink-0"
-                >Add</button>
+                  className="h-11 rounded-xl bg-gradient-to-r from-orange-500 to-primary text-white text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2 hover:opacity-90 transition-colors"
+                ><Plus className="w-4 h-4" /> Add</button>
               </div>
-              {pestEntries.length > 0 && (
-                <div className="mt-2 space-y-2">
-                  {pestEntries.map(entry => <SpeciesRow key={entry.species} entry={entry} />)}
+              {pestEntries.length > 0 ? (
+                <div className="space-y-2">
+                  {pestEntries.map(entry => <SpeciesRow key={entry.species} entry={entry} pest />)}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-border bg-background/60 px-4 py-3 text-sm text-muted-foreground flex items-center gap-2">
+                  <span>🐾</span> No pest control recorded
                 </div>
               )}
-            </div>
+            </section>
 
-            {totalCount > 0 && (
-              <p className="text-xs text-primary font-semibold">Total: {totalCount} animal{totalCount !== 1 ? 's' : ''}</p>
-            )}
+            <section className={`${cardCls} p-4 space-y-4`}>
+              <div className="flex items-center gap-2">
+                <Crosshair className="w-4 h-4 text-green-700" />
+                <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">Firearm & Ammunition</h3>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                <div>
+                  <label className={labelCls}>Rounds Fired</label>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min="0"
+                    value={formData.rounds_fired}
+                    onChange={e => set('rounds_fired', e.target.value)}
+                    placeholder={String(totalCount || 0)}
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Rifle Used</label>
+                  <select value={formData.rifle_id} onChange={e => { set('rifle_id', e.target.value); set('ammunition_id', ''); set('ammunition_used', ''); }} className={inputCls}>
+                    <option value="">Select rifle</option>
+                    {rifles.map(r => <option key={r.id} value={r.id}>{r.name} ({r.caliber})</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={labelCls}>Ammunition Used</label>
+                  <select value={formData.ammunition_id} onChange={e => {
+                    const ammo = ammunition.find(a => a.id === e.target.value);
+                    set('ammunition_id', e.target.value);
+                    set('ammunition_used', ammo ? `${ammo.brand} ${ammo.caliber}` : '');
+                  }} className={inputCls}>
+                    <option value="">Select ammunition</option>
+                    {filteredAmmo.map(a => <option key={a.id} value={a.id}>{a.brand} {a.caliber}</option>)}
+                  </select>
+                </div>
+              </div>
+            </section>
 
-            <div>
-              <label className={labelCls}>Rounds Fired <span className="font-normal text-muted-foreground normal-case">(defaults to animal count if blank)</span></label>
-              <input
-                type="number"
-                inputMode="numeric"
-                min="0"
-                value={formData.rounds_fired}
-                onChange={e => set('rounds_fired', e.target.value)}
-                placeholder={String(totalCount || 0)}
-                className={inputCls}
-              />
-            </div>
-
-
-
-            <div>
-              <label className={labelCls}>Rifle Used</label>
-              <select value={formData.rifle_id} onChange={e => { set('rifle_id', e.target.value); set('ammunition_id', ''); set('ammunition_used', ''); }} className={inputCls}>
-                <option value="">Select rifle</option>
-                {rifles.map(r => <option key={r.id} value={r.id}>{r.name} ({r.caliber})</option>)}
-              </select>
-            </div>
-
-            <div>
-              <label className={labelCls}>Ammunition Used</label>
-              <select value={formData.ammunition_id} onChange={e => {
-                const ammo = ammunition.find(a => a.id === e.target.value);
-                set('ammunition_id', e.target.value);
-                set('ammunition_used', ammo ? `${ammo.brand} ${ammo.caliber}` : '');
-              }} className={inputCls}>
-                <option value="">Select ammunition</option>
-                {filteredAmmo.map(a => <option key={a.id} value={a.id}>{a.brand} {a.caliber}</option>)}
-              </select>
-            </div>
-
-            {/* Photos — bottom of shot section */}
-            <div>
-              <label className={labelCls}>Photos (optional)</label>
-
-              {/* Hidden inputs */}
+            <section className={`${cardCls} p-4 space-y-4`}>
+              <div className="flex items-start gap-2">
+                <Camera className="w-4 h-4 text-green-700 mt-0.5" />
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">Photos <span className="text-muted-foreground">(Optional)</span></h3>
+                  <p className="text-xs text-muted-foreground mt-1">Add photos from your outing.</p>
+                </div>
+              </div>
               <input id="photo-gallery" type="file" multiple accept="image/*" onChange={handlePhotoUpload} disabled={uploading} className="hidden" />
               <input id="photo-camera" type="file" accept="image/*" capture="environment" onChange={handlePhotoUpload} disabled={uploading} className="hidden" />
-
-              {/* Chooser button */}
               {!showPhotoOptions ? (
                 <button
                   type="button"
                   disabled={uploading}
                   onClick={() => setShowPhotoOptions(true)}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border-2 border-dashed border-border rounded-xl hover:border-primary transition-all text-sm disabled:opacity-50"
+                  className="w-full min-h-16 flex flex-col items-center justify-center gap-1 px-4 py-3 border-2 border-dashed border-border rounded-xl hover:border-primary transition-all text-sm disabled:opacity-50 bg-background/50"
                 >
-                  📷 {uploading ? 'Uploading...' : 'Add Photos'}
+                  <Upload className="w-5 h-5 text-muted-foreground" />
+                  <span className="font-semibold text-foreground">{uploading ? 'Uploading...' : 'Tap to add photos'}</span>
+                  <span className="text-xs text-muted-foreground">You can add multiple images</span>
                 </button>
               ) : (
-                <div className="flex gap-2">
-                  <label htmlFor="photo-camera" className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-xl cursor-pointer text-sm font-semibold hover:bg-primary/90 transition-colors">
-                    📸 Take Photo
+                <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2">
+                  <label htmlFor="photo-camera" className="flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-xl cursor-pointer text-sm font-semibold hover:bg-primary/90 transition-colors">
+                    <Camera className="w-4 h-4" /> Take Photo
                   </label>
-                  <label htmlFor="photo-gallery" className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-secondary text-secondary-foreground rounded-xl cursor-pointer text-sm font-semibold hover:bg-secondary/80 transition-colors">
-                    🖼️ Gallery
+                  <label htmlFor="photo-gallery" className="flex items-center justify-center gap-2 px-4 py-3 bg-secondary text-secondary-foreground rounded-xl cursor-pointer text-sm font-semibold hover:bg-secondary/80 transition-colors">
+                    <Upload className="w-4 h-4" /> Gallery
                   </label>
                   <button type="button" onClick={() => setShowPhotoOptions(false)} className="px-3 py-3 rounded-xl border border-border text-muted-foreground hover:bg-secondary text-sm">✕</button>
                 </div>
               )}
-
               {photos.length > 0 && (
-                <div className="mt-2 grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   {photos.map((photo, idx) => (
                     <div key={idx} className="relative">
                       <img src={photo} alt="harvest" className="w-full h-20 object-cover rounded-xl border border-border" />
@@ -274,20 +360,20 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                   ))}
                 </div>
               )}
-            </div>
+            </section>
           </>
         )}
 
-        <div>
+        <section className={`${cardCls} p-4`}>
           <label className={labelCls}>Notes</label>
           <textarea
             value={formData.notes}
             onChange={e => set('notes', e.target.value)}
-            className={inputCls}
+            className={`${inputCls} min-h-24 py-3 resize-none`}
             rows={3}
             placeholder="Optional notes about the outing..."
           />
-        </div>
+        </section>
       </div>
     </GlobalModal>
   );
