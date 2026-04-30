@@ -239,10 +239,10 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
         const deerShotsFired = isDeer ? Number(record.rounds_fired || record.number_shot || record.total_count || 0) : 0;
 
         return (
-        <div key={record.id} className="bg-card border border-border rounded-2xl p-4 shadow-[0_4px_16px_rgba(180,83,9,0.07)] hover:shadow-[0_8px_24px_rgba(180,83,9,0.10)] transition-shadow">
+        <div key={record.id} className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm text-foreground">
+              <p className="font-semibold text-sm">
                 {isClay
                   ? `Clay Shooting - ${scoreSummary ? scoreSummary.label : `${record.rounds_fired || 0} cartridges`}`
                   : clubName}
@@ -252,17 +252,17 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
               </p>
               {isClay ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 mt-3 text-xs">
-                  <p><span className="font-bold text-accent">Club / Range:</span> {clubName}</p>
-                  <p><span className="font-bold text-accent">Shotgun:</span> {shotgunName}</p>
-                  <p><span className="font-bold text-accent">Cartridges:</span> {record.rounds_fired || 0}</p>
-                  <p><span className="font-bold text-accent">Score:</span> {scoreSummary ? scoreSummary.label : 'Not recorded'}</p>
+                  <p><span className="font-bold text-muted-foreground">Club / Range:</span> {clubName}</p>
+                  <p><span className="font-bold text-muted-foreground">Shotgun:</span> {shotgunName}</p>
+                  <p><span className="font-bold text-muted-foreground">Cartridges:</span> {record.rounds_fired || 0}</p>
+                  <p><span className="font-bold text-muted-foreground">Score:</span> {scoreSummary ? scoreSummary.label : 'Not recorded'}</p>
                 </div>
               ) : isDeer ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 mt-3 text-xs">
-                  <p><span className="font-bold text-accent">Location:</span> {clubName}</p>
-                  <p><span className="font-bold text-accent">Shots:</span> {deerShotsFired > 0 ? deerShotsFired : 'No shots fired'}</p>
-                  <p><span className="font-bold text-accent">Check-Out:</span> {record.checkout_time || record.end_time || 'Not recorded'}</p>
-                  <p><span className="font-bold text-accent">GPS:</span> {record.gps_track?.length ? 'Recorded' : 'No GPS points saved'}</p>
+                  <p><span className="font-bold text-muted-foreground">Location:</span> {clubName}</p>
+                  <p><span className="font-bold text-muted-foreground">Shots:</span> {deerShotsFired > 0 ? deerShotsFired : 'No shots fired'}</p>
+                  <p><span className="font-bold text-muted-foreground">Check-Out:</span> {record.checkout_time || record.end_time || 'Not recorded'}</p>
+                  <p><span className="font-bold text-muted-foreground">GPS:</span> {record.gps_track?.length ? 'Recorded' : 'No GPS points saved'}</p>
                   {record.notes && <p className="sm:col-span-2 text-foreground mt-1 line-clamp-2">{record.notes}</p>}
                 </div>
               ) : (
@@ -278,7 +278,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
             <div className="flex gap-2 ml-3 flex-shrink-0">
                <button
                  onClick={() => setViewingRecord(record)}
-                 className="p-2 bg-secondary text-accent hover:text-primary rounded-xl transition-colors"
+                 className="p-2 hover:bg-secondary rounded transition-colors"
                  title="View details"
                >
                  <Eye className="w-4 h-4" />
@@ -287,7 +287,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
                  <button
                    onClick={() => handlePdfPreview(record)}
                    disabled={generatingPdf === record.id}
-                   className="p-2 bg-secondary text-primary hover:text-[#B45309] rounded-xl transition-colors disabled:opacity-50"
+                   className="p-2 hover:bg-secondary rounded transition-colors disabled:opacity-50"
                    title="PDF Preview"
                  >
                    {generatingPdf === record.id ? <Loader className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
@@ -296,7 +296,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
 
                <button
                  onClick={() => handleDelete(record.id)}
-                 className="p-2 bg-destructive/10 text-destructive hover:bg-destructive/15 rounded-xl transition-colors"
+                 className="p-2 hover:bg-destructive/10 text-destructive rounded transition-colors"
                  title="Delete record"
                >
                  <Trash2 className="w-4 h-4" />
@@ -480,7 +480,7 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
                               </div>
 
                               {rifleData.serial_number && (
-                                <div className="mb-3 pb-3 border-b border-border bg-secondary p-2 rounded">
+                                <div className="mb-3 pb-3 border-b border-border bg-yellow-50/30 p-2 rounded">
                                   <label className="text-xs font-bold text-muted-foreground">Serial Number</label>
                                   <p className="font-mono text-sm font-bold">{rifleData.serial_number}</p>
                                 </div>
@@ -488,7 +488,7 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
                             </>
                           )}
 
-                          <div className="bg-secondary p-3 rounded-xl mb-3 border border-border">
+                          <div className="bg-blue-50/30 p-3 rounded mb-3 border border-blue-200/50">
                             <h4 className="text-xs font-bold text-muted-foreground mb-2 uppercase">Ammunition & Ballistics</h4>
                             <div className="grid grid-cols-2 gap-3">
                               <div>
@@ -549,7 +549,7 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
 
             <div className="mb-6 pb-4 border-b border-border">
               <h3 className="font-bold text-base sm:text-lg mb-3 text-primary">Cartridges / Ammunition</h3>
-              <div className="bg-secondary p-3 rounded-xl border border-border">
+              <div className="bg-blue-50/30 p-3 rounded border border-blue-200/50">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div><label className="text-xs font-bold text-muted-foreground uppercase">Cartridge / Brand</label><p className="text-sm font-medium">{currentRecord.ammunition_used || 'Not recorded'}</p></div>
                   <div><label className="text-xs font-bold text-muted-foreground uppercase">Gauge / Calibre</label><p className="text-sm font-medium">{clayShotgun?.gauge || 'Not recorded'}</p></div>
@@ -635,15 +635,15 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
                     <p className="text-lg sm:text-xl font-semibold mt-1">{currentRecord.total_count}</p>
                   </div>
                   {currentRecord.ammunition_used && (
-                    <div className="bg-secondary p-3 rounded-xl border border-border">
+                    <div className="bg-blue-50/30 p-3 rounded border border-blue-200/50">
                       <label className="text-xs font-bold text-muted-foreground block mb-1">Ammunition Used</label>
                       <p className="text-sm font-medium">{currentRecord.ammunition_used}</p>
                     </div>
                   )}
                 </>
               ) : (
-                <div className="bg-secondary p-4 rounded-xl border border-border">
-                  <p className="text-base font-semibold text-accent">No shots fired during this session</p>
+                <div className="bg-blue-50/30 p-4 rounded-lg border border-blue-200/50">
+                  <p className="text-base font-semibold text-blue-600">No shots fired during this session</p>
                 </div>
               )}
             </div>

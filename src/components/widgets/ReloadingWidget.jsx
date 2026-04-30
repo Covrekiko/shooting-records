@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 export default function ReloadingWidget() {
   const [stats, setStats] = useState({
@@ -55,40 +55,40 @@ export default function ReloadingWidget() {
   };
 
   if (loading) {
-    return <div className="w-full h-32 bg-card border border-border rounded-2xl animate-pulse" />;
+    return <div className="w-full h-32 bg-secondary/20 rounded-lg animate-pulse" />;
   }
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-4 shadow-[0_6px_20px_rgba(180,83,9,0.08)] hover:shadow-[0_8px_24px_rgba(180,83,9,0.12)] transition-all duration-100">
+    <div className="bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/80 rounded-2xl p-4 shadow-sm hover:shadow-md hover:border-slate-200/90 dark:hover:border-slate-600 transition-all duration-100">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-primary">
-            <RefreshCw className="w-4 h-4" />
+          <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center">
+            <span className="text-base leading-none text-slate-700 dark:text-slate-200">Ⓡ</span>
           </div>
-          <h3 className="text-sm font-semibold text-foreground">Reloading Stats</h3>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Reloading Stats</h3>
         </div>
         <span />
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between pb-3 border-b border-border">
-          <span className="text-sm text-muted-foreground">Total Rounds Loaded</span>
-          <span className="text-lg font-bold text-foreground">{stats.totalRounds.toLocaleString()}</span>
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/60 dark:border-slate-700">
+          <span className="text-sm text-slate-600 dark:text-slate-400">Total Rounds Loaded</span>
+          <span className="text-lg font-bold text-slate-900 dark:text-white">{stats.totalRounds.toLocaleString()}</span>
         </div>
 
-        <div className="flex items-center justify-between pb-3 border-b border-border">
-          <span className="text-sm text-muted-foreground">This Month</span>
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/60 dark:border-slate-700">
+          <span className="text-sm text-slate-600 dark:text-slate-400">This Month</span>
           <span className="text-lg font-bold text-primary">£{stats.monthlyCost.toFixed(2)}</span>
         </div>
 
-        <div className="flex items-center justify-between pb-3 border-b border-border">
-          <span className="text-sm text-muted-foreground">Avg Cost/Round</span>
-          <span className="font-semibold text-foreground">£{stats.avgCostPerRound.toFixed(2)}</span>
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/60 dark:border-slate-700">
+          <span className="text-sm text-slate-600 dark:text-slate-400">Avg Cost/Round</span>
+          <span className="font-semibold text-slate-900 dark:text-white">£{stats.avgCostPerRound.toFixed(2)}</span>
         </div>
 
-        <div className="flex items-center justify-between pb-3 border-b border-border">
-          <span className="text-sm text-muted-foreground">Most Used Caliber</span>
-          <span className="font-semibold text-foreground">{stats.mostUsedCaliber}</span>
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/60 dark:border-slate-700">
+          <span className="text-sm text-slate-600 dark:text-slate-400">Most Used Caliber</span>
+          <span className="font-semibold text-slate-900 dark:text-white">{stats.mostUsedCaliber}</span>
         </div>
 
         {stats.lowStockItems > 0 && (

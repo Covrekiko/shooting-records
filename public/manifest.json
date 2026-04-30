@@ -1,17 +1,26 @@
 {
   "name": "Shooting Records",
-  "short_name": "Shooting Records",
-  "description": "Shooting activity records and field tracking",
+  "short_name": "Shooting",
+  "description": "Shooting and deer management records app",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FFF7ED",
+  "background_color": "#f8fafc",
   "theme_color": "#f97316",
+  "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "https://base44.com/logo_v2.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
+      "src": "https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "categories": ["sports", "utilities"],
+  "lang": "en-GB"
 }

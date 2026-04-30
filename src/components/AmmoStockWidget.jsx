@@ -28,22 +28,20 @@ export default function AmmoStockWidget() {
 
   if (loading) {
     return (
-      <div className="bg-card border border-border rounded-2xl p-4 shadow-[0_6px_20px_rgba(180,83,9,0.08)]">
+      <div className="bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/80 rounded-2xl p-4 shadow-sm">
         <div className="w-6 h-6 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-4 shadow-[0_6px_20px_rgba(180,83,9,0.08)]">
+    <div className="bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/80 rounded-2xl p-4 shadow-sm">
       <div className="flex items-center justify-between mb-5">
-        <h3 className="text-sm font-semibold flex items-center gap-2.5 text-foreground">
-          <span className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-primary">
-            <Package className="w-4 h-4" />
-          </span>
+        <h3 className="text-sm font-semibold flex items-center gap-2.5 text-slate-900 dark:text-white">
+          <Package className="w-5 h-5 text-primary" />
           Ammunition Inventory
         </h3>
-        <Link to="/settings/ammunition-inventory" className="text-xs text-primary hover:text-orange-700 font-medium">
+        <Link to="/settings/ammunition-inventory" className="text-xs text-primary hover:opacity-80 font-medium">
           Manage
         </Link>
       </div>
@@ -70,15 +68,15 @@ export default function AmmoStockWidget() {
 
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Types:</span>
-              <span className="font-semibold text-primary">{ammo.length}</span>
+              <span className="text-slate-600 dark:text-slate-400">Types:</span>
+              <span className="font-semibold text-slate-900 dark:text-white">{ammo.length}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Total Value:</span>
-              <span className="font-semibold text-primary">£{totalValue.toFixed(2)}</span>
+              <span className="text-slate-600 dark:text-slate-400">Total Value:</span>
+              <span className="font-semibold text-slate-900 dark:text-white">£{totalValue.toFixed(2)}</span>
             </div>
-            <div className="pt-3 border-t border-border">
-              <p className="text-xs text-muted-foreground font-medium mb-2.5">Top 3 in Stock:</p>
+            <div className="pt-3 border-t border-slate-200/60 dark:border-slate-700">
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mb-2.5">Top 3 in Stock:</p>
               {[...ammo]
                 .sort((a, b) => b.quantity_in_stock - a.quantity_in_stock)
                 .slice(0, 3)

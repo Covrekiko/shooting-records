@@ -58,7 +58,7 @@ function useModalScrollLock(isOpen) {
 
 export function ModalHeader({ title, subtitle, onClose, showClose = true }) {
   return (
-    <div className="flex items-start justify-between px-5 pt-4 pb-3 border-b border-border bg-card flex-shrink-0 min-w-0">
+    <div className="flex items-start justify-between px-5 pt-4 pb-3 border-b border-border flex-shrink-0 min-w-0">
       <div className="min-w-0 flex-1">
         {title && <h2 className="text-base font-semibold text-foreground truncate">{title}</h2>}
         {subtitle && <p className="text-xs text-muted-foreground mt-0.5 truncate">{subtitle}</p>}
@@ -67,7 +67,7 @@ export function ModalHeader({ title, subtitle, onClose, showClose = true }) {
         <button
           type="button"
           onClick={onClose}
-          className="ml-3 p-1.5 rounded-lg text-accent hover:bg-secondary transition-colors"
+          className="ml-3 p-1.5 rounded-lg text-muted-foreground hover:bg-secondary transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
@@ -98,7 +98,7 @@ export function ModalFooter({ children }) {
   if (!children) return null;
   return (
     <div
-      className="flex gap-3 px-5 border-t border-border flex-shrink-0 bg-secondary"
+      className="flex gap-3 px-5 border-t border-border flex-shrink-0 bg-card"
       style={{
         paddingTop: '12px',
         paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
@@ -118,7 +118,7 @@ export function ModalSaveButton({ children = 'Save', danger = false, disabled = 
       className={`flex-1 h-11 rounded-xl font-semibold text-sm transition-colors active:scale-95 disabled:opacity-50 ${
         danger
           ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-          : 'bg-primary text-primary-foreground hover:bg-[#B45309]'
+          : 'bg-primary text-primary-foreground hover:bg-primary/90'
       }`}
     >
       {children}
@@ -131,7 +131,7 @@ export function ModalCancelButton({ children = 'Cancel', onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="flex-1 h-11 rounded-xl font-semibold text-sm bg-card border border-border text-accent hover:bg-secondary/80 transition-colors active:scale-95"
+      className="flex-1 h-11 rounded-xl font-semibold text-sm bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors active:scale-95"
     >
       {children}
     </button>
@@ -227,7 +227,7 @@ export default function GlobalModal({
             >
               <Wrapper
                 {...wrapperProps}
-                className="bg-card border border-border rounded-2xl shadow-[0_18px_48px_rgba(91,70,54,0.22)] flex flex-col overflow-hidden w-full"
+                className="bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden w-full"
                 style={{
                   maxWidth: '100%',
                   overflowX: 'hidden',

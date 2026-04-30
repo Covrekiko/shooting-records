@@ -47,7 +47,7 @@ export default function MobileTabBar() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-[9000] bg-card/95 backdrop-blur-md border-t border-border shadow-[0_-4px_18px_rgba(180,83,9,0.08)]"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[9000] bg-card/95 backdrop-blur-md border-t border-border"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       {/* Sync status strip */}
@@ -72,16 +72,16 @@ export default function MobileTabBar() {
               key={key}
               onClick={() => handleTabPress(key)}
               className={`flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 transition-colors active:scale-90 transform-gpu select-none ${
-                isActive ? 'text-primary' : 'text-accent'
+                isActive ? 'text-primary' : 'text-muted-foreground'
               }`}
             >
               <div className={`flex items-center justify-center w-7 h-7 rounded-xl transition-all ${
-                isActive ? 'bg-secondary text-primary' : 'text-accent'
-                }`}>
+                isActive ? 'bg-primary/10' : ''
+              }`}>
                 <Icon style={{ width: isActive ? 20 : 18, height: isActive ? 20 : 18 }} />
               </div>
               <span className={`text-[9px] font-semibold tracking-tight leading-none ${
-                isActive ? 'text-primary' : 'text-accent'
+                isActive ? 'text-primary' : 'text-muted-foreground'
               }`}>
                 {label}
               </span>

@@ -116,7 +116,7 @@ export default function Navigation() {
       {/* ── DESKTOP NAV ─────────────────────────────────────────────── */}
       <div className="hidden md:block sticky top-0 z-[30] bg-background">
         <div className="max-w-7xl mx-auto px-4 pt-3 pb-2">
-          <div className="bg-card rounded-2xl shadow-[0_2px_18px_rgba(180,83,9,0.10)] border border-border px-5 py-3 flex items-center justify-between">
+          <div className="bg-card rounded-2xl shadow-sm border border-border px-5 py-3 flex items-center justify-between">
             <Link to="/" className="text-sm font-bold text-foreground flex items-center gap-2.5">
               <img src="https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/817907075_image.png" alt="logo" className="w-8 h-8 rounded-xl object-cover" />
               <span className="tracking-tight">Shooting Records</span>
@@ -136,8 +136,8 @@ export default function Navigation() {
                   <Link key={item.path} to={item.path}
                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 select-none ${
                           active
-                            ? 'text-primary bg-secondary/70'
-                            : 'text-muted-foreground hover:text-accent hover:bg-secondary/70'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                         }`}>
                     <Icon className="w-3.5 h-3.5" />
                     {item.label}
@@ -148,8 +148,8 @@ export default function Navigation() {
                 <Link to="/admin/users"
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 ${
                     isActive('/admin/users')
-                      ? 'text-primary bg-secondary/70'
-                      : 'text-muted-foreground hover:text-accent hover:bg-secondary/70'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                   }`}>
                   <Settings className="w-3.5 h-3.5" />Admin
                 </Link>
@@ -157,8 +157,8 @@ export default function Navigation() {
               <Link to="/profile"
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 ${
                   isActive('/profile')
-                    ? 'text-primary bg-secondary/70'
-                    : 'text-muted-foreground hover:text-accent hover:bg-secondary/70'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                 }`}>
                 <User className="w-3.5 h-3.5" />Profile
               </Link>

@@ -94,7 +94,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   const SpeciesRow = ({ entry, pest = false }) => (
     <div key={entry.species} className="rounded-xl border border-border bg-background/70 p-3 space-y-2">
       <div className="flex items-center gap-3">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${pest ? 'bg-secondary text-accent' : 'bg-secondary text-primary'}`}>
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${pest ? 'bg-slate-100 text-slate-600' : 'bg-green-50 text-green-700'}`}>
           {pest ? '🐾' : '🦌'}
         </div>
         <div className="flex-1 min-w-0">
@@ -112,7 +112,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
         <button
           type="button"
           onClick={() => removeEntry(entry.species)}
-          className="w-10 h-10 rounded-xl border border-red-100 bg-destructive/10 text-destructive hover:bg-destructive/15 flex items-center justify-center transition-colors"
+          className="w-10 h-10 rounded-xl border border-red-100 bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -135,7 +135,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
       onClose={onClose}
       title={(
         <span className="flex items-center gap-3 min-w-0">
-          <span className="w-10 h-10 rounded-full bg-secondary text-primary flex items-center justify-center text-lg shadow-sm flex-shrink-0">🦌</span>
+          <span className="w-10 h-10 rounded-full bg-green-800 text-white flex items-center justify-center text-lg shadow-sm flex-shrink-0">🦌</span>
           <span className="min-w-0 block">
             <span className="text-lg font-bold leading-tight text-foreground block">Check Out</span>
             <span className="text-xs font-medium text-muted-foreground truncate block">{activeOuting?.location_name || 'Outing'} • Deer Management</span>
@@ -150,7 +150,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
           <button type="button" onClick={onClose} className="flex-1 h-11 rounded-xl font-semibold text-sm bg-card border border-border text-foreground hover:bg-secondary transition-colors active:scale-95 flex items-center justify-center gap-2">
             <X className="w-4 h-4" /> Cancel
           </button>
-          <button type="submit" className="flex-1 h-11 rounded-xl font-semibold text-sm bg-gradient-to-r from-primary to-[#B45309] text-primary-foreground hover:opacity-90 transition-colors active:scale-95 flex items-center justify-center gap-2">
+          <button type="submit" className="flex-1 h-11 rounded-xl font-semibold text-sm bg-gradient-to-r from-orange-500 to-primary text-white hover:opacity-90 transition-colors active:scale-95 flex items-center justify-center gap-2">
             <Check className="w-4 h-4" /> Complete Check Out
           </button>
         </>
@@ -160,29 +160,29 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
         <section className={`${cardCls} p-4`}>
           <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-3">Session Summary</p>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="rounded-xl bg-secondary/60 border border-border p-3 flex items-center gap-3 min-w-0">
-              <MapPin className="w-5 h-5 text-primary flex-shrink-0" />
+            <div className="rounded-xl bg-background/80 border border-border p-3 flex items-center gap-3 min-w-0">
+              <MapPin className="w-5 h-5 text-green-700 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase text-muted-foreground">Area</p>
                 <p className="text-sm font-bold text-foreground truncate">{activeOuting?.location_name || 'Outing'}</p>
               </div>
             </div>
-            <div className="rounded-xl bg-secondary/60 border border-border p-3 flex items-center gap-3 min-w-0">
-              <Clock className="w-5 h-5 text-primary flex-shrink-0" />
+            <div className="rounded-xl bg-background/80 border border-border p-3 flex items-center gap-3 min-w-0">
+              <Clock className="w-5 h-5 text-green-700 flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-bold uppercase text-muted-foreground">End Time</p>
                 <input type="time" value={formData.end_time} onChange={e => set('end_time', e.target.value)} className="w-full bg-transparent text-sm font-bold text-foreground outline-none" />
               </div>
             </div>
-            <div className="rounded-xl bg-secondary/60 border border-border p-3 flex items-center gap-3 min-w-0">
+            <div className="rounded-xl bg-background/80 border border-border p-3 flex items-center gap-3 min-w-0">
               <span className="text-xl flex-shrink-0">🦌</span>
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase text-muted-foreground">Harvest</p>
                 <p className="text-sm font-bold text-foreground truncate">{harvestSummary}</p>
               </div>
             </div>
-            <div className="rounded-xl bg-secondary/60 border border-border p-3 flex items-center gap-3 min-w-0">
-              <Crosshair className="w-5 h-5 text-primary flex-shrink-0" />
+            <div className="rounded-xl bg-background/80 border border-border p-3 flex items-center gap-3 min-w-0">
+              <Crosshair className="w-5 h-5 text-green-700 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-[10px] font-bold uppercase text-muted-foreground">Rifle</p>
                 <p className="text-sm font-bold text-foreground truncate">{rifleSummary}</p>
@@ -191,14 +191,14 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
           </div>
         </section>
 
-        <section className="rounded-2xl border border-border bg-secondary p-4 relative overflow-hidden">
+        <section className="rounded-2xl border border-green-200 bg-green-50/60 p-4 relative overflow-hidden">
           <div className="flex items-start gap-3 relative z-10">
             <input
               type="checkbox"
               id="shot_anything"
               checked={formData.shot_anything}
               onChange={e => set('shot_anything', e.target.checked)}
-              className="mt-0.5 w-5 h-5 rounded accent-primary"
+              className="mt-0.5 w-5 h-5 rounded accent-green-700"
             />
             <label htmlFor="shot_anything" className="cursor-pointer flex-1">
               <span className="block text-sm font-bold text-foreground">I shot something today</span>
@@ -230,7 +230,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                   type="button"
                   disabled={!selectedDeer}
                   onClick={() => addSpecies(selectedDeer, setSelectedDeer)}
-                  className="h-11 rounded-xl bg-secondary text-primary text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2 hover:bg-[#B45309] transition-colors"
+                  className="h-11 rounded-xl bg-green-800 text-white text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2 hover:bg-green-900 transition-colors"
                 ><Plus className="w-4 h-4" /> Add</button>
               </div>
               {deerEntries.length > 0 && (
@@ -238,15 +238,15 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                   {deerEntries.map(entry => <SpeciesRow key={entry.species} entry={entry} />)}
                 </div>
               )}
-              <div className="rounded-xl border border-border bg-secondary px-4 py-3 flex items-center justify-between text-sm">
-                <span className="font-bold text-primary">Total Harvest</span>
-                <span className="font-bold text-primary">{harvestSummary}</span>
+              <div className="rounded-xl border border-orange-100 bg-orange-50/60 px-4 py-3 flex items-center justify-between text-sm">
+                <span className="font-bold text-orange-700">Total Harvest</span>
+                <span className="font-bold text-orange-700">{harvestSummary}</span>
               </div>
             </section>
 
             <section className={`${cardCls} p-4 space-y-4`}>
               <div className="flex items-start gap-2">
-                <Crosshair className="w-4 h-4 text-primary mt-0.5" />
+                <Crosshair className="w-4 h-4 text-green-700 mt-0.5" />
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">Pest Control</h3>
                   <p className="text-xs text-muted-foreground mt-1">Add pest species and quantity if recorded.</p>
@@ -264,7 +264,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                   type="button"
                   disabled={!selectedPest}
                   onClick={() => addSpecies(selectedPest, setSelectedPest)}
-                  className="h-11 rounded-xl bg-gradient-to-r from-primary to-[#B45309] text-primary-foreground text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2 hover:opacity-90 transition-colors"
+                  className="h-11 rounded-xl bg-gradient-to-r from-orange-500 to-primary text-white text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2 hover:opacity-90 transition-colors"
                 ><Plus className="w-4 h-4" /> Add</button>
               </div>
               {pestEntries.length > 0 ? (
@@ -280,7 +280,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
 
             <section className={`${cardCls} p-4 space-y-4`}>
               <div className="flex items-center gap-2">
-                <Crosshair className="w-4 h-4 text-primary" />
+                <Crosshair className="w-4 h-4 text-green-700" />
                 <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">Firearm & Ammunition</h3>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
@@ -319,7 +319,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
 
             <section className={`${cardCls} p-4 space-y-4`}>
               <div className="flex items-start gap-2">
-                <Camera className="w-4 h-4 text-primary mt-0.5" />
+                <Camera className="w-4 h-4 text-green-700 mt-0.5" />
                 <div>
                   <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">Photos <span className="text-muted-foreground">(Optional)</span></h3>
                   <p className="text-xs text-muted-foreground mt-1">Add photos from your outing.</p>
@@ -355,7 +355,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                     <div key={idx} className="relative">
                       <img src={photo} alt="harvest" className="w-full h-20 object-cover rounded-xl border border-border" />
                       <button type="button" onClick={() => setPhotos(prev => prev.filter((_, i) => i !== idx))}
-                        className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
                     </div>
                   ))}
                 </div>
