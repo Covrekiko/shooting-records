@@ -108,8 +108,6 @@ export default function DeerManagement() {
         ? (parseInt(checkoutData.rounds_fired) > 0 ? parseInt(checkoutData.rounds_fired) : parseInt(checkoutData.total_count) || 0)
         : 0;
 
-      console.log(`[AMMO DEBUG] action: deer_checkout sourceType: deer_management sourceId: ${activeOuting.id} ammoId: ${checkoutData.ammunition_id} quantityChange: -${roundsFired}`);
-
       // Update rifle round counts only if something was shot (using fresh DB value)
       if (checkoutData.shot_anything && checkoutData.rifle_id && roundsFired > 0) {
         console.log('[DEER ARMORY DEBUG] rifle_id =', checkoutData.rifle_id);
@@ -150,7 +148,6 @@ export default function DeerManagement() {
       // Decrement ammo only if something was actually shot
       if (checkoutData.shot_anything && checkoutData.ammunition_id && roundsFired > 0) {
         await decrementAmmoStock(checkoutData.ammunition_id, roundsFired, 'deer_management', activeOuting.id);
-        console.log(`[AMMO DEBUG] ammo decremented by ${roundsFired} for session ${activeOuting.id}`);
       }
 
       // Save to database FIRST, then stop tracking

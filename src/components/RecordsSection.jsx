@@ -354,8 +354,6 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
             setLoadingGroups(true);
             const groups = await base44.entities.TargetGroup.filter({ session_id: record.id });
             setTargetGroups(groups.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)));
-            console.log(`[TARGET ANALYSIS LINK DEBUG] activeSessionId = ${record.id}`);
-            console.log(`[TARGET ANALYSIS LINK DEBUG] analysesFound = ${groups.length}`);
             setLoadingGroups(false);
           }
         } catch (error) {

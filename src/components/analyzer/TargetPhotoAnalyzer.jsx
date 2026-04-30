@@ -117,8 +117,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const handlePhotoUpload = async (file) => {
     if (!file) return;
 
-    console.log('[TargetPhotoAnalyzer] File selected:', file.name, file.type || '(no type)', file.size, 'bytes');
-
     // Show local preview immediately so user sees something
     const localPreviewUrl = URL.createObjectURL(file);
     setPhoto(localPreviewUrl);
@@ -135,21 +133,16 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     const timeout = setTimeout(() => {
       timedOut = true;
       setUploading(false);
-      console.error('[TargetPhotoAnalyzer] Upload timed out after 30s');
       alert('Upload timed out. Try choosing a smaller photo or select from gallery.');
     }, 30000);
 
     try {
-      console.log('[TargetPhotoAnalyzer] Starting image compression…');
       const { compressImage } = await import('@/lib/imageUtils');
       const compressed = await compressImage(file, { maxDimension: 1600, quality: 0.8 });
-      console.log('[TargetPhotoAnalyzer] Compression done. Size:', compressed.size, 'bytes, type:', compressed.type);
 
       if (timedOut) return;
 
-      console.log('[TargetPhotoAnalyzer] Starting upload…');
       const { file_url } = await base44.integrations.Core.UploadFile({ file: compressed });
-      console.log('[TargetPhotoAnalyzer] Upload success:', file_url);
 
       if (timedOut) return;
 
@@ -157,7 +150,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
       setPhoto(file_url);
       if (!FEATURE_AI_TARGET_ANALYSIS) setAnalysisMode('manual');
     } catch (error) {
-      console.error('[TargetPhotoAnalyzer] Upload failed:', error);
       // Keep the local preview and show a retry option
       setUploadError(error.message || 'Upload failed');
       alert('Photo upload failed. Please try again or choose from gallery.\n\nError: ' + (error.message || 'Unknown error'));
@@ -165,7 +157,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
       clearTimeout(timeout);
       if (!timedOut) {
         setUploading(false);
-        console.log('[TargetPhotoAnalyzer] Loading stopped.');
       }
     }
   };

@@ -40,9 +40,6 @@ export const trackingService = {
 
   // Start GPS tracking for a session
   startTracking(sessionId, sessionType) {
-    console.log('🟢 TRACKING INIT - sessionId:', sessionId, 'type:', sessionType);
-    console.log('🟢 navigator.geolocation available:', !!navigator.geolocation);
-    
     // Prevent duplicate tracking sessions
     if (trackingState.isTracking && trackingState.sessionId === sessionId) {
       console.warn('⚠️ Tracking already active for this session, ignoring duplicate start request');
@@ -77,8 +74,6 @@ export const trackingService = {
       const point = { lat: latitude, lng: longitude, timestamp };
       trackingState.track.push(point);
       
-      console.log('📍 GPS UPDATE RECEIVED - Points:', trackingState.track.length, 'Location:', latitude, longitude);
-      
       // Notify all listeners with fresh copy
       const trackSnapshot = [...trackingState.track];
       trackingListeners.forEach(listener => listener(trackSnapshot));
@@ -87,22 +82,18 @@ export const trackingService = {
     let permissionDenied = false;
 
     const handlePositionError = (error) => {
-       console.error('❌ GPS ERROR - Code:', error?.code, 'Message:', error?.message || error);
        if (error?.code === 1) {
-         console.error('   → Permission denied. User must allow geolocation access.');
+         console.warn('Geolocation permission denied. User must allow geolocation access.');
          permissionDenied = true;
          // Stop tracking on permission denial
          trackingState.isTracking = false;
          trackingListeners.forEach(listener => listener([]));
        } else if (error?.code === 2) {
-         console.error('   → Position unavailable. Check GPS/network.');
-       } else if (error?.code === 3) {
-         console.error('   → Timeout. GPS signal lost or delayed.');
+         console.warn('GPS position unavailable. Check GPS/network.');
        }
      };
 
     try {
-      console.log('🟢 Calling watchPosition...');
       const watchId = navigator.geolocation.watchPosition(
         handlePositionUpdate,
         handlePositionError,
@@ -110,7 +101,6 @@ export const trackingService = {
       );
       
       trackingState.watchId = watchId;
-      console.log('🟢 WATCH STARTED with ID:', trackingState.watchId, 'isTracking:', trackingState.isTracking);
     } catch (err) {
       console.error('❌ EXCEPTION in watchPosition:', err);
       trackingState.isTracking = false;
@@ -119,15 +109,11 @@ export const trackingService = {
 
   // Stop GPS tracking and return the track
   stopTracking() {
-    console.log('🔴 TRACKING STOPPED - sessionId:', trackingState.sessionId, 'type:', trackingState.sessionType);
-    console.log('🔴 ROUTE SAVED with', trackingState.track.length, 'GPS points');
-    
     // Save track before clearing
     const finalTrack = [...trackingState.track];
     
     // Clear watch
     if (trackingState.watchId !== null) {
-      console.log('🔴 WATCH CLEARED - ID:', trackingState.watchId);
       navigator.geolocation.clearWatch(trackingState.watchId);
     } else {
       console.warn('⚠️ Watch ID was null, possibly never started');
@@ -143,7 +129,6 @@ export const trackingService = {
     // Notify listeners
     trackingListeners.forEach(listener => listener([]));
     
-    console.log('🔴 POINTS SAVED TO DATABASE:', finalTrack.length, 'coordinates');
     return finalTrack;
   },
 

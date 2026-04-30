@@ -15,11 +15,8 @@ export async function compressImage(file, { maxDimension = 1600, quality = 0.82 
   const isImage = file.type?.startsWith('image/') || !file.type || isHeic;
 
   if (!isImage) {
-    console.warn('[compressImage] Unknown file type, returning as-is:', file.type, file.name);
     return file;
   }
-
-  console.log('[compressImage] Processing:', file.name, file.type || '(blank type)', file.size, 'bytes');
 
   return new Promise((resolve) => {
     const url = URL.createObjectURL(file);
@@ -28,7 +25,6 @@ export async function compressImage(file, { maxDimension = 1600, quality = 0.82 
     // Add a per-decode timeout in case img.onload never fires (e.g. broken HEIC on non-Safari)
     const decodeTimeout = setTimeout(() => {
       URL.revokeObjectURL(url);
-      console.warn('[compressImage] Image decode timed out, returning original file');
       resolve(file);
     }, 15000);
 
@@ -65,22 +61,19 @@ export async function compressImage(file, { maxDimension = 1600, quality = 0.82 
             }
             const safeName = file.name.replace(/\.(heic|heif)$/i, '.jpg');
             const compressed = new File([blob], safeName, { type: 'image/jpeg' });
-            console.log('[compressImage] Done:', compressed.size, 'bytes');
             resolve(compressed);
           },
           'image/jpeg',
           quality
         );
       } catch (err) {
-        console.warn('[compressImage] Canvas error, returning original:', err);
         resolve(file);
       }
     };
 
-    img.onerror = (err) => {
+    img.onerror = () => {
       clearTimeout(decodeTimeout);
       URL.revokeObjectURL(url);
-      console.warn('[compressImage] img.onerror — returning original file. Error:', err);
       // Still resolve (not reject) so upload can proceed with original
       resolve(file);
     };

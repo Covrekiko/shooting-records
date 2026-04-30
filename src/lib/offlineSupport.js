@@ -47,7 +47,6 @@ export async function preCacheUserData(userEmail) {
     );
 
     await offlineDB.setMeta('lastPreCache', Date.now());
-    console.log('[offline] Pre-cache complete');
   } catch (e) {
     console.warn('[offline] Pre-cache failed:', e?.message);
   }

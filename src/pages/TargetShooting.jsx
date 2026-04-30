@@ -135,7 +135,6 @@ export default function TargetShooting() {
             // Resume tracking if session is still fresh and tracking isn't already running
             if (!trackingService.isTracking()) {
               trackingService.startTracking(session.id, 'target');
-              console.log('🟢 Resumed tracking for active session after app restart');
             }
           }
         }
@@ -229,9 +228,6 @@ export default function TargetShooting() {
 
         // Update rifle total using fresh fetch (don't use stale cache)
         if (rifle.rifle_id && roundsFired > 0) {
-          console.log('[TARGET ARMORY DEBUG] rifle_id =', rifle.rifle_id);
-          console.log('[TARGET ARMORY DEBUG] roundsFired =', roundsFired);
-
           // Fetch fresh rifle from Base44 (don't use stale cache)
           const freshRifle = await base44.entities.Rifle.get(rifle.rifle_id);
           if (!freshRifle) {
@@ -241,16 +237,10 @@ export default function TargetShooting() {
           const before = Number(freshRifle.total_rounds_fired || 0);
           const after = before + roundsFired;
 
-          console.log('[TARGET ARMORY DEBUG] before =', before);
-          console.log('[TARGET ARMORY DEBUG] after =', after);
-
           await base44.entities.Rifle.update(rifle.rifle_id, {
             total_rounds_fired: after,
           });
 
-          // Verify update succeeded
-          const verify = await base44.entities.Rifle.get(rifle.rifle_id);
-          console.log('[TARGET ARMORY DEBUG] verify =', verify.total_rounds_fired);
         }
 
         // Accumulate rounds per ammo ID (handles multiple rifles using same ammo)
