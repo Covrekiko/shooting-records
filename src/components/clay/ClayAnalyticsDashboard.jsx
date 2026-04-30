@@ -69,9 +69,9 @@ export default function ClayAnalyticsDashboard({ sessions, stands, onRefresh }) 
     }).length;
 
     return [
-      { name: 'Excellent (75%+)', value: excellent, color: '#22c55e' },
-      { name: 'Good (50–75%)', value: good, color: '#eab308' },
-      { name: 'Needs Practice (<50%)', value: needsPractice, color: '#ef4444' },
+      { name: 'Excellent (75%+)', value: excellent, color: '#16A34A' },
+      { name: 'Good (50–75%)', value: good, color: '#D97706' },
+      { name: 'Needs Practice (<50%)', value: needsPractice, color: '#DC2626' },
     ].filter(d => d.value > 0);
   }, [stands]);
 
@@ -97,19 +97,19 @@ export default function ClayAnalyticsDashboard({ sessions, stands, onRefresh }) 
 
         <div className="bg-card border border-border rounded-xl p-3">
           <div className="flex items-center gap-2 mb-2">
-            <Zap className="w-4 h-4 text-amber-500" />
+            <Zap className="w-4 h-4 text-primary" />
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Avg per Session</p>
           </div>
-          <p className="text-2xl font-black text-amber-500">{avgClaysPerSession}</p>
+          <p className="text-2xl font-black text-primary">{avgClaysPerSession}</p>
           <p className="text-xs text-muted-foreground mt-1">clays fired</p>
         </div>
 
         <div className="bg-card border border-border rounded-xl p-3">
           <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-emerald-500" />
+            <TrendingUp className="w-4 h-4 text-accent" />
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Total Stands</p>
           </div>
-          <p className="text-2xl font-black text-emerald-500">{stands.length}</p>
+          <p className="text-2xl font-black text-accent">{stands.length}</p>
           <p className="text-xs text-muted-foreground mt-1">recorded</p>
         </div>
       </div>
@@ -215,9 +215,9 @@ export default function ClayAnalyticsDashboard({ sessions, stands, onRefresh }) 
 
        {/* Empty state for deleted records */}
        {stands.length === 0 && sessions.length === 0 && (
-         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/40 rounded-xl p-6 text-center">
-           <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">Analytics cleared</p>
-           <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">All clay shooting records have been deleted.</p>
+         <div className="bg-secondary border border-border rounded-xl p-6 text-center">
+           <p className="text-sm text-accent font-medium">Analytics cleared</p>
+           <p className="text-xs text-muted-foreground mt-1">All clay shooting records have been deleted.</p>
          </div>
        )}
     </div>

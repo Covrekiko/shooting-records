@@ -37,6 +37,14 @@
     --sidebar-accent-foreground: 26 25% 28%;
     --sidebar-border: 33 72% 83%;
     --sidebar-ring: 32 95% 44%;
+    --app-bg: #FFF7ED;
+    --card-bg: #FFFBF7;
+    --soft-bg: #FEF3E2;
+    --primary-dark: #B45309;
+    --accent-brown: #5B4636;
+    --muted-icon: #8A6A4F;
+    --text-primary: #111827;
+    --text-secondary: #6B7280;
   }
 
   .dark {

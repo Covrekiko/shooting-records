@@ -343,7 +343,7 @@ export default function TargetShooting() {
         <div className="mb-4 flex items-center justify-between">
           <div className="hidden md:block">
             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Target Shooting</h1>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Rifle range sessions</p>
+            <p className="text-xs text-slate-400 dark:text-muted-foreground mt-0.5">Rifle range sessions</p>
           </div>
 
         </div>
@@ -422,7 +422,7 @@ export default function TargetShooting() {
         </div>
 
         <div className="mt-4">
-           <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Sessions</p>
+           <p className="text-xs font-bold text-slate-400 dark:text-muted-foreground uppercase tracking-widest mb-3">Recent Sessions</p>
            <RecordsSection category="target_shooting" title="Session Records" emptyMessage="No target shooting sessions recorded yet" showTargetAnalysis={true} />
          </div>
 
@@ -460,9 +460,9 @@ export default function TargetShooting() {
 
 // ─── Check-in Modal ───────────────────────────────────────────────
 function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
-  const labelCls = 'text-[11px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5';
-  const fieldCls = 'w-full h-11 rounded-xl border border-slate-200 bg-white pl-4 pr-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all focus:border-green-700 focus:ring-2 focus:ring-green-700/10';
-  const iconWrapCls = 'w-11 h-11 rounded-xl bg-green-50 text-green-700 flex items-center justify-center flex-shrink-0';
+  const labelCls = 'text-[11px] font-bold text-accent uppercase tracking-widest block mb-1.5';
+  const fieldCls = 'w-full h-11 rounded-xl border border-border bg-card pl-4 pr-4 text-sm font-medium text-foreground shadow-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20';
+  const iconWrapCls = 'w-11 h-11 rounded-xl bg-secondary text-primary flex items-center justify-center flex-shrink-0';
 
   return (
     <GlobalModal
@@ -470,22 +470,22 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
       onClose={onClose}
       title={(
         <span className="flex items-center gap-3 min-w-0">
-          <span className="w-10 h-10 rounded-full bg-green-800 text-white flex items-center justify-center shadow-sm flex-shrink-0">
+          <span className="w-10 h-10 rounded-full bg-secondary text-primary flex items-center justify-center shadow-sm flex-shrink-0">
             <Crosshair className="w-5 h-5" />
           </span>
           <span className="min-w-0 block">
-            <span className="text-lg font-bold leading-tight text-slate-900 block">Check In</span>
-            <span className="text-xs font-medium text-slate-500 block mt-0.5">Start your target shooting session</span>
+            <span className="text-lg font-bold leading-tight text-foreground block">Check In</span>
+            <span className="text-xs font-medium text-muted-foreground block mt-0.5">Start your target shooting session</span>
           </span>
         </span>
       )}
       onSubmit={onSubmit}
       footer={(
         <>
-          <button type="button" onClick={onClose} className="flex-1 h-11 rounded-xl font-bold text-sm bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors active:scale-95 flex items-center justify-center gap-2">
+          <button type="button" onClick={onClose} className="flex-1 h-11 rounded-xl font-bold text-sm bg-secondary border border-border text-accent hover:bg-secondary/80 transition-colors active:scale-95 flex items-center justify-center gap-2">
             <X className="w-4 h-4" /> Cancel
           </button>
-          <button type="submit" className="flex-1 h-11 rounded-xl font-bold text-sm bg-orange-600 text-white hover:bg-orange-700 transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm">
+          <button type="submit" className="flex-1 h-11 rounded-xl font-bold text-sm bg-primary text-primary-foreground hover:bg-[#B45309] transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm">
             <Check className="w-4 h-4" /> Check In
           </button>
         </>
@@ -529,17 +529,17 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl border border-green-200 bg-green-50 p-4">
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-secondary p-4">
           <div className="flex items-center gap-3 relative z-10">
-            <span className="w-9 h-9 rounded-full bg-green-700 text-white flex items-center justify-center flex-shrink-0">
+            <span className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0">
               <Check className="w-5 h-5" />
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-bold text-green-800">Ready to check in?</p>
-              <p className="text-xs text-slate-600 mt-0.5">Make sure the details above are correct before starting your session.</p>
+              <p className="text-sm font-bold text-accent">Ready to check in?</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Make sure the details above are correct before starting your session.</p>
             </div>
           </div>
-          <Crosshair className="absolute right-5 bottom-3 w-16 h-16 text-green-700/10 pointer-events-none" />
+          <Crosshair className="absolute right-5 bottom-3 w-16 h-16 text-primary/10 pointer-events-none" />
         </div>
       </div>
     </GlobalModal>
@@ -625,10 +625,10 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
     onSubmit(data);
   };
 
-  const fieldCls = 'w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all focus:border-green-700 focus:ring-2 focus:ring-green-700/10';
-  const sectionCls = 'rounded-2xl border border-slate-200 bg-white p-3 shadow-sm';
-  const sectionIconCls = 'w-10 h-10 rounded-xl bg-green-50 text-green-700 flex items-center justify-center flex-shrink-0';
-  const sectionLabelCls = 'text-[11px] font-bold text-slate-600 uppercase tracking-widest';
+  const fieldCls = 'w-full h-11 rounded-xl border border-border bg-card px-3 text-sm font-medium text-foreground shadow-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20';
+  const sectionCls = 'rounded-2xl border border-border bg-card p-3 shadow-sm';
+  const sectionIconCls = 'w-10 h-10 rounded-xl bg-secondary text-primary flex items-center justify-center flex-shrink-0';
+  const sectionLabelCls = 'text-[11px] font-bold text-accent uppercase tracking-widest';
 
   return (
     <GlobalModal
@@ -636,22 +636,22 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
       onClose={onClose}
       title={(
         <span className="flex items-center gap-3 min-w-0">
-          <span className="w-10 h-10 rounded-full bg-green-800 text-white flex items-center justify-center shadow-sm flex-shrink-0">
+          <span className="w-10 h-10 rounded-full bg-secondary text-primary flex items-center justify-center shadow-sm flex-shrink-0">
             <Crosshair className="w-5 h-5" />
           </span>
           <span className="min-w-0 block">
-            <span className="text-lg font-bold leading-tight text-slate-900 block">Check Out</span>
-            <span className="text-xs font-medium text-slate-500 block mt-0.5">End your target shooting session</span>
+            <span className="text-lg font-bold leading-tight text-foreground block">Check Out</span>
+            <span className="text-xs font-medium text-muted-foreground block mt-0.5">End your target shooting session</span>
           </span>
         </span>
       )}
       onSubmit={handleSubmit}
       footer={(
         <>
-          <button type="button" onClick={onClose} className="flex-1 h-11 rounded-xl font-bold text-sm bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors active:scale-95 flex items-center justify-center gap-2">
+          <button type="button" onClick={onClose} className="flex-1 h-11 rounded-xl font-bold text-sm bg-secondary border border-border text-accent hover:bg-secondary/80 transition-colors active:scale-95 flex items-center justify-center gap-2">
             <X className="w-4 h-4" /> Cancel
           </button>
-          <button type="submit" className="flex-1 h-11 rounded-xl font-bold text-sm bg-orange-600 text-white hover:bg-orange-700 transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm">
+          <button type="submit" className="flex-1 h-11 rounded-xl font-bold text-sm bg-primary text-primary-foreground hover:bg-[#B45309] transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm">
             <Check className="w-4 h-4" /> Check Out
           </button>
         </>
@@ -675,26 +675,26 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
               <span className={sectionLabelCls}>Firearms Used</span>
             </div>
             <motion.button type="button" onClick={addRifleEntry} whileTap={{ scale: 0.95 }}
-              className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition-colors flex-shrink-0">
+              className="px-3 py-1.5 rounded-lg border border-border bg-card hover:bg-secondary text-xs font-bold text-accent transition-colors flex-shrink-0">
               + Add
             </motion.button>
           </div>
 
           <div className="space-y-3">
             {data.rifles_used.map((rifle, index) => (
-              <div key={index} className="relative rounded-2xl border border-slate-200 bg-slate-50 p-3 space-y-3">
-                {errors[`rifle_${index}`] && <p className="text-red-500 text-xs font-medium pr-8">{errors[`rifle_${index}`]}</p>}
+              <div key={index} className="relative rounded-2xl border border-border bg-secondary/60 p-3 space-y-3">
+                {errors[`rifle_${index}`] && <p className="text-destructive text-xs font-medium pr-8">{errors[`rifle_${index}`]}</p>}
                 <div className="flex justify-between items-center gap-3">
-                  <span className="text-xs font-bold text-slate-800">Rifle {index + 1}</span>
+                  <span className="text-xs font-bold text-foreground">Rifle {index + 1}</span>
                   {data.rifles_used.length > 1 && (
-                    <button type="button" onClick={() => removeRifleEntry(index)} className="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors" title="Remove rifle">
+                    <button type="button" onClick={() => removeRifleEntry(index)} className="w-8 h-8 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/15 flex items-center justify-center transition-colors" title="Remove rifle">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Rifle</label>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5">Rifle</label>
                   <select value={rifle.rifle_id} onChange={(e) => updateRifleEntry(index, 'rifle_id', e.target.value)} className={fieldCls}>
                     <option value="">Select rifle</option>
                     {rifles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
@@ -703,17 +703,17 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Rounds</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5">Rounds</label>
                     <input type="number" placeholder="Rounds" value={rifle.rounds_fired} onChange={(e) => updateRifleEntry(index, 'rounds_fired', e.target.value)} className={`${fieldCls} min-w-0`} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Distance</label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5">Distance</label>
                     <input type="number" placeholder="Meters" value={rifle.meters_range} onChange={(e) => updateRifleEntry(index, 'meters_range', e.target.value)} className={`${fieldCls} min-w-0`} />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Ammunition *</label>
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5">Ammunition *</label>
                   {rifle.rifle_id ? (
                     <select
                       value={rifle.ammunition_id || ''}
@@ -739,7 +739,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                       })()}
                     </select>
                   ) : (
-                    <div className={`${fieldCls} flex items-center text-slate-500`}>Select a rifle first</div>
+                    <div className={`${fieldCls} flex items-center text-muted-foreground`}>Select a rifle first</div>
                   )}
                 </div>
               </div>
@@ -762,9 +762,9 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
             <span className={sectionIconCls}><Camera className="w-5 h-5" /></span>
             <div className="flex-1 min-w-0">
               <label className={`${sectionLabelCls} block`}>Photos</label>
-              <p className="text-xs text-slate-500 mb-3">Add photos from your session (optional)</p>
+              <p className="text-xs text-muted-foreground mb-3">Add photos from your session (optional)</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-                <label className={`h-10 px-3 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-center cursor-pointer font-bold text-xs text-slate-700 transition-colors flex items-center justify-center gap-2 ${photoUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                <label className={`h-10 px-3 bg-card border border-border hover:bg-secondary rounded-xl text-center cursor-pointer font-bold text-xs text-accent transition-colors flex items-center justify-center gap-2 ${photoUploading ? 'opacity-50 pointer-events-none' : ''}`}>
                   <Upload className="w-4 h-4" /> {photoUploading ? 'Uploading...' : 'Choose File'}
                   <input type="file" accept="image/*" multiple className="hidden" disabled={photoUploading} onChange={async (e) => {
                     const result = await uploadPhotos(Array.from(e.target.files || []), data.photos, setPhotoUploading);
@@ -772,7 +772,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                     if (result) setData(prev => ({ ...prev, photos: result }));
                   }} />
                 </label>
-                <label className={`h-10 px-3 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-center cursor-pointer font-bold text-xs text-slate-700 transition-colors flex items-center justify-center gap-2 ${photoUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                <label className={`h-10 px-3 bg-card border border-border hover:bg-secondary rounded-xl text-center cursor-pointer font-bold text-xs text-accent transition-colors flex items-center justify-center gap-2 ${photoUploading ? 'opacity-50 pointer-events-none' : ''}`}>
                   <Camera className="w-4 h-4" /> {photoUploading ? 'Uploading...' : 'Camera'}
                   <input type="file" accept="image/*" capture="environment" className="hidden" disabled={photoUploading} onChange={async (e) => {
                     const result = await uploadPhotos(Array.from(e.target.files || []), data.photos, setPhotoUploading);
@@ -788,10 +788,10 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                     const analysis = typeof photo === 'object' ? photo.analysis : null;
                     return (
                       <div key={idx} className="relative group">
-                        <img src={photoUrl} alt="preview" className="h-16 w-16 object-cover rounded-xl border border-slate-200" />
+                        <img src={photoUrl} alt="preview" className="h-16 w-16 object-cover rounded-xl border border-border" />
                         {analysis && <div className="absolute bottom-0 right-0 bg-primary text-primary-foreground text-xs px-1 rounded-tl-lg">{analysis.accuracy_percentage}%</div>}
                         <button type="button" onClick={() => setData(prev => ({ ...prev, photos: prev.photos.filter((_, i) => i !== idx) }))}
-                          className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs shadow">×</button>
+                          className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs shadow">×</button>
                       </div>
                     );
                   })}
@@ -803,21 +803,21 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
 
         {gpsTrack && gpsTrack.length > 0 && (
           <motion.button type="button" onClick={() => onViewTrack(gpsTrack)} whileTap={{ scale: 0.97 }}
-            className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-bold text-slate-700">
+            className="w-full px-3 py-2.5 bg-secondary border border-border hover:bg-secondary/80 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-bold text-accent">
             <Map className="w-4 h-4" />
             View GPS Track
           </motion.button>
         )}
 
         {sessionRecordId && (
-          <section className="rounded-2xl border border-orange-200 bg-orange-50/70 p-3">
+          <section className="rounded-2xl border border-border bg-secondary p-3">
             <div className="flex items-start gap-3">
-              <span className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0">
+              <span className="w-10 h-10 rounded-xl bg-card text-primary flex items-center justify-center flex-shrink-0">
                 <Crosshair className="w-5 h-5" />
               </span>
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Target Analysis</p>
-                <p className="text-xs text-slate-500 mt-0.5">Analyze your performance and group your shots (optional)</p>
+                <p className="text-[11px] font-bold text-accent uppercase tracking-widest">Target Analysis</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Analyze your performance and group your shots (optional)</p>
                 <TargetAnalysisSummary sessionRecordId={sessionRecordId} />
               </div>
             </div>

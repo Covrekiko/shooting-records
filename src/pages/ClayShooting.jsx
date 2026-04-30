@@ -351,20 +351,20 @@ export default function ClayShooting() {
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-4 mobile-page-padding">
         <div className="mb-4 flex items-center justify-between">
           <div className="hidden md:block">
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Clay Shooting</h1>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Shotgun clay sessions</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Clay Shooting</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Shotgun clay sessions</p>
           </div>
 
         </div>
 
         {!activeSession && (
           <div className={`${DESIGN.CARD} p-5 mb-4 flex flex-col items-center justify-center text-center gap-3`}>
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center">
-              <Target className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+            <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center text-primary">
+              <Target className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No Active Session</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Start a session to begin tracking</p>
+              <p className="text-sm font-semibold text-foreground">No Active Session</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Start a session to begin tracking</p>
             </div>
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
               className={`${DESIGN.BUTTON_PRIMARY} flex items-center gap-2 w-full justify-center`}>
@@ -375,16 +375,16 @@ export default function ClayShooting() {
         )}
 
         {activeSession && (
-          <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-2xl p-4 mb-4">
+          <div className="bg-card border border-primary/35 rounded-2xl p-4 mb-4 shadow-[0_6px_20px_rgba(180,83,9,0.08)]">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
                 <div>
                   <p className="text-xs font-bold text-primary uppercase tracking-widest">Active Session</p>
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mt-0.5">
+                  <p className="text-sm font-semibold text-foreground mt-0.5">
                     {activeSession.location_name || 'Clay Ground'}
                   </p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500">Started {activeSession.checkin_time}</p>
+                  <p className="text-xs text-muted-foreground">Started {activeSession.checkin_time}</p>
                   {activeSession.check_in_method === 'auto_geolocation' && (
                     <p className="text-[10px] text-primary font-medium mt-0.5">📍 Auto by Geolocation</p>
                   )}
@@ -396,7 +396,7 @@ export default function ClayShooting() {
               </motion.button>
             </div>
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowScorecard(true)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-background dark:bg-slate-800 border border-primary/30 rounded-xl text-sm font-semibold text-primary hover:bg-primary/5 transition-colors">
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-secondary border border-border rounded-xl text-sm font-semibold text-primary hover:bg-secondary/80 transition-colors">
               <ClipboardList className="w-4 h-4" />
               Open Scorecard
             </motion.button>
@@ -407,15 +407,15 @@ export default function ClayShooting() {
          {(stands.length > 0 || allSessions.length > 0) && (
            <div className="mt-6">
              <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowAnalytics(!showAnalytics)}
-               className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-colors ${showAnalytics ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}>
-               📊 Analytics
+               className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-colors border ${showAnalytics ? 'bg-primary text-primary-foreground border-primary' : 'bg-secondary text-accent border-border hover:bg-secondary/80'}`}>
+               Analytics
              </motion.button>
              {showAnalytics && <div className="mt-4" key={analyticsRefreshKey}><ClayAnalyticsDashboard sessions={allSessions} stands={stands} onRefresh={reloadAnalytics} /></div>}
            </div>
          )}
 
         <div className="mt-6">
-           <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Sessions</p>
+           <p className="text-xs font-bold text-accent uppercase tracking-widest mb-3">Recent Sessions</p>
            <RecordsSection category="clay_shooting" title="Session Records" emptyMessage="No clay shooting sessions recorded yet" onRecordDeleted={reloadAnalytics} />
          </div>
 
@@ -598,7 +598,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
                 <div key={idx} className="relative group">
                   <img src={photo} alt="preview" className="h-16 w-16 object-cover rounded-xl border border-border" />
                   <button type="button" onClick={() => onChange('photos', data.photos.filter((_, i) => i !== idx))}
-                    className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs shadow">×</button>
+                    className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs shadow">×</button>
                 </div>
               ))}
             </div>

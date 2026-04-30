@@ -181,20 +181,20 @@ export default function DeerManagement() {
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-4 mobile-page-padding">
         <div className="mb-4 flex items-center justify-between">
           <div className="hidden md:block">
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Deer Management</h1>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Stalking outings & records</p>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Deer Management</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Stalking outings & records</p>
           </div>
 
         </div>
 
         {!activeOuting && (
           <div className={`${DESIGN.CARD} p-5 mb-4 flex flex-col items-center justify-center text-center gap-3`}>
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700/80 flex items-center justify-center">
-              <Layers className="w-6 h-6 text-slate-400 dark:text-slate-500" />
+            <div className="w-12 h-12 rounded-2xl bg-secondary flex items-center justify-center text-primary">
+              <Layers className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No Active Outing</p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Start an outing to enable GPS tracking</p>
+              <p className="text-sm font-semibold text-foreground">No Active Outing</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Start an outing to enable GPS tracking</p>
             </div>
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
               className={`${DESIGN.BUTTON_PRIMARY} flex items-center gap-2 w-full justify-center`}>
@@ -205,14 +205,14 @@ export default function DeerManagement() {
         )}
 
         {activeOuting && (
-          <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/40 rounded-2xl p-4 mb-4">
+          <div className="bg-card border border-primary/35 rounded-2xl p-4 mb-4 shadow-[0_6px_20px_rgba(180,83,9,0.08)]">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse mt-1.5 flex-shrink-0" />
+                <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse mt-1.5 flex-shrink-0" />
                 <div>
-                  <p className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Active Outing</p>
-                  <p className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5">{activeOuting.location_name}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1">
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Active Outing</p>
+                  <p className="text-sm font-bold text-foreground mt-0.5">{activeOuting.location_name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
                     <Clock className="w-3 h-3" />
                     Started {new Date(activeOuting.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
@@ -227,7 +227,7 @@ export default function DeerManagement() {
         )}
 
         <div className="mt-4">
-          <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-3">Recent Outings</p>
+          <p className="text-xs font-bold text-slate-400 dark:text-muted-foreground uppercase tracking-widest mb-3">Recent Outings</p>
           <RecordsSection category="deer_management" title="Outing Records" emptyMessage="No deer management outings recorded yet" />
         </div>
 
@@ -257,9 +257,9 @@ export default function DeerManagement() {
 // ─── Check-in Modal ───────────────────────────────────────────────
 function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
   const selectedArea = areas.find(a => a.id === data.location_id);
-  const inputCls = 'w-full h-14 pl-14 pr-4 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700/10 transition-all';
-  const labelCls = 'text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2 block';
-  const fieldIconCls = 'absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-green-50 text-green-700 flex items-center justify-center pointer-events-none';
+  const inputCls = 'w-full h-14 pl-14 pr-4 rounded-xl border border-border bg-card text-foreground text-sm font-medium outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all';
+  const labelCls = 'text-[11px] font-bold text-accent uppercase tracking-widest mb-2 block';
+  const fieldIconCls = 'absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-secondary text-primary flex items-center justify-center pointer-events-none';
 
   const handleAreaSelect = (areaId) => {
     onChange('location_id', areaId);
@@ -275,30 +275,30 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
       onClose={onClose}
       title={(
         <span className="flex items-center gap-4 min-w-0">
-          <span className="w-12 h-12 rounded-full bg-green-800 text-white flex items-center justify-center text-2xl shadow-sm flex-shrink-0">🦌</span>
+          <span className="w-12 h-12 rounded-full bg-secondary text-primary flex items-center justify-center text-2xl shadow-sm flex-shrink-0">🦌</span>
           <span className="min-w-0 block">
-            <span className="text-2xl font-bold leading-tight text-slate-900 block">Start Outing</span>
-            <span className="text-sm font-medium text-green-800/80 block mt-1">Deer Management check-in</span>
+            <span className="text-2xl font-bold leading-tight text-foreground block">Start Outing</span>
+            <span className="text-sm font-medium text-muted-foreground block mt-1">Deer Management check-in</span>
           </span>
         </span>
       )}
       onSubmit={onSubmit}
       footer={(
         <>
-          <button type="button" onClick={onClose} className="flex-1 h-12 rounded-xl font-bold text-sm bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors active:scale-95 flex items-center justify-center gap-3">
+          <button type="button" onClick={onClose} className="flex-1 h-12 rounded-xl font-bold text-sm bg-card border border-border text-accent hover:bg-secondary transition-colors active:scale-95 flex items-center justify-center gap-3">
             <X className="w-5 h-5" /> Cancel
           </button>
-          <button type="submit" className="flex-1 h-12 rounded-xl font-bold text-sm bg-orange-600 text-white hover:bg-orange-700 transition-colors active:scale-95 flex items-center justify-center gap-3 shadow-sm">
+          <button type="submit" className="flex-1 h-12 rounded-xl font-bold text-sm bg-primary text-primary-foreground hover:bg-[#B45309] transition-colors active:scale-95 flex items-center justify-center gap-3 shadow-sm">
             <Check className="w-5 h-5" /> Check In
           </button>
         </>
       )}
     >
       <div className="space-y-4">
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
           <div className="flex items-center gap-2 mb-5">
-            <Calendar className="w-4 h-4 text-green-800" />
-            <h3 className="text-sm font-bold text-green-800 uppercase tracking-wide">Session Setup</h3>
+            <Calendar className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-bold text-accent uppercase tracking-wide">Session Setup</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -335,7 +335,7 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
                 </select>
               </div>
               {selectedArea && (
-                <p className="text-xs text-green-700 mt-2 flex items-center gap-1.5 font-medium">
+                <p className="text-xs text-primary mt-2 flex items-center gap-1.5 font-medium">
                   <Check className="w-3.5 h-3.5" /> Area selected: {selectedArea.name}
                 </p>
               )}
@@ -347,7 +347,7 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
                 <span className={fieldIconCls}><MapPin className="w-5 h-5" /></span>
                 <input type="text" value={data.place_name || ''} onChange={(e) => onChange('place_name', e.target.value)} className={inputCls} placeholder={selectedArea ? `Suggested: ${selectedArea.name}` : 'Enter location name'} required />
               </div>
-              <p className="text-xs text-slate-500 mt-2">You can edit the location name if needed.</p>
+              <p className="text-xs text-muted-foreground mt-2">You can edit the location name if needed.</p>
             </div>
 
             <div>
@@ -360,16 +360,16 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
           </div>
         </section>
 
-        <section className={`relative overflow-hidden rounded-2xl border p-5 ${selectedArea ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-slate-50'}`}>
+        <section className={`relative overflow-hidden rounded-2xl border p-5 ${selectedArea ? 'border-border bg-secondary' : 'border-border bg-secondary'}`}>
           <div className="flex items-center gap-4 relative z-10">
-            <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 ${selectedArea ? 'bg-green-700 text-white' : 'bg-slate-200 text-slate-500'}`}>
+            <div className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 ${selectedArea ? 'bg-primary text-primary-foreground' : 'bg-card text-accent'}`}>
               <Check className="w-6 h-6" />
             </div>
             <div className="min-w-0">
-              <p className={`text-base font-bold ${selectedArea ? 'text-green-800' : 'text-slate-700'}`}>{selectedArea ? 'Ready to check in' : 'Select an area to continue'}</p>
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-700 mt-2">
-                {selectedArea && <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-green-700" /> Area: <strong>{selectedArea.name}</strong></span>}
-                <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-green-700" /> Time: <strong>{data.start_time}</strong></span>
+              <p className={`text-base font-bold ${selectedArea ? 'text-accent' : 'text-accent'}`}>{selectedArea ? 'Ready to check in' : 'Select an area to continue'}</p>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-accent mt-2">
+                {selectedArea && <span className="flex items-center gap-1.5"><MapPin className="w-4 h-4 text-primary" /> Area: <strong>{selectedArea.name}</strong></span>}
+                <span className="flex items-center gap-1.5"><Clock className="w-4 h-4 text-primary" /> Time: <strong>{data.start_time}</strong></span>
               </div>
             </div>
           </div>
