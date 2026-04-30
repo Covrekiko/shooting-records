@@ -254,7 +254,7 @@ export default function DeerManagement() {
             data={checkinData}
             areas={areas}
             onSubmit={handleCheckin}
-            onChange={(field, value) => setCheckinData({ ...checkinData, [field]: value })}
+            onChange={(field, value) => setCheckinData((prev) => ({ ...prev, [field]: value }))}
             onClose={() => setShowCheckin(false)}
           />
         )}
@@ -278,6 +278,10 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
   const inputCls = DESIGN.INPUT;
   const labelCls = DESIGN.LABEL;
   const selectCls = DESIGN.SELECT;
+
+  console.log('[DEER AREA DEBUG] areas =', areas);
+  console.log('[DEER AREA DEBUG] selected location_id =', data.location_id);
+  console.log('[DEER AREA DEBUG] selectedArea =', selectedArea);
 
   const handleAreaSelect = (areaId) => {
     onChange('location_id', areaId);
@@ -322,7 +326,11 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
               </option>
             )}
           </select>
-          {selectedArea && <p className="text-xs text-primary mt-1.5 font-semibold">✓ {selectedArea.name} selected</p>}
+          {selectedArea && (
+            <p className="text-xs text-green-600 mt-1">
+              ✓ {selectedArea.name} selected
+            </p>
+          )}
         </div>
         <div>
           <label className={labelCls}>Place Name</label>
