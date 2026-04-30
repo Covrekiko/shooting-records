@@ -11,7 +11,7 @@ import { motion } from 'framer-motion';
 import React from 'react';
 import {
   Target, Crosshair, Map, BookOpen,
-  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck, MessageCircle,
+  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck, MessageCircle, Wrench,
 } from 'lucide-react';
 import {
   MonthlyActivityChart,
@@ -128,20 +128,20 @@ function ActiveSessionBanner({ outing }) {
       <motion.div
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-3 px-4 py-3.5 bg-emerald-600 dark:bg-emerald-700 rounded-2xl shadow-lg"
+        className="flex items-center gap-3 px-4 py-3.5 bg-card border border-border rounded-2xl shadow-[0_6px_20px_rgba(180,83,9,0.10)]"
       >
         <div className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold text-emerald-200 uppercase tracking-widest">Active Outing</p>
-          <p className="text-sm font-bold text-white truncate mt-0.5">{outing.location_name || 'Deer Stalking'}</p>
+          <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Active Outing</p>
+          <p className="text-sm font-bold text-foreground truncate mt-0.5">{outing.location_name || 'Deer Stalking'}</p>
         </div>
         {elapsed !== null && (
-          <div className="flex items-center gap-1 text-emerald-200 text-xs font-semibold flex-shrink-0 bg-black/10 px-2 py-1 rounded-lg">
+          <div className="flex items-center gap-1 text-accent text-xs font-semibold flex-shrink-0 bg-secondary px-2 py-1 rounded-lg">
             <Clock className="w-3 h-3" />
             {elapsed >= 60 ? `${Math.floor(elapsed / 60)}h ${elapsed % 60}m` : `${elapsed}m`}
           </div>
         )}
-        <ChevronRight className="w-4 h-4 text-emerald-300 flex-shrink-0" />
+        <ChevronRight className="w-4 h-4 text-accent flex-shrink-0" />
       </motion.div>
     </Link>
   );
@@ -157,7 +157,7 @@ const KpiRow = React.memo(function KpiRow({ stats }) {
   return (
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
-        <div key={item.label} className="bg-card rounded-xl px-2 py-2.5 text-center border border-border shadow-sm">
+        <div key={item.label} className="bg-card rounded-xl px-2 py-2.5 text-center border border-border shadow-[0_3px_14px_rgba(180,83,9,0.07)]">
           <p className="text-base md:text-lg font-bold text-foreground leading-none">{item.value}</p>
           <p className="text-[10px] text-muted-foreground mt-1 font-medium">{item.label}</p>
         </div>
@@ -169,8 +169,8 @@ const KpiRow = React.memo(function KpiRow({ stats }) {
 const PrimaryCard = React.memo(function PrimaryCard({ to, icon, label, sub }) {
   return (
     <Link to={to}>
-      <div className="bg-card rounded-2xl p-4 border border-border shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-4 select-none">
-        <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary [&_svg]:w-5 [&_svg]:h-5 select-none">
+      <div className="bg-card rounded-2xl p-4 border border-border shadow-[0_6px_20px_rgba(180,83,9,0.10)] active:scale-[0.97] transition-all duration-100 flex items-center gap-4 select-none">
+        <div className="w-11 h-11 rounded-2xl bg-secondary flex items-center justify-center flex-shrink-0 text-primary [&_svg]:w-5 [&_svg]:h-5 select-none">
           {icon}
         </div>
         <div className="flex-1 min-w-0">
@@ -188,10 +188,10 @@ const SecondaryGrid = React.memo(function SecondaryGrid({ user }) {
   const allItems = [
     { to: '/target-shooting', icon: <Crosshair className="w-5 h-5" />, label: 'Target', module: 'target_shooting' },
     { to: '/clay-shooting', icon: <Target className="w-5 h-5" />, label: 'Clay', module: 'clay_shooting' },
-    { to: '/deer-management', icon: <span className="text-lg">🦌</span>, label: 'Deer', module: 'deer_management' },
+    { to: '/deer-management', icon: <Layers className="w-5 h-5" />, label: 'Deer', module: 'deer_management' },
     { to: '/reloading', icon: <RefreshCw className="w-5 h-5" />, label: 'Reloading', module: 'reloading' },
     { to: '/load-development', icon: <FlaskConical className="w-5 h-5" />, label: 'Load Dev', module: 'reloading' },
-    { to: '/settings/rifles', icon: <span className="text-lg">🔧</span>, label: 'Equipment' },
+    { to: '/settings/rifles', icon: <Wrench className="w-5 h-5" />, label: 'Equipment' },
     { to: '/reports', icon: <BarChart3 className="w-5 h-5" />, label: 'Reports' },
     ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck className="w-5 h-5" />, label: 'Admin' }] : []),
   ];
@@ -201,11 +201,11 @@ const SecondaryGrid = React.memo(function SecondaryGrid({ user }) {
     <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
          <Link key={item.to} to={item.to}>
-           <div className="bg-card rounded-xl p-2.5 border border-border shadow-sm active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none">
-             <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground [&_svg]:w-5 [&_svg]:h-5 select-none">
+           <div className="bg-card rounded-xl p-2.5 border border-border shadow-[0_4px_16px_rgba(180,83,9,0.08)] active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none">
+             <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-primary [&_svg]:w-5 [&_svg]:h-5 select-none">
                {item.icon}
              </div>
-             <p className="text-[10px] font-semibold text-muted-foreground leading-tight tracking-wide">{item.label}</p>
+             <p className="text-[10px] font-semibold text-foreground leading-tight tracking-wide">{item.label}</p>
            </div>
          </Link>
        ))}
@@ -216,7 +216,7 @@ const SecondaryGrid = React.memo(function SecondaryGrid({ user }) {
 const ChartsSection = React.memo(function ChartsSection({ chartData }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+    <div className="bg-card rounded-2xl border border-border shadow-[0_6px_20px_rgba(180,83,9,0.08)] overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between px-4 py-3.5 text-sm font-semibold text-foreground hover:bg-secondary/30 transition-colors select-none"
