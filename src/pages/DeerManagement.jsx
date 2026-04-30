@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import CheckinBanner from '@/components/CheckinBanner';
-import { useGeolocation, calculateDistance } from '@/hooks/useGeolocation';
 import { useOuting } from '@/context/OutingContext';
 import { Plus, Clock, Layers, Calendar, MapPin, Check, X } from 'lucide-react';
 import RecordsSection from '@/components/RecordsSection';
@@ -23,8 +21,6 @@ export default function DeerManagement() {
   const [showCheckin, setShowCheckin] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(true);
-  const { location } = useGeolocation();
-  const [nearbyLocation, setNearbyLocation] = useState(null);
   const [gpsTrack, setGpsTrack] = useState([]);
 
   const [checkinData, setCheckinData] = useState({
@@ -63,17 +59,6 @@ export default function DeerManagement() {
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (location && areas.length > 0) {
-      areas.forEach((area) => {
-        if (area.center_point?.lat && area.center_point?.lng) {
-          const distance = calculateDistance(location.latitude, location.longitude, area.center_point.lat, area.center_point.lng);
-          if (distance < 0.5) setNearbyLocation({ name: area.name, distance });
-        }
-      });
-    }
-  }, [location, areas]);
-
   const handleCheckin = async (e) => {
     e?.preventDefault?.();
     try {
@@ -91,14 +76,13 @@ export default function DeerManagement() {
 
       const outing = await startOuting(checkinData);
 
-      // Validate geolocation support before starting tracking
+      // Validate geolocation support before tracking starts from the check-in flow
       if (!navigator.geolocation) {
         alert('⚠️ Geolocation not available on this device. Check-in successful but GPS tracking disabled.');
         setShowCheckin(false);
         return;
       }
 
-      trackingService.startTracking(outing.id, 'deer');
       setShowCheckin(false);
       setCheckinData({ date: new Date().toISOString().split('T')[0], location_id: '', place_name: '', start_time: new Date().toTimeString().slice(0, 5) });
     } catch (error) {
@@ -191,9 +175,6 @@ export default function DeerManagement() {
   return (
     <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
       <Navigation />
-      {nearbyLocation && (
-        <CheckinBanner location={nearbyLocation.name} distance={nearbyLocation.distance} onDismiss={() => setNearbyLocation(null)} onCheckin={() => setShowCheckin(true)} />
-      )}
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-4 mobile-page-padding">
         <div className="mb-4 flex items-center justify-between">
           <div className="hidden md:block">

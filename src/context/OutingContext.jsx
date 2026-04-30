@@ -75,10 +75,7 @@ export function OutingProvider({ children }) {
           setActiveOuting(outing);
           // Persist active outing locally for offline restore
           offlineDB.put('meta', { id: 'active_outing', value: outing }).catch(() => {});
-          if (navigator.geolocation && !trackingService.isTracking()) {
-            console.log('🟢 Resuming GPS tracking for active outing after app restart - ID:', outing.id);
-            trackingService.startTracking(outing.id, 'deer');
-          }
+
         }
       } else {
         setActiveOuting(null);
