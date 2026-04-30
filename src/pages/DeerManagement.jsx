@@ -85,7 +85,7 @@ export default function DeerManagement() {
 
       // Validate required fields
       if (!checkinData.location_id || !checkinData.place_name || !checkinData.date || !checkinData.start_time) {
-        alert('All fields are required');
+        alert('Please select an area and enter a place name.');
         return;
       }
 
@@ -303,18 +303,30 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
         </div>
         <div>
           <label className={labelCls}>Select Area</label>
-          <select value={data.location_id || ''} onChange={(e) => handleAreaSelect(e.target.value)} className={selectCls} required>
+          <select
+            value={data.location_id || ''}
+            onChange={(e) => handleAreaSelect(e.target.value)}
+            className={selectCls}
+            required
+          >
             <option value="">Select your area</option>
-            {areas && areas.length > 0
-              ? areas.map((area) => <option key={area.id} value={area.id}>{area.name || 'Unnamed Area'}</option>)
-              : <option disabled>No areas available</option>
-            }
+            {areas && areas.length > 0 ? (
+              areas.map((area) => (
+                <option key={area.id} value={area.id}>
+                  {area.name || 'Unnamed Area'}
+                </option>
+              ))
+            ) : (
+              <option value="" disabled>
+                No areas available
+              </option>
+            )}
           </select>
           {selectedArea && <p className="text-xs text-primary mt-1.5 font-semibold">✓ {selectedArea.name} selected</p>}
         </div>
         <div>
           <label className={labelCls}>Place Name</label>
-          <input type="text" value={data.place_name} onChange={(e) => onChange('place_name', e.target.value)} className={inputCls} placeholder={selectedArea ? `Suggested: ${selectedArea.name}` : 'Enter location name'} required />
+          <input type="text" value={data.place_name || ''} onChange={(e) => onChange('place_name', e.target.value)} className={inputCls} placeholder={selectedArea ? `Suggested: ${selectedArea.name}` : 'Enter location name'} required />
         </div>
         <div>
           <label className={labelCls}>Check-in Time</label>
