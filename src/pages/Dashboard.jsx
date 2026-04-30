@@ -11,7 +11,7 @@ import { motion } from 'framer-motion';
 import React from 'react';
 import {
   Target, Crosshair, Map, BookOpen,
-  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck, MessageCircle, Wrench,
+  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck, MessageCircle,
 } from 'lucide-react';
 import {
   MonthlyActivityChart,
@@ -191,7 +191,7 @@ const SecondaryGrid = React.memo(function SecondaryGrid({ user }) {
     { to: '/deer-management', icon: <Layers className="w-5 h-5" />, label: 'Deer', module: 'deer_management' },
     { to: '/reloading', icon: <RefreshCw className="w-5 h-5" />, label: 'Reloading', module: 'reloading' },
     { to: '/load-development', icon: <FlaskConical className="w-5 h-5" />, label: 'Load Dev', module: 'reloading' },
-    { to: '/settings/rifles', icon: <Wrench className="w-5 h-5" />, label: 'Equipment' },
+    { to: '/settings/rifles', icon: <Shield className="w-5 h-5" />, label: 'Equipment' },
     { to: '/reports', icon: <BarChart3 className="w-5 h-5" />, label: 'Reports' },
     ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck className="w-5 h-5" />, label: 'Admin' }] : []),
   ];
