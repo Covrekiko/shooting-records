@@ -7,7 +7,7 @@ import CheckinBanner from '@/components/CheckinBanner';
 import { calculateDistance } from '@/hooks/useGeolocation';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import RecordsSection from '@/components/RecordsSection';
-import { Plus, Map, Crosshair, ScanLine, Microscope, Calculator } from 'lucide-react';
+import { Plus, Map, Crosshair, ScanLine, Microscope, Calculator, Calendar, MapPin, Clock, FileText, Check, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import BallisticCalculator from '@/components/target-analysis/BallisticCalculator';
 import { decrementAmmoStock, refundAmmoForRecord, getSelectableAmmunition } from '@/lib/ammoUtils';
@@ -461,38 +461,86 @@ export default function TargetShooting() {
 
 // ─── Check-in Modal ───────────────────────────────────────────────
 function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
-  const inputCls = DESIGN.INPUT;
-  const labelCls = DESIGN.LABEL;
-  const selectCls = DESIGN.SELECT;
+  const labelCls = 'text-[11px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5';
+  const fieldCls = 'w-full h-11 rounded-xl border border-slate-200 bg-white pl-4 pr-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all focus:border-green-700 focus:ring-2 focus:ring-green-700/10';
+  const iconWrapCls = 'w-11 h-11 rounded-xl bg-green-50 text-green-700 flex items-center justify-center flex-shrink-0';
 
   return (
     <GlobalModal
       open={true}
       onClose={onClose}
-      title="Check In"
+      title={(
+        <span className="flex items-center gap-3 min-w-0">
+          <span className="w-10 h-10 rounded-full bg-green-800 text-white flex items-center justify-center shadow-sm flex-shrink-0">
+            <Crosshair className="w-5 h-5" />
+          </span>
+          <span className="min-w-0 block">
+            <span className="text-lg font-bold leading-tight text-slate-900 block">Check In</span>
+            <span className="text-xs font-medium text-slate-500 block mt-0.5">Start your target shooting session</span>
+          </span>
+        </span>
+      )}
       onSubmit={onSubmit}
-      primaryAction="Check In"
-      secondaryAction="Cancel"
+      footer={(
+        <>
+          <button type="button" onClick={onClose} className="flex-1 h-11 rounded-xl font-bold text-sm bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors active:scale-95 flex items-center justify-center gap-2">
+            <X className="w-4 h-4" /> Cancel
+          </button>
+          <button type="submit" className="flex-1 h-11 rounded-xl font-bold text-sm bg-orange-600 text-white hover:bg-orange-700 transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm">
+            <Check className="w-4 h-4" /> Check In
+          </button>
+        </>
+      )}
     >
       <div className="space-y-4">
-        <div>
-          <label className={labelCls}>Date</label>
-          <input type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} className={inputCls} required />
+        <div className="space-y-3">
+          <div className="flex gap-3 min-w-0">
+            <span className={iconWrapCls}><Calendar className="w-5 h-5" /></span>
+            <div className="flex-1 min-w-0">
+              <label className={labelCls}>Date</label>
+              <input type="date" value={data.date} onChange={(e) => onChange('date', e.target.value)} className={fieldCls} required />
+            </div>
+          </div>
+
+          <div className="flex gap-3 min-w-0">
+            <span className={iconWrapCls}><MapPin className="w-5 h-5" /></span>
+            <div className="flex-1 min-w-0">
+              <label className={labelCls}>Club</label>
+              <select value={data.club_id} onChange={(e) => onChange('club_id', e.target.value)} className={`${fieldCls} appearance-none`} required>
+                <option value="">Select a club</option>
+                {clubs.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex gap-3 min-w-0">
+            <span className={iconWrapCls}><Clock className="w-5 h-5" /></span>
+            <div className="flex-1 min-w-0">
+              <label className={labelCls}>Check-In Time</label>
+              <input type="time" value={data.checkin_time} onChange={(e) => onChange('checkin_time', e.target.value)} className={fieldCls} required />
+            </div>
+          </div>
+
+          <div className="flex gap-3 min-w-0">
+            <span className={iconWrapCls}><FileText className="w-5 h-5" /></span>
+            <div className="flex-1 min-w-0">
+              <label className={labelCls}>Notes (optional)</label>
+              <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className={`${fieldCls} h-20 py-3 resize-none`} rows="3" placeholder="Add any notes about this session..." />
+            </div>
+          </div>
         </div>
-        <div>
-          <label className={labelCls}>Club</label>
-          <select value={data.club_id} onChange={(e) => onChange('club_id', e.target.value)} className={selectCls} required>
-            <option value="">Select a club</option>
-            {clubs.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className={labelCls}>Check-in Time</label>
-          <input type="time" value={data.checkin_time} onChange={(e) => onChange('checkin_time', e.target.value)} className={inputCls} required />
-        </div>
-        <div>
-          <label className={labelCls}>Notes (optional)</label>
-          <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className={inputCls} rows="3" />
+
+        <div className="relative overflow-hidden rounded-2xl border border-green-200 bg-green-50 p-4">
+          <div className="flex items-center gap-3 relative z-10">
+            <span className="w-9 h-9 rounded-full bg-green-700 text-white flex items-center justify-center flex-shrink-0">
+              <Check className="w-5 h-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-green-800">Ready to check in?</p>
+              <p className="text-xs text-slate-600 mt-0.5">Make sure the details above are correct before starting your session.</p>
+            </div>
+          </div>
+          <Crosshair className="absolute right-5 bottom-3 w-16 h-16 text-green-700/10 pointer-events-none" />
         </div>
       </div>
     </GlobalModal>
