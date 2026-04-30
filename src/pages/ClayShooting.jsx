@@ -241,7 +241,9 @@ export default function ClayShooting() {
     try {
       // Collect GPS track BEFORE stopping tracking
       const finalTrack = trackingService.getTrack();
-      console.log('🟢 Checkout: Collected', finalTrack.length, 'GPS points before stop');
+      if (finalTrack.length === 0) {
+        console.warn('No GPS points were recorded for this clay session. Checkout will continue without a route.');
+      }
 
       // Update shotgun cartridge count using fresh DB value (not stale cache)
        const cartridgesFired = parseInt(formData.rounds_fired) || 0;
@@ -287,7 +289,9 @@ export default function ClayShooting() {
             active_checkin: false,
             gps_track: finalTrack,
           });
-          console.log('🟢 SessionRecord updated and closed - GPS points saved:', finalTrack.length);
+          if (finalTrack.length > 0) {
+            console.log('[GPS DEBUG] record linked to route', { recordId: activeSession.id, pointsSaved: finalTrack.length });
+          }
           updateSuccess = true;
           break;
         } catch (err) {

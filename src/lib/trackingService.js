@@ -1,11 +1,19 @@
 import { base44 } from '@/api/base44Client';
 
+const GPS_DEBUG = import.meta.env.DEV;
+
+const debugGps = (...args) => {
+  if (GPS_DEBUG) console.log('[GPS DEBUG]', ...args);
+};
+
 let trackingState = {
   isTracking: false,
   sessionId: null,
   sessionType: null, // 'clay' | 'target' | 'deer'
   track: [],
   watchId: null,
+  usingFallbackAccuracy: false,
+  lastError: null,
 };
 
 const trackingListeners = new Set();
@@ -51,10 +59,14 @@ export const trackingService = {
       this.stopTracking();
     }
 
+    debugGps('startTracking', { sessionId, activityType: sessionType });
+
     trackingState.isTracking = true;
     trackingState.sessionId = sessionId;
     trackingState.sessionType = sessionType;
     trackingState.track = [];
+    trackingState.usingFallbackAccuracy = false;
+    trackingState.lastError = null;
 
     if (!navigator.geolocation) {
       console.error('❌ GEOLOCATION NOT SUPPORTED');
@@ -69,40 +81,55 @@ export const trackingService = {
         return;
       }
       
-      const { latitude, longitude } = position.coords;
+      const { latitude, longitude, accuracy } = position.coords;
       const timestamp = Date.now();
-      const point = { lat: latitude, lng: longitude, timestamp };
+      const point = { lat: latitude, lng: longitude, accuracy, timestamp };
       trackingState.track.push(point);
+      trackingState.lastError = null;
+      debugGps('watch success', { lat: latitude, lng: longitude, accuracy, timestamp });
+      debugGps('points length =', trackingState.track.length);
       
       // Notify all listeners with fresh copy
       const trackSnapshot = [...trackingState.track];
       trackingListeners.forEach(listener => listener(trackSnapshot));
     };
 
-    let permissionDenied = false;
-
-    const handlePositionError = (error) => {
-       if (error?.code === 1) {
-         console.warn('Geolocation permission denied. User must allow geolocation access.');
-         permissionDenied = true;
-         // Stop tracking on permission denial
-         trackingState.isTracking = false;
-         trackingListeners.forEach(listener => listener([]));
-       } else if (error?.code === 2) {
-         console.warn('GPS position unavailable. Check GPS/network.');
-       }
-     };
-
-    try {
+    const startWatch = (options, fallback = false) => {
       const watchId = navigator.geolocation.watchPosition(
         handlePositionUpdate,
         handlePositionError,
-        { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 }  // 30s timeout for mobile
+        options
       );
-      
       trackingState.watchId = watchId;
+      trackingState.usingFallbackAccuracy = fallback;
+      debugGps('watchPosition started', { watchId, options, fallback });
+    };
+
+    const handlePositionError = (error) => {
+      trackingState.lastError = { code: error?.code, message: error?.message };
+      debugGps('watch error', trackingState.lastError);
+
+      if (error?.code === 1) {
+        console.warn('Location permission denied. Location is used to record check-in/check-out and route tracking for activity records.');
+        trackingState.isTracking = false;
+        trackingListeners.forEach(listener => listener([]));
+        if (trackingState.watchId !== null) navigator.geolocation.clearWatch(trackingState.watchId);
+        trackingState.watchId = null;
+        return;
+      }
+
+      if ((error?.code === 2 || error?.code === 3) && !trackingState.usingFallbackAccuracy) {
+        console.warn('GPS high accuracy unavailable or timed out. Falling back to standard accuracy.');
+        if (trackingState.watchId !== null) navigator.geolocation.clearWatch(trackingState.watchId);
+        startWatch({ enableHighAccuracy: false, timeout: 30000, maximumAge: 30000 }, true);
+      }
+    };
+
+    try {
+      startWatch({ enableHighAccuracy: true, timeout: 30000, maximumAge: 10000 });
     } catch (err) {
       console.error('❌ EXCEPTION in watchPosition:', err);
+      trackingState.lastError = { code: 'exception', message: err.message };
       trackingState.isTracking = false;
     }
   },
@@ -111,6 +138,15 @@ export const trackingService = {
   stopTracking() {
     // Save track before clearing
     const finalTrack = [...trackingState.track];
+    debugGps('stopTracking', {
+      sessionId: trackingState.sessionId,
+      activityType: trackingState.sessionType,
+      pointsInMemory: finalTrack.length,
+      lastError: trackingState.lastError,
+    });
+    if (finalTrack.length === 0) {
+      debugGps('no_points', { message: 'No GPS points were recorded' });
+    }
     
     // Clear watch
     if (trackingState.watchId !== null) {
@@ -125,6 +161,8 @@ export const trackingService = {
     trackingState.sessionType = null;
     trackingState.track = [];
     trackingState.watchId = null;
+    trackingState.usingFallbackAccuracy = false;
+    trackingState.lastError = null;
 
     // Notify listeners
     trackingListeners.forEach(listener => listener([]));

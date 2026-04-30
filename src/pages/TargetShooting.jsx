@@ -219,6 +219,9 @@ export default function TargetShooting() {
     try {
       // Collect GPS track BEFORE stopping tracking
       const finalTrack = trackingService.getTrack();
+      if (finalTrack.length === 0) {
+        console.warn('No GPS points were recorded for this target session. Checkout will continue without a route.');
+      }
 
       // Update rifle round counts using fresh DB values (not stale cache)
       // Accumulate rounds per ammo ID in case multiple rifles share the same ammo

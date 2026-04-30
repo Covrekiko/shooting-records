@@ -171,7 +171,9 @@ export function OutingProvider({ children }) {
   const endOutingWithData = async (outingId, checkoutData, gpsTrack) => {
       try {
         const currentUser = await base44.auth.me();
-        console.log('🟢 endOutingWithData called - outingId:', outingId, 'gpsTrack:', gpsTrack?.length || 0, 'points', 'checkoutData:', checkoutData);
+        if ((gpsTrack?.length || 0) === 0) {
+          console.warn('No GPS points were recorded for this deer outing. Checkout will continue without a route.');
+        }
 
         // CRITICAL: Stop tracking AFTER collecting points but BEFORE saving, to prevent data loss on failure
         // GPS points are already in finalTrack passed to this function
