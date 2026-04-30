@@ -851,7 +851,7 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
           <div className="flex-shrink-0 p-4 sm:p-6 border-t border-border bg-card sticky bottom-0" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}>
           <button
             onClick={onClose}
-            className="w-full px-4 py-3 bg-primary text-primary-foreground rounded-xl hover:opacity-90 font-semibold transition-all active:scale-95 text-sm sm:text-base"
+            className="w-full px-4 py-3 bg-[#B85C00] text-white rounded-xl hover:bg-[#9A4A00] font-semibold transition-all active:bg-[#7A3900] active:scale-95 text-sm sm:text-base shadow-sm"
           >
             Close Report
           </button>

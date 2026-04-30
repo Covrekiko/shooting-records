@@ -358,7 +358,7 @@ export default function TargetShooting() {
               <p className="text-xs text-muted-foreground mt-0.5">Start a session to begin tracking</p>
             </div>
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
-              className="w-full px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary-hover transition-colors flex items-center gap-2 justify-center">
+              className="w-full px-4 py-2.5 bg-[#B85C00] text-white rounded-xl font-semibold hover:bg-[#9A4A00] active:bg-[#7A3900] transition-colors flex items-center gap-2 justify-center shadow-sm">
               <Plus className="w-4 h-4" />
               Start Session
             </motion.button>
@@ -382,7 +382,7 @@ export default function TargetShooting() {
                 </div>
               </div>
               <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowCheckout(true)}
-                className="px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary-hover transition-colors">
+                className="px-4 py-2.5 bg-[#B85C00] text-white rounded-xl font-semibold hover:bg-[#9A4A00] active:bg-[#7A3900] transition-colors shadow-sm">
                 Check Out
               </motion.button>
             </div>
@@ -485,7 +485,7 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
           <button type="button" onClick={onClose} className="flex-1 h-11 rounded-xl font-bold text-sm bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors active:scale-95 flex items-center justify-center gap-2">
             <X className="w-4 h-4" /> Cancel
           </button>
-          <button type="submit" className="flex-1 h-11 rounded-xl font-bold text-sm bg-primary text-primary-foreground hover:bg-primary-hover transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm">
+          <button type="submit" className="flex-1 h-11 rounded-xl font-bold text-sm bg-[#B85C00] text-white hover:bg-[#9A4A00] active:bg-[#7A3900] transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm">
             <Check className="w-4 h-4" /> Check In
           </button>
         </>
@@ -651,7 +651,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
           <button type="button" onClick={onClose} className="flex-1 h-11 rounded-xl font-bold text-sm bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors active:scale-95 flex items-center justify-center gap-2">
             <X className="w-4 h-4" /> Cancel
           </button>
-          <button type="submit" className="flex-1 h-11 rounded-xl font-bold text-sm bg-primary text-primary-foreground hover:bg-primary-hover transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm">
+          <button type="submit" className="flex-1 h-11 rounded-xl font-bold text-sm bg-[#B85C00] text-white hover:bg-[#9A4A00] active:bg-[#7A3900] transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm">
             <Check className="w-4 h-4" /> Check Out
           </button>
         </>

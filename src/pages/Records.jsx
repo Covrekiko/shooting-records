@@ -323,7 +323,7 @@ export default function Records() {
             <div className="flex gap-2">
               <button
                 onClick={() => setManualRecordModal({ isNew: true })}
-                className="p-2 sm:px-3 sm:py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
+                className="p-2 sm:px-3 sm:py-2 bg-[#B85C00] text-white rounded-xl hover:bg-[#9A4A00] active:bg-[#7A3900] flex items-center gap-2 text-sm shadow-sm transition-colors"
                 title="Add Record"
               >
                 <Plus className="w-4 h-4" />
@@ -333,7 +333,7 @@ export default function Records() {
                 <>
                   <button
                     onClick={() => setPreviewingPdf(filteredRecords)}
-                    className="p-2 sm:px-3 sm:py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 text-sm"
+                    className="p-2 sm:px-3 sm:py-2 bg-[#B85C00] text-white rounded-xl hover:bg-[#9A4A00] active:bg-[#7A3900] flex items-center gap-2 text-sm shadow-sm transition-colors"
                     title="PDF"
                   >
                     <FileText className="w-4 h-4" />
