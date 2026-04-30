@@ -38,10 +38,10 @@
     --sidebar-border: 33 72% 83%;
     --sidebar-ring: 32 95% 44%;
     --app-bg: #FFF7ED;
-    --panel-bg: #FFFBF7;
-    --card-bg: #FFFBF7;
-    --soft-bg: #FDF5EA;
-    --icon-bg: #F6E7D2;
+    --panel-bg: #FFF1DF;
+    --card-bg: #FFF1DF;
+    --soft-bg: #F6E7D2;
+    --icon-bg: #EFD3AE;
     --border-soft: #E8D3B8;
     --primary-hex: #C96A04;
     --primary-hover: #A95402;
@@ -90,10 +90,10 @@
     --sidebar-border: 33 51% 82%;
     --sidebar-ring: 30 96% 40%;
     --app-bg: #FFF7ED;
-    --panel-bg: #FFFBF7;
-    --card-bg: #FFFBF7;
-    --soft-bg: #FDF5EA;
-    --icon-bg: #F6E7D2;
+    --panel-bg: #FFF1DF;
+    --card-bg: #FFF1DF;
+    --soft-bg: #F6E7D2;
+    --icon-bg: #EFD3AE;
     --border-soft: #E8D3B8;
     --primary-hex: #C96A04;
     --primary-hover: #A95402;
@@ -190,12 +190,12 @@
 .bg-background,
 .bg-slate-50,
 .bg-gray-50,
-.bg-white,
 .dark .dark\:bg-\[\#13161e\] {
   background-color: var(--app-bg) !important;
 }
 
 .bg-card,
+.bg-white,
 .dark .dark\:bg-slate-800,
 .dark .dark\:bg-slate-900 {
   background-color: var(--panel-bg) !important;
