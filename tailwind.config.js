@@ -24,6 +24,10 @@ module.exports = {
   				DEFAULT: 'hsl(var(--primary))',
   				foreground: 'hsl(var(--primary-foreground))'
   			},
+  			'primary-hover': 'hsl(var(--primary-hover))',
+  			'primary-soft': 'hsl(var(--primary-soft))',
+  			'primary-soft-border': 'hsl(var(--primary-soft-border))',
+  			'primary-accent': 'hsl(var(--primary-accent))',
   			secondary: {
   				DEFAULT: 'hsl(var(--secondary))',
   				foreground: 'hsl(var(--secondary-foreground))'

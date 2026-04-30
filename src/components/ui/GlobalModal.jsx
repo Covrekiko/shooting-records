@@ -118,7 +118,7 @@ export function ModalSaveButton({ children = 'Save', danger = false, disabled = 
       className={`flex-1 h-11 rounded-xl font-semibold text-sm transition-colors active:scale-95 disabled:opacity-50 ${
         danger
           ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-          : 'bg-primary text-primary-foreground hover:bg-primary/90'
+          : 'bg-primary text-primary-foreground hover:bg-primary-hover'
       }`}
     >
       {children}

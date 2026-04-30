@@ -375,18 +375,18 @@ export default function ClayShooting() {
         )}
 
         {activeSession && (
-          <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 rounded-2xl p-4 mb-4">
+          <div className="bg-primary-soft border border-primary-soft-border rounded-2xl p-4 mb-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
                 <div>
-                  <p className="text-xs font-bold text-primary uppercase tracking-widest">Active Session</p>
+                  <p className="text-xs font-bold text-primary-accent uppercase tracking-widest">Active Session</p>
                   <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 mt-0.5">
                     {activeSession.location_name || 'Clay Ground'}
                   </p>
                   <p className="text-xs text-slate-400 dark:text-slate-500">Started {activeSession.checkin_time}</p>
                   {activeSession.check_in_method === 'auto_geolocation' && (
-                    <p className="text-[10px] text-primary font-medium mt-0.5">📍 Auto by Geolocation</p>
+                    <p className="text-[10px] text-primary-accent font-medium mt-0.5">📍 Auto by Geolocation</p>
                   )}
                 </div>
               </div>
@@ -396,7 +396,7 @@ export default function ClayShooting() {
               </motion.button>
             </div>
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowScorecard(true)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-background dark:bg-slate-800 border border-primary/30 rounded-xl text-sm font-semibold text-primary hover:bg-primary/5 transition-colors">
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-background dark:bg-slate-800 border border-primary-soft-border rounded-xl text-sm font-semibold text-primary-accent hover:bg-primary-soft transition-colors">
               <ClipboardList className="w-4 h-4" />
               Open Scorecard
             </motion.button>
@@ -407,7 +407,7 @@ export default function ClayShooting() {
          {(stands.length > 0 || allSessions.length > 0) && (
            <div className="mt-6">
              <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowAnalytics(!showAnalytics)}
-               className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-colors ${showAnalytics ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}>
+               className={`w-full py-2.5 rounded-xl text-xs font-semibold transition-colors ${showAnalytics ? 'bg-primary text-primary-foreground hover:bg-primary-hover' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}>
                📊 Analytics
              </motion.button>
              {showAnalytics && <div className="mt-4" key={analyticsRefreshKey}><ClayAnalyticsDashboard sessions={allSessions} stands={stands} onRefresh={reloadAnalytics} /></div>}

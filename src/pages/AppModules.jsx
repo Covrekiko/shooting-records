@@ -89,7 +89,7 @@ export default function AppModules() {
         <button
           onClick={handleSave}
           disabled={saving || selected.length === 0}
-          className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50"
+          className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary-hover transition-colors disabled:opacity-50"
         >
           {saving ? 'Saving…' : 'Save Changes'}
         </button>
