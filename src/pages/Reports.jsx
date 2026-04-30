@@ -363,7 +363,7 @@ export default function Reports() {
               </button>
               <button
                 onClick={handleGenerateReport}
-                className="flex-1 px-6 py-3 bg-[#B85C00] text-white rounded-xl hover:bg-[#9A4A00] active:bg-[#7A3900] transition-colors flex items-center justify-center gap-2 font-medium shadow-sm"
+                className="flex-1 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2 font-medium"
               >
                 <Download className="w-5 h-5" />
                 Download PDF

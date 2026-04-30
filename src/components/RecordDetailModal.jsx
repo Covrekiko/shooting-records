@@ -73,7 +73,7 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
       maxWidth="max-w-xl"
       footer={
         <button onClick={onClose}
-          className="w-full h-11 rounded-xl bg-[#B85C00] text-white font-semibold text-sm hover:bg-[#9A4A00] active:bg-[#7A3900] transition-colors shadow-sm">
+          className="w-full h-11 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors">
           Close
         </button>
       }

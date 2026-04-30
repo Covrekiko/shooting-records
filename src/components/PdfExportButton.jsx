@@ -18,7 +18,7 @@ export default function PdfExportButton({ onClick, variant = 'icon' }) {
       <button
         onClick={handleClick}
         disabled={isLoading}
-        className="p-2 hover:bg-primary-soft text-primary-accent rounded transition-colors disabled:opacity-50"
+        className="p-2 hover:bg-primary/10 text-primary rounded transition-colors disabled:opacity-50"
         title="Download PDF"
       >
         <Download className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -30,7 +30,7 @@ export default function PdfExportButton({ onClick, variant = 'icon' }) {
     <button
       onClick={handleClick}
       disabled={isLoading}
-      className="px-3 py-1.5 text-sm bg-primary-soft text-primary-accent hover:bg-primary-soft/80 rounded transition-colors disabled:opacity-50 flex items-center gap-1"
+      className="px-3 py-1.5 text-sm bg-primary/10 text-primary hover:bg-primary/20 rounded transition-colors disabled:opacity-50 flex items-center gap-1"
     >
       <Download className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
       Export PDF

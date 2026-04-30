@@ -358,7 +358,7 @@ export default function TargetShooting() {
               <p className="text-xs text-muted-foreground mt-0.5">Start a session to begin tracking</p>
             </div>
             <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
-              className="w-full px-4 py-2.5 bg-[#B85C00] text-white rounded-xl font-semibold hover:bg-[#9A4A00] active:bg-[#7A3900] transition-colors flex items-center gap-2 justify-center shadow-sm">
+              className="w-full px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 justify-center">
               <Plus className="w-4 h-4" />
               Start Session
             </motion.button>
@@ -366,30 +366,30 @@ export default function TargetShooting() {
         )}
 
         {activeSession && (
-          <div className="bg-primary-soft border border-primary-soft-border rounded-2xl p-4 mb-4">
+          <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 mb-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse flex-shrink-0" />
                 <div>
-                  <p className="text-xs font-bold text-primary-accent uppercase tracking-widest">Active Session</p>
+                  <p className="text-xs font-bold text-primary uppercase tracking-widest">Active Session</p>
                   <p className="text-sm font-semibold text-foreground mt-0.5">
                     {activeSession.location_name || 'Target Range'}
                   </p>
                   <p className="text-xs text-muted-foreground">Started {activeSession.checkin_time}</p>
                   {activeSession.check_in_method === 'auto_geolocation' && (
-                    <p className="text-[10px] text-primary-accent font-medium mt-0.5">📍 Auto by Geolocation</p>
+                    <p className="text-[10px] text-primary font-medium mt-0.5">📍 Auto by Geolocation</p>
                   )}
                 </div>
               </div>
               <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowCheckout(true)}
-                className="px-4 py-2.5 bg-[#B85C00] text-white rounded-xl font-semibold hover:bg-[#9A4A00] active:bg-[#7A3900] transition-colors shadow-sm">
+                className="px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition-opacity">
                 Check Out
               </motion.button>
             </div>
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => setShowTargetAnalysis(true)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-background border border-primary-soft-border rounded-xl text-sm font-semibold text-primary-accent hover:bg-primary-soft transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-2.5 bg-background border border-primary/30 rounded-xl text-sm font-semibold text-primary hover:bg-primary/5 transition-colors"
             >
               <Microscope className="w-5 h-5" />
               Open Target Analysis
@@ -401,20 +401,20 @@ export default function TargetShooting() {
         <div className="grid grid-cols-2 gap-3 mb-4">
           <Link
             to="/scope-click-card"
-            className="flex flex-col gap-1.5 bg-primary-soft border border-primary-soft-border rounded-xl px-4 py-3.5 hover:bg-primary-soft/80 transition-colors group"
+            className="flex flex-col gap-1.5 bg-primary/10 border border-primary/30 rounded-xl px-4 py-3.5 hover:bg-primary/15 transition-colors group"
           >
             <div className="flex items-center gap-2">
-              <ScanLine className="w-4 h-4 text-primary-accent flex-shrink-0" />
+              <ScanLine className="w-4 h-4 text-primary flex-shrink-0" />
               <p className="font-semibold text-sm">Scope / DOPE</p>
             </div>
             <p className="text-xs text-muted-foreground">Click cards & range data</p>
           </Link>
           <button
             onClick={() => setShowBallisticCalc(true)}
-            className="flex flex-col gap-1.5 bg-primary-soft border border-primary-soft-border rounded-xl px-4 py-3.5 hover:bg-primary-soft/80 transition-colors text-left w-full"
+            className="flex flex-col gap-1.5 bg-primary/10 border border-primary/30 rounded-xl px-4 py-3.5 hover:bg-primary/15 transition-colors text-left w-full"
           >
             <div className="flex items-center gap-2">
-              <Calculator className="w-4 h-4 text-primary-accent flex-shrink-0" />
+              <Calculator className="w-4 h-4 text-primary flex-shrink-0" />
               <p className="font-semibold text-sm">Ballistic Calc</p>
             </div>
             <p className="text-xs text-muted-foreground">Drop & drift tables</p>
@@ -485,7 +485,7 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
           <button type="button" onClick={onClose} className="flex-1 h-11 rounded-xl font-bold text-sm bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors active:scale-95 flex items-center justify-center gap-2">
             <X className="w-4 h-4" /> Cancel
           </button>
-          <button type="submit" className="flex-1 h-11 rounded-xl font-bold text-sm bg-[#B85C00] text-white hover:bg-[#9A4A00] active:bg-[#7A3900] transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm">
+          <button type="submit" className="flex-1 h-11 rounded-xl font-bold text-sm bg-orange-600 text-white hover:bg-orange-700 transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm">
             <Check className="w-4 h-4" /> Check In
           </button>
         </>
@@ -651,7 +651,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
           <button type="button" onClick={onClose} className="flex-1 h-11 rounded-xl font-bold text-sm bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors active:scale-95 flex items-center justify-center gap-2">
             <X className="w-4 h-4" /> Cancel
           </button>
-          <button type="submit" className="flex-1 h-11 rounded-xl font-bold text-sm bg-[#B85C00] text-white hover:bg-[#9A4A00] active:bg-[#7A3900] transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm">
+          <button type="submit" className="flex-1 h-11 rounded-xl font-bold text-sm bg-orange-600 text-white hover:bg-orange-700 transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm">
             <Check className="w-4 h-4" /> Check Out
           </button>
         </>
@@ -810,9 +810,9 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
         )}
 
         {sessionRecordId && (
-          <section className="rounded-2xl border border-primary-soft-border bg-primary-soft p-3">
+          <section className="rounded-2xl border border-orange-200 bg-orange-50/70 p-3">
             <div className="flex items-start gap-3">
-              <span className="w-10 h-10 rounded-xl bg-primary-soft text-primary-accent flex items-center justify-center flex-shrink-0">
+              <span className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0">
                 <Crosshair className="w-5 h-5" />
               </span>
               <div className="flex-1 min-w-0">
