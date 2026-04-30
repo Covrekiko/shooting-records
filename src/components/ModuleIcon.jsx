@@ -3,9 +3,9 @@ const ICONS_IMAGE_URL = 'https://media.base44.com/images/public/69dcbc84d3696033
 const ICON_POSITIONS = {
   target_shooting: '-11px -59px',
   clay_shooting: '-52px -59px',
-  deer_management: '-93px -59px',
-  stalk_map: '-135px -59px',
-  reloading: '-176px -59px',
+  deer_management: '-98px -59px',
+  stalk_map: '-141px -59px',
+  reloading: '-184px -59px',
 };
 
 export default function ModuleIcon({ moduleKey, className = '' }) {
