@@ -730,9 +730,9 @@ function drawActivityLogHeader(doc, reportData, cursor) {
   doc.text('SHOOTING ACTIVITY RECORD', REPORT.margin + 6, cursor.y + 11);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text('Firearms Usage & Attendance Log', REPORT.margin + 6, cursor.y + 18);
+  doc.text('Detailed Activity Record', REPORT.margin + 6, cursor.y + 18);
   doc.setFontSize(8);
-  doc.text('Generated from completed shooting activity records', REPORT.margin + 6, cursor.y + 24);
+  doc.text('Generated from completed target, clay, and deer activity records', REPORT.margin + 6, cursor.y + 24);
   doc.setDrawColor(...REPORT.copper);
   doc.setLineWidth(1.2);
   doc.line(REPORT.margin + 6, cursor.y + 28, width - REPORT.margin - 6, cursor.y + 28);
@@ -831,7 +831,7 @@ function drawCategorySummaryTable(doc, records, cursor) {
 function drawCoverNote(doc, cursor) {
   cursor = drawSectionTitle(doc, 'Report Note', cursor);
   const { width } = pageMetrics(doc);
-  const note = 'This report summarises completed shooting activity records entered in Shooting Records. Detailed session information is grouped by activity type on the following pages.';
+  const note = 'This report contains completed shooting activity records entered in Shooting Records. Detailed session information is grouped by activity type on the following pages.';
   doc.setFillColor(...REPORT.soft);
   doc.setDrawColor(...REPORT.border);
   doc.roundedRect(REPORT.margin, cursor.y, width - REPORT.margin * 2, 22, 2, 2, 'FD');
