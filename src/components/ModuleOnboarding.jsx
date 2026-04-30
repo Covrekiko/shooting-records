@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ALL_MODULES } from '@/context/ModulesContext';
+import ModuleIcon from '@/components/ModuleIcon';
 
 export default function ModuleOnboarding({ onComplete }) {
   const [selected, setSelected] = useState(ALL_MODULES.map(m => m.key));
@@ -47,7 +48,7 @@ export default function ModuleOnboarding({ onComplete }) {
                       : 'border-border bg-card hover:border-slate-300 dark:hover:border-slate-600'
                   }`}
                 >
-                  <span className="text-2xl flex-shrink-0">{mod.emoji}</span>
+                  <ModuleIcon moduleKey={mod.key} />
                   <div className="flex-1 min-w-0">
                     <p className={`font-semibold text-sm ${active ? 'text-primary' : 'text-foreground'}`}>{mod.label}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{mod.description}</p>
