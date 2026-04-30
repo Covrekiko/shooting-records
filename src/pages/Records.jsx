@@ -724,21 +724,6 @@ function PdfPreviewModal({ records, userInfo, rifles, clubs, shotguns, locations
             </div>
           )}
         </div>
-        <div className="p-4 border-t border-slate-200/70 dark:border-slate-700 flex justify-end gap-2">
-          <button
-            onClick={() => exportRecordsToPdf(records, null, 'shooting-records.pdf', rifles, clubs, shotguns, locations, [], {}, { overview: true, selectedCategory })}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:opacity-90 flex items-center gap-2 text-sm font-medium"
-          >
-            <Download className="w-4 h-4" />
-            Download
-          </button>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 text-sm font-medium transition-colors"
-          >
-            Close
-          </button>
-        </div>
       </div>
     </div>
   );
