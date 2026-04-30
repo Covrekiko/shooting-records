@@ -723,7 +723,7 @@ function renderDeerSession(doc, record, reportData, cursor) {
 function drawActivityLogHeader(doc, reportData, cursor) {
   const { width } = pageMetrics(doc);
   doc.setFillColor(...REPORT.navy);
-  doc.roundedRect(REPORT.margin, cursor.y, width - REPORT.margin * 2, 28, 2, 2, 'F');
+  doc.roundedRect(REPORT.margin, cursor.y, width - REPORT.margin * 2, 32, 2, 2, 'F');
   doc.setTextColor(...REPORT.white);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(18);
@@ -731,10 +731,12 @@ function drawActivityLogHeader(doc, reportData, cursor) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.text('Firearms Usage & Attendance Log', REPORT.margin + 6, cursor.y + 18);
+  doc.setFontSize(8);
+  doc.text('Generated from completed shooting activity records', REPORT.margin + 6, cursor.y + 24);
   doc.setDrawColor(...REPORT.copper);
   doc.setLineWidth(1.2);
-  doc.line(REPORT.margin + 6, cursor.y + 23, width - REPORT.margin - 6, cursor.y + 23);
-  return { ...cursor, y: cursor.y + 36 };
+  doc.line(REPORT.margin + 6, cursor.y + 28, width - REPORT.margin - 6, cursor.y + 28);
+  return { ...cursor, y: cursor.y + 40 };
 }
 
 function resolveActivityLocation(record, clubs = {}, locations = {}) {
@@ -753,6 +755,91 @@ function activityTypeLabel(record) {
   if (record.category === 'clay_shooting' || record.recordType === 'clay') return 'Clay Shooting';
   if (record.category === 'deer_management' || record.recordType === 'deer') return 'Deer Management';
   return 'Shooting Activity';
+}
+
+function getRecordCategoryKey(record) {
+  if (record.category === 'target_shooting' || record.recordType === 'target') return 'target_shooting';
+  if (record.category === 'clay_shooting' || record.recordType === 'clay') return 'clay_shooting';
+  if (record.category === 'deer_management' || record.recordType === 'deer') return 'deer_management';
+  return 'other';
+}
+
+function getFilteredOverviewRecords(records, selectedCategory) {
+  if (!selectedCategory || selectedCategory === 'all') return records;
+  return records.filter((record) => getRecordCategoryKey(record) === selectedCategory || record.recordType === selectedCategory);
+}
+
+function sumRecordRounds(record) {
+  const category = getRecordCategoryKey(record);
+  if (category === 'target_shooting') {
+    if (record.rifles_used?.length) return record.rifles_used.reduce((sum, rifle) => sum + Number(rifle.rounds_fired || 0), 0);
+    return Number(record.rounds_fired || record.shots_fired || 0);
+  }
+  if (category === 'clay_shooting') return Number(record.rounds_fired || record.cartridges_fired || record.total_shots || 0);
+  if (category === 'deer_management') return Number(record.rounds_fired || record.shots_fired || 0);
+  return Number(record.rounds_fired || 0);
+}
+
+function formatRoundsByCategory(category, total) {
+  if (category === 'clay_shooting') return `${total} cartridges`;
+  return `${total} rounds`;
+}
+
+function getUniqueFirearmCount(records) {
+  const ids = new Set();
+  records.forEach((record) => {
+    if (record.rifles_used?.length) record.rifles_used.forEach((rifle) => rifle.rifle_id && ids.add(rifle.rifle_id));
+    [record.rifle_id, record.shotgun_id, record.firearm_id, record.weapon_id, record.gun_id].forEach((id) => id && ids.add(id));
+  });
+  return ids.size;
+}
+
+function buildReportSummaryRows(reportData, records) {
+  const dates = records.map((record) => new Date(record.date)).filter((date) => !Number.isNaN(date.getTime()));
+  const sortedDates = dates.sort((a, b) => a - b);
+  const categories = [...new Set(records.map(activityTypeLabel))].filter((label) => label !== 'Shooting Activity');
+  const totalRounds = records.reduce((sum, record) => sum + sumRecordRounds(record), 0);
+  const firearmCount = getUniqueFirearmCount(records);
+  return [
+    { label: 'Report Generated', value: reportData.generatedAtLabel },
+    { label: 'Total Records', value: records.length },
+    { label: 'Date Range', value: sortedDates.length ? `${formatDate(sortedDates[0])} – ${formatDate(sortedDates[sortedDates.length - 1])}` : 'Not Recorded' },
+    { label: 'Categories Included', value: categories.length ? categories.join(', ') : 'Not Recorded' },
+    { label: 'Total Rounds / Cartridges', value: totalRounds || 'Not Recorded' },
+    { label: 'Total Firearms Used', value: firearmCount || 'Not Recorded' },
+  ];
+}
+
+function drawCategorySummaryTable(doc, records, cursor) {
+  const categories = ['target_shooting', 'clay_shooting', 'deer_management'];
+  const rows = categories.map((category) => {
+    const categoryRecords = records.filter((record) => getRecordCategoryKey(record) === category);
+    const total = categoryRecords.reduce((sum, record) => sum + sumRecordRounds(record), 0);
+    return [activityTypeLabel({ category }), categoryRecords.length, formatRoundsByCategory(category, total)];
+  }).filter((row) => row[1] > 0);
+
+  if (rows.length === 0) return cursor;
+  cursor = drawSectionTitle(doc, 'Activity Category Summary', cursor);
+  return drawDataTable(doc, ['Category', 'Records', 'Rounds / Cartridges'], rows, cursor, {
+    widths: [84, 36, 58],
+    leftColumns: [0],
+    rowHeight: 10,
+    fontSize: 8.5,
+  });
+}
+
+function drawCoverNote(doc, cursor) {
+  cursor = drawSectionTitle(doc, 'Report Note', cursor);
+  const { width } = pageMetrics(doc);
+  const note = 'This report summarises completed shooting activity records entered in Shooting Records. Detailed session information is grouped by activity type on the following pages.';
+  doc.setFillColor(...REPORT.soft);
+  doc.setDrawColor(...REPORT.border);
+  doc.roundedRect(REPORT.margin, cursor.y, width - REPORT.margin * 2, 22, 2, 2, 'FD');
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.8);
+  doc.setTextColor(...REPORT.text);
+  doc.text(doc.splitTextToSize(note, width - REPORT.margin * 2 - 10), REPORT.margin + 5, cursor.y + 7);
+  return { ...cursor, y: cursor.y + 28 };
 }
 
 function formatTimeRange(record) {
@@ -1071,14 +1158,20 @@ function renderCategoryPage(doc, title, records, reportData, drawRecord) {
 
 function renderActivityLogRecords(doc, reportData, options = {}) {
   let cursor = drawActivityLogHeader(doc, reportData, { y: REPORT.margin });
-  drawInfoCard(doc, 'User Details', [
+  const selectedCategory = options.selectedCategory || options.category || 'all';
+  const summaryRecords = getFilteredOverviewRecords(reportData.records, selectedCategory);
+
+  cursor = drawInfoCard(doc, 'User Details', [
     { label: 'Name', value: reportData.participant.name },
     { label: 'Email', value: reportData.participant.email },
     { label: 'Date of Birth', value: reportData.participant.dateOfBirth },
     { label: 'Address', value: reportData.participant.address },
-  ], cursor, { columns: 2, rowHeight: 14 });
+  ], cursor, { columns: 2, rowHeight: 16 });
 
-  const selectedCategory = options.selectedCategory || options.category || 'all';
+  cursor = drawInfoCard(doc, 'Report Summary', buildReportSummaryRows(reportData, summaryRecords), cursor, { columns: 2, rowHeight: 15 });
+  cursor = drawCategorySummaryTable(doc, summaryRecords, cursor);
+  cursor = drawCoverNote(doc, cursor);
+
   const targetRecords = reportData.records.filter((record) => record.category === 'target_shooting' || record.recordType === 'target');
   const clayRecords = reportData.records.filter((record) => record.category === 'clay_shooting' || record.recordType === 'clay');
   const deerRecords = reportData.records.filter((record) => record.category === 'deer_management' || record.recordType === 'deer');
