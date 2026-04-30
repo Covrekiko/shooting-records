@@ -19,17 +19,17 @@ export const THEME_KEYS = {
 };
 
 export const THEME_DISPLAY_NAMES = {
-  [THEME_KEYS.CURRENT]: 'Current Design',
+  [THEME_KEYS.CURRENT]: 'Desert Sand',
   [THEME_KEYS.FIELD_GREEN]: 'Field Green',
   [THEME_KEYS.GRAPHITE_TACTICAL]: 'Graphite Tactical',
-  [THEME_KEYS.IVORY_GUNMETAL]: 'Ivory Gunmetal Copper'
+  [THEME_KEYS.IVORY_GUNMETAL]: 'Desert Sand Premium'
 };
 
 export const THEME_DESCRIPTIONS = {
-  [THEME_KEYS.CURRENT]: 'Original Shooting Records design',
+  [THEME_KEYS.CURRENT]: 'Warm premium sand theme with orange and brown outdoor accents',
   [THEME_KEYS.FIELD_GREEN]: 'Premium countryside style for stalking and outdoor records',
   [THEME_KEYS.GRAPHITE_TACTICAL]: 'Modern tactical style for range, armory, and ballistic tools',
-  [THEME_KEYS.IVORY_GUNMETAL]: 'Luxury Apple-style theme with ivory, gunmetal, and copper accents'
+  [THEME_KEYS.IVORY_GUNMETAL]: 'Premium Desert Sand style with cream cards and warm orange accents'
 };
 
 /**
@@ -41,47 +41,46 @@ export const THEME_DESCRIPTIONS = {
 
 const THEMES = {
   [THEME_KEYS.CURRENT]: {
-    // Current Design - Original colours preserved
-    background: '0 0% 98%',
-    foreground: '215 20% 12%',
-    card: '0 0% 100%',
-    cardForeground: '215 20% 12%',
-    primary: '28 85% 42%',       // Orange
+    // Desert Sand - Premium warm outdoor style
+    background: '33 100% 96%',
+    foreground: '215 28% 17%',
+    card: '30 100% 98%',
+    cardForeground: '215 28% 17%',
+    primary: '32 95% 44%',
     primaryForeground: '0 0% 100%',
-    secondary: '220 14% 93%',     // Light grey
-    secondaryForeground: '215 20% 20%',
-    accent: '220 14% 93%',        // Neutral slate (not used for accent, secondary)
-    accentForeground: '215 20% 20%',
-    muted: '220 10% 90%',
-    mutedForeground: '220 8% 48%',
-    border: '220 13% 91%',
-    input: '220 13% 94%',
-    destructive: '0 84.2% 60.2%',
+    secondary: '35 93% 94%',
+    secondaryForeground: '26 25% 28%',
+    accent: '26 25% 28%',
+    accentForeground: '33 100% 96%',
+    muted: '35 93% 94%',
+    mutedForeground: '27 27% 43%',
+    border: '32 70% 83%',
+    input: '30 100% 98%',
+    destructive: '0 72% 51%',
     destructiveForeground: '0 0% 98%',
-    success: '152 60% 40%',
+    success: '122 45% 34%',
     warning: '38 92% 50%',
-    ring: '28 85% 42%',
-    // Dark mode for current design
+    ring: '32 95% 44%',
     dark: {
-      background: '222 20% 9%',
-      foreground: '210 18% 92%',
-      card: '222 18% 13%',
-      cardForeground: '210 18% 92%',
-      primary: '28 80% 50%',
-      primaryForeground: '0 0% 100%',
-      secondary: '220 16% 24%',
-      secondaryForeground: '210 20% 94%',
-      accent: '220 16% 24%',
-      accentForeground: '210 20% 94%',
-      muted: '220 16% 22%',
-      mutedForeground: '220 8% 58%',
-      border: '220 14% 20%',
-      input: '220 14% 18%',
-      destructive: '0 62.8% 40%',
+      background: '30 22% 9%',
+      foreground: '210 40% 98%',
+      card: '27 24% 11%',
+      cardForeground: '210 40% 98%',
+      primary: '38 92% 50%',
+      primaryForeground: '30 22% 9%',
+      secondary: '28 32% 17%',
+      secondaryForeground: '35 18% 71%',
+      accent: '35 18% 71%',
+      accentForeground: '30 22% 9%',
+      muted: '28 32% 17%',
+      mutedForeground: '35 18% 71%',
+      border: '28 32% 17%',
+      input: '27 24% 11%',
+      destructive: '0 72% 51%',
       destructiveForeground: '0 0% 98%',
-      success: '152 55% 48%',
-      warning: '38 88% 60%',
-      ring: '28 80% 48%'
+      success: '122 45% 45%',
+      warning: '38 92% 50%',
+      ring: '38 92% 50%'
     }
   },
 
@@ -176,47 +175,46 @@ const THEMES = {
   },
 
   [THEME_KEYS.IVORY_GUNMETAL]: {
-    // Ivory Gunmetal Copper - Luxury Apple-style
-    background: '30 20% 97%',     // Ivory #F8F5EF
-    foreground: '210 13% 12%',    // Near black #1F2328
-    card: '0 0% 100%',            // White
-    cardForeground: '210 13% 12%',
-    primary: '213 17% 15%',       // Gunmetal #20242A
+    // Desert Sand Premium - cream cards, warm brown accents, premium orange
+    background: '33 100% 96%',
+    foreground: '215 28% 17%',
+    card: '30 100% 98%',
+    cardForeground: '215 28% 17%',
+    primary: '32 95% 44%',
     primaryForeground: '0 0% 100%',
-    secondary: '213 15% 29%',     // Slate #3A414A
-    secondaryForeground: '0 0% 100%',
-    accent: '22 52% 45%',         // Copper #C47A3A
-    accentForeground: '0 0% 100%',
-    muted: '25 10% 70%',          // Warm grey
-    mutedForeground: '25 12% 41%',
-    border: '30 15% 87%',         // Warm light grey #DED8CE
-    input: '30 20% 97%',
-    destructive: '0 74% 55%',     // Red #B91C1C
-    destructiveForeground: '0 0% 100%',
-    success: '145 63% 42%',       // Green #2F855A
-    warning: '22 52% 45%',
-    ring: '22 52% 45%',
-    // Dark mode for ivory gunmetal
+    secondary: '35 93% 94%',
+    secondaryForeground: '26 25% 28%',
+    accent: '26 25% 28%',
+    accentForeground: '33 100% 96%',
+    muted: '35 93% 94%',
+    mutedForeground: '27 27% 43%',
+    border: '32 70% 83%',
+    input: '30 100% 98%',
+    destructive: '0 72% 51%',
+    destructiveForeground: '0 0% 98%',
+    success: '122 45% 34%',
+    warning: '38 92% 50%',
+    ring: '32 95% 44%',
     dark: {
-      background: '213 17% 20%',
-      foreground: '30 20% 95%',
-      card: '213 17% 28%',
-      cardForeground: '30 20% 95%',
-      primary: '213 17% 25%',     // Lighter gunmetal
-      primaryForeground: '0 0% 100%',
-      secondary: '213 15% 38%',
-      secondaryForeground: '0 0% 100%',
-      accent: '22 52% 55%',       // Lighter copper
-      accentForeground: '0 0% 100%',
-      muted: '213 10% 50%',
-      mutedForeground: '213 10% 70%',
-      border: '213 15% 32%',
-      input: '213 17% 25%',
-      destructive: '0 74% 65%',
-      destructiveForeground: '0 0% 100%',
-      success: '145 63% 52%',
-      warning: '22 52% 55%',
-      ring: '22 52% 55%'
+      background: '30 22% 9%',
+      foreground: '210 40% 98%',
+      card: '27 24% 11%',
+      cardForeground: '210 40% 98%',
+      primary: '38 92% 50%',
+      primaryForeground: '30 22% 9%',
+      secondary: '28 32% 17%',
+      secondaryForeground: '35 18% 71%',
+      accent: '35 18% 71%',
+      accentForeground: '30 22% 9%',
+      muted: '28 32% 17%',
+      mutedForeground: '35 18% 71%',
+      border: '28 32% 17%',
+      input: '27 24% 11%',
+      destructive: '0 72% 51%',
+      destructiveForeground: '0 0% 98%',
+      success: '122 45% 45%',
+      warning: '38 92% 50%',
+      ring: '38 92% 50%'
     }
   }
 };

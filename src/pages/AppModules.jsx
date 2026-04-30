@@ -32,7 +32,7 @@ export default function AppModules() {
 
   if (!selected) {
     return (
-      <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
+      <div className="bg-background min-h-screen">
         <Navigation />
         <div className="flex justify-center items-center min-h-[60vh]">
           <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -42,11 +42,11 @@ export default function AppModules() {
   }
 
   return (
-    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
+    <div className="bg-background min-h-screen">
       <Navigation />
       <main className="max-w-lg mx-auto px-4 pt-4 pb-12 mobile-page-padding">
         <div className="mb-6">
-          <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">App Modules</h1>
+          <h1 className="text-xl font-bold text-foreground">App Modules</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Enable or disable features. Disabling a module hides it — your data is never deleted.
           </p>
@@ -61,10 +61,10 @@ export default function AppModules() {
                 type="button"
                 onClick={() => toggle(mod.key)}
                 whileTap={{ scale: 0.98 }}
-                className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl border-2 transition-all text-left bg-white dark:bg-slate-800 ${
-                  active
-                    ? 'border-primary'
-                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
+                className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl border-2 transition-all text-left bg-card shadow-sm ${
+                 active
+                   ? 'border-primary bg-primary/5'
+                   : 'border-border hover:border-primary/50'
                 }`}
               >
                 <ModuleIcon moduleKey={mod.key} />

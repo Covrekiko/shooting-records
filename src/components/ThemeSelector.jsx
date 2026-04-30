@@ -27,7 +27,7 @@ export default function ThemeSelector() {
       key: THEME_KEYS.CURRENT,
       name: THEME_DISPLAY_NAMES[THEME_KEYS.CURRENT],
       description: THEME_DESCRIPTIONS[THEME_KEYS.CURRENT],
-      colors: ['#F7F4EC', '#1D1D1B', '#28663B']  // Light bg, dark text, orange primary
+      colors: ['#FFF7ED', '#1F2937', '#D97706']
     },
     {
       key: THEME_KEYS.FIELD_GREEN,
@@ -45,7 +45,7 @@ export default function ThemeSelector() {
       key: THEME_KEYS.IVORY_GUNMETAL,
       name: THEME_DISPLAY_NAMES[THEME_KEYS.IVORY_GUNMETAL],
       description: THEME_DESCRIPTIONS[THEME_KEYS.IVORY_GUNMETAL],
-      colors: ['#F8F5EF', '#20242A', '#C47A3A']  // Ivory, gunmetal, copper
+      colors: ['#FFFBF7', '#5B4636', '#D97706']
     }
   ];
 
