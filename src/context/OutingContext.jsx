@@ -251,7 +251,38 @@ export function OutingProvider({ children }) {
             throw new Error('Failed to update SessionRecord after 2 attempts: ' + srUpdateError?.message);
           }
         } else {
-          console.warn('⚠️ No SessionRecord found for outing:', outingId);
+          console.warn('⚠️ No SessionRecord found for outing:', outingId, 'creating completed record');
+          const endTimeStr = new Date().toTimeString().slice(0, 5);
+          const outingStart = activeOuting?.start_time ? new Date(activeOuting.start_time) : new Date();
+          const startTimeStr = Number.isNaN(outingStart.getTime()) ? endTimeStr : outingStart.toTimeString().slice(0, 5);
+          const dateStr = Number.isNaN(outingStart.getTime()) ? new Date().toISOString().split('T')[0] : outingStart.toISOString().split('T')[0];
+          const roundsFired = checkoutData.shot_anything
+            ? (parseInt(checkoutData.rounds_fired) > 0 ? parseInt(checkoutData.rounds_fired) : parseInt(checkoutData.total_count || 0))
+            : 0;
+
+          await base44.entities.SessionRecord.create({
+            category: 'deer_management',
+            title: activeOuting?.location_name || checkoutData.place_name || 'Deer Management Outing',
+            date: dateStr,
+            status: 'completed',
+            outing_id: outingId,
+            location_id: activeOuting?.area_id || activeOuting?.location_id || checkoutData.location_id || '',
+            location_name: activeOuting?.location_name || checkoutData.place_name || '',
+            checkin_time: startTimeStr,
+            checkout_time: endTimeStr,
+            start_time: startTimeStr,
+            end_time: endTimeStr,
+            gps_track: gpsTrack || [],
+            notes: checkoutData.notes || '',
+            photos: checkoutData.photos || [],
+            species_list: checkoutData.shot_anything ? (checkoutData.species_list || []) : [],
+            total_count: checkoutData.shot_anything ? (checkoutData.total_count || '0') : '0',
+            rounds_fired: roundsFired,
+            number_shot: checkoutData.shot_anything ? parseInt(checkoutData.total_count || 0) : 0,
+            rifle_id: checkoutData.shot_anything ? (checkoutData.rifle_id || null) : null,
+            ammunition_used: checkoutData.shot_anything ? (checkoutData.ammunition_used || null) : null,
+            ammunition_id: checkoutData.shot_anything ? (checkoutData.ammunition_id || null) : null,
+          });
         }
 
         setActiveOuting(null);

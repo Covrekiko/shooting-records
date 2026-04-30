@@ -235,6 +235,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
         const scoreSummary = isClay ? getClayScoreSummary(clayScorecards[record.id], clayStands[record.id] || []) : null;
         const clubName = isClay ? resolveClayClubName(record, clubs, locations) : (record.location_name || record.place_name || 'Session');
         const shotgunName = isClay ? (shotguns[record.shotgun_id]?.name || 'Not recorded') : null;
+        const deerShotsFired = isDeer ? Number(record.rounds_fired || record.number_shot || record.total_count || 0) : 0;
 
         return (
         <div key={record.id} className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
@@ -254,6 +255,14 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
                   <p><span className="font-bold text-muted-foreground">Shotgun:</span> {shotgunName}</p>
                   <p><span className="font-bold text-muted-foreground">Cartridges:</span> {record.rounds_fired || 0}</p>
                   <p><span className="font-bold text-muted-foreground">Score:</span> {scoreSummary ? scoreSummary.label : 'Not recorded'}</p>
+                </div>
+              ) : isDeer ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 mt-3 text-xs">
+                  <p><span className="font-bold text-muted-foreground">Location:</span> {clubName}</p>
+                  <p><span className="font-bold text-muted-foreground">Shots:</span> {deerShotsFired > 0 ? deerShotsFired : 'No shots fired'}</p>
+                  <p><span className="font-bold text-muted-foreground">Check-Out:</span> {record.checkout_time || record.end_time || 'Not recorded'}</p>
+                  <p><span className="font-bold text-muted-foreground">GPS:</span> {record.gps_track?.length ? 'Recorded' : 'No GPS points saved'}</p>
+                  {record.notes && <p className="sm:col-span-2 text-foreground mt-1 line-clamp-2">{record.notes}</p>}
                 </div>
               ) : (
                 <>
