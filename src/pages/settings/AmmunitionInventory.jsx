@@ -4,6 +4,7 @@ import Navigation from '@/components/Navigation';
 import { Plus, Trash2, Edit2, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import AmmoSpendingBreakdown from '@/components/AmmoSpendingBreakdown';
+import GlobalModal, { ModalCancelButton, ModalSaveButton } from '@/components/ui/GlobalModal';
 
 export default function AmmunitionInventory() {
   const [ammo, setAmmo] = useState([]);
@@ -12,6 +13,7 @@ export default function AmmunitionInventory() {
   const [user, setUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [deletingItem, setDeletingItem] = useState(null);
   const [formData, setFormData] = useState({
     brand: '',
     caliber: '',
@@ -64,13 +66,15 @@ export default function AmmunitionInventory() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this ammunition?')) return;
+  const handleDelete = async () => {
+    if (!deletingItem?.id) return;
     try {
-      await base44.entities.Ammunition.delete(id);
-      loadAmmo();
+      await base44.entities.Ammunition.delete(deletingItem.id);
+      setDeletingItem(null);
+      await loadAmmo();
     } catch (error) {
       console.error('Error deleting ammunition:', error);
+      alert('Error deleting ammunition: ' + error.message);
     }
   };
 
@@ -317,7 +321,8 @@ export default function AmmunitionInventory() {
                       <Edit2 className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleDelete(item.id)}
+                      type="button"
+                      onClick={() => setDeletingItem(item)}
                       className="p-2 hover:bg-destructive/10 text-destructive rounded transition-colors"
                       title="Delete"
                     >
@@ -329,6 +334,23 @@ export default function AmmunitionInventory() {
             ))}
           </div>
         )}
+
+        <GlobalModal
+          open={!!deletingItem}
+          onClose={() => setDeletingItem(null)}
+          title="Delete ammunition?"
+          subtitle={deletingItem ? `${deletingItem.brand}${deletingItem.caliber ? ` - ${deletingItem.caliber}` : ''}` : ''}
+          footer={(
+            <>
+              <ModalCancelButton onClick={() => setDeletingItem(null)}>Cancel</ModalCancelButton>
+              <ModalSaveButton danger onClick={handleDelete}>Delete</ModalSaveButton>
+            </>
+          )}
+        >
+          <p className="text-sm text-muted-foreground">
+            This will permanently remove this ammunition from your inventory.
+          </p>
+        </GlobalModal>
       </main>
     </div>
   );
