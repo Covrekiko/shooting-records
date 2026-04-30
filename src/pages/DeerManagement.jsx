@@ -75,7 +75,7 @@ export default function DeerManagement() {
   }, [location, areas]);
 
   const handleCheckin = async (e) => {
-    e.preventDefault();
+    e?.preventDefault?.();
     try {
       // Prevent duplicate active outings
       if (activeOuting) {
