@@ -914,18 +914,19 @@ function buildGpsLocationRows(record, locationName) {
   const checkInCoords = formatCoordinate(startPoint) || formatCoordinate({ lat: record.checkin_lat || record.start_lat || record.latitude, lng: record.checkin_lng || record.start_lng || record.longitude });
   const checkOutCoords = formatCoordinate(endPoint) || formatCoordinate({ lat: record.checkout_lat || record.end_lat, lng: record.checkout_lng || record.end_lng });
   const distance = getSavedDistance(record);
+  const hasCoords = Boolean(checkInCoords || checkOutCoords);
 
-  if (track.length === 0 && !checkInCoords && !checkOutCoords && !locationName) {
-    return [{ label: 'Tracking Status', value: 'No GPS points saved', full: true }];
+  if (track.length === 0 && !hasCoords && !locationName) {
+    return [{ label: 'Tracking Status', value: 'No GPS Points Saved', full: true }];
   }
 
   return [
     ...(locationName ? [{ label: 'Location', value: locationName, full: true }] : []),
+    ...(hasCoords ? [] : [{ label: 'Coordinates', value: 'Not Recorded', full: true }]),
     ...(checkInCoords ? [{ label: 'Check-In Coordinates', value: checkInCoords, full: true }] : []),
     ...(checkOutCoords ? [{ label: 'Check-Out Coordinates', value: checkOutCoords, full: true }] : []),
-    { label: 'GPS Points Saved', value: track.length || '0' },
-    { label: 'Distance', value: distance ? `${distance}` : 'Not recorded' },
-    { label: 'Tracking Status', value: track.length > 0 ? 'Recorded' : (locationName ? 'GPS coordinates not recorded' : 'No GPS points saved'), full: true },
+    { label: 'Distance', value: distance ? `${distance}` : 'Not Recorded', full: true },
+    { label: 'Tracking Status', value: track.length > 0 || hasCoords ? 'Recorded' : 'No GPS Points Saved', full: true },
   ];
 }
 
@@ -944,12 +945,13 @@ function drawCategoryTitle(doc, title) {
 function sectionRowsHeight(doc, rows, innerWidth) {
   const colGap = 8;
   const colW = (innerWidth - colGap) / 2;
+  const fullLabelWidth = 50;
   let height = 0;
   for (let i = 0; i < rows.length; i += 1) {
     const row = rows[i];
     if (row.full) {
-      const lines = doc.splitTextToSize(valueOrMissing(row.value), innerWidth - 32);
-      height += Math.max(6, lines.length * 4.2) + 2;
+      const lines = doc.splitTextToSize(valueOrMissing(row.value), innerWidth - fullLabelWidth - 4);
+      height += Math.max(6.5, lines.length * 4.2) + 2.5;
     } else if (i % 2 === 0) {
       const pair = rows.slice(i, i + 2);
       const rowH = Math.max(...pair.map((item) => {
@@ -975,13 +977,16 @@ function drawOverviewSection(doc, section, x, y, innerWidth) {
 
   const colGap = 8;
   const colW = (innerWidth - colGap) / 2;
+  const fullLabelWidth = 50;
   section.rows.forEach((row, index) => {
     if (!row.full && index % 2 === 1) return;
     const rowPair = row.full ? [row] : section.rows.slice(index, index + 2);
-    let maxRowHeight = 6;
+    let maxRowHeight = 6.5;
     rowPair.forEach((item, pairIndex) => {
-      const rowX = row.full ? x : x + pairIndex * (colW + colGap);
-      const rowW = row.full ? innerWidth : colW;
+      const isFull = Boolean(row.full);
+      const rowX = isFull ? x : x + pairIndex * (colW + colGap);
+      const rowW = isFull ? innerWidth : colW;
+      const labelWidth = isFull ? fullLabelWidth : 29;
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(8.5);
       doc.setTextColor(...REPORT.muted);
@@ -989,14 +994,14 @@ function drawOverviewSection(doc, section, x, y, innerWidth) {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
       doc.setTextColor(...REPORT.text);
-      const valueX = rowX + 29;
-      const valueLines = doc.splitTextToSize(valueOrMissing(item.value), rowW - 31);
+      const valueX = rowX + labelWidth;
+      const valueLines = doc.splitTextToSize(valueOrMissing(item.value), rowW - labelWidth - 4);
       doc.text(valueLines, valueX, y);
       maxRowHeight = Math.max(maxRowHeight, valueLines.length * 4.2);
     });
-    y += maxRowHeight + 2;
+    y += maxRowHeight + 2.5;
   });
-  return y + 2;
+  return y + 4;
 }
 
 function drawOverviewSessionCard(doc, title, sections, cursor) {
