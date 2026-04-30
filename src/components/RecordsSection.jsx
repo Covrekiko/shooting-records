@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { getRecordsPdfBlob, exportRecordsToPdf } from '@/utils/recordsPdfExport';
+import MobilePdfViewer from '@/components/MobilePdfViewer';
 import { resolveClayClubName, getClayScoreSummary, buildClayScoreCardData, calculateDuration, normalizePhotos } from '@/lib/claySessionUtils';
 
 export default function RecordsSection({ category, title, emptyMessage = 'No records yet', onRecordDeleted, showTargetAnalysis = false }) {
@@ -860,25 +861,6 @@ function SessionReportModal({ record, onClose, rifles, shotguns, clubs, location
       );
       }
 
-      function PdfPreviewModal({ pdfUrl, onClose, record }) {
-        useBodyScrollLock(true);
-
-        return (
-          <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[50001]" onClick={onClose}>
-            <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl border border-slate-200/70 dark:border-slate-700" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center justify-between p-4 border-b border-slate-200/70 dark:border-slate-700">
-                <h2 className="text-xl font-bold">PDF Preview</h2>
-                <button
-                  onClick={onClose}
-                  className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              <div className="flex-1 overflow-auto">
-                <iframe src={pdfUrl} className="w-full h-full border-0" />
-              </div>
-            </div>
-          </div>
-        );
+      function PdfPreviewModal({ pdfUrl, onClose }) {
+        return <MobilePdfViewer pdfUrl={pdfUrl} onClose={onClose} />;
       }

@@ -9,8 +9,9 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 export default function MobilePdfViewer({ pdfUrl, onClose }) {
   const [numPages, setNumPages] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [scale, setScale] = useState(1.5);
+  const [scale, setScale] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [pageWidth, setPageWidth] = useState(() => Math.min(window.innerWidth - 32, 780));
   const containerRef = useRef(null);
   const touchStartScale = useRef(null);
 
@@ -73,11 +74,22 @@ export default function MobilePdfViewer({ pdfUrl, onClose }) {
 
   useEffect(() => {
     setLoading(true);
+    setScale(1);
   }, [pdfUrl]);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      const available = containerRef.current?.clientWidth || window.innerWidth;
+      setPageWidth(Math.max(280, Math.min(available - 24, 780)));
+    };
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center p-0 z-50">
-      <div className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-4xl h-[95dvh] sm:h-[90vh] flex flex-col shadow-2xl border border-slate-200/70 dark:border-slate-700">
+      <div className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-4xl h-[92dvh] sm:h-[90vh] max-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))] flex flex-col shadow-2xl border border-slate-200/70 dark:border-slate-700 overflow-hidden">
         {/* Header */}
         <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-slate-200/70 dark:border-slate-700 bg-white dark:bg-slate-800">
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">PDF Preview</h2>
@@ -92,13 +104,13 @@ export default function MobilePdfViewer({ pdfUrl, onClose }) {
         {/* PDF Container */}
         <div
           ref={containerRef}
-          className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-900 flex items-start justify-center"
+          className="flex-1 min-h-0 overflow-auto overflow-x-hidden bg-slate-50 dark:bg-slate-900 flex items-start justify-center"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pinch-zoom' }}
         >
-          <div className="w-full" style={{ padding: '1rem 0' }}>
+          <div className="w-full flex justify-center px-3 py-3">
             {loading && (
               <div className="flex items-center justify-center h-96">
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -115,14 +127,14 @@ export default function MobilePdfViewer({ pdfUrl, onClose }) {
                 scale={scale}
                 renderTextLayer={true}
                 renderAnnotationLayer={true}
-                width={Math.min(window.innerWidth - 32, 800)}
+                width={pageWidth}
               />
             </Document>
           </div>
         </div>
 
         {/* Footer Controls */}
-        <div className="flex-shrink-0 p-4 border-t border-slate-200/70 dark:border-slate-700 bg-white dark:bg-slate-800 space-y-3">
+        <div className="flex-shrink-0 p-3 border-t border-slate-200/70 dark:border-slate-700 bg-white dark:bg-slate-800 space-y-2" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
           {/* Page Navigation */}
           <div className="flex items-center justify-between gap-3">
             <button
