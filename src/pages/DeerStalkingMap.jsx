@@ -11,6 +11,7 @@ import { AlertCircle, Home, Satellite, LocateFixed } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal.jsx';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
+import { trackingService } from '@/lib/trackingService';
 import AreaDrawer from '@/components/deer-stalking/AreaDrawer';
 import AreaSaveForm from '@/components/deer-stalking/AreaSaveForm';
 import AreaSelector from '@/components/deer-stalking/AreaSelector';
@@ -291,42 +292,29 @@ export default function DeerStalkingMap() {
   };
 
   const handleCheckoutSubmit = async (checkoutData) => {
-   if (!activeOuting) {
-     return;
-   }
+    if (!activeOuting) return;
+
     try {
-      const submitData = { ...checkoutData, active_checkin: false };
+      const finalTrack = trackingService.getTrack();
+      const roundsFired = checkoutData.shot_anything
+        ? (parseInt(checkoutData.rounds_fired) > 0 ? parseInt(checkoutData.rounds_fired) : parseInt(checkoutData.total_count) || 0)
+        : 0;
+      const submitData = { ...checkoutData, active_checkin: false, rounds_fired: roundsFired };
+
       if (!checkoutData.shot_anything) {
         submitData.species_list = [];
         submitData.total_count = null;
+        submitData.rounds_fired = 0;
         submitData.rifle_id = null;
         submitData.ammunition_used = null;
         submitData.ammunition_id = null;
       }
 
-      // Create SessionRecord first
-      const sessionRecord = await base44.entities.SessionRecord.create({
-        category: 'deer_management',
-        date: new Date(activeOuting.start_time).toISOString().split('T')[0],
-        location_id: activeOuting.area_id,
-        location_name: activeOuting.location_name,
-        start_time: new Date(activeOuting.start_time).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-        end_time: new Date(activeOuting.end_time || Date.now()).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-        gps_track: activeOuting.gps_track || [],
-        outing_id: activeOuting.id,
-        ...submitData,
-        status: 'completed'
-      });
-
-      // Decrement ammo AFTER session is created
-      // Pass BOTH SessionRecord.id AND outing_id so cleanup can find entries with either ID
-      if (submitData.shot_anything && submitData.ammunition_id && submitData.total_count) {
-        await decrementAmmoStock(submitData.ammunition_id, parseInt(submitData.total_count), 'deer_management', sessionRecord.id, activeOuting.id);
+      if (checkoutData.shot_anything && checkoutData.ammunition_id && roundsFired > 0) {
+        await decrementAmmoStock(checkoutData.ammunition_id, roundsFired, 'deer_management', activeOuting.id);
       }
 
-      // Update DeerOuting to reference SessionRecord
-      await base44.entities.DeerOuting.update(activeOuting.id, { session_record_id: sessionRecord.id });
-
+      await endOutingWithData(activeOuting.id, submitData, finalTrack);
       setShowCheckout(false);
       loadData();
     } catch (err) {
@@ -424,7 +412,7 @@ export default function DeerStalkingMap() {
         .gm-attribution { display: none !important; }
         .gm-style-mmc { display: none !important; }
       `}</style>
-      <div className={`absolute inset-0 z-0 ${showPOI || showHarvest || showOuting ? 'pointer-events-none' : ''}`}>
+      <div className={`absolute inset-0 z-0 ${showPOI || showHarvest || showOuting || showCheckout ? 'pointer-events-none' : ''}`}>
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={userLocation}
@@ -707,9 +695,8 @@ export default function DeerStalkingMap() {
         <OutingModal onClose={() => setShowOuting(false)} onSubmit={handleStartOuting} selectedArea={savedAreas.find(a => a.id === selectedAreaId)} />
       )}
 
-      {showCheckout && activeOuting && createPortal(
-        <UnifiedCheckoutModal activeOuting={activeOuting} rifles={rifles} ammunition={ammunition} onSubmit={handleCheckoutSubmit} onClose={() => setShowCheckout(false)} />,
-        document.body
+      {showCheckout && activeOuting && (
+        <UnifiedCheckoutModal activeOuting={activeOuting} rifles={rifles} ammunition={ammunition} onSubmit={handleCheckoutSubmit} onClose={() => setShowCheckout(false)} />
       )}
 
       {showAreaDrawer && createPortal(
