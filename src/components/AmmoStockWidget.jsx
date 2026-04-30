@@ -39,7 +39,7 @@ export default function AmmoStockWidget() {
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-sm font-semibold flex items-center gap-2.5 text-slate-900 dark:text-white">
           <Package className="w-5 h-5 text-primary" />
-          Ammunition Stock
+          Ammunition Inventory
         </h3>
         <Link to="/settings/ammunition-inventory" className="text-xs text-primary hover:opacity-80 font-medium">
           Manage
