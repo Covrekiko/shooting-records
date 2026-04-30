@@ -14,22 +14,22 @@ export default function ScopeProfileCard({ profile, rifle, onView, onEdit, onDel
 
   const InfoRow = ({ icon: Icon, label, value }) => (
     <div className="flex items-center gap-2 min-w-0">
-      <span className="w-5 h-5 rounded-md bg-slate-100 text-slate-500 flex items-center justify-center flex-shrink-0">
+      <span className="w-5 h-5 rounded-md bg-[var(--icon-bg)] text-[var(--accent-brown)] flex items-center justify-center flex-shrink-0">
         <Icon className="w-3 h-3" />
       </span>
       <div className="min-w-0 flex-1 leading-none">
-        <p className="text-[8px] font-bold uppercase tracking-widest text-slate-400 leading-none">{label}</p>
-        <p className="text-[11px] font-semibold text-slate-800 truncate leading-tight mt-0.5">{value || '—'}</p>
+        <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--muted-warm)] leading-none">{label}</p>
+        <p className="text-[11px] font-semibold text-[var(--text-primary)] truncate leading-tight mt-0.5">{value || '—'}</p>
       </div>
     </div>
   );
 
   return (
-    <div className="bg-white border border-slate-200 rounded-2xl p-2.5 sm:p-3 shadow-sm hover:shadow-md transition-shadow overflow-hidden max-w-5xl mx-auto">
+    <div className="bg-[var(--panel-bg)] border border-[var(--border-soft)] rounded-2xl p-2.5 sm:p-3 shadow-[0_6px_20px_rgba(91,70,54,0.08)] hover:shadow-md transition-shadow overflow-hidden max-w-5xl mx-auto">
       <div className="flex flex-col lg:flex-row lg:items-start gap-2.5">
         <div className="flex-1 min-w-0 space-y-2">
           <div className="flex items-start justify-between gap-3 min-w-0">
-            <h3 className="font-bold text-sm text-slate-900 leading-tight min-w-0">
+            <h3 className="font-bold text-sm text-[var(--title-brown)] leading-tight min-w-0">
               {profile.scope_brand} {profile.scope_model}
             </h3>
             {badge && (
@@ -41,15 +41,15 @@ export default function ScopeProfileCard({ profile, rifle, onView, onEdit, onDel
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <section className="rounded-lg border border-slate-100 bg-slate-50/70 px-2.5 py-2 space-y-2 min-w-0">
-              <p className="text-[8px] font-bold uppercase tracking-widest text-slate-500 leading-none">Rifle Setup</p>
+            <section className="rounded-lg border border-[var(--border-soft)] bg-[var(--soft-bg)] px-2.5 py-2 space-y-2 min-w-0">
+              <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--muted-warm)] leading-none">Rifle Setup</p>
               <InfoRow icon={Crosshair} label="Rifle" value={rifleName} />
               <InfoRow icon={CircleDot} label="Calibre" value={profile.caliber || '—'} />
               <InfoRow icon={Package} label="Ammunition" value={ammunition} />
             </section>
 
-            <section className="rounded-lg border border-slate-100 bg-slate-50/70 px-2.5 py-2 space-y-2 min-w-0">
-              <p className="text-[8px] font-bold uppercase tracking-widest text-slate-500 leading-none">Zero & Optics</p>
+            <section className="rounded-lg border border-[var(--border-soft)] bg-[var(--soft-bg)] px-2.5 py-2 space-y-2 min-w-0">
+              <p className="text-[8px] font-bold uppercase tracking-widest text-[var(--muted-warm)] leading-none">Zero & Optics</p>
               <InfoRow icon={Target} label="Zero Distance" value={profile.zero_distance || '—'} />
               <InfoRow icon={SlidersHorizontal} label="Click Value" value={`${profile.turret_type || '—'} · ${profile.click_value || '—'}`} />
               <InfoRow icon={Focus} label="Reticle" value={profile.reticle_type || '—'} />
@@ -63,11 +63,11 @@ export default function ScopeProfileCard({ profile, rifle, onView, onEdit, onDel
             <Eye className="w-3 h-3" />
             <span className="hidden sm:inline lg:inline">View</span>
           </button>
-          <button onClick={onEdit} className="flex items-center justify-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md text-[11px] font-bold hover:bg-slate-200 transition-colors">
+          <button onClick={onEdit} className="flex items-center justify-center gap-1.5 px-2.5 py-1 bg-[var(--soft-bg)] text-[var(--accent-brown)] border border-[var(--border-soft)] rounded-md text-[11px] font-bold hover:bg-[var(--icon-bg)] transition-colors">
             <Pencil className="w-3 h-3" />
             <span className="hidden sm:inline lg:inline">Edit</span>
           </button>
-          <button onClick={onDuplicate} className="flex items-center justify-center gap-1.5 px-2.5 py-1 bg-slate-100 text-slate-700 rounded-md text-[11px] font-bold hover:bg-slate-200 transition-colors">
+          <button onClick={onDuplicate} className="flex items-center justify-center gap-1.5 px-2.5 py-1 bg-[var(--soft-bg)] text-[var(--accent-brown)] border border-[var(--border-soft)] rounded-md text-[11px] font-bold hover:bg-[var(--icon-bg)] transition-colors">
             <Copy className="w-3 h-3" />
             <span className="hidden sm:inline lg:inline">Copy</span>
           </button>

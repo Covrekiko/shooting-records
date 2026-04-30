@@ -2,24 +2,24 @@
 
 export const DESIGN = {
   // Backgrounds
-  PAGE_BG: 'bg-background',
-  CARD_BG: 'bg-card',
-  CARD: 'bg-card border border-border rounded-2xl shadow-[0_6px_20px_rgba(180,83,9,0.08)]',
-  CARD_ACTIVE: 'bg-card border border-primary/40 rounded-2xl shadow-[0_6px_20px_rgba(180,83,9,0.10)]',
+  PAGE_BG: 'bg-[var(--app-bg)]',
+  CARD_BG: 'bg-[var(--panel-bg)]',
+  CARD: 'bg-[var(--panel-bg)] border border-[var(--border-soft)] rounded-2xl shadow-[0_6px_20px_rgba(91,70,54,0.08)]',
+  CARD_ACTIVE: 'bg-[var(--panel-bg)] border border-[var(--primary-hex)] rounded-2xl shadow-[0_6px_20px_rgba(91,70,54,0.10)]',
 
   // Borders & Colors
   BORDER: 'border-border',
   BORDER_LIGHT: 'border-border/70',
 
   // Forms
-  INPUT: 'w-full px-3.5 py-2.5 border border-border rounded-xl bg-card text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors',
-  LABEL: 'block text-xs font-semibold text-accent uppercase tracking-widest mb-2',
-  SELECT: 'w-full px-3.5 py-2.5 border border-border rounded-xl bg-card text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors',
-  TEXTAREA: 'w-full px-3.5 py-2.5 border border-border rounded-xl bg-card text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary transition-colors resize-none',
+  INPUT: 'w-full px-3.5 py-2.5 border border-[var(--border-soft)] rounded-xl bg-[var(--panel-bg)] text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-hex)]/25 focus:border-[var(--primary-hex)] transition-colors',
+  LABEL: 'block text-xs font-semibold text-[var(--muted-warm)] uppercase tracking-widest mb-2',
+  SELECT: 'w-full px-3.5 py-2.5 border border-[var(--border-soft)] rounded-xl bg-[var(--panel-bg)] text-sm text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-hex)]/25 focus:border-[var(--primary-hex)] transition-colors',
+  TEXTAREA: 'w-full px-3.5 py-2.5 border border-[var(--border-soft)] rounded-xl bg-[var(--panel-bg)] text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary-hex)]/25 focus:border-[var(--primary-hex)] transition-colors resize-none',
 
   // Buttons
-  BUTTON_PRIMARY: 'px-5 py-2.5 bg-primary text-primary-foreground rounded-xl font-semibold text-sm hover:bg-[#B45309] active:scale-[0.97] transition-all duration-100 shadow-sm',
-  BUTTON_SECONDARY: 'px-5 py-2.5 bg-secondary text-accent border border-border rounded-xl font-semibold text-sm hover:bg-secondary/80 active:scale-[0.97] transition-all duration-100',
+  BUTTON_PRIMARY: 'px-5 py-2.5 bg-[var(--primary-hex)] text-white rounded-xl font-semibold text-sm hover:bg-[var(--primary-hover)] active:scale-[0.97] transition-all duration-100 shadow-sm',
+  BUTTON_SECONDARY: 'px-5 py-2.5 bg-[var(--soft-bg)] text-[var(--accent-brown)] border border-[var(--border-soft)] rounded-xl font-semibold text-sm hover:bg-[var(--icon-bg)] active:scale-[0.97] transition-all duration-100',
   BUTTON_DANGER: 'px-5 py-2.5 bg-destructive/10 text-destructive border border-destructive/25 rounded-xl font-semibold text-sm hover:bg-destructive/15 transition-all duration-100',
   BUTTON_GHOST: 'px-4 py-2 text-accent rounded-xl text-sm font-medium hover:bg-secondary transition-colors',
   BUTTON_SMALL: 'px-3 py-1.5 text-xs font-semibold rounded-lg',

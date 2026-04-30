@@ -205,7 +205,7 @@ export default function ReloadingManagement() {
 
   if (loading) {
     return (
-      <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
+      <div className="bg-[var(--app-bg)] min-h-screen">
         <Navigation />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -215,14 +215,14 @@ export default function ReloadingManagement() {
   }
 
   return (
-    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
+    <div className="bg-[var(--app-bg)] min-h-screen">
       <Navigation />
       <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         {/* Title Section */}
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-1">Reloading Management</h1>
+            <h1 className="text-3xl md:text-4xl font-bold mb-1 text-[var(--title-brown)]">Reloading Management</h1>
             <p className="text-muted-foreground">Track and manage your reloading sessions</p>
           </div>
           <button
@@ -238,7 +238,7 @@ export default function ReloadingManagement() {
         {/* Load Development Banner */}
         <Link
           to="/load-development"
-          className="flex items-center justify-between gap-3 bg-primary/10 border border-primary/30 rounded-xl px-5 py-4 mb-6 hover:bg-primary/15 transition-colors group"
+          className="flex items-center justify-between gap-3 bg-[var(--soft-bg)] border border-[var(--border-soft)] rounded-xl px-5 py-4 mb-6 hover:bg-[var(--icon-bg)] transition-colors group"
         >
           <div className="flex items-center gap-3">
             <FlaskConical className="w-5 h-5 text-primary flex-shrink-0" />

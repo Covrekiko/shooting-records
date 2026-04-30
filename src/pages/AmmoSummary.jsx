@@ -116,7 +116,7 @@ export default function AmmoSummary() {
 
   if (loading) {
     return (
-      <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
+      <div className="bg-[var(--app-bg)] min-h-screen">
         <Navigation />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -126,14 +126,14 @@ export default function AmmoSummary() {
   }
 
   return (
-    <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
+    <div className="bg-[var(--app-bg)] min-h-screen">
       <Navigation />
       <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Armory</h1>
-            <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Usage, cleaning & firearm status</p>
+            <h1 className="text-xl font-bold text-[var(--title-brown)] tracking-tight">Armory</h1>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">Usage, cleaning & firearm status</p>
           </div>
           <button
             onClick={handleExportPDF}
@@ -182,13 +182,13 @@ export default function AmmoSummary() {
 
           {/* Rifles Section */}
           <div>
-          <h2 className="text-xs font-bold mb-3 flex items-center gap-2 text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+          <h2 className="text-xs font-bold mb-3 flex items-center gap-2 text-[var(--muted-warm)] uppercase tracking-widest">
             <Crosshair className="w-3.5 h-3.5" />
             Rifles ({rifles.length})
           </h2>
           <div className="grid gap-3">
             {rifles.length === 0 ? (
-              <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl shadow-sm p-8 text-center">
+              <div className="bg-[var(--panel-bg)] border border-[var(--border-soft)] rounded-2xl shadow-sm p-8 text-center">
                 <p className="text-muted-foreground">No rifles configured</p>
               </div>
             ) : (
@@ -206,7 +206,7 @@ export default function AmmoSummary() {
                 return (
                   <div
                     key={rifle.id}
-                    className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl shadow-sm p-4"
+                    className="bg-[var(--panel-bg)] border border-[var(--border-soft)] rounded-2xl shadow-sm p-4"
                            >
                              <div className="flex items-start justify-between mb-4">
                                 <div>
@@ -297,13 +297,13 @@ export default function AmmoSummary() {
 
           {/* Shotguns Section */}
           <div>
-          <h2 className="text-xs font-bold mb-3 flex items-center gap-2 text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+          <h2 className="text-xs font-bold mb-3 flex items-center gap-2 text-[var(--muted-warm)] uppercase tracking-widest">
             <AlertCircle className="w-3.5 h-3.5" />
             Shotguns ({shotguns.length})
           </h2>
           <div className="grid gap-3">
             {shotguns.length === 0 ? (
-              <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl shadow-sm p-8 text-center">
+              <div className="bg-[var(--panel-bg)] border border-[var(--border-soft)] rounded-2xl shadow-sm p-8 text-center">
                 <p className="text-muted-foreground">No shotguns configured</p>
               </div>
             ) : (
@@ -321,7 +321,7 @@ export default function AmmoSummary() {
                 return (
                   <div
                     key={shotgun.id}
-                    className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl shadow-sm p-4"
+                    className="bg-[var(--panel-bg)] border border-[var(--border-soft)] rounded-2xl shadow-sm p-4"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div>

@@ -342,8 +342,8 @@ export default function TargetShooting() {
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-4 mobile-page-padding">
         <div className="mb-4 flex items-center justify-between">
           <div className="hidden md:block">
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Target Shooting</h1>
-            <p className="text-xs text-slate-400 dark:text-muted-foreground mt-0.5">Rifle range sessions</p>
+            <h1 className="text-xl font-bold text-[var(--title-brown)] tracking-tight">Target Shooting</h1>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">Rifle range sessions</p>
           </div>
 
         </div>
@@ -422,7 +422,7 @@ export default function TargetShooting() {
         </div>
 
         <div className="mt-4">
-           <p className="text-xs font-bold text-slate-400 dark:text-muted-foreground uppercase tracking-widest mb-3">Recent Sessions</p>
+           <p className="text-xs font-bold text-[var(--muted-warm)] uppercase tracking-widest mb-3">Recent Sessions</p>
            <RecordsSection category="target_shooting" title="Session Records" emptyMessage="No target shooting sessions recorded yet" showTargetAnalysis={true} />
          </div>
 
