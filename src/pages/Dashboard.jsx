@@ -13,6 +13,8 @@ import {
   Target, Crosshair, Map, BookOpen,
   BarChart3, ChevronRight, Clock, Zap, Shield, Package, RefreshCw, Layers, FlaskConical, ShieldCheck, MessageCircle,
 } from 'lucide-react';
+const Wrench = Package;
+
 import {
   MonthlyActivityChart,
   RoundsPerFirearmChart,
