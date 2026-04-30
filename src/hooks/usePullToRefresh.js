@@ -5,11 +5,15 @@ import { useState, useEffect, useRef } from 'react';
  * Returns { pulling, progress (0-1), refreshing }
  * Call onRefresh when pull exceeds threshold.
  */
-export function usePullToRefresh(onRefresh, threshold = 80) {
+export function usePullToRefresh(onRefresh, options = {}) {
+  const config = typeof options === 'number' ? { threshold: options } : options;
+  const threshold = config.threshold || 80;
+  const disabled = config.disabled || false;
   const [state, setState] = useState({ pulling: false, progress: 0, refreshing: false });
   const startY = useRef(null);
   const currentY = useRef(null);
   const callbackRef = useRef(onRefresh);
+  const refreshingRef = useRef(false);
 
   // Update callback ref whenever onRefresh changes
   useEffect(() => {
@@ -17,13 +21,16 @@ export function usePullToRefresh(onRefresh, threshold = 80) {
   }, [onRefresh]);
 
   useEffect(() => {
+    const isMobileTouch = () => window.matchMedia?.('(pointer: coarse)').matches;
+    const shouldIgnoreTarget = (target) => Boolean(target?.closest?.('input, textarea, select, [contenteditable="true"], [data-modal-scroll], .leaflet-container'));
+
     const onTouchStart = (e) => {
-      if (window.scrollY > 0) return;
+      if (disabled || refreshingRef.current || !isMobileTouch() || window.scrollY > 0 || shouldIgnoreTarget(e.target)) return;
       startY.current = e.touches[0].clientY;
     };
 
     const onTouchMove = (e) => {
-      if (startY.current === null) return;
+      if (disabled || refreshingRef.current || startY.current === null) return;
       currentY.current = e.touches[0].clientY;
       const delta = currentY.current - startY.current;
       if (delta > 0 && window.scrollY === 0) {
@@ -33,11 +40,18 @@ export function usePullToRefresh(onRefresh, threshold = 80) {
     };
 
     const onTouchEnd = () => {
-      if (startY.current === null) return;
+      if (disabled || refreshingRef.current || startY.current === null) {
+        startY.current = null;
+        currentY.current = null;
+        setState({ pulling: false, progress: 0, refreshing: false });
+        return;
+      }
       const delta = (currentY.current || 0) - startY.current;
       if (delta >= threshold) {
+        refreshingRef.current = true;
         setState({ pulling: false, progress: 0, refreshing: true });
         Promise.resolve(callbackRef.current()).finally(() => {
+          refreshingRef.current = false;
           setState({ pulling: false, progress: 0, refreshing: false });
         });
       } else {
@@ -56,7 +70,7 @@ export function usePullToRefresh(onRefresh, threshold = 80) {
       document.removeEventListener('touchmove', onTouchMove);
       document.removeEventListener('touchend', onTouchEnd);
     };
-  }, [threshold]);
+  }, [threshold, disabled]);
 
   return state;
 }

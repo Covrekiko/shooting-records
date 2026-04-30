@@ -19,6 +19,8 @@ import { motion } from 'framer-motion';
 import { DESIGN } from '@/lib/designConstants';
 import { useAutoCheckin } from '@/hooks/useAutoCheckin';
 import AutoCheckinBanner from '@/components/AutoCheckinBanner';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 
 export default function ClayShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -100,9 +102,8 @@ export default function ClayShooting() {
     }
   }, []);
 
-   useEffect(() => {
+   const loadData = useCallback(async () => {
      sessionManager.clearExpiredSessions();
-     async function loadData() {
        try {
          const currentUser = await base44.auth.me();
          const [clubsList, shotgunsList, ammoList, activeSessions, standsList, allSessionsList] = await Promise.all([
@@ -146,9 +147,13 @@ export default function ClayShooting() {
       } finally {
         setLoading(false);
       }
-    }
-    loadData();
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const pullToRefresh = usePullToRefresh(loadData, { disabled: showCheckin || showCheckout || showScorecard || viewingTrack });
 
   useEffect(() => {
     // Subscribe to trackingService updates (unified GPS tracking)
@@ -327,6 +332,7 @@ export default function ClayShooting() {
   return (
     <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
       <Navigation />
+      <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       {nearbyClub && (
         <CheckinBanner location={nearbyClub.name} distance={nearbyClub.distance} onDismiss={() => setNearbyClub(null)} onCheckin={() => setShowCheckin(true)} />
       )}

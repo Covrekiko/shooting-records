@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight, Trash2, Zap, Layers, Database, Palette } from 'lucide-react';
@@ -6,15 +6,26 @@ import AutoCheckinSettingToggle from '@/components/AutoCheckinSettingToggle';
 import ThemeSelector from '@/components/ThemeSelector';
 import { base44 } from '@/api/base44Client';
 import { DESIGN } from '@/lib/designConstants';
+import GlobalModal from '@/components/ui/GlobalModal.jsx';
+import { clearLocalAccountData } from '@/lib/accountDataCleanup';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 
 export default function Profile() {
   const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+  const loadProfile = useCallback(async () => {
+    const currentUser = await base44.auth.me().catch(() => null);
+    setUser(currentUser);
   }, []);
+
+  useEffect(() => {
+    loadProfile();
+  }, [loadProfile]);
+
+  const pullToRefresh = usePullToRefresh(loadProfile, { disabled: document.body.classList.contains('modal-open') });
 
   const isActive = (path) => location.pathname === path;
 
@@ -32,6 +43,7 @@ export default function Profile() {
   return (
     <div className="bg-background min-h-screen">
       <Navigation />
+      <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       <main className="max-w-5xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <h1 className="text-xl font-bold mb-4 hidden md:block text-foreground">Profile</h1>
 
@@ -395,14 +407,19 @@ function DeleteAccountSection() {
   const [confirming, setConfirming] = useState(false);
   const [confirmText, setConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState('');
 
   const handleDelete = async () => {
     if (confirmText !== 'DELETE') return;
     setDeleting(true);
+    setError('');
     try {
-      await base44.auth.updateMe({ accountDeleteRequested: true, accountDeleteRequestedAt: new Date().toISOString() });
-      await base44.auth.logout();
-    } catch {
+      await base44.functions.invoke('deleteMyAccount', {});
+      await clearLocalAccountData();
+      await base44.auth.logout('/');
+    } catch (err) {
+      await clearLocalAccountData();
+      setError(err?.response?.data?.error || err?.message || 'Account deletion failed. Please try again.');
       setDeleting(false);
     }
   };
@@ -410,45 +427,64 @@ function DeleteAccountSection() {
   return (
     <div className="mt-10 border border-destructive/30 rounded-xl p-5 bg-destructive/5">
       <h3 className="text-sm font-semibold text-destructive uppercase tracking-wide mb-2 flex items-center gap-2">
-        <Trash2 className="w-4 h-4" /> Delete Account
+        <Trash2 className="w-4 h-4" /> Account Management
       </h3>
       <p className="text-sm text-muted-foreground mb-4">
-        Permanently delete your account and all associated data. This action cannot be undone.
+        Permanently delete your account and personal data from this app.
       </p>
-      {!confirming ? (
-        <button
-          onClick={() => setConfirming(true)}
-          className="px-4 py-2 border border-destructive text-destructive rounded-lg text-sm font-medium hover:bg-destructive hover:text-destructive-foreground transition-colors active:scale-95"
-        >
-          Delete My Account
-        </button>
-      ) : (
-        <div className="space-y-3">
-          <p className="text-sm font-medium">Type <strong>DELETE</strong> to confirm:</p>
-          <input
-            type="text"
-            value={confirmText}
-            onChange={(e) => setConfirmText(e.target.value)}
-            placeholder="DELETE"
-            className="w-full px-3 py-2 border border-destructive rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-destructive"
-          />
-          <div className="flex gap-3">
+      <button
+        type="button"
+        onClick={() => setConfirming(true)}
+        className="px-4 py-2 border border-destructive text-destructive rounded-lg text-sm font-medium hover:bg-destructive hover:text-destructive-foreground transition-colors active:scale-95"
+      >
+        Delete Account
+      </button>
+
+      <GlobalModal
+        open={confirming}
+        onClose={() => { if (!deleting) { setConfirming(false); setConfirmText(''); setError(''); } }}
+        title="Delete Account"
+        footer={(
+          <>
             <button
-              onClick={handleDelete}
-              disabled={confirmText !== 'DELETE' || deleting}
-              className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg text-sm font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
-            >
-              {deleting ? 'Deleting...' : 'Confirm Delete'}
-            </button>
-            <button
-              onClick={() => { setConfirming(false); setConfirmText(''); }}
-              className="px-4 py-2 border border-border rounded-lg text-sm hover:bg-secondary transition-colors"
+              type="button"
+              disabled={deleting}
+              onClick={() => { setConfirming(false); setConfirmText(''); setError(''); }}
+              className="flex-1 h-11 rounded-xl font-semibold text-sm bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={confirmText !== 'DELETE' || deleting}
+              className="flex-1 h-11 rounded-xl font-semibold text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50"
+            >
+              {deleting ? 'Deleting...' : 'Permanently Delete Account'}
+            </button>
+          </>
+        )}
+      >
+        <div className="space-y-4">
+          <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-foreground space-y-2">
+            <p className="font-semibold text-destructive">This action is permanent.</p>
+            <p>Your profile and personal data will be deleted.</p>
+            <p>Your local offline data on this device will be cleared.</p>
+            <p>This cannot be undone.</p>
           </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Type DELETE to confirm</label>
+            <input
+              type="text"
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              placeholder="DELETE"
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-destructive"
+            />
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
-      )}
+      </GlobalModal>
     </div>
   );
 }

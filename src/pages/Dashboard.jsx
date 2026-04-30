@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import Navigation from '@/components/Navigation';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 import { useOuting } from '@/context/OutingContext';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -329,15 +330,7 @@ export default function Dashboard() {
     <div className="bg-background min-h-screen">
       <Navigation />
 
-      {/* Pull-to-refresh indicator */}
-      {(pullToRefresh.pulling || pullToRefresh.refreshing) && (
-        <div className="flex justify-center py-1">
-          <div
-            className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full"
-            style={{ animation: pullToRefresh.refreshing ? 'spin 0.6s linear infinite' : 'none', opacity: pullToRefresh.refreshing ? 1 : pullToRefresh.progress, transform: `rotate(${pullToRefresh.progress * 360}deg)` }}
-          />
-        </div>
-      )}
+      <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
 
       <main className="max-w-2xl mx-auto px-3 pt-2 pb-8 mobile-page-padding space-y-3">
 

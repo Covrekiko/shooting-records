@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { getRepository } from '@/lib/offlineSupport';
 import Navigation from '@/components/Navigation';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import ManualRecordModal from '@/components/ManualRecordModal';
 import { createPortal } from 'react-dom';
@@ -41,7 +42,7 @@ export default function Records() {
   const loadRecordsRef = useRef(null);
   const { pulling, progress, refreshing } = usePullToRefresh(useCallback(() => {
     loadRecordsRef.current?.();
-  }, []));
+  }, []), { disabled: anyModalOpen });
 
   useEffect(() => {
     loadRecords();
@@ -314,14 +315,7 @@ export default function Records() {
   return (
     <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
       <Navigation />
-      {(pulling || refreshing) && (
-        <div className="flex justify-center pt-3 pb-1">
-          <div
-            className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full"
-            style={{ animation: refreshing ? 'spin 0.6s linear infinite' : 'none', opacity: refreshing ? 1 : progress, transform: `rotate(${progress * 360}deg)` }}
-          />
-        </div>
-      )}
+      <PullToRefreshIndicator pulling={pulling} refreshing={refreshing} progress={progress} offline={!navigator.onLine} />
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4 gap-3">

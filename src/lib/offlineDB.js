@@ -182,6 +182,10 @@ async function clearStore(storeName) {
   }
 }
 
+async function clearAllStores() {
+  await Promise.allSettled(STORES.map((storeName) => clearStore(storeName)));
+}
+
 // Meta store helpers (for last-synced timestamps, etc.)
 async function getMeta(key) {
   const record = await getById('meta', key);
@@ -199,6 +203,7 @@ export const offlineDB = {
   putMany,
   remove,
   clearStore,
+  clearAllStores,
   getMeta,
   setMeta,
 };

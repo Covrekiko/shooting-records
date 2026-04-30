@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { useOuting } from '@/context/OutingContext';
@@ -10,6 +10,8 @@ import { trackingService } from '@/lib/trackingService';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { motion } from 'framer-motion';
 import { DESIGN } from '@/lib/designConstants';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 
 let liveGpsTrack = [];
 
@@ -30,9 +32,8 @@ export default function DeerManagement() {
     start_time: new Date().toTimeString().slice(0, 5),
   });
 
-  useEffect(() => {
-    async function loadData() {
-      try {
+  const loadData = useCallback(async () => {
+    try {
         const currentUser = await base44.auth.me();
         const [areasList, riflesList, ammoList] = await Promise.all([
           base44.entities.Area.filter({ created_by: currentUser.email }),
@@ -42,14 +43,18 @@ export default function DeerManagement() {
         setAreas(areasList);
         setRifles(riflesList);
         setAmmunition(ammoList);
-      } catch (error) {
-        console.error('Error loading data:', error);
-      } finally {
-        setLoading(false);
-      }
+    } catch (error) {
+      console.error('Error loading data:', error);
+    } finally {
+      setLoading(false);
     }
-    loadData();
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const pullToRefresh = usePullToRefresh(loadData, { disabled: showCheckin || showCheckout });
 
   useEffect(() => {
     const unsubscribe = trackingService.subscribe((track) => {
@@ -175,6 +180,7 @@ export default function DeerManagement() {
   return (
     <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
       <Navigation />
+      <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-4 mobile-page-padding">
         <div className="mb-4 flex items-center justify-between">
           <div className="hidden md:block">

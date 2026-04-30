@@ -4,6 +4,8 @@ import Navigation from '@/components/Navigation';
 import { AlertCircle, CheckCircle2, Crosshair, Download, Droplet } from 'lucide-react';
 import { format } from 'date-fns';
 import { generateAmmunitionSummaryPDF } from '@/utils/pdfGenerators';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 
 export default function AmmoSummary() {
   const [rifles, setRifles] = useState([]);
@@ -110,6 +112,8 @@ export default function AmmoSummary() {
     doc.save('ammunition-summary.pdf');
   };
 
+  const pullToRefresh = usePullToRefresh(loadData);
+
   if (loading) {
     return (
       <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
@@ -124,6 +128,7 @@ export default function AmmoSummary() {
   return (
     <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
+      <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>

@@ -12,6 +12,8 @@ import ReloadBatchForm from '@/components/reloading/ReloadBatchForm';
 import ReloadingStockInventory from '@/components/reloading/ReloadingStockInventory';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { generateReloadingBatchPDF } from '@/utils/pdfGenerators';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 
 export default function ReloadingManagement() {
   const navigate = useNavigate();
@@ -37,6 +39,8 @@ export default function ReloadingManagement() {
       setLoading(false);
     }
   };
+
+  const pullToRefresh = usePullToRefresh(loadSessions, { disabled: showForm || showBatchForm });
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this reloading session? Component stock will be restored.')) return;
@@ -213,6 +217,7 @@ export default function ReloadingManagement() {
   return (
     <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
+      <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         {/* Title Section */}
         <div className="flex items-start justify-between mb-6">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { compressImage } from '@/lib/imageUtils';
 import { base44 } from '@/api/base44Client';
@@ -21,6 +21,8 @@ import TargetAnalysisPanel from '@/components/target-analysis/TargetAnalysisPane
 import TargetAnalysisSummary from '@/components/target-analysis/TargetAnalysisSummary';
 import { useAutoCheckin } from '@/hooks/useAutoCheckin';
 import AutoCheckinBanner from '@/components/AutoCheckinBanner';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 
 export default function TargetShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -98,9 +100,8 @@ export default function TargetShooting() {
     setAutoCheckinMatch(null);
   };
 
-  useEffect(() => {
+  const loadData = useCallback(async () => {
     sessionManager.clearExpiredSessions();
-    async function loadData() {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
@@ -143,9 +144,13 @@ export default function TargetShooting() {
       } finally {
         setLoading(false);
       }
-    }
-    loadData();
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const pullToRefresh = usePullToRefresh(loadData, { disabled: showCheckin || showCheckout || showTargetAnalysis || showBallisticCalc || !!viewingTrack });
 
   useEffect(() => {
     // Subscribe to trackingService updates (unified GPS tracking)
@@ -329,6 +334,7 @@ export default function TargetShooting() {
   return (
     <div className="bg-background min-h-screen">
       <Navigation />
+      <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       {nearbyClub && (
         <CheckinBanner location={nearbyClub.name} distance={nearbyClub.distance} onDismiss={() => setNearbyClub(null)} onCheckin={() => setShowCheckin(true)} />
       )}
