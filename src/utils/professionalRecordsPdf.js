@@ -722,17 +722,18 @@ function renderDeerSession(doc, record, reportData, cursor) {
 
 function drawActivityLogHeader(doc, reportData, cursor) {
   const { width } = pageMetrics(doc);
+  const isDeerReport = reportData.category === 'Deer Management';
   doc.setFillColor(...REPORT.navy);
   doc.roundedRect(REPORT.margin, cursor.y, width - REPORT.margin * 2, 32, 2, 2, 'F');
   doc.setTextColor(...REPORT.white);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(18);
-  doc.text('SHOOTING ACTIVITY RECORD', REPORT.margin + 6, cursor.y + 11);
+  doc.text(isDeerReport ? 'DEER MANAGEMENT' : 'SHOOTING ACTIVITY RECORD', REPORT.margin + 6, cursor.y + 11);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text('Detailed Activity Record', REPORT.margin + 6, cursor.y + 18);
+  doc.text(isDeerReport ? 'Personal User Record' : 'Detailed Activity Record', REPORT.margin + 6, cursor.y + 18);
   doc.setFontSize(8);
-  doc.text('Generated from completed target, clay, and deer activity records', REPORT.margin + 6, cursor.y + 24);
+  doc.text(isDeerReport ? 'Generated from completed deer management records' : 'Generated from completed target, clay, and deer activity records', REPORT.margin + 6, cursor.y + 24);
   doc.setDrawColor(...REPORT.copper);
   doc.setLineWidth(1.2);
   doc.line(REPORT.margin + 6, cursor.y + 28, width - REPORT.margin - 6, cursor.y + 28);
@@ -810,13 +811,17 @@ function buildReportSummaryRows(reportData, records) {
   ];
 }
 
-function drawCategorySummaryTable(doc, records, cursor) {
+function getCategorySummaryRows(records) {
   const categories = ['target_shooting', 'clay_shooting', 'deer_management'];
-  const rows = categories.map((category) => {
+  return categories.map((category) => {
     const categoryRecords = records.filter((record) => getRecordCategoryKey(record) === category);
     const total = categoryRecords.reduce((sum, record) => sum + sumRecordRounds(record), 0);
     return [activityTypeLabel({ category }), categoryRecords.length, formatRoundsByCategory(category, total)];
   }).filter((row) => row[1] > 0);
+}
+
+function drawCategorySummaryTable(doc, records, cursor) {
+  const rows = getCategorySummaryRows(records);
 
   if (rows.length === 0) return cursor;
   cursor = drawSectionTitle(doc, 'Activity Category Summary', cursor);
@@ -826,6 +831,76 @@ function drawCategorySummaryTable(doc, records, cursor) {
     rowHeight: 10,
     fontSize: 8.5,
   });
+}
+
+function drawCombinedSummaryCard(doc, reportData, records, cursor) {
+  const { width } = pageMetrics(doc);
+  const cardX = REPORT.margin;
+  const cardW = width - REPORT.margin * 2;
+  const summaryRows = buildReportSummaryRows(reportData, records);
+  const categoryRows = getCategorySummaryRows(records);
+  const cardH = 128 + (categoryRows.length * 9);
+  cursor = ensureSpace(doc, cursor, cardH + 6);
+
+  doc.setFillColor(...REPORT.white);
+  doc.setDrawColor(...REPORT.border);
+  doc.setLineWidth(0.6);
+  doc.roundedRect(cardX, cursor.y, cardW, cardH, 2, 2, 'FD');
+
+  let y = cursor.y + 7;
+  const drawTitle = (title) => {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(...REPORT.navy);
+    doc.text(title, cardX + 4, y);
+    y += 5;
+    doc.setDrawColor(...REPORT.border);
+    doc.line(cardX + 4, y, cardX + cardW - 4, y);
+    y += 8;
+  };
+
+  const drawTwoColumnRows = (rows) => {
+    const colW = (cardW - 12) / 2;
+    rows.forEach((row, index) => {
+      const col = index % 2;
+      const line = Math.floor(index / 2);
+      const x = cardX + 4 + col * colW;
+      const rowY = y + line * 14;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(...REPORT.muted);
+      doc.text(row.label, x, rowY);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.7);
+      doc.setTextColor(...REPORT.text);
+      doc.text(doc.splitTextToSize(valueOrMissing(row.value), colW - 6).slice(0, 2), x, rowY + 5);
+    });
+    y += Math.ceil(rows.length / 2) * 14 + 5;
+  };
+
+  drawTitle('User Details');
+  drawTwoColumnRows([
+    { label: 'Name', value: reportData.participant.name },
+    { label: 'Email', value: reportData.participant.email },
+    { label: 'Date of Birth', value: reportData.participant.dateOfBirth },
+    { label: 'Address', value: reportData.participant.address },
+  ]);
+
+  drawTitle('Report Summary');
+  drawTwoColumnRows(summaryRows);
+
+  drawTitle('Activity Category Summary');
+  if (categoryRows.length > 0) {
+    cursor = drawDataTable(doc, ['Category', 'Records', 'Rounds / Cartridges'], categoryRows, { ...cursor, y }, {
+      widths: [84, 36, 58],
+      leftColumns: [0],
+      rowHeight: 9,
+      fontSize: 8.2,
+    });
+    return { ...cursor, y: cursor.y + 4 };
+  }
+
+  return { ...cursor, y: cursor.y + cardH + 6 };
 }
 
 function drawCoverNote(doc, cursor) {
@@ -1165,17 +1240,22 @@ function renderActivityLogRecords(doc, reportData, options = {}) {
   let cursor = drawActivityLogHeader(doc, reportData, { y: REPORT.margin });
   const selectedCategory = options.selectedCategory || options.category || 'all';
   const summaryRecords = getFilteredOverviewRecords(reportData.records, selectedCategory);
+  const isDeerReport = reportData.category === 'Deer Management';
 
-  cursor = drawInfoCard(doc, 'User Details', [
-    { label: 'Name', value: reportData.participant.name },
-    { label: 'Email', value: reportData.participant.email },
-    { label: 'Date of Birth', value: reportData.participant.dateOfBirth },
-    { label: 'Address', value: reportData.participant.address },
-  ], cursor, { columns: 2, rowHeight: 16 });
+  if (isDeerReport) {
+    cursor = drawCombinedSummaryCard(doc, reportData, summaryRecords, cursor);
+  } else {
+    cursor = drawInfoCard(doc, 'User Details', [
+      { label: 'Name', value: reportData.participant.name },
+      { label: 'Email', value: reportData.participant.email },
+      { label: 'Date of Birth', value: reportData.participant.dateOfBirth },
+      { label: 'Address', value: reportData.participant.address },
+    ], cursor, { columns: 2, rowHeight: 16 });
 
-  cursor = drawInfoCard(doc, 'Report Summary', buildReportSummaryRows(reportData, summaryRecords), cursor, { columns: 2, rowHeight: 15 });
-  cursor = drawCategorySummaryTable(doc, summaryRecords, cursor);
-  cursor = drawCoverNote(doc, cursor);
+    cursor = drawInfoCard(doc, 'Report Summary', buildReportSummaryRows(reportData, summaryRecords), cursor, { columns: 2, rowHeight: 15 });
+    cursor = drawCategorySummaryTable(doc, summaryRecords, cursor);
+    cursor = drawCoverNote(doc, cursor);
+  }
 
   const targetRecords = reportData.records.filter((record) => record.category === 'target_shooting' || record.recordType === 'target');
   const clayRecords = reportData.records.filter((record) => record.category === 'clay_shooting' || record.recordType === 'clay');
