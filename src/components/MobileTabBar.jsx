@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, Shield, BookOpen, User, RefreshCw, WifiOff, CloudUpload } from 'lucide-react';
 import { useTabHistory, getTabForPath, TAB_DEFAULT } from '../context/TabHistoryContext';
-import { useOffline } from '../context/OfflineContext';
+import { useOffline } from '@/context/OfflineContext';
 
 const TABS = [
   { key: 'home',    label: 'Home',    icon: Home },

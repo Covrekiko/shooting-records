@@ -1,7 +1,9 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { getCachedUserProfile } from '@/lib/syncEngine';
+
+console.error('MODULES CONTEXT VERSION: SINGLE_CONTEXT_2026_04_30');
 
 // All possible modules
 export const ALL_MODULES = [
@@ -15,13 +17,11 @@ export const ALL_MODULES = [
 const ModulesContext = createContext(null);
 
 export function ModulesProvider({ children }) {
-  // null = not yet loaded, [] = loaded but none set (needs onboarding)
   const [enabledModules, setEnabledModules] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadModules = async () => {
-      // If no token, skip loading — auth will handle the gate
       if (!appParams.token) {
         setLoading(false);
         return;
@@ -32,12 +32,10 @@ export function ModulesProvider({ children }) {
         if (user?.enabledModules && Array.isArray(user.enabledModules)) {
           setEnabledModules(user.enabledModules);
         } else {
-          // Not yet configured — signal onboarding needed
           setEnabledModules(undefined);
         }
       } catch (err) {
         console.error('[ModulesContext] Load failed:', err.status === 429 ? '429 rate limit' : err.message);
-        // Offline fallback: default to all modules so the app still works
         setEnabledModules(ALL_MODULES.map(m => m.key));
       } finally {
         setLoading(false);
@@ -52,7 +50,7 @@ export function ModulesProvider({ children }) {
   };
 
   const isEnabled = (moduleKey) => {
-    if (!enabledModules) return true; // loading state — show everything
+    if (!enabledModules) return true;
     return enabledModules.includes(moduleKey);
   };
 

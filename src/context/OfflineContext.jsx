@@ -8,6 +8,8 @@ import { connectivityManager } from '@/lib/connectivityManager';
 import { syncEngine, SYNC_STATE, triggerSync } from '@/lib/syncEngine';
 import { getPendingCount } from '@/lib/syncQueue';
 
+console.error('OFFLINE CONTEXT VERSION: SINGLE_CONTEXT_2026_04_30');
+
 const OfflineContext = createContext(null);
 
 export function OfflineProvider({ children }) {
@@ -31,7 +33,6 @@ export function OfflineProvider({ children }) {
       setPendingCount(count);
     });
 
-    // Initial pending count
     getPendingCount().then(setPendingCount);
 
     return () => {
