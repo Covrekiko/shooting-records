@@ -167,9 +167,7 @@ export default function DeerManagement() {
       // Save to database FIRST, then stop tracking
       await endOutingWithData(activeOuting.id, submitData, finalTrack);
       
-      // Only stop tracking AFTER successful database save
-      trackingService.stopTracking();
-      console.log('🟢 Checkout complete - tracking stopped after database save');
+      console.log('🟢 Checkout complete - tracking saved successfully');
       
       setShowCheckout(false);
     } catch (error) {
@@ -278,10 +276,6 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
   const inputCls = 'w-full h-14 pl-14 pr-4 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium outline-none focus:border-green-700 focus:ring-2 focus:ring-green-700/10 transition-all';
   const labelCls = 'text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-2 block';
   const fieldIconCls = 'absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-green-50 text-green-700 flex items-center justify-center pointer-events-none';
-
-  console.log('[DEER AREA DEBUG] areas =', areas);
-  console.log('[DEER AREA DEBUG] selected location_id =', data.location_id);
-  console.log('[DEER AREA DEBUG] selectedArea =', selectedArea);
 
   const handleAreaSelect = (areaId) => {
     onChange('location_id', areaId);
