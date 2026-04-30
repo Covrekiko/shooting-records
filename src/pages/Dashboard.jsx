@@ -183,17 +183,33 @@ const PrimaryCard = React.memo(function PrimaryCard({ to, icon, label, sub }) {
   );
 });
 
+const SafeIcon = ({ icon: Icon, className }) => {
+  const FallbackIcon = Shield;
+  return Icon ? <Icon className={className} /> : <FallbackIcon className={className} />;
+};
+
+const DASHBOARD_ICONS = {
+  target: Crosshair,
+  clay: Target,
+  deer: Layers,
+  reloading: RefreshCw,
+  loadDevelopment: FlaskConical,
+  equipment: Shield,
+  reports: BarChart3,
+  admin: ShieldCheck,
+};
+
 const SecondaryGrid = React.memo(function SecondaryGrid({ user }) {
   const { isEnabled } = useModules();
   const allItems = [
-    { to: '/target-shooting', icon: <Crosshair className="w-5 h-5" />, label: 'Target', module: 'target_shooting' },
-    { to: '/clay-shooting', icon: <Target className="w-5 h-5" />, label: 'Clay', module: 'clay_shooting' },
-    { to: '/deer-management', icon: <Layers className="w-5 h-5" />, label: 'Deer', module: 'deer_management' },
-    { to: '/reloading', icon: <RefreshCw className="w-5 h-5" />, label: 'Reloading', module: 'reloading' },
-    { to: '/load-development', icon: <FlaskConical className="w-5 h-5" />, label: 'Load Dev', module: 'reloading' },
-    { to: '/settings/rifles', icon: <Shield className="w-5 h-5" />, label: 'Equipment' },
-    { to: '/reports', icon: <BarChart3 className="w-5 h-5" />, label: 'Reports' },
-    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck className="w-5 h-5" />, label: 'Admin' }] : []),
+    { to: '/target-shooting', icon: DASHBOARD_ICONS.target, label: 'Target', module: 'target_shooting' },
+    { to: '/clay-shooting', icon: DASHBOARD_ICONS.clay, label: 'Clay', module: 'clay_shooting' },
+    { to: '/deer-management', icon: DASHBOARD_ICONS.deer, label: 'Deer', module: 'deer_management' },
+    { to: '/reloading', icon: DASHBOARD_ICONS.reloading, label: 'Reloading', module: 'reloading' },
+    { to: '/load-development', icon: DASHBOARD_ICONS.loadDevelopment, label: 'Load Dev', module: 'reloading' },
+    { to: '/settings/rifles', icon: DASHBOARD_ICONS.equipment, label: 'Equipment' },
+    { to: '/reports', icon: DASHBOARD_ICONS.reports, label: 'Reports' },
+    ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: DASHBOARD_ICONS.admin, label: 'Admin' }] : []),
   ];
   const items = allItems.filter(item => !item.module || isEnabled(item.module));
 
@@ -202,8 +218,8 @@ const SecondaryGrid = React.memo(function SecondaryGrid({ user }) {
       {items.map((item) => (
          <Link key={item.to} to={item.to}>
            <div className="bg-card rounded-xl p-2.5 border border-border shadow-[0_4px_16px_rgba(180,83,9,0.08)] active:scale-[0.95] transition-all duration-100 flex flex-col items-center gap-1.5 text-center select-none">
-             <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-primary [&_svg]:w-5 [&_svg]:h-5 select-none">
-               {item.icon}
+             <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-primary select-none">
+               <SafeIcon icon={item.icon} className="w-5 h-5" />
              </div>
              <p className="text-[10px] font-semibold text-foreground leading-tight tracking-wide">{item.label}</p>
            </div>
