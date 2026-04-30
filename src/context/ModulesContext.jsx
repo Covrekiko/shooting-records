@@ -3,8 +3,6 @@ import { base44 } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { getCachedUserProfile } from '@/lib/syncEngine';
 
-console.error('MODULES CONTEXT VERSION: SINGLE_CONTEXT_2026_04_30');
-
 // All possible modules
 export const ALL_MODULES = [
   { key: 'target_shooting', label: 'Target Shooting', emoji: '🎯', description: 'Range sessions, target groups, scope cards' },

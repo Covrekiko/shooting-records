@@ -3,8 +3,6 @@ import { base44 } from '@/api/base44Client';
 import { trackingService } from '@/lib/trackingService';
 import { offlineDB } from '@/lib/offlineDB';
 
-console.error('OUTING CONTEXT VERSION: SINGLE_CONTEXT_2026_04_30');
-
 const defaultOutingContext = {
   activeOuting: null,
   loading: false,
