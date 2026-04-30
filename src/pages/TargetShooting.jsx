@@ -7,7 +7,7 @@ import CheckinBanner from '@/components/CheckinBanner';
 import { calculateDistance } from '@/hooks/useGeolocation';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import RecordsSection from '@/components/RecordsSection';
-import { Plus, Map, Crosshair, ScanLine, Microscope, Calculator, Calendar, MapPin, Clock, FileText, Check, X } from 'lucide-react';
+import { Plus, Map, Crosshair, ScanLine, Microscope, Calculator, Calendar, MapPin, Clock, FileText, Check, X, Camera, Upload, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import BallisticCalculator from '@/components/target-analysis/BallisticCalculator';
 import { decrementAmmoStock, refundAmmoForRecord, getSelectableAmmunition } from '@/lib/ammoUtils';
@@ -626,134 +626,204 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
     onSubmit(data);
   };
 
+  const fieldCls = 'w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all focus:border-green-700 focus:ring-2 focus:ring-green-700/10';
+  const sectionCls = 'rounded-2xl border border-slate-200 bg-white p-3 shadow-sm';
+  const sectionIconCls = 'w-10 h-10 rounded-xl bg-green-50 text-green-700 flex items-center justify-center flex-shrink-0';
+  const sectionLabelCls = 'text-[11px] font-bold text-slate-600 uppercase tracking-widest';
+
   return (
     <GlobalModal
       open={true}
       onClose={onClose}
-      title="Check Out"
+      title={(
+        <span className="flex items-center gap-3 min-w-0">
+          <span className="w-10 h-10 rounded-full bg-green-800 text-white flex items-center justify-center shadow-sm flex-shrink-0">
+            <Crosshair className="w-5 h-5" />
+          </span>
+          <span className="min-w-0 block">
+            <span className="text-lg font-bold leading-tight text-slate-900 block">Check Out</span>
+            <span className="text-xs font-medium text-slate-500 block mt-0.5">End your target shooting session</span>
+          </span>
+        </span>
+      )}
       onSubmit={handleSubmit}
-      primaryAction="Check Out"
-      secondaryAction="Cancel"
+      footer={(
+        <>
+          <button type="button" onClick={onClose} className="flex-1 h-11 rounded-xl font-bold text-sm bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 transition-colors active:scale-95 flex items-center justify-center gap-2">
+            <X className="w-4 h-4" /> Cancel
+          </button>
+          <button type="submit" className="flex-1 h-11 rounded-xl font-bold text-sm bg-orange-600 text-white hover:bg-orange-700 transition-colors active:scale-95 flex items-center justify-center gap-2 shadow-sm">
+            <Check className="w-4 h-4" /> Check Out
+          </button>
+        </>
+      )}
     >
-      <div className="space-y-4">
-        <div>
-          <label className={labelCls}>Check-out Time</label>
-          <input type="time" value={data.checkout_time} onChange={(e) => setData(prev => ({ ...prev, checkout_time: e.target.value }))} className={inputCls} required />
-        </div>
+      <div className="space-y-3">
+        <section className={sectionCls}>
+          <div className="flex gap-3 min-w-0">
+            <span className={sectionIconCls}><Clock className="w-5 h-5" /></span>
+            <div className="flex-1 min-w-0">
+              <label className={`${sectionLabelCls} block mb-1.5`}>Check-Out Time</label>
+              <input type="time" value={data.checkout_time} onChange={(e) => setData(prev => ({ ...prev, checkout_time: e.target.value }))} className={fieldCls} required />
+            </div>
+          </div>
+        </section>
 
-        <div className="border-t border-slate-100 dark:border-slate-700 pt-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className={labelCls}>Firearms Used</span>
+        <section className={sectionCls}>
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className={sectionIconCls}><Crosshair className="w-5 h-5" /></span>
+              <span className={sectionLabelCls}>Firearms Used</span>
+            </div>
             <motion.button type="button" onClick={addRifleEntry} whileTap={{ scale: 0.95 }}
-              className="text-xs bg-slate-100 dark:bg-slate-700 hover:bg-primary hover:text-primary-foreground px-3 py-1.5 rounded-lg font-medium transition-all">
+              className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition-colors flex-shrink-0">
               + Add
             </motion.button>
           </div>
 
-          {data.rifles_used.map((rifle, index) => (
-            <div key={index} className="bg-slate-50 dark:bg-slate-700/50 border border-slate-200/70 dark:border-slate-600 p-3 rounded-xl mb-3 space-y-2.5">
-              {errors[`rifle_${index}`] && <p className="text-red-500 text-xs font-medium">{errors[`rifle_${index}`]}</p>}
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold text-slate-500">Rifle {index + 1}</span>
-                {data.rifles_used.length > 1 && (
-                  <button type="button" onClick={() => removeRifleEntry(index)} className="text-xs text-red-400 hover:text-red-600 font-medium">Remove</button>
-                )}
-              </div>
-              <select value={rifle.rifle_id} onChange={(e) => updateRifleEntry(index, 'rifle_id', e.target.value)} className={selectCls}>
-                <option value="">Select rifle</option>
-                {rifles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
-              </select>
-              <div className="grid grid-cols-2 gap-2 w-full">
-                 <input type="number" placeholder="Rounds" value={rifle.rounds_fired} onChange={(e) => updateRifleEntry(index, 'rounds_fired', e.target.value)} className={`${inputCls} min-w-0`} />
-                 <input type="number" placeholder="Meters" value={rifle.meters_range} onChange={(e) => updateRifleEntry(index, 'meters_range', e.target.value)} className={`${inputCls} min-w-0`} />
-               </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide block mb-1.5">Ammunition *</label>
-                {rifle.rifle_id ? (
-                  <select
-                    value={rifle.ammunition_id || ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      const a = ammunition.find(x => x.id === val);
-                      setData(prev => {
-                        const updated = [...prev.rifles_used];
-                        updated[index] = { ...updated[index], ammunition_id: val, ammunition_brand: a?.brand || '', caliber: a?.caliber || '', bullet_type: a?.bullet_type || '', grain: a?.grain || '' };
-                        return { ...prev, rifles_used: updated };
-                      });
-                    }}
-                    className={selectCls}
-                  >
-                    <option value="">Select ammunition (required)</option>
+          <div className="space-y-3">
+            {data.rifles_used.map((rifle, index) => (
+              <div key={index} className="relative rounded-2xl border border-slate-200 bg-slate-50 p-3 space-y-3">
+                {errors[`rifle_${index}`] && <p className="text-red-500 text-xs font-medium pr-8">{errors[`rifle_${index}`]}</p>}
+                <div className="flex justify-between items-center gap-3">
+                  <span className="text-xs font-bold text-slate-800">Rifle {index + 1}</span>
+                  {data.rifles_used.length > 1 && (
+                    <button type="button" onClick={() => removeRifleEntry(index)} className="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors" title="Remove rifle">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
 
-                    {(() => {
-                       const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
-                       return getSelectableAmmunition(ammunition, selectedRifle?.caliber || '').map(a => (
-                        <option key={a.id} value={a.id}>
-                          {`${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.ammo_type === 'reloaded' ? ' [Reloaded]' : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`}
-                        </option>
-                      ));
-                    })()}
-                    </select>
-                ) : (
-                  <p className="text-xs text-muted-foreground text-xs">Select a rifle first</p>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Rifle</label>
+                  <select value={rifle.rifle_id} onChange={(e) => updateRifleEntry(index, 'rifle_id', e.target.value)} className={fieldCls}>
+                    <option value="">Select rifle</option>
+                    {rifles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  </select>
+                </div>
 
-        <div>
-          <label className={labelCls}>Notes</label>
-          <textarea value={data.notes} onChange={(e) => setData(prev => ({ ...prev, notes: e.target.value }))} className={inputCls} rows="2" />
-        </div>
-
-        <div>
-          <label className={labelCls}>Photos</label>
-          <div className="flex gap-2 mb-2">
-            <label className={`flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-slate-600 dark:text-slate-300 transition-colors ${photoUploading ? 'opacity-50 pointer-events-none' : ''}`}>
-              {photoUploading ? 'Uploading...' : 'Choose File'}
-              <input type="file" accept="image/*" multiple className="hidden" disabled={photoUploading} onChange={async (e) => {
-                const result = await uploadPhotos(Array.from(e.target.files || []), data.photos, setPhotoUploading);
-                e.target.value = '';
-                if (result) setData(prev => ({ ...prev, photos: result }));
-              }} />
-            </label>
-            <label className={`flex-1 px-3 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-600/80 rounded-xl text-center cursor-pointer font-semibold text-xs text-slate-600 dark:text-slate-300 transition-colors ${photoUploading ? 'opacity-50 pointer-events-none' : ''}`}>
-              {photoUploading ? 'Uploading...' : 'Camera'}
-              <input type="file" accept="image/*" capture="environment" className="hidden" disabled={photoUploading} onChange={async (e) => {
-                const result = await uploadPhotos(Array.from(e.target.files || []), data.photos, setPhotoUploading);
-                e.target.value = '';
-                if (result) setData(prev => ({ ...prev, photos: result }));
-              }} />
-            </label>
-          </div>
-          {data.photos && data.photos.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {data.photos.map((photo, idx) => {
-                const photoUrl = typeof photo === 'string' ? photo : photo.url;
-                const analysis = typeof photo === 'object' ? photo.analysis : null;
-                return (
-                  <div key={idx} className="relative group">
-                    <img src={photoUrl} alt="preview" className="h-16 w-16 object-cover rounded-xl border border-slate-200" />
-                    {analysis && <div className="absolute bottom-0 right-0 bg-primary text-primary-foreground text-xs px-1 rounded-tl-lg">{analysis.accuracy_percentage}%</div>}
-                    <button type="button" onClick={() => setData(prev => ({ ...prev, photos: prev.photos.filter((_, i) => i !== idx) }))}
-                      className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs shadow">×</button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Rounds</label>
+                    <input type="number" placeholder="Rounds" value={rifle.rounds_fired} onChange={(e) => updateRifleEntry(index, 'rounds_fired', e.target.value)} className={`${fieldCls} min-w-0`} />
                   </div>
-                );
-              })}
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Distance</label>
+                    <input type="number" placeholder="Meters" value={rifle.meters_range} onChange={(e) => updateRifleEntry(index, 'meters_range', e.target.value)} className={`${fieldCls} min-w-0`} />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Ammunition *</label>
+                  {rifle.rifle_id ? (
+                    <select
+                      value={rifle.ammunition_id || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const a = ammunition.find(x => x.id === val);
+                        setData(prev => {
+                          const updated = [...prev.rifles_used];
+                          updated[index] = { ...updated[index], ammunition_id: val, ammunition_brand: a?.brand || '', caliber: a?.caliber || '', bullet_type: a?.bullet_type || '', grain: a?.grain || '' };
+                          return { ...prev, rifles_used: updated };
+                        });
+                      }}
+                      className={fieldCls}
+                    >
+                      <option value="">Select ammunition (required)</option>
+                      {(() => {
+                        const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
+                        return getSelectableAmmunition(ammunition, selectedRifle?.caliber || '').map(a => (
+                          <option key={a.id} value={a.id}>
+                            {`${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.ammo_type === 'reloaded' ? ' [Reloaded]' : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`}
+                          </option>
+                        ));
+                      })()}
+                    </select>
+                  ) : (
+                    <div className={`${fieldCls} flex items-center text-slate-500`}>Select a rifle first</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className={sectionCls}>
+          <div className="flex gap-3 min-w-0">
+            <span className={sectionIconCls}><FileText className="w-5 h-5" /></span>
+            <div className="flex-1 min-w-0">
+              <label className={`${sectionLabelCls} block mb-1.5`}>Notes</label>
+              <textarea value={data.notes} onChange={(e) => setData(prev => ({ ...prev, notes: e.target.value }))} className={`${fieldCls} h-20 py-3 resize-none`} rows="2" placeholder="Add any notes about this session..." />
             </div>
-          )}
-        </div>
+          </div>
+        </section>
+
+        <section className={sectionCls}>
+          <div className="flex gap-3 min-w-0">
+            <span className={sectionIconCls}><Camera className="w-5 h-5" /></span>
+            <div className="flex-1 min-w-0">
+              <label className={`${sectionLabelCls} block`}>Photos</label>
+              <p className="text-xs text-slate-500 mb-3">Add photos from your session (optional)</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                <label className={`h-10 px-3 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-center cursor-pointer font-bold text-xs text-slate-700 transition-colors flex items-center justify-center gap-2 ${photoUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                  <Upload className="w-4 h-4" /> {photoUploading ? 'Uploading...' : 'Choose File'}
+                  <input type="file" accept="image/*" multiple className="hidden" disabled={photoUploading} onChange={async (e) => {
+                    const result = await uploadPhotos(Array.from(e.target.files || []), data.photos, setPhotoUploading);
+                    e.target.value = '';
+                    if (result) setData(prev => ({ ...prev, photos: result }));
+                  }} />
+                </label>
+                <label className={`h-10 px-3 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl text-center cursor-pointer font-bold text-xs text-slate-700 transition-colors flex items-center justify-center gap-2 ${photoUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                  <Camera className="w-4 h-4" /> {photoUploading ? 'Uploading...' : 'Camera'}
+                  <input type="file" accept="image/*" capture="environment" className="hidden" disabled={photoUploading} onChange={async (e) => {
+                    const result = await uploadPhotos(Array.from(e.target.files || []), data.photos, setPhotoUploading);
+                    e.target.value = '';
+                    if (result) setData(prev => ({ ...prev, photos: result }));
+                  }} />
+                </label>
+              </div>
+              {data.photos && data.photos.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {data.photos.map((photo, idx) => {
+                    const photoUrl = typeof photo === 'string' ? photo : photo.url;
+                    const analysis = typeof photo === 'object' ? photo.analysis : null;
+                    return (
+                      <div key={idx} className="relative group">
+                        <img src={photoUrl} alt="preview" className="h-16 w-16 object-cover rounded-xl border border-slate-200" />
+                        {analysis && <div className="absolute bottom-0 right-0 bg-primary text-primary-foreground text-xs px-1 rounded-tl-lg">{analysis.accuracy_percentage}%</div>}
+                        <button type="button" onClick={() => setData(prev => ({ ...prev, photos: prev.photos.filter((_, i) => i !== idx) }))}
+                          className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-xs shadow">×</button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
 
         {gpsTrack && gpsTrack.length > 0 && (
           <motion.button type="button" onClick={() => onViewTrack(gpsTrack)} whileTap={{ scale: 0.97 }}
-            className="w-full px-3 py-2.5 bg-slate-100 dark:bg-slate-700 hover:bg-primary hover:text-primary-foreground rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 hover:bg-slate-100 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm font-bold text-slate-700">
             <Map className="w-4 h-4" />
             View GPS Track
           </motion.button>
         )}
 
-        {sessionRecordId && <TargetAnalysisSummary sessionRecordId={sessionRecordId} />}
+        {sessionRecordId && (
+          <section className="rounded-2xl border border-orange-200 bg-orange-50/70 p-3">
+            <div className="flex items-start gap-3">
+              <span className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center flex-shrink-0">
+                <Crosshair className="w-5 h-5" />
+              </span>
+              <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Target Analysis</p>
+                <p className="text-xs text-slate-500 mt-0.5">Analyze your performance and group your shots (optional)</p>
+                <TargetAnalysisSummary sessionRecordId={sessionRecordId} />
+              </div>
+            </div>
+          </section>
+        )}
       </div>
     </GlobalModal>
   );
