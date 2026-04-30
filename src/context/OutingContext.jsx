@@ -3,7 +3,17 @@ import { base44 } from '@/api/base44Client';
 import { trackingService } from '@/lib/trackingService';
 import { offlineDB } from '@/lib/offlineDB';
 
-const OutingContext = createContext();
+const defaultOutingContext = {
+  activeOuting: null,
+  loading: false,
+  startOuting: async () => null,
+  endOuting: async () => null,
+  endOutingWithData: async () => null,
+  updateGpsTrack: async () => null,
+  reload: async () => null,
+};
+
+const OutingContext = createContext(defaultOutingContext);
 
 export function OutingProvider({ children }) {
   const [activeOuting, setActiveOuting] = useState(null);
@@ -328,9 +338,5 @@ export function OutingProvider({ children }) {
 }
 
 export function useOuting() {
-  const context = useContext(OutingContext);
-  if (!context) {
-    throw new Error('useOuting must be used within OutingProvider');
-  }
-  return context;
+  return useContext(OutingContext) || defaultOutingContext;
 }

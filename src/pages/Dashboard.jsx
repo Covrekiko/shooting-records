@@ -253,7 +253,6 @@ export default function Dashboard() {
 
   const loadData = useCallback(async () => {
     try {
-      console.log('[API DEBUG] Dashboard.loadData called');
       const currentUser = authUser || await refreshUser();
       if (!currentUser) {
         setLoading(false);
