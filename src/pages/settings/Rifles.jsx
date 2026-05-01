@@ -13,14 +13,17 @@ export default function Rifles() {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [formData, setFormData] = useState({
+  const emptyFormData = {
     name: '',
     make: '',
     model: '',
     caliber: '',
     serial_number: '',
+    total_rounds_fired: 0,
     notes: '',
-  });
+  };
+
+  const [formData, setFormData] = useState(emptyFormData);
 
   useEffect(() => {
     loadRifles();
@@ -41,15 +44,20 @@ export default function Rifles() {
   const handleSubmit = async (e) => {
     if (e?.preventDefault) e.preventDefault();
     try {
+      const dataToSave = {
+        ...formData,
+        total_rounds_fired: parseInt(formData.total_rounds_fired) || 0,
+      };
+
       if (editingId) {
-        await base44.entities.Rifle.update(editingId, formData);
-        setRifles(rifles.map((r) => (r.id === editingId ? { ...r, ...formData } : r)));
+        await base44.entities.Rifle.update(editingId, dataToSave);
+        setRifles(rifles.map((r) => (r.id === editingId ? { ...r, ...dataToSave } : r)));
         setEditingId(null);
       } else {
-        const newRifle = await base44.entities.Rifle.create(formData);
+        const newRifle = await base44.entities.Rifle.create(dataToSave);
         setRifles([...rifles, newRifle]);
       }
-      setFormData({ name: '', make: '', model: '', caliber: '', serial_number: '', notes: '' });
+      setFormData(emptyFormData);
       setShowForm(false);
     } catch (error) {
       console.error('Error saving rifle:', error);
@@ -67,7 +75,7 @@ export default function Rifles() {
   };
 
   const startEdit = (rifle) => {
-    setFormData(rifle);
+    setFormData({ ...emptyFormData, ...rifle, total_rounds_fired: rifle.total_rounds_fired || 0 });
     setEditingId(rifle.id);
     setShowForm(true);
   };
@@ -95,7 +103,7 @@ export default function Rifles() {
         <button
           onClick={() => {
             setEditingId(null);
-            setFormData({ name: '', make: '', model: '', caliber: '', serial_number: '', notes: '' });
+            setFormData(emptyFormData);
             setShowForm(!showForm);
           }}
           className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 mb-6"
@@ -118,7 +126,8 @@ export default function Rifles() {
               <div><label className={lbl}>Make / Brand *</label><input type="text" value={formData.make} onChange={(e) => setFormData({ ...formData, make: e.target.value })} className={inp} required /></div>
               <div><label className={lbl}>Model *</label><input type="text" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} className={inp} required /></div>
               <div><label className={lbl}>Caliber *</label><input type="text" value={formData.caliber} onChange={(e) => setFormData({ ...formData, caliber: e.target.value })} className={inp} required /></div>
-              <div className="sm:col-span-2"><label className={lbl}>Serial Number (optional)</label><input type="text" value={formData.serial_number} onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })} className={inp} /></div>
+              <div><label className={lbl}>Serial Number (optional)</label><input type="text" value={formData.serial_number} onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })} className={inp} /></div>
+              <div><label className={lbl}>Current rounds fired</label><input type="number" min="0" value={formData.total_rounds_fired ?? 0} onChange={(e) => setFormData({ ...formData, total_rounds_fired: e.target.value })} className={inp} /></div>
             </div>
             <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows="2" /></div>
           </div>

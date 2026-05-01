@@ -13,15 +13,18 @@ export default function Shotguns() {
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const [formData, setFormData] = useState({
+  const emptyFormData = {
     name: '',
     make: '',
     model: '',
     gauge: '',
     barrel_length: '',
     serial_number: '',
+    total_cartridges_fired: 0,
     notes: '',
-  });
+  };
+
+  const [formData, setFormData] = useState(emptyFormData);
 
   useEffect(() => {
     loadShotguns();
@@ -42,15 +45,20 @@ export default function Shotguns() {
   const handleSubmit = async (e) => {
     if (e?.preventDefault) e.preventDefault();
     try {
+      const dataToSave = {
+        ...formData,
+        total_cartridges_fired: parseInt(formData.total_cartridges_fired) || 0,
+      };
+
       if (editingId) {
-        await base44.entities.Shotgun.update(editingId, formData);
-        setShotguns(shotguns.map((s) => (s.id === editingId ? { ...s, ...formData } : s)));
+        await base44.entities.Shotgun.update(editingId, dataToSave);
+        setShotguns(shotguns.map((s) => (s.id === editingId ? { ...s, ...dataToSave } : s)));
         setEditingId(null);
       } else {
-        const newShotgun = await base44.entities.Shotgun.create(formData);
+        const newShotgun = await base44.entities.Shotgun.create(dataToSave);
         setShotguns([...shotguns, newShotgun]);
       }
-      setFormData({ name: '', make: '', model: '', gauge: '', barrel_length: '', serial_number: '', notes: '' });
+      setFormData(emptyFormData);
       setShowForm(false);
     } catch (error) {
       console.error('Error saving shotgun:', error);
@@ -68,7 +76,7 @@ export default function Shotguns() {
   };
 
   const startEdit = (shotgun) => {
-    setFormData(shotgun);
+    setFormData({ ...emptyFormData, ...shotgun, total_cartridges_fired: shotgun.total_cartridges_fired || 0 });
     setEditingId(shotgun.id);
     setShowForm(true);
   };
@@ -95,9 +103,9 @@ export default function Shotguns() {
 
         <button
          onClick={() => {
-           setEditingId(null);
-           setFormData({ name: '', make: '', model: '', gauge: '', barrel_length: '', serial_number: '', notes: '' });
-           setShowForm(!showForm);
+          setEditingId(null);
+          setFormData(emptyFormData);
+          setShowForm(!showForm);
          }}
           className="px-6 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 flex items-center gap-2 mb-6"
         >
@@ -121,6 +129,7 @@ export default function Shotguns() {
               <div><label className={lbl}>Gauge *</label><input type="text" value={formData.gauge} onChange={(e) => setFormData({ ...formData, gauge: e.target.value })} className={inp} required /></div>
               <div><label className={lbl}>Barrel Length</label><input type="text" placeholder="e.g. 28in" value={formData.barrel_length} onChange={(e) => setFormData({ ...formData, barrel_length: e.target.value })} className={inp} /></div>
               <div><label className={lbl}>Serial Number</label><input type="text" value={formData.serial_number} onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })} className={inp} /></div>
+              <div><label className={lbl}>Current shots fired</label><input type="number" min="0" value={formData.total_cartridges_fired ?? 0} onChange={(e) => setFormData({ ...formData, total_cartridges_fired: e.target.value })} className={inp} /></div>
             </div>
             <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows="2" /></div>
           </div>
