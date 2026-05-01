@@ -136,13 +136,6 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    e.stopPropagation();
-
-    const submitter = e.nativeEvent?.submitter;
-    if (submitter && submitter.dataset?.action !== 'create-reload-batch') {
-      return;
-    }
-
     setValidationError(null);
 
     // Validate stock before proceeding
@@ -295,12 +288,6 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       console.error('Error creating reload batch:', error);
       alert('Error creating reload batch: ' + error.message);
     }
-  };
-
-  const handleOpenAddBrass = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setShowAddBrassModal(true);
   };
 
   const handleAddBrassSaved = async (brassData) => {
@@ -634,7 +621,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               </select>
               <button
                 type="button"
-                onClick={handleOpenAddBrass}
+                onClick={() => setShowAddBrassModal(true)}
                 className="px-3 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-85 flex items-center gap-1.5 font-medium text-sm whitespace-nowrap transition-opacity"
                 title="Add new brass"
               >
@@ -756,7 +743,6 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <button
             form="reload-batch-form"
             type="submit"
-            data-action="create-reload-batch"
             className="flex-1 h-11 rounded-xl font-semibold text-sm bg-primary text-primary-foreground hover:opacity-90 active:scale-95 transition-all"
           >
             Create Batch
