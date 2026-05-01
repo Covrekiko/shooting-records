@@ -83,13 +83,13 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
   };
 
   const calculateCosts = () => {
-    if (!formData.cartridges_loaded || !formData.primer_id || !formData.powder_id || !formData.brass_id || !formData.bullet_id || !formData.powder_charge) {
+    const brassLookupId = formData.brass_is_used ? formData.used_brass_id : formData.brass_id;
+    if (!formData.cartridges_loaded || !formData.primer_id || !formData.powder_id || !brassLookupId || !formData.bullet_id || !formData.powder_charge) {
       return null;
     }
 
     const primer = components.primer.find(c => c.id === formData.primer_id);
     const powder = components.powder.find(c => c.id === formData.powder_id);
-    const brassLookupId = formData.brass_is_used ? formData.used_brass_id : formData.brass_id;
     const brass = components.brass.find(c => c.id === brassLookupId);
     const bullet = components.bullet.find(c => c.id === formData.bullet_id);
 
