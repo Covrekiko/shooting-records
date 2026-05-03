@@ -80,7 +80,7 @@ export function ModalBody({ children }) {
   return (
     <div
       data-modal-scroll
-      className="flex-1 overflow-y-auto overflow-x-hidden px-5 py-4"
+      className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-5 py-4"
       style={{
         WebkitOverflowScrolling: 'touch',
         overscrollBehavior: 'contain',
@@ -227,7 +227,7 @@ export default function GlobalModal({
             >
               <Wrapper
                 {...wrapperProps}
-                className="bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden w-full"
+                className="bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden w-full min-h-0"
                 style={{
                   maxWidth: '100%',
                   overflowX: 'hidden',

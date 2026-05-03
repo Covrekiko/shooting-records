@@ -39,7 +39,7 @@ export default function BottomSheetSelect({ value, onChange, options = [], place
         onClick={handleClick}
         className={`w-full flex items-center justify-between px-3 py-3 border border-border rounded-lg bg-background text-base text-left select-none ${!selectedLabel ? 'text-muted-foreground' : ''} ${className}`}
       >
-        <span className="truncate">{selectedLabel || placeholder}</span>
+        <span className="min-w-0 flex-1 truncate leading-snug">{selectedLabel || placeholder}</span>
         <ChevronDown className={`w-4 h-4 flex-shrink-0 text-muted-foreground ml-2 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
@@ -69,10 +69,10 @@ export default function BottomSheetSelect({ value, onChange, options = [], place
                 key={opt.value}
                 type="button"
                 onClick={() => handleSelect(opt.value)}
-                className={`w-full flex items-center justify-between px-4 py-3 text-sm border-b border-border last:border-b-0 transition-colors select-none
+                className={`w-full flex items-start justify-between gap-3 px-4 py-3 text-sm border-b border-border last:border-b-0 transition-colors select-none
                   ${opt.value === value ? 'text-primary font-semibold bg-primary/10' : 'text-foreground hover:bg-secondary'}`}
               >
-                <span>{opt.label}</span>
+                <span className="min-w-0 flex-1 text-left leading-snug break-words">{opt.label}</span>
                 {opt.value === value && <Check className="w-4 h-4 text-primary" />}
               </button>
             ))}

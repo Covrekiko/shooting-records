@@ -88,8 +88,11 @@ export default function MobilePdfViewer({ pdfUrl, onClose }) {
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center p-0 z-50">
-      <div className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-4xl h-[92dvh] sm:h-[90vh] max-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))] flex flex-col shadow-2xl border border-slate-200/70 dark:border-slate-700 overflow-hidden">
+    <div
+      className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center p-0 z-50"
+      style={{ paddingTop: 'calc(var(--safe-top) + 8px)', paddingBottom: 'calc(var(--safe-bottom) + 8px)' }}
+    >
+      <div className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-4xl h-full sm:h-[90vh] max-h-[calc(100dvh-var(--safe-top)-var(--safe-bottom)-16px)] flex flex-col min-h-0 shadow-2xl border border-slate-200/70 dark:border-slate-700 overflow-hidden">
         {/* Header */}
         <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-slate-200/70 dark:border-slate-700 bg-white dark:bg-slate-800">
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">PDF Preview</h2>
@@ -104,7 +107,7 @@ export default function MobilePdfViewer({ pdfUrl, onClose }) {
         {/* PDF Container */}
         <div
           ref={containerRef}
-          className="flex-1 min-h-0 overflow-auto overflow-x-hidden bg-slate-50 dark:bg-slate-900 flex items-start justify-center"
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-auto bg-slate-50 dark:bg-slate-900 flex items-start justify-center"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -134,7 +137,7 @@ export default function MobilePdfViewer({ pdfUrl, onClose }) {
         </div>
 
         {/* Footer Controls */}
-        <div className="flex-shrink-0 p-3 border-t border-slate-200/70 dark:border-slate-700 bg-white dark:bg-slate-800 space-y-2" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+        <div className="flex-shrink-0 p-3 border-t border-slate-200/70 dark:border-slate-700 bg-white dark:bg-slate-800 space-y-2" style={{ paddingBottom: 'calc(var(--safe-bottom) + 12px)' }}>
           {/* Page Navigation */}
           <div className="flex items-center justify-between gap-3">
             <button
