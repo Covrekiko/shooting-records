@@ -242,6 +242,8 @@ function SettingsPanel() {
         <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3">App Settings</h3>
         <AutoCheckinSettingToggle />
       </div>
+
+      <DeleteAccountSection />
     </div>
   );
 }

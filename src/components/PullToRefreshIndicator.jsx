@@ -2,7 +2,7 @@ export default function PullToRefreshIndicator({ pulling, refreshing, progress =
   if (!pulling && !refreshing) return null;
 
   return (
-    <div className="flex justify-center pt-3 pb-1">
+    <div className="flex justify-center pt-3 pb-1" role="status" aria-live="polite">
       <div className="flex items-center gap-2 rounded-full bg-card border border-border px-3 py-1 shadow-sm">
         <div
           className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full"
@@ -12,6 +12,9 @@ export default function PullToRefreshIndicator({ pulling, refreshing, progress =
             transform: `rotate(${progress * 360}deg)`,
           }}
         />
+        <span className="text-xs font-medium text-muted-foreground">
+          {refreshing ? 'Refreshing…' : 'Pull to refresh'}
+        </span>
         {offline && <span className="text-xs text-muted-foreground">Offline — showing cached data</span>}
       </div>
     </div>
