@@ -3,8 +3,14 @@ import { getRepository } from '@/lib/offlineSupport';
 
 export async function loadOwnedAmmunitionWithReloads(currentUser) {
   if (navigator.onLine) {
-    const response = await base44.functions.invoke('listAmmunitionForUser', {});
-    return response.data.ammunition || [];
+    try {
+      const response = await base44.functions.invoke('listAmmunitionForUser', {});
+      return response.data.ammunition || [];
+    } catch (error) {
+      console.warn('[ownedAmmunition] listAmmunitionForUser unavailable, using direct user-scoped fallback:', error.message);
+      const ammunition = await base44.entities.Ammunition.filter({ created_by: currentUser.email });
+      return ammunition.filter((ammo) => ammo.archived !== true && ammo.is_deleted !== true && ammo.status !== 'deleted' && ammo.reload_session_deleted !== true);
+    }
   }
 
   const [ammunition = [], reloadSessions = []] = await Promise.all([

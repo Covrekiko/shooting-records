@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Search, X, ChevronDown } from 'lucide-react';
 import { formatAmmunitionLabel } from '@/utils/ammoLabels';
+import { loadOwnedAmmunitionWithReloads } from '@/lib/ownedAmmunition';
 
 /**
  * UserAmmoSelector
@@ -39,44 +40,15 @@ export default function UserAmmoSelector({ onSelect, onClear, selectedId, filter
   const loadUserAmmo = async () => {
     setLoading(true);
     try {
-      // Load user's ammunition inventory
-      const ammunition = await base44.entities.Ammunition.list('-updated_date', 500);
-      const ammoList = ammunition.map(a => ({
+      const currentUser = await base44.auth.me();
+      const ammunition = await loadOwnedAmmunitionWithReloads(currentUser);
+      const combined = ammunition.map(a => ({
         ...a,
-        id: a.id,
         source: 'ammunition',
         ammo_type: a.ammo_type || 'factory',
-        brand: a.brand || '',
         name: a.bullet_type || a.name || '',
-        caliber: a.caliber || '',
         weight_grains: a.grain ? parseInt(a.grain) : null,
-        bullet_type: a.bullet_type || '',
-        cost_per_unit: a.cost_per_unit,
-        quantity_in_stock: a.quantity_in_stock,
-      }));
-
-      // Load user's reloading records with saved loads
-      const reloading = await base44.entities.ReloadingSession.list('-updated_date', 500);
-      const reloadList = reloading
-        .filter(r => r.rounds_loaded > 0)
-        .map((r, idx) => {
-          const bullet = r.components?.find(c => c.type === 'bullet');
-          return {
-            id: `reload_${r.id}`,
-            source: 'reloading',
-            ammo_type: 'reloaded',
-            source_type: 'reload_batch',
-            brand: bullet?.brand || '',
-            name: bullet?.name || `Load ${idx + 1}`,
-            bullet_name: bullet?.name || '',
-            caliber: r.caliber || '',
-            weight_grains: bullet?.weight || null,
-            batch_number: r.batch_number,
-            rounds_loaded: r.rounds_loaded,
-          };
-        });
-
-      const combined = [...ammoList, ...reloadList].sort((a, b) => {
+      })).sort((a, b) => {
         const cal = (a.caliber || '').localeCompare(b.caliber || '');
         if (cal !== 0) return cal;
         return (a.brand || '').localeCompare(b.brand || '');
