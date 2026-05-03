@@ -20,8 +20,12 @@ import LegalShootingHoursWidget from '@/components/deer-stalking/LegalShootingHo
 import { useAutoCheckin } from '@/hooks/useAutoCheckin';
 import AutoCheckinBanner from '@/components/AutoCheckinBanner';
 import ShareAreaModal from '@/components/deer-stalking/ShareAreaModal';
+import OfflineFieldMap from '@/components/deer-stalking/OfflineFieldMap';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
+import { getRepository } from '@/lib/offlineSupport';
+import { queueFieldCheckoutEffects } from '@/lib/offlineFieldSessions';
+import { useOffline } from '@/context/OfflineContext';
 
 const mapContainerStyle = {
   width: '100%',
@@ -41,6 +45,8 @@ export default function DeerStalkingMap() {
   
   const [apiKey, setApiKey] = useState(() => import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [mapLoadFailed, setMapLoadFailed] = useState(false);
+  const { isOnline, pendingCount } = useOffline();
 
   // Load Google Maps with API key
   useEffect(() => {
@@ -83,7 +89,10 @@ export default function DeerStalkingMap() {
         setIsLoaded(true);
       }
     };
-    script.onerror = () => console.error('Failed to load Google Maps');
+    script.onerror = () => {
+      console.error('Failed to load Google Maps');
+      setMapLoadFailed(true);
+    };
     document.head.appendChild(script);
   };
 
@@ -163,12 +172,13 @@ export default function DeerStalkingMap() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const currentUser = await base44.auth.me();
-      // Filter MapMarker and Harvest by current user (privacy)
+      const currentUser = await base44.auth.me().catch(() => null);
+      const criteria = currentUser?.email ? { created_by: currentUser.email } : {};
+      // Filter MapMarker and Harvest by current user (privacy); offline falls back to cached IndexedDB data.
       const [markersData, harvestsData, areasData] = await Promise.all([
-        base44.entities.MapMarker.filter({ created_by: currentUser.email }),
-        base44.entities.Harvest.filter({ created_by: currentUser.email }),
-        base44.entities.Area.filter({ created_by: currentUser.email }),
+        getRepository('MapMarker').filter(criteria),
+        getRepository('Harvest').filter(criteria),
+        getRepository('Area').filter(criteria),
       ]);
       const acceptedShareIds = (areasData || []).filter(area => area.shared_area).map(area => area.area_share_id);
       const visibleMarkers = (markersData || []).filter(marker => !marker.area_share_id || acceptedShareIds.includes(marker.area_share_id));
@@ -197,8 +207,8 @@ export default function DeerStalkingMap() {
     try {
       const currentUser = await base44.auth.me();
       const [riflesList, ammoList] = await Promise.all([
-        base44.entities.Rifle.filter({ created_by: currentUser.email }),
-        base44.entities.Ammunition.filter({ created_by: currentUser.email }),
+        getRepository('Rifle').filter({ created_by: currentUser.email }),
+        getRepository('Ammunition').filter({ created_by: currentUser.email }),
       ]);
       setRifles(riflesList);
       setAmmunition(ammoList);
@@ -232,7 +242,7 @@ export default function DeerStalkingMap() {
   const handleMapClick = (e) => {
     if (!waitingForPin) return;
 
-    const clickLocation = { lat: e.latLng.lat(), lng: e.latLng.lng() };
+    const clickLocation = e?.latLng ? { lat: e.latLng.lat(), lng: e.latLng.lng() } : { lat: e.lat, lng: e.lng };
     setMapClick(clickLocation);
 
     if (waitingForPin === 'poi') {
@@ -247,7 +257,7 @@ export default function DeerStalkingMap() {
   const handlePOISubmit = async (data) => {
     try {
       const now = new Date().toISOString();
-      await base44.entities.MapMarker.create({
+      const createdMarker = await getRepository('MapMarker').create({
         marker_type: data.type,
         latitude: mapClick.lat,
         longitude: mapClick.lng,
@@ -267,7 +277,9 @@ export default function DeerStalkingMap() {
         photos: data.photos || [],
         created_at: now,
         updated_at: now,
+        _offline_status: navigator.onLine ? 'synced' : 'pending_sync',
       });
+      setMarkers(prev => [...prev, createdMarker]);
       setShowPOI(false);
       setMapClick(null);
       setWaitingForPin(null);
@@ -280,7 +292,7 @@ export default function DeerStalkingMap() {
 
   const handleHarvestSubmit = async (data) => {
     try {
-      await base44.entities.Harvest.create({
+      const createdHarvest = await getRepository('Harvest').create({
         latitude: mapClick.lat,
         longitude: mapClick.lng,
         species: data.species,
@@ -288,7 +300,9 @@ export default function DeerStalkingMap() {
         harvest_date: new Date(data.date).toISOString(),
         notes: data.notes,
         photos: data.photos || [],
+        _offline_status: navigator.onLine ? 'synced' : 'pending_sync',
       });
+      setHarvests(prev => [...prev, createdHarvest]);
       setShowHarvest(false);
       setMapClick(null);
       setWaitingForPin('harvest');
@@ -317,10 +331,6 @@ export default function DeerStalkingMap() {
     if (!activeOuting) return;
 
     try {
-      if (!navigator.onLine) {
-        alert('This action requires internet connection to protect stock accuracy.');
-        return;
-      }
       const finalTrack = trackingService.getTrack();
       const roundsFired = checkoutData.shot_anything
         ? (parseInt(checkoutData.rounds_fired) > 0 ? parseInt(checkoutData.rounds_fired) : parseInt(checkoutData.total_count) || 0)
@@ -336,11 +346,21 @@ export default function DeerStalkingMap() {
         submitData.ammunition_id = null;
       }
 
-      if (checkoutData.shot_anything && checkoutData.ammunition_id && roundsFired > 0) {
-        await decrementAmmoStock(checkoutData.ammunition_id, roundsFired, 'deer_management', activeOuting.id);
+      const completedRecordId = await endOutingWithData(activeOuting.id, submitData, finalTrack);
+
+      if (navigator.onLine && checkoutData.shot_anything && checkoutData.ammunition_id && roundsFired > 0) {
+        await decrementAmmoStock(checkoutData.ammunition_id, roundsFired, 'deer_management', completedRecordId || activeOuting.id);
       }
 
-      await endOutingWithData(activeOuting.id, submitData, finalTrack);
+      if (!navigator.onLine) {
+        await queueFieldCheckoutEffects({
+          recordId: completedRecordId || activeOuting.id,
+          category: 'deer_management',
+          ammoUsages: checkoutData.shot_anything && checkoutData.ammunition_id && roundsFired > 0 ? [{ ammunition_id: checkoutData.ammunition_id, quantity: roundsFired }] : [],
+          rifleUpdates: checkoutData.shot_anything && checkoutData.rifle_id && roundsFired > 0 ? [{ rifle_id: checkoutData.rifle_id, rounds: roundsFired }] : [],
+        });
+        alert('Checkout saved offline. Ammunition and armory updates will sync when internet returns.');
+      }
       setShowCheckout(false);
       loadData();
     } catch (err) {
@@ -396,8 +416,13 @@ export default function DeerStalkingMap() {
   };
 
   const handleStartAreaCreation = () => {
-    const currentCenter = mapRef.current?.getCenter();
-    const currentZoom = mapRef.current?.getZoom();
+    if (!mapRef.current) {
+      setError('Area drawing requires the online map. Saved areas remain visible offline.');
+      setShowError(true);
+      return;
+    }
+    const currentCenter = mapRef.current.getCenter();
+    const currentZoom = mapRef.current.getZoom();
     setAreaBounds({ center: { lat: currentCenter.lat(), lng: currentCenter.lng() }, zoom: currentZoom });
     setShowAreaDrawer(true);
   };
@@ -410,7 +435,10 @@ export default function DeerStalkingMap() {
 
   const handleSaveArea = async (areaData) => {
     try {
-      const area = await base44.entities.Area.create(areaData);
+      const area = await getRepository('Area').create({
+        ...areaData,
+        _offline_status: navigator.onLine ? 'synced' : 'pending_sync',
+      });
       setSavedAreas([...savedAreas, area]);
       setSelectedAreaId(area.id);
       setShowAreaForm(false);
@@ -447,22 +475,14 @@ export default function DeerStalkingMap() {
     }, 10000);
   };
 
-  if (loading || outingLoading || !isLoaded) {
-    const offlineMapUnavailable = !navigator.onLine && !isLoaded;
+  const useOfflineFallbackMap = !isLoaded || mapLoadFailed || !isOnline;
+
+  if (loading || outingLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-slate-900 px-6">
         <div className="text-center max-w-sm">
-          {offlineMapUnavailable ? (
-            <>
-              <AlertCircle className="w-10 h-10 text-amber-400 mx-auto mb-3" />
-              <p className="text-white text-sm font-semibold">Map imagery requires internet. GPS points can still be saved if location is available.</p>
-            </>
-          ) : (
-            <>
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-3"></div>
-              <p className="text-white text-sm">Map initializing...</p>
-            </>
-          )}
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-3"></div>
+          <p className="text-white text-sm">Map initializing...</p>
         </div>
       </div>
     );
@@ -476,6 +496,18 @@ export default function DeerStalkingMap() {
         .gm-style-mmc { display: none !important; }
       `}</style>
       <div className={`absolute inset-0 z-0 ${showPOI || showHarvest || showOuting || showCheckout ? 'pointer-events-none' : ''}`}>
+        {useOfflineFallbackMap ? (
+          <OfflineFieldMap
+            areas={savedAreas}
+            markers={markers}
+            harvests={harvests}
+            userLocation={userLocation}
+            activeTrack={activeOuting?.gps_track || trackingService.getTrack() || []}
+            selectedAreaId={selectedAreaId}
+            waitingForPin={waitingForPin}
+            onMapClick={handleMapClick}
+          />
+        ) : (
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
           center={userLocation}
@@ -652,7 +684,16 @@ export default function DeerStalkingMap() {
             </Marker>
           )}
         </GoogleMap>
+        )}
       </div>
+
+      {(useOfflineFallbackMap || pendingCount > 0) && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] pointer-events-auto">
+          <div className="px-3 py-2 rounded-xl bg-card/90 border border-border shadow-lg text-xs font-semibold text-foreground">
+            {useOfflineFallbackMap ? 'Offline fallback mode' : 'Online map'}{pendingCount > 0 ? ` • ${pendingCount} pending sync` : ''}
+          </div>
+        </div>
+      )}
 
       {/* ── TOP LEFT: Legal Hours + Area Selector ── */}
       <div className="fixed top-4 left-4 z-[9999] pointer-events-auto space-y-2 max-w-[200px]">
@@ -677,7 +718,7 @@ export default function DeerStalkingMap() {
         </Link>
 
         {/* Satellite toggle */}
-        <button
+        {!useOfflineFallbackMap && <button
           onClick={() => setUseSatellite(!useSatellite)}
           title={useSatellite ? 'Map view' : 'Satellite view'}
           className={`w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition-all shadow-lg backdrop-blur-md border ${
@@ -687,7 +728,7 @@ export default function DeerStalkingMap() {
           }`}
         >
           <Satellite className="w-4 h-4" />
-        </button>
+        </button>}
 
         {/* Locate */}
         <button
@@ -699,7 +740,7 @@ export default function DeerStalkingMap() {
         </button>
 
         {/* Search */}
-        <FloatingMapSearch onSearch={handleMapSearch} isGrouped={true} />
+        {!useOfflineFallbackMap && <FloatingMapSearch onSearch={handleMapSearch} isGrouped={true} />}
       </div>
 
       {/* ── PIN PLACEMENT TOAST ── */}
