@@ -209,57 +209,58 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         </div>
       </div>
 
-      {/* ── BOTTOM CENTER: Controls ── */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-3 pointer-events-auto">
-
-        {/* Row 1: Secondary buttons */}
-        <div className="flex items-center gap-2 flex-wrap justify-center">
-          {/* Undo */}
-          <button
-            onClick={handleUndo}
-            disabled={points.length === 0 || isClosed}
-            className="flex items-center gap-2 px-3 py-2 bg-white text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-100 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-sm"
-          >
-            <Undo className="w-4 h-4 flex-shrink-0" />
-            Undo
-          </button>
-
-          {/* Close Boundary / Closed */}
-          {!isClosed ? (
+      {/* ── BOTTOM CENTER: Drawing Controls ── */}
+      <div className="fixed left-1/2 -translate-x-1/2 z-[9999] pointer-events-auto w-[min(92vw,24rem)] bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] md:bottom-8">
+        <div className="rounded-2xl border border-white/40 dark:border-slate-600/40 bg-white/20 dark:bg-slate-700/30 shadow-2xl backdrop-blur-xl p-3 space-y-3">
+          {/* Row 1: Secondary buttons */}
+          <div className="grid grid-cols-3 gap-2">
+            {/* Undo */}
             <button
-              onClick={handleCloseBoundary}
-              disabled={points.length < 3}
-              className="flex items-center gap-2 px-3 py-2 bg-white text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-100 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-sm"
+              onClick={handleUndo}
+              disabled={points.length === 0 || isClosed}
+              className="min-h-11 flex items-center justify-center gap-1.5 px-2.5 py-2 bg-white text-slate-900 rounded-xl text-sm font-medium hover:bg-slate-100 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-sm"
             >
-              <Lock className="w-4 h-4 flex-shrink-0" />
-              Close
+              <Undo className="w-4 h-4 flex-shrink-0" />
+              Undo
             </button>
-          ) : (
-            <div className="flex items-center gap-2 px-3 py-2 bg-white text-emerald-600 rounded-lg text-sm font-medium shadow-sm">
-              <Check className="w-4 h-4 flex-shrink-0" />
-              Closed
-            </div>
-          )}
 
-          {/* Cancel */}
+            {/* Close Boundary / Closed */}
+            {!isClosed ? (
+              <button
+                onClick={handleCloseBoundary}
+                disabled={points.length < 3}
+                className="min-h-11 flex items-center justify-center gap-1.5 px-2.5 py-2 bg-white text-slate-900 rounded-xl text-sm font-medium hover:bg-slate-100 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-sm"
+              >
+                <Lock className="w-4 h-4 flex-shrink-0" />
+                Close
+              </button>
+            ) : (
+              <div className="min-h-11 flex items-center justify-center gap-1.5 px-2.5 py-2 bg-white text-emerald-600 rounded-xl text-sm font-medium shadow-sm">
+                <Check className="w-4 h-4 flex-shrink-0" />
+                Closed
+              </div>
+            )}
+
+            {/* Cancel */}
+            <button
+              onClick={onCancel}
+              className="min-h-11 flex items-center justify-center gap-1.5 px-2.5 py-2 bg-white text-slate-900 rounded-xl text-sm font-medium hover:bg-slate-100 active:scale-95 transition-all shadow-sm"
+            >
+              <X className="w-4 h-4 flex-shrink-0" />
+              Cancel
+            </button>
+          </div>
+
+          {/* Row 2: Primary — Save Area */}
           <button
-            onClick={onCancel}
-            className="flex items-center gap-2 px-3 py-2 bg-white text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-100 active:scale-95 transition-all shadow-sm"
+            onClick={handleFinish}
+            disabled={points.length < 3}
+            className="min-h-12 w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white text-primary rounded-xl text-sm font-semibold hover:bg-slate-50 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-md border border-primary/20"
           >
-            <X className="w-4 h-4 flex-shrink-0" />
-            Cancel
+            <Check className="w-4 h-4 flex-shrink-0" />
+            Save Area
           </button>
         </div>
-
-        {/* Row 2: Primary — Save Area */}
-        <button
-          onClick={handleFinish}
-          disabled={points.length < 3}
-          className="flex items-center gap-2 px-4 py-2.5 bg-white text-primary rounded-lg text-sm font-semibold hover:bg-slate-50 active:scale-95 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed transition-all shadow-md border border-primary/20"
-        >
-          <Check className="w-4 h-4 flex-shrink-0" />
-          Save Area
-        </button>
       </div>
     </>
   );
