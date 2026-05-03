@@ -348,6 +348,8 @@ function PersonalDetailsPanel() {
       <h2 className="text-2xl font-bold mb-1">My Details</h2>
       <p className="text-muted-foreground text-sm mb-6">Update your personal information below.</p>
 
+      <DeleteAccountSection />
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Personal */}
         <CollapsibleSection title="Personal Details">
@@ -406,8 +408,6 @@ function PersonalDetailsPanel() {
           {saved && <span className="text-sm text-primary font-medium">✓ Saved successfully</span>}
         </div>
       </form>
-
-      <DeleteAccountSection />
     </div>
   );
 }
