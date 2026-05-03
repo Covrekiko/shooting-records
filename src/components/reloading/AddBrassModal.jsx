@@ -78,26 +78,23 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
     <GlobalModal
       open={isOpen}
       onClose={onClose}
-      title="Add Brass / Cartridge"
+      title="Add Brass"
       onSubmit={handleSubmit}
-      primaryAction={isUsed ? 'Save Used Brass / Cartridge' : 'Save New Brass / Cartridge'}
+      primaryAction={isUsed ? 'Save Used Brass' : 'Save New Brass'}
       maxWidth="max-w-md"
     >
       <div className="space-y-4">
 
         {/* New / Used toggle */}
-        <div>
-          <label className={lbl}>Brass / Cartridge Condition</label>
-          <div className="flex rounded-lg border border-border overflow-hidden">
-            <button type="button" onClick={() => setIsUsed(false)}
-              className={`flex-1 py-2 text-sm font-semibold transition-colors ${!isUsed ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}>
-              New brass / cartridge
-            </button>
-            <button type="button" onClick={() => setIsUsed(true)}
-              className={`flex-1 py-2 text-sm font-semibold transition-colors ${isUsed ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}>
-              Used brass / cartridge
-            </button>
-          </div>
+        <div className="flex rounded-lg border border-border overflow-hidden">
+          <button type="button" onClick={() => setIsUsed(false)}
+            className={`flex-1 py-2 text-sm font-semibold transition-colors ${!isUsed ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}>
+            New Brass
+          </button>
+          <button type="button" onClick={() => setIsUsed(true)}
+            className={`flex-1 py-2 text-sm font-semibold transition-colors ${isUsed ? 'bg-primary text-primary-foreground' : 'hover:bg-secondary'}`}>
+            Used Brass
+          </button>
         </div>
 
         {isUsed && (

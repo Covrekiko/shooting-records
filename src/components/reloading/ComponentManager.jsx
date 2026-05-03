@@ -44,6 +44,7 @@ export default function ComponentManager() {
     bullet_name: '',
     weight: '',
     weight_unit: 'gr',
+    is_used_brass: false,
   });
 
   useEffect(() => {
@@ -110,6 +111,21 @@ export default function ComponentManager() {
         cost_per_unit: costPerUnit,
       };
 
+      if (data.component_type === 'brass' && !editingId) {
+        data.is_used_brass = data.is_used_brass === true;
+        data.total_owned = quantityTotal;
+        data.available_to_reload = quantityRemaining;
+        data.currently_loaded = 0;
+        data.fired_awaiting_cleaning_or_inspection = 0;
+        data.retired_or_discarded = 0;
+        data.times_reloaded = 0;
+        data.reload_cycle_count = 0;
+        data.lifetime_reload_count = 0;
+        data.anneal_count = 0;
+        data.last_annealed_date = '';
+        data.times_fired = 0;
+      }
+
       if (data.weight === '') {
         delete data.weight;
       } else {
@@ -133,6 +149,7 @@ export default function ComponentManager() {
           bullet_name: data.bullet_name,
           weight_unit: data.weight_unit,
         };
+        if (data.component_type === 'brass') updateData.is_used_brass = data.is_used_brass === true;
         if (data.weight !== undefined) updateData.weight = data.weight;
         await base44.entities.ReloadingComponent.update(editingId, updateData);
       } else {
@@ -157,6 +174,7 @@ export default function ComponentManager() {
         bullet_name: '',
         weight: '',
         weight_unit: 'gr',
+        is_used_brass: false,
       });
     } catch (error) {
       console.error('Error saving component:', error);
@@ -203,6 +221,7 @@ export default function ComponentManager() {
       bullet_name: bullet_name,
       weight: component.weight || '',
       weight_unit: component.weight_unit || 'gr',
+      is_used_brass: component.is_used_brass === true,
     });
     setShowForm(true);
   };
@@ -404,6 +423,28 @@ export default function ComponentManager() {
                 </select>
               )}
             </div>
+
+            {formData.component_type === 'brass' && (
+              <div>
+                <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Brass / Cartridge Condition</label>
+                <div className="grid grid-cols-2 gap-2 rounded-xl border border-border p-1 bg-background">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, is_used_brass: false })}
+                    className={`py-2.5 rounded-lg text-sm font-semibold transition-colors ${!formData.is_used_brass ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary'}`}
+                  >
+                    New brass / cartridge
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, is_used_brass: true })}
+                    className={`py-2.5 rounded-lg text-sm font-semibold transition-colors ${formData.is_used_brass ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary'}`}
+                  >
+                    Used brass / cartridge
+                  </button>
+                </div>
+              </div>
+            )}
 
             {formData.component_type === 'brass' && (
              <div className="relative">
@@ -722,10 +763,6 @@ export default function ComponentManager() {
                 {!showForm && (
                     <button
                       onClick={() => {
-                        if (type.value === 'brass') {
-                          setShowAddBrassModal(true);
-                          return;
-                        }
                         setEditingId(null);
                         setLockedComponentType(type.value);
                         setFormData({
