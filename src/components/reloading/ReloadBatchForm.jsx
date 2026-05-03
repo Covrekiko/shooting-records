@@ -12,6 +12,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
   const [rifles, setRifles] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [costBreakdown, setCostBreakdown] = useState(null);
   const [showAddBrassModal, setShowAddBrassModal] = useState(false);
   const [caliberResults, setCaliberResults] = useState([]);
@@ -50,15 +51,22 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     loadData();
   }, []);
 
+  const withLoadTimeout = (promise) => Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Reload batch data load timed out')), 15000)),
+  ]);
+
   const loadData = async () => {
+    setLoading(true);
+    setLoadError(null);
     try {
-      const currentUser = await base44.auth.me();
+      const currentUser = await withLoadTimeout(base44.auth.me());
       setUser(currentUser);
 
-      const [componentsList, riflesList] = await Promise.all([
+      const [componentsList = [], riflesList = []] = await withLoadTimeout(Promise.all([
         base44.entities.ReloadingComponent.filter({ created_by: currentUser.email }),
         base44.entities.Rifle.filter({ created_by: currentUser.email }),
-      ]);
+      ]));
 
       const grouped = {
         primer: componentsList.filter(c => c.component_type === 'primer'),
@@ -70,7 +78,8 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       setComponents(grouped);
       setRifles(riflesList);
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error('Error loading reload batch data:', error);
+      setLoadError('Could not load reload batch data. Please refresh and try again.');
     } finally {
       setLoading(false);
     }
@@ -532,6 +541,14 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     return (
       <div className="flex justify-center items-center min-h-[200px]">
         <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="border border-destructive rounded-lg p-3 text-sm font-medium bg-destructive/10 text-destructive">
+        {loadError}
       </div>
     );
   }
