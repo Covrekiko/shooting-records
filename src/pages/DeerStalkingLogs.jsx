@@ -3,6 +3,7 @@ import Navigation from '@/components/Navigation';
 import { base44 } from '@/api/base44Client';
 import { MapPin, Clock, Navigation2, Users } from 'lucide-react';
 import { DESIGN } from '@/lib/designConstants';
+import LiveClientMapModal from '@/components/deer-stalking/LiveClientMapModal';
 
 export default function DeerStalkingLogs() {
   const [outings, setOutings] = useState([]);
@@ -11,6 +12,7 @@ export default function DeerStalkingLogs() {
   const [areaShares, setAreaShares] = useState([]);
   const [clientLogs, setClientLogs] = useState([]);
   const [selectedClient, setSelectedClient] = useState(null);
+  const [showLiveClientMap, setShowLiveClientMap] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('outings');
 
@@ -55,6 +57,7 @@ export default function DeerStalkingLogs() {
   };
 
   const clientNames = Array.from(new Set([...(areaShares || []).map(s => s.invitee_name), ...(clientLogs || []).map(l => l.client_name)].filter(Boolean)));
+  const activeLiveClientLogs = clientLogs.filter(log => log.status === 'active' && log.live_tracking_enabled && log.live_current_location);
   const visibleClientLogs = selectedClient ? clientLogs.filter(log => log.client_name === selectedClient) : [];
 
   const tabs = [
@@ -197,6 +200,13 @@ export default function DeerStalkingLogs() {
         {/* Client Logs Tab */}
         {activeTab === 'clients' && (
           <div className="space-y-2.5">
+            <button
+              type="button"
+              onClick={() => setShowLiveClientMap(true)}
+              className="w-full rounded-2xl bg-slate-900 dark:bg-primary text-white px-4 py-3 text-sm font-bold shadow-sm active:scale-[0.99] transition-transform flex items-center justify-center gap-2"
+            >
+              <Users className="w-4 h-4" /> Live Client Map
+            </button>
             {!selectedClient ? (
               clientNames.length === 0 ? <EmptyState message="No client logs yet" /> : clientNames.map((name) => {
                 const activeLog = clientLogs.find(log => log.client_name === name && log.status === 'active');
@@ -283,6 +293,17 @@ export default function DeerStalkingLogs() {
           </div>
         )}
       </main>
+
+      <LiveClientMapModal
+        open={showLiveClientMap}
+        onClose={() => setShowLiveClientMap(false)}
+        clients={activeLiveClientLogs}
+        onViewLog={(log) => {
+          setShowLiveClientMap(false);
+          setActiveTab('clients');
+          setSelectedClient(log.client_name);
+        }}
+      />
     </div>
   );
 }
