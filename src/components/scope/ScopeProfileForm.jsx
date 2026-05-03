@@ -3,7 +3,6 @@ import { X, Upload, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import ScopeReferencePicker from '@/components/reference/ScopeReferencePicker';
 import UserAmmoSelector from '@/components/scope/UserAmmoSelector';
-import { normalizeCaliber } from '@/utils/caliberCatalog';
 
 const CLICK_VALUES = ['1/4 MOA', '1/8 MOA', '1/2 MOA', '1 MOA', '0.1 MRAD', '0.05 MRAD'];
 const SETUP_TYPES = [
@@ -51,7 +50,7 @@ export default function ScopeProfileForm({ profile, rifles, onSave, onClose }) {
     e.preventDefault();
     if (!form.rifle_id) { alert('Please select a rifle'); return; }
     if (!form.scope_brand) { alert('Scope brand is required'); return; }
-    onSave({ ...form, caliber: normalizeCaliber(form.caliber) });
+    onSave(form);
   };
 
   const inp = 'w-full px-3 py-2.5 border border-border rounded-xl bg-background text-sm';
@@ -80,7 +79,7 @@ export default function ScopeProfileForm({ profile, rifles, onSave, onClose }) {
         {/* Calibre */}
         <div>
           <label className={lbl}>Calibre</label>
-          <input value={form.caliber} onChange={e => set('caliber', e.target.value)} onBlur={e => set('caliber', normalizeCaliber(e.target.value))} placeholder="e.g. .308 Win" className={inp} />
+          <input value={form.caliber} onChange={e => set('caliber', e.target.value)} placeholder="e.g. .308 Win" className={inp} />
         </div>
 
         {/* Scope Reference Picker */}

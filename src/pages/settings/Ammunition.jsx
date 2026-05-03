@@ -11,7 +11,6 @@ import AmmoEditModal from '@/components/AmmoEditModal';
 import { generateAmmunitionInventoryPDF } from '@/utils/pdfGenerators';
 import BulletReferencePicker from '@/components/reference/BulletReferencePicker';
 import BulletReferenceImporter from '@/components/reference/BulletReferenceImporter';
-import { normalizeCaliber } from '@/utils/caliberCatalog';
 
 export default function Ammunition() {
   const [ammunition, setAmmunition] = useState([]);
@@ -54,13 +53,7 @@ export default function Ammunition() {
   const handleAddAmmunition = async (e) => {
     if (e?.preventDefault) e.preventDefault();
     try {
-      const newAmmo = await base44.entities.Ammunition.create({
-        ...formData,
-        caliber: normalizeCaliber(formData.caliber),
-        quantity_in_stock: parseInt(formData.quantity_in_stock) || 0,
-        cost_per_unit: parseFloat(formData.cost_per_unit) || 0,
-        units: 'rounds',
-      });
+      const newAmmo = await base44.entities.Ammunition.create(formData);
       setAmmunition([...ammunition, newAmmo]);
       setFormData({ brand: '', caliber: '', bullet_type: '', grain: '', quantity_in_stock: '', cost_per_unit: '', date_purchased: '', notes: '' });
       setShowForm(false);
@@ -87,10 +80,7 @@ export default function Ammunition() {
 
   const handleSaveEdit = async (updatedData) => {
     try {
-      await base44.entities.Ammunition.update(editingAmmo.id, {
-        ...updatedData,
-        caliber: normalizeCaliber(updatedData.caliber),
-      });
+      await base44.entities.Ammunition.update(editingAmmo.id, updatedData);
       setAmmunition(ammunition.map(a => a.id === editingAmmo.id ? { ...a, ...updatedData } : a));
       setShowEditModal(false);
       setEditingAmmo(null);
@@ -166,7 +156,7 @@ export default function Ammunition() {
               <BulletReferencePicker onSelect={(b) => setFormData(f => ({ ...f, brand: b.manufacturer, caliber: b.calibre || f.caliber, bullet_type: b.bullet_type || f.bullet_type, grain: b.weight_grains ? String(b.weight_grains) : f.grain }))} onClear={() => {}} />
             </div>
             <div><label className={lbl}>Brand *</label><input type="text" value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} className={inp} required /></div>
-            <div><label className={lbl}>Caliber (optional)</label><input type="text" placeholder="e.g., 308 Win, 9mm" value={formData.caliber} onChange={(e) => setFormData({ ...formData, caliber: e.target.value })} onBlur={(e) => setFormData({ ...formData, caliber: normalizeCaliber(e.target.value) })} className={inp} /></div>
+            <div><label className={lbl}>Caliber (optional)</label><input type="text" placeholder="e.g., 308 Win, 9mm" value={formData.caliber} onChange={(e) => setFormData({ ...formData, caliber: e.target.value })} className={inp} /></div>
             <div><label className={lbl}>Bullet Type (optional)</label><input type="text" value={formData.bullet_type} onChange={(e) => setFormData({ ...formData, bullet_type: e.target.value })} className={inp} /></div>
             <div><label className={lbl}>Grain (optional)</label><input type="text" value={formData.grain} onChange={(e) => setFormData({ ...formData, grain: e.target.value })} className={inp} /></div>
             <NumberInput label="Quantity" value={formData.quantity_in_stock} onChange={(v) => setFormData({ ...formData, quantity_in_stock: v })} placeholder="0" unit="rounds" />

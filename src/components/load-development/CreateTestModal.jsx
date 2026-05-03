@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Plus } from 'lucide-react';
 import GlobalModal, { ModalSaveButton, ModalCancelButton } from '@/components/ui/GlobalModal.jsx';
-import { normalizeCaliber } from '@/utils/caliberCatalog';
 
 const TEST_TYPES = [
   'Powder Charge Test',
@@ -43,7 +42,7 @@ export default function CreateTestModal({ open, onClose, onCreated }) {
     if (rifle) {
       set('rifle_id', rifle.id);
       set('rifle_name', rifle.name);
-      if (rifle.caliber && !form.caliber) set('caliber', normalizeCaliber(rifle.caliber));
+      if (rifle.caliber && !form.caliber) set('caliber', rifle.caliber);
     } else {
       set('rifle_id', '');
       set('rifle_name', '');
@@ -63,7 +62,7 @@ export default function CreateTestModal({ open, onClose, onCreated }) {
           name: newRifle.name,
           make: newRifle.make,
           model: newRifle.model,
-          caliber: normalizeCaliber(newRifle.caliber || form.caliber),
+          caliber: newRifle.caliber || form.caliber,
           serial_number: '',
           notes: newRifle.notes,
         });
@@ -73,7 +72,6 @@ export default function CreateTestModal({ open, onClose, onCreated }) {
 
       const test = await base44.entities.ReloadingTest.create({
         ...form,
-        caliber: normalizeCaliber(form.caliber),
         rifle_id,
         rifle_name,
         variant_count: 0,
@@ -180,7 +178,6 @@ export default function CreateTestModal({ open, onClose, onCreated }) {
           <input
             value={form.caliber}
             onChange={e => set('caliber', e.target.value)}
-            onBlur={e => set('caliber', normalizeCaliber(e.target.value))}
             placeholder="e.g. .308 Win"
             className="w-full px-3 py-2.5 bg-background border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
           />

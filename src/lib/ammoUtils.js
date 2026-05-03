@@ -1,6 +1,5 @@
 import { base44 } from '@/api/base44Client';
 import { moveLoadedAmmoToFiredBrass, restoreFiredBrassToLoadedForRecord, getReusedBrassStockRestoreWarning, logSkippedAmmoStockRestore } from '@/lib/brassLifecycle';
-import { caliberKey } from '@/utils/caliberCatalog';
 
 /**
  * Decrement ammunition stock and log the spending.
@@ -50,50 +49,54 @@ export async function decrementAmmoStock(ammunitionId, quantity, sessionType = n
  * For Deer: pass outingId as fallback if SessionRecord cleanup doesn't find entries.
  */
 export async function restoreAmmoStock(ammunitionId, quantity, sessionId = null, outingId = null) {
-  if (!ammunitionId || !quantity || quantity <= 0) return { success: true, restored: 0 };
+  if (!ammunitionId || !quantity || quantity <= 0) return;
 
-  const ammo = await base44.entities.Ammunition.get(ammunitionId);
-  const stockBefore = ammo.quantity_in_stock || 0;
-  const reusedWarning = ammo.source_type === 'reload_batch'
-    ? await getReusedBrassStockRestoreWarning(ammo, sessionId)
-    : null;
+  try {
+    const ammo = await base44.entities.Ammunition.get(ammunitionId);
+    const stockBefore = ammo.quantity_in_stock || 0;
+    const reusedWarning = ammo.source_type === 'reload_batch'
+      ? await getReusedBrassStockRestoreWarning(ammo, sessionId)
+      : null;
 
-  if (reusedWarning) {
-    console.warn('Used brass was not restored because it was already recovered/reused in a later reload batch.');
-    await logSkippedAmmoStockRestore({ ammo, recordId: sessionId, quantity, warning: reusedWarning });
-    return {
-      success: true,
-      skipped: true,
-      restored: 0,
-      warning: 'Used brass was not restored because it was already recovered/reused in a later reload batch.'
-    };
-  }
+    if (reusedWarning) {
+      console.warn('Used brass was not restored because it was already recovered/reused in a later reload batch.');
+      await logSkippedAmmoStockRestore({ ammo, recordId: sessionId, quantity, warning: reusedWarning });
+      return {
+        skipped: true,
+        warning: 'Used brass was not restored because it was already recovered/reused in a later reload batch.'
+      };
+    }
 
-  const newQuantity = stockBefore + quantity;
-  console.log(`[AMMO DEBUG] action: AMMO_REFUNDED sourceId: ${sessionId} outingId: ${outingId} ammoId: ${ammunitionId} quantityChange: +${quantity} stockBefore: ${stockBefore} stockAfter: ${newQuantity}`);
-  await base44.entities.Ammunition.update(ammunitionId, { quantity_in_stock: newQuantity });
-  await restoreFiredBrassToLoadedForRecord(ammo, quantity, sessionId);
+    const newQuantity = stockBefore + quantity;
+    console.log(`[AMMO DEBUG] action: AMMO_REFUNDED sourceId: ${sessionId} outingId: ${outingId} ammoId: ${ammunitionId} quantityChange: +${quantity} stockBefore: ${stockBefore} stockAfter: ${newQuantity}`);
+    await base44.entities.Ammunition.update(ammunitionId, { quantity_in_stock: newQuantity });
+    await restoreFiredBrassToLoadedForRecord(ammo, quantity, sessionId);
 
-  // Clean up spending log entries tied to this session (with fallback for Deer)
-  if (sessionId || outingId) {
-    const user = await base44.auth.me();
-    const spendingRecords = await base44.entities.AmmoSpending.filter({ created_by: user.email });
-    for (const record of spendingRecords) {
-      if (record.notes) {
-        // Try SessionRecord ID first (main path)
-        if (sessionId && record.notes.includes(`session:${sessionId}`)) {
-          await base44.entities.AmmoSpending.delete(record.id);
+    // Clean up spending log entries tied to this session (with fallback for Deer)
+    if (sessionId || outingId) {
+      try {
+        const user = await base44.auth.me();
+        const spendingRecords = await base44.entities.AmmoSpending.filter({ created_by: user.email });
+        for (const record of spendingRecords) {
+          if (record.notes) {
+            // Try SessionRecord ID first (main path)
+            if (sessionId && record.notes.includes(`session:${sessionId}`)) {
+              await base44.entities.AmmoSpending.delete(record.id);
+            }
+            // Fallback: try DeerOuting ID if SessionRecord didn't match (for old/orphaned records)
+            else if (outingId && record.notes.includes(`outing:${outingId}`)) {
+              console.log(`[AMMO CLEANUP] Fallback: cleaned up orphaned AmmoSpending via outingId (record.id: ${record.id})`);
+              await base44.entities.AmmoSpending.delete(record.id);
+            }
+          }
         }
-        // Fallback: try DeerOuting ID if SessionRecord didn't match (for old/orphaned records)
-        else if (outingId && record.notes.includes(`outing:${outingId}`)) {
-          console.log(`[AMMO CLEANUP] Fallback: cleaned up orphaned AmmoSpending via outingId (record.id: ${record.id})`);
-          await base44.entities.AmmoSpending.delete(record.id);
-        }
+      } catch (e) {
+        console.warn('Could not clean up AmmoSpending logs:', e.message);
       }
     }
+  } catch (error) {
+    console.error('Error restoring ammo stock:', error);
   }
-
-  return { success: true, restored: quantity, before: stockBefore, after: newQuantity };
 }
 
 /**
@@ -114,9 +117,6 @@ export async function refundAmmoForRecord(record, recordType) {
           const roundsFired = parseInt(rifleStat.rounds_fired) || 0;
           if (roundsFired > 0) {
             const result = await restoreAmmoStock(rifleStat.ammunition_id, roundsFired, record.id);
-            if (result?.success === false) {
-              return { success: false, error: result.error || 'Ammunition stock restore failed.', refunded: totalRefunded };
-            }
             if (result?.skipped) {
               console.warn(result.warning);
               warnings.push(result.warning);
@@ -133,9 +133,6 @@ export async function refundAmmoForRecord(record, recordType) {
         const roundsFired = parseInt(record.rounds_fired) || 0;
         if (roundsFired > 0) {
           const result = await restoreAmmoStock(record.ammunition_id, roundsFired, record.id, record.outing_id);
-          if (result?.success === false) {
-            return { success: false, error: result.error || 'Ammunition stock restore failed.', refunded: totalRefunded };
-          }
           if (result?.skipped) {
             console.warn(result.warning);
             warnings.push(result.warning);
@@ -150,9 +147,6 @@ export async function refundAmmoForRecord(record, recordType) {
         const roundsFired = parseInt(record.rounds_fired) || 0;
         if (roundsFired > 0) {
           const result = await restoreAmmoStock(record.ammunition_id, roundsFired, record.id);
-          if (result?.success === false) {
-            return { success: false, error: result.error || 'Ammunition stock restore failed.', refunded: totalRefunded };
-          }
           if (result?.skipped) {
             console.warn(result.warning);
             warnings.push(result.warning);
@@ -166,7 +160,7 @@ export async function refundAmmoForRecord(record, recordType) {
     return { success: true, refunded: totalRefunded, warnings };
   } catch (error) {
     console.error(`[AMMO REFUND ERROR] recordType: ${recordType} recordId: ${record.id} error: ${error.message}`);
-    return { success: false, error: error.message, refunded: totalRefunded };
+    return { success: false, error: error.message, refunded: 0 };
   }
 }
 
@@ -249,7 +243,15 @@ export async function reverseArmoryCountersForRecord(record, recordCategory) {
 export function getSelectableAmmunition(ammunition, selectedCaliber) {
   if (!ammunition || !selectedCaliber) return ammunition;
 
-  const selectedNorm = caliberKey(selectedCaliber);
+  const normalizeCaliber = (cal) => {
+    if (!cal) return '';
+    const normalized = cal.toLowerCase().trim()
+      .replace(/\s+win(chester)?$/i, '') // Remove Win/Winchester
+      .replace(/^\./, ''); // Remove leading dot
+    return normalized;
+  };
+
+  const selectedNorm = normalizeCaliber(selectedCaliber);
 
   return ammunition.filter(ammo => {
     // Skip ammo with no stock (but log reloaded ammo for debugging)
@@ -263,7 +265,7 @@ export function getSelectableAmmunition(ammunition, selectedCaliber) {
     // Skip ammo with no caliber
     if (!ammo.caliber) return true;
 
-    const ammoNorm = caliberKey(ammo.caliber);
-    return ammoNorm === selectedNorm;
+    const ammoNorm = normalizeCaliber(ammo.caliber);
+    return ammoNorm === selectedNorm || ammoNorm.startsWith(selectedNorm) || selectedNorm.startsWith(ammoNorm);
   });
 }

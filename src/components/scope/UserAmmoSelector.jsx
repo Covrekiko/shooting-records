@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Search, X, ChevronDown } from 'lucide-react';
 import { formatAmmunitionLabel } from '@/utils/ammoLabels';
-import { caliberKey } from '@/utils/caliberCatalog';
 
 /**
  * UserAmmoSelector
@@ -94,8 +93,10 @@ export default function UserAmmoSelector({ onSelect, onClear, selectedId, filter
   useEffect(() => {
     let list = ammo;
     if (filterCaliber) {
-      const selected = caliberKey(filterCaliber);
-      list = list.filter(a => caliberKey(a.caliber) === selected);
+      list = list.filter(a =>
+        a.caliber?.toLowerCase().includes(filterCaliber.toLowerCase()) ||
+        filterCaliber.toLowerCase().includes(a.caliber?.toLowerCase() || '')
+      );
     }
     if (query) {
       const q = query.toLowerCase();

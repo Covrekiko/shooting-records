@@ -4,10 +4,6 @@
 
 @layer base {
   :root {
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
-    --app-vh: 100dvh;
-    --mobile-tab-height: 64px;
     --background: 0 0% 98%;
     --foreground: 215 20% 12%;
     --card: 0 0% 100%;
@@ -93,7 +89,6 @@
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
     overflow-x: hidden;
-    min-height: 100dvh;
   }
 
   /* Prevent any child from causing horizontal scroll */
@@ -148,19 +143,7 @@
 
 /* Mobile page content — clears the bottom tab bar */
 .mobile-page-padding {
-  padding-bottom: calc(var(--mobile-tab-height) + var(--safe-bottom) + 16px);
-}
-
-.mobile-safe-top {
-  padding-top: max(var(--safe-top), 0px);
-}
-
-.mobile-safe-sticky-top {
-  top: 0;
-}
-
-.modal-keyboard-scroll-padding {
-  scroll-padding-bottom: calc(var(--safe-bottom) + 96px);
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
 }
 
 /* Applied to main content on mobile to clear the fixed tab bar */

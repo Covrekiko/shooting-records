@@ -7,8 +7,6 @@ import AmmoSpendingBreakdown from '@/components/AmmoSpendingBreakdown';
 import GlobalModal, { ModalCancelButton, ModalSaveButton } from '@/components/ui/GlobalModal';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
-import { normalizeCaliber } from '@/utils/caliberCatalog';
-import { deleteReloadBatchWithRestore, isReloadLinkedAmmo } from '@/lib/reloadingDeleteUtils';
 
 export default function AmmunitionInventory() {
   const [ammo, setAmmo] = useState([]);
@@ -24,11 +22,11 @@ export default function AmmunitionInventory() {
     caliber: '',
     bullet_type: '',
     grain: '',
-    quantity_in_stock: '',
+    quantity_in_stock: 0,
     units: 'rounds',
-    cost_per_unit: '',
+    cost_per_unit: 0,
     date_purchased: new Date().toISOString().split('T')[0],
-    low_stock_threshold: '50',
+    low_stock_threshold: 50,
     lot_number: '',
     supplier: '',
     notes: '',
@@ -44,7 +42,7 @@ export default function AmmunitionInventory() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       const ammoList = await base44.entities.Ammunition.filter({ created_by: currentUser.email });
-      setAmmo(ammoList.filter((item) => item.isDeleted !== true && item.archived !== true && item.status !== 'deleted'));
+      setAmmo(ammoList);
     } catch (err) {
       // If rate-limited, retry once after a short delay
       if (err.message?.includes('Rate limit') && attempt < 2) {
@@ -58,56 +56,25 @@ export default function AmmunitionInventory() {
     }
   };
 
-  const toInteger = (value, fallback = 0) => {
-    if (value === '' || value === null || value === undefined) return fallback;
-    const number = parseInt(value, 10);
-    return Number.isFinite(number) ? number : fallback;
-  };
-
-  const toNumber = (value, fallback = 0) => {
-    if (value === '' || value === null || value === undefined) return fallback;
-    const number = Number(value);
-    return Number.isFinite(number) ? number : fallback;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const currentUser = user || await base44.auth.me();
-      const payload = {
-        ...formData,
-        caliber: normalizeCaliber(formData.caliber),
-        quantity_in_stock: toInteger(formData.quantity_in_stock),
-        cost_per_unit: toNumber(formData.cost_per_unit),
-        low_stock_threshold: toInteger(formData.low_stock_threshold, 50),
-      };
-
-      if (!currentUser) throw new Error('Please sign in before saving ammunition.');
-
       if (editingId) {
-        await base44.entities.Ammunition.update(editingId, payload);
+        await base44.entities.Ammunition.update(editingId, formData);
       } else {
-        await base44.entities.Ammunition.create(payload);
+        await base44.entities.Ammunition.create(formData);
       }
       resetForm();
       loadAmmo();
     } catch (error) {
       console.error('Error saving ammunition:', error);
-      alert('Could not save ammunition: ' + (error.message || 'Please try again.'));
     }
   };
 
   const handleDelete = async () => {
     if (!deletingItem?.id) return;
     try {
-      if (isReloadLinkedAmmo(deletingItem)) {
-        const result = await deleteReloadBatchWithRestore({ ammunitionId: deletingItem.id });
-        if (result.warnings?.length > 0) {
-          alert(result.warnings.join('\n'));
-        }
-      } else {
-        await base44.entities.Ammunition.delete(deletingItem.id);
-      }
+      await base44.entities.Ammunition.delete(deletingItem.id);
       setDeletingItem(null);
       await loadAmmo();
     } catch (error) {
@@ -117,12 +84,7 @@ export default function AmmunitionInventory() {
   };
 
   const handleEdit = (item) => {
-    setFormData({
-      ...item,
-      quantity_in_stock: item.quantity_in_stock != null ? String(item.quantity_in_stock) : '',
-      cost_per_unit: item.cost_per_unit != null ? String(item.cost_per_unit) : '',
-      low_stock_threshold: item.low_stock_threshold != null ? String(item.low_stock_threshold) : '50',
-    });
+    setFormData(item);
     setEditingId(item.id);
     setShowForm(true);
   };
@@ -133,11 +95,11 @@ export default function AmmunitionInventory() {
       caliber: '',
       bullet_type: '',
       grain: '',
-      quantity_in_stock: '',
+      quantity_in_stock: 0,
       units: 'rounds',
-      cost_per_unit: '',
+      cost_per_unit: 0,
       date_purchased: new Date().toISOString().split('T')[0],
-      low_stock_threshold: '50',
+      low_stock_threshold: 50,
       lot_number: '',
       supplier: '',
       notes: '',
@@ -200,7 +162,6 @@ export default function AmmunitionInventory() {
                     type="text"
                     value={formData.caliber}
                     onChange={(e) => setFormData({ ...formData, caliber: e.target.value })}
-                    onBlur={(e) => setFormData({ ...formData, caliber: normalizeCaliber(e.target.value) })}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
                     placeholder="e.g. .308 Win"
                   />
@@ -227,9 +188,8 @@ export default function AmmunitionInventory() {
                   <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Quantity in Stock</label>
                   <input
                     type="number"
-                    inputMode="numeric"
-                    value={formData.quantity_in_stock ?? ''}
-                    onChange={(e) => setFormData({ ...formData, quantity_in_stock: e.target.value })}
+                    value={formData.quantity_in_stock}
+                    onChange={(e) => setFormData({ ...formData, quantity_in_stock: parseInt(e.target.value) || 0 })}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
                     min="0"
                   />
@@ -249,9 +209,8 @@ export default function AmmunitionInventory() {
                   <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Cost Per Unit</label>
                   <input
                     type="number"
-                    inputMode="decimal"
-                    value={formData.cost_per_unit ?? ''}
-                    onChange={(e) => setFormData({ ...formData, cost_per_unit: e.target.value })}
+                    value={formData.cost_per_unit}
+                    onChange={(e) => setFormData({ ...formData, cost_per_unit: parseFloat(e.target.value) || 0 })}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
                     step="0.01"
                   />
@@ -269,9 +228,8 @@ export default function AmmunitionInventory() {
                   <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Low Stock Threshold</label>
                   <input
                     type="number"
-                    inputMode="numeric"
-                    value={formData.low_stock_threshold ?? ''}
-                    onChange={(e) => setFormData({ ...formData, low_stock_threshold: e.target.value })}
+                    value={formData.low_stock_threshold}
+                    onChange={(e) => setFormData({ ...formData, low_stock_threshold: parseInt(e.target.value) || 50 })}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
                     min="0"
                   />
@@ -422,9 +380,7 @@ export default function AmmunitionInventory() {
           )}
         >
           <p className="text-sm text-muted-foreground">
-            {deletingItem && isReloadLinkedAmmo(deletingItem)
-              ? 'This ammunition was created from a reload batch. Deleting it will also remove the linked reload session and restore unused components where safe.'
-              : 'This will permanently remove this ammunition from your inventory.'}
+            This will permanently remove this ammunition from your inventory.
           </p>
         </GlobalModal>
       </main>

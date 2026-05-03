@@ -7,7 +7,6 @@ import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
-import { normalizeCaliber } from '@/utils/caliberCatalog';
 
 const inp = 'w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring/40';
 const lbl = 'block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5';
@@ -25,7 +24,7 @@ export default function Rifles() {
     model: '',
     caliber: '',
     serial_number: '',
-    total_rounds_fired: '',
+    total_rounds_fired: 0,
     notes: '',
   };
 
@@ -52,7 +51,6 @@ export default function Rifles() {
     try {
       const dataToSave = {
         ...formData,
-        caliber: normalizeCaliber(formData.caliber),
         total_rounds_fired: parseInt(formData.total_rounds_fired) || 0,
       };
 
@@ -82,7 +80,7 @@ export default function Rifles() {
   };
 
   const startEdit = (rifle) => {
-    setFormData({ ...emptyFormData, ...rifle, total_rounds_fired: rifle.total_rounds_fired != null ? String(rifle.total_rounds_fired) : '' });
+    setFormData({ ...emptyFormData, ...rifle, total_rounds_fired: rifle.total_rounds_fired || 0 });
     setEditingId(rifle.id);
     setShowForm(true);
   };
@@ -143,9 +141,9 @@ export default function Rifles() {
               <div><label className={lbl}>Rifle Name *</label><input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={inp} required /></div>
               <div><label className={lbl}>Make / Brand *</label><input type="text" value={formData.make} onChange={(e) => setFormData({ ...formData, make: e.target.value })} className={inp} required /></div>
               <div><label className={lbl}>Model *</label><input type="text" value={formData.model} onChange={(e) => setFormData({ ...formData, model: e.target.value })} className={inp} required /></div>
-              <div><label className={lbl}>Caliber *</label><input type="text" value={formData.caliber} onChange={(e) => setFormData({ ...formData, caliber: e.target.value })} onBlur={(e) => setFormData({ ...formData, caliber: normalizeCaliber(e.target.value) })} className={inp} required /></div>
+              <div><label className={lbl}>Caliber *</label><input type="text" value={formData.caliber} onChange={(e) => setFormData({ ...formData, caliber: e.target.value })} className={inp} required /></div>
               <div><label className={lbl}>Serial Number (optional)</label><input type="text" value={formData.serial_number} onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })} className={inp} /></div>
-              <div><label className={lbl}>Current rounds fired</label><input type="number" inputMode="numeric" min="0" value={formData.total_rounds_fired ?? ''} onChange={(e) => setFormData({ ...formData, total_rounds_fired: e.target.value })} className={inp} /></div>
+              <div><label className={lbl}>Current rounds fired</label><input type="number" min="0" value={formData.total_rounds_fired ?? 0} onChange={(e) => setFormData({ ...formData, total_rounds_fired: e.target.value })} className={inp} /></div>
             </div>
             <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows="2" /></div>
           </div>

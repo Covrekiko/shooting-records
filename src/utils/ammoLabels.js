@@ -1,5 +1,3 @@
-import { normalizeCaliber } from '@/utils/caliberCatalog';
-
 export function formatAmmunitionLabel(ammo) {
   if (!ammo) return '';
 
@@ -12,7 +10,7 @@ export function formatAmmunitionLabel(ammo) {
   const source = clean(ammo.ammo_type || ammo.type || ammo.source || ammo.source_type).toLowerCase();
   const brand = clean(ammo.brand || ammo.bullet_brand);
   const bulletName = clean(ammo.bullet_name || ammo.bullet_model || ammo.name || ammo.bullet_type);
-  const caliber = normalizeCaliber(clean(ammo.caliber));
+  const caliber = clean(ammo.caliber);
   const batchNumber = clean(ammo.batch_number || ammo.reload_batch_number || ammo.reload_batch_id || ammo.source_id || ammo.reload_session_id);
   const lotNumber = clean(ammo.lot_number);
   const rawGrains = clean(ammo.bullet_weight_grains || ammo.weight_grains || ammo.bullet_weight || ammo.grain).replace(/\s*(grains?|gr)$/i, '');

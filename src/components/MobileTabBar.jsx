@@ -42,8 +42,8 @@ export default function MobileTabBar() {
   const activeTab = getVisibleTab(location.pathname);
 
   const handleTabPress = (tabKey) => {
-    if (tabKey === 'armory' || tabKey === 'profile') {
-      navigate(TAB_DEFAULT[tabKey]);
+    if (tabKey === 'armory') {
+      navigate(TAB_DEFAULT.armory);
       return;
     }
 
@@ -66,7 +66,7 @@ export default function MobileTabBar() {
   return (
     <nav
       className="md:hidden fixed bottom-0 left-0 right-0 z-[9000] bg-card/95 backdrop-blur-md border-t border-border"
-      style={{ paddingBottom: 'var(--safe-bottom)' }}
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       {/* Sync status strip */}
       {syncPill && (() => {

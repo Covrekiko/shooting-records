@@ -2,7 +2,6 @@
 export const CALIBER_CATALOG = [
   // Rifle - Common hunting calibers
   '.22 LR',
-  '.17 HMR',
   '.22 Hornet',
   '.204 Ruger',
   '.22-250 Remington',
@@ -28,7 +27,6 @@ export const CALIBER_CATALOG = [
   '.270 Weatherby Magnum',
   '7mm-08 Remington',
   '7mm Remington Magnum',
-  '7mm Rem Mag',
   '7mm WSM',
   '7mm Weatherby Magnum',
   '.280 Remington',
@@ -36,7 +34,6 @@ export const CALIBER_CATALOG = [
   '.308 Winchester',
   '.30-06 Springfield',
   '.300 Winchester Magnum',
-  '.300 Win Mag',
   '.300 WSM',
   '.300 Weatherby Magnum',
   '.300 PRC',
@@ -89,12 +86,9 @@ export const CALIBER_CATALOG = [
   '.45 Schofield',
   
   // Shotgun
-  '.410 Bore',
   '.410 bore',
-  '20 Gauge',
   '20 gauge',
   '16 gauge',
-  '12 Gauge',
   '12 gauge',
   '10 gauge',
   '8 gauge',
@@ -110,74 +104,10 @@ export const CALIBER_CATALOG = [
   '.44-77 Sharps',
 ];
 
-const CALIBER_ALIASES = {
-  '308': '.308 Winchester',
-  '.308': '.308 Winchester',
-  '308win': '.308 Winchester',
-  '308winchester': '.308 Winchester',
-  '.308win': '.308 Winchester',
-  '.308winchester': '.308 Winchester',
-  '22lr': '.22 LR',
-  '.22lr': '.22 LR',
-  '17hmr': '.17 HMR',
-  '.17hmr': '.17 HMR',
-  '223': '.223 Remington',
-  '.223': '.223 Remington',
-  '223rem': '.223 Remington',
-  '223remington': '.223 Remington',
-  '.223rem': '.223 Remington',
-  '.223remington': '.223 Remington',
-  '243': '.243 Winchester',
-  '.243': '.243 Winchester',
-  '243win': '.243 Winchester',
-  '243winchester': '.243 Winchester',
-  '.243win': '.243 Winchester',
-  '.243winchester': '.243 Winchester',
-  '270': '.270 Winchester',
-  '.270': '.270 Winchester',
-  '270win': '.270 Winchester',
-  '270winchester': '.270 Winchester',
-  '.270win': '.270 Winchester',
-  '.270winchester': '.270 Winchester',
-  '65creedmoor': '6.5 Creedmoor',
-  '6.5creedmoor': '6.5 Creedmoor',
-  '7mmremmag': '7mm Rem Mag',
-  '7mmremingtonmagnum': '7mm Rem Mag',
-  '300winmag': '.300 Win Mag',
-  '.300winmag': '.300 Win Mag',
-  '300winchestermagnum': '.300 Win Mag',
-  '.300winchestermagnum': '.300 Win Mag',
-  '3006': '.30-06 Springfield',
-  '30-06': '.30-06 Springfield',
-  '.30-06': '.30-06 Springfield',
-  '3006springfield': '.30-06 Springfield',
-  '30-06springfield': '.30-06 Springfield',
-  '12gauge': '12 Gauge',
-  '12ga': '12 Gauge',
-  '20gauge': '20 Gauge',
-  '20ga': '20 Gauge',
-  '410': '.410 Bore',
-  '.410': '.410 Bore',
-  '410bore': '.410 Bore',
-  '.410bore': '.410 Bore',
-};
-
-export const normalizeCaliber = (value = '') => {
-  const raw = String(value ?? '').trim();
-  if (!raw) return '';
-  const key = raw.toLowerCase().replace(/×/g, 'x').replace(/[^a-z0-9.]/g, '');
-  if (CALIBER_ALIASES[key]) return CALIBER_ALIASES[key];
-  const found = CALIBER_CATALOG.find(cal => cal.toLowerCase() === raw.toLowerCase());
-  return found || raw;
-};
-
-export const caliberKey = (value = '') => normalizeCaliber(value).toLowerCase().replace(/[^a-z0-9]/g, '');
-
 export const searchCalibers = (query) => {
   if (!query || query.length < 1) return [];
   const searchLower = query.toLowerCase();
-  const normalized = normalizeCaliber(query);
   return CALIBER_CATALOG
-    .filter(cal => cal.toLowerCase().includes(searchLower) || cal === normalized)
+    .filter(cal => cal.toLowerCase().includes(searchLower))
     .slice(0, 10);
 };

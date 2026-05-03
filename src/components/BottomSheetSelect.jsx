@@ -12,18 +12,15 @@ export default function BottomSheetSelect({ value, onChange, options = [], place
   const handleClick = () => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
-      const viewportHeight = window.visualViewport?.height || window.innerHeight;
-      const viewportOffsetTop = window.visualViewport?.offsetTop || 0;
-      const spaceBelow = viewportHeight + viewportOffsetTop - rect.bottom - 16;
-      const spaceAbove = rect.top - viewportOffsetTop - 16;
-      const openUp = spaceAbove > spaceBelow;
-      const maxH = Math.max(160, Math.min(280, (openUp ? spaceAbove : spaceBelow) - 8));
+      const spaceBelow = window.innerHeight - rect.bottom - 20;
+      const spaceAbove = rect.top - 20;
+      const maxH = Math.max(spaceBelow, spaceAbove) - 40;
       
       setPosition({
-        top: openUp ? Math.max(viewportOffsetTop + 12, rect.top - maxH - 4) : rect.bottom + 4,
+        top: rect.bottom,
         left: Math.max(12, rect.left),
         width: Math.min(rect.width, window.innerWidth - 24),
-        maxHeight: maxH,
+        maxHeight: Math.min(260, maxH),
       });
     }
     setOpen(!open);
@@ -40,9 +37,9 @@ export default function BottomSheetSelect({ value, onChange, options = [], place
         ref={buttonRef}
         type="button"
         onClick={handleClick}
-        className={`w-full min-w-0 flex items-center justify-between px-3 py-3 border border-border rounded-lg bg-background text-base text-left select-none ${!selectedLabel ? 'text-muted-foreground' : ''} ${className}`}
+        className={`w-full flex items-center justify-between px-3 py-3 border border-border rounded-lg bg-background text-base text-left select-none ${!selectedLabel ? 'text-muted-foreground' : ''} ${className}`}
       >
-        <span className="truncate min-w-0 flex-1">{selectedLabel || placeholder}</span>
+        <span className="truncate">{selectedLabel || placeholder}</span>
         <ChevronDown className={`w-4 h-4 flex-shrink-0 text-muted-foreground ml-2 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
@@ -75,8 +72,8 @@ export default function BottomSheetSelect({ value, onChange, options = [], place
                 className={`w-full flex items-center justify-between px-4 py-3 text-sm border-b border-border last:border-b-0 transition-colors select-none
                   ${opt.value === value ? 'text-primary font-semibold bg-primary/10' : 'text-foreground hover:bg-secondary'}`}
               >
-                <span className="min-w-0 flex-1 text-left leading-snug break-words">{opt.label}</span>
-                {opt.value === value && <Check className="w-4 h-4 text-primary flex-shrink-0 ml-2" />}
+                <span>{opt.label}</span>
+                {opt.value === value && <Check className="w-4 h-4 text-primary" />}
               </button>
             ))}
           </div>

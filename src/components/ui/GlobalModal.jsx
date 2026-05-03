@@ -42,35 +42,13 @@ function useModalScrollLock(isOpen) {
   useEffect(() => {
     if (!isOpen) return;
     lockBodyScroll();
-
-    const updateViewportHeight = () => {
-      const height = window.visualViewport?.height || window.innerHeight;
-      document.documentElement.style.setProperty('--app-vh', `${height}px`);
-    };
-
-    const keepFocusedInputVisible = (e) => {
-      const target = e.target;
-      if (!target?.matches?.('input, textarea, select, [contenteditable="true"]')) return;
-      setTimeout(() => target.scrollIntoView({ block: 'center', behavior: 'smooth' }), 160);
-    };
-
     const preventBg = (e) => {
       if (e.target.closest('[data-modal-scroll]')) return;
       e.preventDefault();
     };
-
-    updateViewportHeight();
-    window.visualViewport?.addEventListener('resize', updateViewportHeight);
-    window.visualViewport?.addEventListener('scroll', updateViewportHeight);
-    document.addEventListener('focusin', keepFocusedInputVisible);
     document.addEventListener('touchmove', preventBg, { passive: false });
-
     return () => {
       unlockBodyScroll();
-      document.documentElement.style.setProperty('--app-vh', '100dvh');
-      window.visualViewport?.removeEventListener('resize', updateViewportHeight);
-      window.visualViewport?.removeEventListener('scroll', updateViewportHeight);
-      document.removeEventListener('focusin', keepFocusedInputVisible);
       document.removeEventListener('touchmove', preventBg);
     };
   }, [isOpen]);
@@ -102,12 +80,11 @@ export function ModalBody({ children }) {
   return (
     <div
       data-modal-scroll
-      className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-5 py-4 modal-keyboard-scroll-padding"
+      className="flex-1 overflow-y-auto overflow-x-hidden px-5 py-4"
       style={{
         WebkitOverflowScrolling: 'touch',
         overscrollBehavior: 'contain',
         WebkitTouchCallout: 'none',
-        paddingBottom: 'calc(var(--safe-bottom) + 96px)',
       }}
     >
       <div className="min-w-0 w-full overflow-x-hidden">
@@ -121,10 +98,10 @@ export function ModalFooter({ children }) {
   if (!children) return null;
   return (
     <div
-      className="flex gap-3 px-5 border-t border-border flex-shrink-0 bg-card sticky bottom-0"
+      className="flex gap-3 px-5 border-t border-border flex-shrink-0 bg-card"
       style={{
         paddingTop: '12px',
-        paddingBottom: 'calc(var(--safe-bottom) + 12px)',
+        paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
       }}
     >
       {children}
@@ -231,9 +208,9 @@ export default function GlobalModal({
               zIndex: Z_MODAL,
               paddingLeft: '12px',
               paddingRight: '12px',
-              paddingTop: 'calc(var(--safe-top) + 12px)',
-              paddingBottom: 'calc(var(--safe-bottom) + 12px)',
-              height: 'var(--app-vh)',
+              paddingTop: 'max(12px, env(safe-area-inset-top, 12px))',
+              paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
+              height: '100dvh',
               overflowY: 'auto',
               overscrollBehavior: 'contain',
             }}
@@ -254,7 +231,7 @@ export default function GlobalModal({
                 style={{
                   maxWidth: '100%',
                   overflowX: 'hidden',
-                  maxHeight: 'calc(var(--app-vh) - var(--safe-top) - var(--safe-bottom) - 24px)',
+                  maxHeight: 'min(90dvh, calc(100dvh - max(36px, env(safe-area-inset-top, 18px)) - max(36px, env(safe-area-inset-bottom, 18px))))',
                 }}
               >
                 {(title || showClose) && (

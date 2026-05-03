@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { Plus } from 'lucide-react';
-import { searchCalibers, normalizeCaliber, caliberKey } from '@/utils/caliberCatalog';
+import { searchCalibers } from '@/utils/caliberCatalog';
 import AddBrassModal from './AddBrassModal';
 import { getBrassState, logBrassMovement, stateUpdate } from '@/lib/brassLifecycle';
 
@@ -257,7 +257,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       // Create reload session
       const reloadSession = {
         date: formData.date,
-        caliber: normalizeCaliber(formData.caliber),
+        caliber: formData.caliber,
         batch_number: formData.batch_number,
         firearm_id: formData.rifle_id || null,
         rounds_loaded: cartridgesLoaded,
@@ -287,17 +287,27 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       const batchNotes = `reload_batch:${createdSession.id} | Batch ${formData.batch_number}${bulletLabel ? ` | ${bulletLabel}` : ''}`;
 
       // Check if an entry for this exact batch already exists (idempotency guard)
+      const existingBatchAmmo = await base44.entities.Ammunition.filter({ created_by: user.email });
+      const batchEntry = existingBatchAmmo.find(a => a.notes && a.notes.includes(`reload_batch:${createdSession.id}`));
+
       console.log(`[RELOAD DEBUG] batch created = ${formData.batch_number}`);
       console.log(`[RELOAD DEBUG] caliber = ${formData.caliber}`);
       console.log(`[RELOAD DEBUG] quantity produced = ${cartridgesLoaded}`);
-      console.log(`[RELOAD DEBUG] global ammo stock item creation routed through backend function`);
+      console.log(`[RELOAD DEBUG] global ammo stock item created = ${batchEntry ? 'existing (duplicate guard)' : 'new'}`);
 
-      const ammoResponse = await base44.functions.invoke('createReloadBatchAmmunition', {
-        reloadSessionId: createdSession.id,
-        quantityToAdd: cartridgesLoaded,
-        ammunitionData: {
+      if (batchEntry) {
+        // Duplicate submit guard — top up
+        await base44.entities.Ammunition.update(batchEntry.id, {
+          quantity_in_stock: (batchEntry.quantity_in_stock || 0) + cartridgesLoaded,
+          cost_per_unit: costBreakdown.costPerCartridge,
+        });
+        console.log(`[RELOAD DEBUG] ammoStockItemId = ${batchEntry.id}`);
+        console.log(`[RELOAD DEBUG] stock quantity added = ${cartridgesLoaded} (topped up)`);
+      } else {
+        // New entry for this batch — with stable linking fields (FIX 4)
+        const newAmmo = await base44.entities.Ammunition.create({
           brand: batchBrand,
-          caliber: normalizeCaliber(formData.caliber),
+          caliber: formData.caliber,
           bullet_type: batchBulletType,
           grain: bulletComp?.weight ? String(bulletComp.weight) : '',
           quantity_in_stock: cartridgesLoaded,
@@ -306,34 +316,32 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           date_purchased: formData.date,
           low_stock_threshold: 10,
           notes: batchNotes,
+          // FIX 4: Stable fields for reliable linking
           ammo_type: 'reloaded',
           source_type: 'reload_batch',
           source_id: createdSession.id,
           reload_session_id: createdSession.id,
-          reload_batch_id: createdSession.id,
           batch_number: formData.batch_number,
           brass_component_id: brassLookupId,
           brass_reload_cycle_count: nextReloadCycle,
           brass_use_type: brassUseType,
           brass_new_quantity_used: brassNewQuantityUsed,
           brass_used_quantity_used: brassUsedQuantityUsed,
-        },
-      });
-
-      const newAmmo = ammoResponse.data?.ammunition;
-      await logBrassMovement({
-        brassId: brassLookupId,
-        reloadBatchId: createdSession.id,
-        ammunitionId: newAmmo?.id,
-        quantity: cartridgesLoaded,
-        movementType: 'used_in_reload_batch',
-        previousState: previousBrassState,
-        newState: newBrassState,
-        notes: `Batch ${formData.batch_number}`,
-      });
-      console.log(`[RELOAD DEBUG] ammoStockItemId = ${newAmmo?.id || 'created via function'}`);
-      console.log(`[RELOAD DEBUG] stock quantity added = ${cartridgesLoaded}`);
-      console.log(`[RELOAD DEBUG] appears in ammo selector query = true (brand=Reloaded, caliber=${formData.caliber})`);
+          });
+        await logBrassMovement({
+          brassId: brassLookupId,
+          reloadBatchId: createdSession.id,
+          ammunitionId: newAmmo.id,
+          quantity: cartridgesLoaded,
+          movementType: 'used_in_reload_batch',
+          previousState: previousBrassState,
+          newState: newBrassState,
+          notes: `Batch ${formData.batch_number}`,
+        });
+        console.log(`[RELOAD DEBUG] ammoStockItemId = ${newAmmo.id}`);
+        console.log(`[RELOAD DEBUG] stock quantity added = ${cartridgesLoaded}`);
+        console.log(`[RELOAD DEBUG] appears in ammo selector query = true (brand=Reloaded, caliber=${formData.caliber})`);
+      }
 
       onSubmit();
     } catch (error) {
@@ -373,11 +381,19 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     setCaliberResults(results);
   };
 
+  const normalizeCaliber = (value = '') => String(value)
+    .toLowerCase()
+    .replace(/winchester/g, 'win')
+    .replace(/remington/g, 'rem')
+    .replace(/springfield/g, '')
+    .replace(/nato/g, '')
+    .replace(/[^a-z0-9.]+/g, '');
+
   const matchesSelectedCaliber = (component) => {
-    const selected = caliberKey(formData.caliber);
+    const selected = normalizeCaliber(formData.caliber);
     if (!selected) return true;
-    const componentCaliber = caliberKey(component.caliber || component.name || '');
-    return componentCaliber === selected;
+    const componentCaliber = normalizeCaliber(component.caliber || component.name || '');
+    return componentCaliber === selected || componentCaliber.includes(selected) || selected.includes(componentCaliber);
   };
 
   const caliberFilteredBrass = components.brass.filter(matchesSelectedCaliber);
@@ -572,7 +588,6 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                   setShowCaliberDropdown(true);
                 }}
                 onFocus={() => setShowCaliberDropdown(formData.caliber.length >= 1)}
-                onBlur={(e) => setFormData({ ...formData, caliber: normalizeCaliber(e.target.value) })}
                 placeholder=".308 Win"
                 className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
                 required
@@ -700,7 +715,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                 <option value="">— Select new brass —</option>
                 {caliberFilteredBrass.filter(b => getBrassState(b).available_to_reload > 0).map(b => {
                   const state = getBrassState(b);
-                  return <option key={b.id} value={b.id}>{[b.name, b.lot_number && `Lot ${b.lot_number}`, b.caliber].filter(Boolean).join(' — ')} — {state.available_new_unloaded} new + {state.available_used_recovered} used</option>;
+                  return <option key={b.id} value={b.id}>{b.name}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''}{b.caliber ? ` (${b.caliber})` : ''} — {state.available_new_unloaded} new + {state.available_used_recovered} recovered available (£{b.cost_per_unit.toFixed(4)}/new case)</option>;
                 })}
               </select>
               <button
@@ -736,7 +751,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                 const state = getBrassState(b);
                 return (
                 <option key={b.id} value={b.id}>
-                  {[b.name, b.lot_number && `Lot ${b.lot_number}`, b.caliber, b.batch_number && `#${b.batch_number}`].filter(Boolean).join(' — ')} — {state.available_used_recovered} used, {state.reload_cycle_count}x
+                  {b.name}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''}{b.caliber ? ` (${b.caliber})` : ''}{b.batch_number ? ` #${b.batch_number}` : ''} — Used / recovered available: {state.available_used_recovered}, reloaded {state.reload_cycle_count}x (£0 brass cost)
                 </option>
                 );
               })}
@@ -792,7 +807,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Bullet</label>
           <select value={formData.bullet_id ?? ''} onChange={(e) => setFormData({ ...formData, bullet_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required>
             <option value="">Select bullet</option>
-            {caliberFilteredBullets.map(b => <option key={b.id} value={b.id}>{[b.name, b.weight && `${b.weight}${b.weight_unit || 'gr'}`, b.lot_number && `Lot ${b.lot_number}`].filter(Boolean).join(' — ')} — {b.quantity_remaining} in stock</option>) }
+            {caliberFilteredBullets.map(b => <option key={b.id} value={b.id}>{b.name}{b.weight ? ` ${b.weight}${b.weight_unit || 'gr'}` : ''}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''} - {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
           </select>
           {stockWarnings.bullet && (
              <p className="text-xs font-semibold mt-2.5 text-destructive">{stockWarnings.bullet}</p>
