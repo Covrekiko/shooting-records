@@ -170,69 +170,72 @@ export async function refundAmmoForRecord(record, recordType) {
  * Handles Target (multi-rifle), Clay (single shotgun), and Deer (single rifle)
  */
 export async function reverseArmoryCountersForRecord(record, recordCategory) {
-  if (!record || !record.id) return { success: true };
-  
+  if (!record || !record.id) return { success: true, reversed: [] };
+
   // Idempotency check: if already reversed, skip
   if (record.armoryCountersReversed === true || record.countersReversedAt) {
-    return { success: true, skipped: true };
+    return { success: true, skipped: true, reversed: [] };
   }
+
+  const reversed = [];
 
   try {
     if (recordCategory === 'target_shooting' && record.rifles_used?.length > 0) {
       // TARGET SHOOTING: multiple rifles, each with rounds_fired
       for (const rifleEntry of record.rifles_used) {
-        if (!rifleEntry.rifle_id || parseInt(rifleEntry.rounds_fired) <= 0) continue;
-
         const roundsToSubtract = parseInt(rifleEntry.rounds_fired) || 0;
+        if (!rifleEntry.rifle_id || roundsToSubtract <= 0) continue;
+
         const rifle = await base44.entities.Rifle.get(rifleEntry.rifle_id);
-        
-        if (!rifle) continue;
+        if (!rifle) throw new Error(`Rifle not found: ${rifleEntry.rifle_id}`);
 
         const totalBefore = rifle.total_rounds_fired || 0;
         const totalAfter = Math.max(0, totalBefore - roundsToSubtract);
-        const sinceCleaningBefore = rifle.rounds_at_last_cleaning || 0;
-        const sinceCleaningAfter = Math.max(0, sinceCleaningBefore - roundsToSubtract);
 
+        // Do not change rounds_at_last_cleaning: it is the cleaning baseline.
         await base44.entities.Rifle.update(rifleEntry.rifle_id, {
           total_rounds_fired: totalAfter,
-          rounds_at_last_cleaning: sinceCleaningAfter,
         });
+        reversed.push({ type: 'rifle', id: rifleEntry.rifle_id, rounds: roundsToSubtract, before: totalBefore, after: totalAfter });
       }
     } else if (recordCategory === 'clay_shooting' && record.shotgun_id) {
       // CLAY SHOOTING: single shotgun with cartridges
-      const shotgun = await base44.entities.Shotgun.get(record.shotgun_id);
-      if (shotgun) {
-        const roundsToSubtract = parseInt(record.rounds_fired) || 0;
+      const roundsToSubtract = parseInt(record.rounds_fired) || 0;
+      if (roundsToSubtract > 0) {
+        const shotgun = await base44.entities.Shotgun.get(record.shotgun_id);
+        if (!shotgun) throw new Error(`Shotgun not found: ${record.shotgun_id}`);
+
         const totalBefore = shotgun.total_cartridges_fired || 0;
         const totalAfter = Math.max(0, totalBefore - roundsToSubtract);
-        const sinceCleaningBefore = shotgun.cartridges_at_last_cleaning || 0;
-        const sinceCleaningAfter = Math.max(0, sinceCleaningBefore - roundsToSubtract);
 
+        // Do not change cartridges_at_last_cleaning: it is the cleaning baseline.
         await base44.entities.Shotgun.update(record.shotgun_id, {
           total_cartridges_fired: totalAfter,
-          cartridges_at_last_cleaning: sinceCleaningAfter,
         });
+        reversed.push({ type: 'shotgun', id: record.shotgun_id, rounds: roundsToSubtract, before: totalBefore, after: totalAfter });
       }
     } else if (recordCategory === 'deer_management' && record.rifle_id) {
-      // DEER MANAGEMENT: single rifle with shot count
-      const rifle = await base44.entities.Rifle.get(record.rifle_id);
-      if (rifle) {
-        const roundsToSubtract = parseInt(record.total_count || record.rounds_fired || 0);
+      // DEER MANAGEMENT: use actual shots fired before harvest total.
+      const roundsToSubtract = parseInt(record.rounds_fired || record.total_count || record.number_shot || 0) || 0;
+      if (roundsToSubtract > 0) {
+        const rifle = await base44.entities.Rifle.get(record.rifle_id);
+        if (!rifle) throw new Error(`Rifle not found: ${record.rifle_id}`);
+
         const totalBefore = rifle.total_rounds_fired || 0;
         const totalAfter = Math.max(0, totalBefore - roundsToSubtract);
-        const sinceCleaningBefore = rifle.rounds_at_last_cleaning || 0;
-        const sinceCleaningAfter = Math.max(0, sinceCleaningBefore - roundsToSubtract);
 
+        // Do not change rounds_at_last_cleaning: it is the cleaning baseline.
         await base44.entities.Rifle.update(record.rifle_id, {
           total_rounds_fired: totalAfter,
-          rounds_at_last_cleaning: sinceCleaningAfter,
         });
+        reversed.push({ type: 'rifle', id: record.rifle_id, rounds: roundsToSubtract, before: totalBefore, after: totalAfter });
       }
     }
 
-    return { success: true };
+    return { success: true, reversed };
   } catch (error) {
-    return { success: false, error: error.message };
+    console.error(`[ARMORY REVERSAL ERROR] recordId: ${record.id} category: ${recordCategory} error: ${error.message}`);
+    return { success: false, error: error.message, reversed };
   }
 }
 

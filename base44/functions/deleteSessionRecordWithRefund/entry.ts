@@ -286,11 +286,12 @@ Deno.serve(async (req) => {
         });
       }
     } else if (record.category === 'deer_management') {
-      // DEER: ammunition_id at top level
-      if (record.ammunition_id && record.total_count) {
+      // DEER: ammunition_id at top level; use actual shots fired before harvest total
+      const deerRounds = parseInt(record.rounds_fired || record.total_count || record.number_shot || 0) || 0;
+      if (record.ammunition_id && deerRounds > 0) {
         ammoToRefund.push({
           ammo_id: record.ammunition_id,
-          rounds: parseInt(record.total_count),
+          rounds: deerRounds,
           rifle_id: record.rifle_id,
         });
       }
@@ -395,19 +396,24 @@ Deno.serve(async (req) => {
       } catch (err) {
         console.warn(`[DELETE REFUND] Error updating shotgun ${record.shotgun_id}:`, err.message);
       }
-    } else if (record.category === 'deer_management' && record.rifle_id && record.total_count) {
+    } else if (record.category === 'deer_management' && record.rifle_id) {
       try {
-        const rifleEntry = await base44.asServiceRole.entities.Rifle.get(record.rifle_id);
-        if (rifleEntry) {
-          const newTotal = Math.max(0, (rifleEntry.total_rounds_fired || 0) - parseInt(record.total_count));
-          await base44.asServiceRole.entities.Rifle.update(record.rifle_id, {
-            total_rounds_fired: newTotal,
-          });
-          refundSummary.firearm_reversal = `Rifle: ${newTotal} rounds`;
-          console.log(`[DELETE REFUND] Rifle ${record.rifle_id}: total_rounds reversed to ${newTotal}`);
+        const deerRounds = parseInt(record.rounds_fired || record.total_count || record.number_shot || 0) || 0;
+        if (deerRounds > 0) {
+          const rifleEntry = await base44.asServiceRole.entities.Rifle.get(record.rifle_id);
+          if (rifleEntry) {
+            const newTotal = Math.max(0, (rifleEntry.total_rounds_fired || 0) - deerRounds);
+            await base44.asServiceRole.entities.Rifle.update(record.rifle_id, {
+              total_rounds_fired: newTotal,
+            });
+            refundSummary.firearm_reversal = `Rifle: ${newTotal} rounds`;
+            console.log(`[DELETE REFUND] Rifle ${record.rifle_id}: total_rounds reversed by ${deerRounds} to ${newTotal}`);
+          }
         }
       } catch (err) {
         console.warn(`[DELETE REFUND] Error updating rifle ${record.rifle_id}:`, err.message);
+        refundSummary.error = `Failed to reverse rifle counter ${record.rifle_id}`;
+        return Response.json(refundSummary, { status: 400 });
       }
     }
 

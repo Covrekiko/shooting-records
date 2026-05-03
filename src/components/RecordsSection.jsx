@@ -171,6 +171,8 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
           status: 'deleted',
           ammoRefunded: true,
           ammoRefundedAt: now,
+          armoryCountersReversed: true,
+          countersReversedAt: now,
         });
         
       } catch (updateErr) {
