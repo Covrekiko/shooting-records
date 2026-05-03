@@ -104,10 +104,46 @@ export const CALIBER_CATALOG = [
   '.44-77 Sharps',
 ];
 
+const CALIBER_ALIASES = {
+  '.303': '.303 British',
+  '303': '.303 British',
+  '.303 brit': '.303 British',
+  '303 brit': '.303 British',
+  '.303 british': '.303 British',
+  '303 british': '.303 British',
+  '.308': '.308 Winchester',
+  '308': '.308 Winchester',
+  '.308 win': '.308 Winchester',
+  '308 win': '.308 Winchester',
+  '.308 winchester': '.308 Winchester',
+  '308 winchester': '.308 Winchester',
+};
+
+const aliasKey = (value = '') => String(value).trim().toLowerCase().replace(/\s+/g, ' ');
+
+export const normalizeCaliber = (value = '') => {
+  const trimmed = String(value).trim();
+  if (!trimmed) return '';
+  return CALIBER_ALIASES[aliasKey(trimmed)] || trimmed;
+};
+
+export const caliberKey = (value = '') => normalizeCaliber(value)
+  .toLowerCase()
+  .replace(/winchester/g, 'win')
+  .replace(/remington/g, 'rem')
+  .replace(/springfield/g, '')
+  .replace(/nato/g, '')
+  .replace(/[^a-z0-9.]+/g, '');
+
 export const searchCalibers = (query) => {
   if (!query || query.length < 1) return [];
-  const searchLower = query.toLowerCase();
-  return CALIBER_CATALOG
-    .filter(cal => cal.toLowerCase().includes(searchLower))
-    .slice(0, 10);
+  const searchLower = aliasKey(query);
+  const matches = CALIBER_CATALOG.filter((cal) => {
+    const calLower = aliasKey(cal);
+    const aliases = Object.entries(CALIBER_ALIASES)
+      .filter(([, canonical]) => canonical === cal)
+      .map(([alias]) => alias);
+    return calLower.includes(searchLower) || aliases.some((alias) => alias.includes(searchLower));
+  });
+  return [...new Set(matches)].slice(0, 10);
 };

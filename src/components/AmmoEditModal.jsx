@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import NumberInput from '@/components/ui/NumberInput.jsx';
+import CaliberTypeahead from '@/components/CaliberTypeahead';
+import { normalizeCaliber } from '@/utils/caliberCatalog';
 
 export default function AmmoEditModal({ ammo, isOpen, onClose, onSave }) {
   const [formData, setFormData] = useState({
@@ -35,6 +37,7 @@ export default function AmmoEditModal({ ammo, isOpen, onClose, onSave }) {
   const handleSubmit = () => {
     onSave({
       ...formData,
+      caliber: normalizeCaliber(formData.caliber),
       quantity_in_stock: parseInt(formData.quantity_in_stock) || 0,
       cost_per_unit: parseFloat(formData.cost_per_unit) || 0,
     });
@@ -52,9 +55,12 @@ export default function AmmoEditModal({ ammo, isOpen, onClose, onSave }) {
       <div className="space-y-4">
         <div>
           <label className={lbl}>Caliber</label>
-          <input type="text" value={formData.caliber}
-            onChange={(e) => setFormData({ ...formData, caliber: e.target.value })}
-            className={inp} placeholder="e.g., .308 Win" />
+          <CaliberTypeahead
+            value={formData.caliber}
+            onChange={(caliber) => setFormData({ ...formData, caliber })}
+            className={inp}
+            placeholder="e.g., .303 British, .308 Win"
+          />
         </div>
 
         <div>

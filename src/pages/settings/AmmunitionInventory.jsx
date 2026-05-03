@@ -10,6 +10,8 @@ import { formatAmmunitionLabel } from '@/utils/ammoLabels';
 import { deleteReloadBatchWithRestore, isReloadedAmmunition } from '@/lib/reloadingDeleteUtils';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
+import CaliberTypeahead from '@/components/CaliberTypeahead';
+import { normalizeCaliber } from '@/utils/caliberCatalog';
 
 export default function AmmunitionInventory() {
   const [ammo, setAmmo] = useState([]);
@@ -63,9 +65,9 @@ export default function AmmunitionInventory() {
     e.preventDefault();
     try {
       if (editingId) {
-        await base44.entities.Ammunition.update(editingId, formData);
+        await base44.entities.Ammunition.update(editingId, { ...formData, caliber: normalizeCaliber(formData.caliber) });
       } else {
-        await base44.entities.Ammunition.create(formData);
+        await base44.entities.Ammunition.create({ ...formData, caliber: normalizeCaliber(formData.caliber) });
       }
       resetForm();
       loadAmmo();
@@ -168,12 +170,11 @@ export default function AmmunitionInventory() {
                 </div>
                 <div>
                   <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Caliber</label>
-                  <input
-                    type="text"
+                  <CaliberTypeahead
                     value={formData.caliber}
-                    onChange={(e) => setFormData({ ...formData, caliber: e.target.value })}
+                    onChange={(caliber) => setFormData({ ...formData, caliber })}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
-                    placeholder="e.g. .308 Win"
+                    placeholder="e.g. .303 British, .308 Win"
                   />
                 </div>
                 <div>
