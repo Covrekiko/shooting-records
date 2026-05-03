@@ -22,6 +22,46 @@
       "type": "number",
       "description": "Longitude coordinate"
     },
+    "title": {
+      "type": "string",
+      "description": "Point title or name"
+    },
+    "species": {
+      "type": "string",
+      "description": "Deer species for deer sightings"
+    },
+    "sex": {
+      "type": "string",
+      "description": "Sex for animal/deer sightings"
+    },
+    "age_class": {
+      "type": "string",
+      "description": "Age class for deer sightings"
+    },
+    "quantity": {
+      "type": "integer",
+      "description": "Number seen"
+    },
+    "sign_type": {
+      "type": "string",
+      "description": "Type of tracks or signs"
+    },
+    "animal_category": {
+      "type": "string",
+      "description": "Pest control or other wildlife"
+    },
+    "pest_species": {
+      "type": "string",
+      "description": "Pest species selected"
+    },
+    "custom_animal_name": {
+      "type": "string",
+      "description": "Custom animal name for wildlife"
+    },
+    "feed_type": {
+      "type": "string",
+      "description": "Feed type for feeding areas"
+    },
     "notes": {
       "type": "string",
       "description": "Notes about the marker"
@@ -34,6 +74,10 @@
       "description": "Photo URLs"
     },
     "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
       "type": "string",
       "format": "date-time"
     }

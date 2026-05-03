@@ -238,17 +238,29 @@ export default function DeerStalkingMap() {
 
   const handlePOISubmit = async (data) => {
     try {
+      const now = new Date().toISOString();
       await base44.entities.MapMarker.create({
         marker_type: data.type,
         latitude: mapClick.lat,
         longitude: mapClick.lng,
+        title: data.title || '',
+        species: data.species || '',
+        sex: data.sex || '',
+        age_class: data.age_class || '',
+        quantity: data.quantity || null,
+        sign_type: data.sign_type || '',
+        animal_category: data.animal_category || '',
+        pest_species: data.pest_species || '',
+        custom_animal_name: data.custom_animal_name || '',
+        feed_type: data.feed_type || '',
         notes: data.notes,
         photos: data.photos || [],
-        created_at: new Date().toISOString(),
+        created_at: now,
+        updated_at: now,
       });
       setShowPOI(false);
       setMapClick(null);
-      setWaitingForPin('poi');
+      setWaitingForPin(null);
       if (loadDataTimeoutRef.current) clearTimeout(loadDataTimeoutRef.current);
       loadDataTimeoutRef.current = setTimeout(() => loadData(), 500);
     } catch (err) {
@@ -321,6 +333,30 @@ export default function DeerStalkingMap() {
       setError(err.message);
     }
   };
+
+  const getPOITypeLabel = (type) => ({
+    deer_sighting: 'Deer Sighting',
+    high_seat: 'High Seat',
+    tracks_signs: 'Tracks / Signs',
+    animal: 'Other Animal',
+    feeding_area: 'Feeding Area',
+    other: 'Other',
+  }[type] || (type || 'Point of Interest').replace(/_/g, ' '));
+
+  const getPOIDetails = (marker) => [
+    marker.title && ['Name', marker.title],
+    marker.species && ['Species', marker.species],
+    marker.sex && ['Sex', marker.sex],
+    marker.age_class && ['Age class', marker.age_class],
+    marker.quantity && ['Quantity', marker.quantity],
+    marker.sign_type && ['Sign type', marker.sign_type],
+    marker.animal_category && ['Animal category', marker.animal_category],
+    marker.pest_species && ['Pest species', marker.pest_species],
+    marker.custom_animal_name && ['Animal name', marker.custom_animal_name],
+    marker.feed_type && ['Feed type', marker.feed_type],
+    marker.created_at && ['Created', new Date(marker.created_at).toLocaleString()],
+    marker.latitude && marker.longitude && ['Coordinates', `${marker.latitude.toFixed(5)}, ${marker.longitude.toFixed(5)}`],
+  ].filter(Boolean);
 
   const handleDeletePOI = async (id) => {
     try {
@@ -455,14 +491,26 @@ export default function DeerStalkingMap() {
                   onCloseClick={() => setOpenInfoWindowId(null)}
                 >
                   <div className="text-sm max-w-xs bg-white p-2 rounded">
-                    <p className="font-bold capitalize mb-2">{marker.marker_type.replace(/_/g, ' ')}</p>
-                    {marker.notes && <p className="mb-2">{marker.notes}</p>}
+                    <p className="font-bold mb-2">{getPOITypeLabel(marker.marker_type)}</p>
+                    <div className="space-y-1 mb-2">
+                      {getPOIDetails(marker).map(([label, value]) => (
+                        <p key={label} className="text-xs text-slate-600"><strong>{label}:</strong> {value}</p>
+                      ))}
+                    </div>
+                    {marker.notes && <p className="text-xs mb-3">{marker.notes}</p>}
                     {marker.photos && marker.photos.length > 0 && (
-                      <div className="grid grid-cols-2 gap-2 mb-2">
-                        {marker.photos.map((photo, idx) => (
-                          <img key={idx} src={photo} alt="poi" className="w-full h-20 object-cover rounded" />
-                        ))}
-                      </div>
+                      <details className="mb-2">
+                        <summary className="cursor-pointer text-xs font-semibold text-primary hover:underline mb-2">
+                          View Photos ({marker.photos.length})
+                        </summary>
+                        <div className="grid grid-cols-2 gap-2">
+                          {marker.photos.map((photo, idx) => (
+                            <a key={idx} href={photo} target="_blank" rel="noopener noreferrer">
+                              <img src={photo} alt="poi" className="w-full h-24 object-cover rounded hover:opacity-80 transition-opacity" />
+                            </a>
+                          ))}
+                        </div>
+                      </details>
                     )}
                     <button
                       onClick={() => handleDeletePOI(marker.id)}
@@ -684,7 +732,7 @@ export default function DeerStalkingMap() {
 
       {/* Modals — GlobalModal handles its own portal/overlay */}
       {showPOI && mapClick && (
-        <POIModal location={mapClick} onClose={() => { setShowPOI(false); setWaitingForPin(null); }} onSubmit={handlePOISubmit} />
+        <POIModal location={mapClick} onClose={() => { setShowPOI(false); setWaitingForPin(null); setMapClick(null); }} onSubmit={handlePOISubmit} />
       )}
 
       {showHarvest && mapClick && (
