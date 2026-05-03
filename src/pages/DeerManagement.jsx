@@ -5,6 +5,7 @@ import { useOuting } from '@/context/OutingContext';
 import { Plus, Clock, Layers, Calendar, MapPin, Check, X } from 'lucide-react';
 import RecordsSection from '@/components/RecordsSection';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
+import { loadOwnedAmmunitionWithReloads } from '@/lib/ownedAmmunition';
 import UnifiedCheckoutModal from '@/components/UnifiedCheckoutModal.jsx';
 import { trackingService } from '@/lib/trackingService';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
@@ -43,7 +44,7 @@ export default function DeerManagement() {
         const [areasList, riflesList, ammoList] = await Promise.all([
           base44.entities.Area.filter({ created_by: currentUser.email }),
           base44.entities.Rifle.filter({ created_by: currentUser.email }),
-          base44.entities.Ammunition.filter({ created_by: currentUser.email }),
+          loadOwnedAmmunitionWithReloads(currentUser),
         ]);
         setAreas(areasList);
         setRifles(riflesList);

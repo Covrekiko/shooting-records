@@ -5,6 +5,8 @@ import { Plus, Trash2, Edit2, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import AmmoSpendingBreakdown from '@/components/AmmoSpendingBreakdown';
 import GlobalModal, { ModalCancelButton, ModalSaveButton } from '@/components/ui/GlobalModal';
+import { loadOwnedAmmunitionWithReloads } from '@/lib/ownedAmmunition';
+import { formatAmmunitionLabel } from '@/utils/ammoLabels';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 
@@ -41,7 +43,7 @@ export default function AmmunitionInventory() {
     try {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      const ammoList = await base44.entities.Ammunition.filter({ created_by: currentUser.email });
+      const ammoList = await loadOwnedAmmunitionWithReloads(currentUser);
       setAmmo(ammoList);
     } catch (err) {
       // If rate-limited, retry once after a short delay
@@ -308,7 +310,7 @@ export default function AmmunitionInventory() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
                     <h3 className="font-semibold">
-                      {item.brand} {item.caliber && `- ${item.caliber}`}
+                       {formatAmmunitionLabel(item)}
                     </h3>
                     <p className="text-xs text-muted-foreground mt-1">
                       {item.bullet_type && `${item.bullet_type}`} {item.grain && `${item.grain}gr`}

@@ -11,6 +11,7 @@ import ClayAnalyticsDashboard from '@/components/clay/ClayAnalyticsDashboard';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import RecordsSection from '@/components/RecordsSection';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
+import { loadOwnedAmmunitionWithReloads } from '@/lib/ownedAmmunition';
 import { formatAmmunitionLabel } from '@/utils/ammoLabels';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
@@ -113,7 +114,7 @@ export default function ClayShooting() {
          const [clubsList, shotgunsList, ammoList, activeSessions, standsList, allSessionsList] = await Promise.all([
            base44.entities.Club.filter({ created_by: currentUser.email }),
            base44.entities.Shotgun.filter({ created_by: currentUser.email }),
-           base44.entities.Ammunition.filter({ created_by: currentUser.email }),
+           loadOwnedAmmunitionWithReloads(currentUser),
            base44.entities.SessionRecord.filter({ created_by: currentUser.email, category: 'clay_shooting', status: 'active' }),
            base44.entities.ClayStand.filter({ created_by: currentUser.email }),
            base44.entities.SessionRecord.filter({ created_by: currentUser.email, category: 'clay_shooting', status: 'completed' }),

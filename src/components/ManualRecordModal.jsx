@@ -8,6 +8,7 @@ import BottomSheetSelect from '@/components/BottomSheetSelect';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import NumberInput from '@/components/ui/NumberInput.jsx';
 import { formatAmmunitionLabel } from '@/utils/ammoLabels';
+import { loadOwnedAmmunitionWithReloads } from '@/lib/ownedAmmunition';
 
 async function handlePhotoUpload(files, data, setFormData) {
   if (!files || files.length === 0) return;
@@ -85,7 +86,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
         base44.entities.Area.filter({ created_by: currentUser.email }),
         base44.entities.Rifle.filter({ created_by: currentUser.email }),
         base44.entities.Shotgun.filter({ created_by: currentUser.email }),
-        base44.entities.Ammunition.filter({ created_by: currentUser.email }),
+        loadOwnedAmmunitionWithReloads(currentUser),
       ]);
       setClubs(clubsList);
       setLocations(locationsList);

@@ -11,6 +11,7 @@ import { Plus, Map, Crosshair, ScanLine, Microscope, Calculator, Calendar, MapPi
 import { Link } from 'react-router-dom';
 import BallisticCalculator from '@/components/target-analysis/BallisticCalculator';
 import { decrementAmmoStock, refundAmmoForRecord, getSelectableAmmunition } from '@/lib/ammoUtils';
+import { loadOwnedAmmunitionWithReloads } from '@/lib/ownedAmmunition';
 import { formatAmmunitionLabel } from '@/utils/ammoLabels';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
@@ -112,7 +113,7 @@ export default function TargetShooting() {
         const [clubsList, riflesList, ammoList, activeSession] = await Promise.all([
           base44.entities.Club.filter({ created_by: currentUser.email }),
           base44.entities.Rifle.filter({ created_by: currentUser.email }),
-          base44.entities.Ammunition.filter({ created_by: currentUser.email }),
+          loadOwnedAmmunitionWithReloads(currentUser),
           base44.entities.SessionRecord.filter({ created_by: currentUser.email, category: 'target_shooting', status: 'active' }),
         ]);
         setClubs(clubsList);
