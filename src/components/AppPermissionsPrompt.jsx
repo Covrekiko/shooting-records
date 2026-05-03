@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import AppPermissionsPanel from '@/components/AppPermissionsPanel';
+import { base44 } from '@/api/base44Client';
 import { getStoredPermissionStatus, markPermissionsPromptSeen } from '@/lib/appPermissions';
 
 export default function AppPermissionsPrompt({ user }) {
@@ -9,11 +10,17 @@ export default function AppPermissionsPrompt({ user }) {
   useEffect(() => {
     if (!user?.email) return;
     const status = getStoredPermissionStatus(user.email);
-    setOpen(!status.promptSeen);
-  }, [user?.email]);
+    const shouldShow = user.permissionsPromptSeen !== true && !status.promptSeen;
+    setOpen(shouldShow);
+    if (shouldShow) {
+      markPermissionsPromptSeen(user.email);
+      base44.auth.updateMe({ permissionsPromptSeen: true });
+    }
+  }, [user?.email, user?.permissionsPromptSeen]);
 
   const closePrompt = () => {
     markPermissionsPromptSeen(user.email);
+    base44.auth.updateMe({ permissionsPromptSeen: true });
     setOpen(false);
   };
 
@@ -35,7 +42,7 @@ export default function AppPermissionsPrompt({ user }) {
         </button>
       )}
     >
-      <AppPermissionsPanel userEmail={user.email} compact onActionComplete={() => markPermissionsPromptSeen(user.email)} />
+      <AppPermissionsPanel userEmail={user.email} compact onActionComplete={closePrompt} />
     </GlobalModal>
   );
 }
