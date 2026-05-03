@@ -11,6 +11,7 @@ import ClayAnalyticsDashboard from '@/components/clay/ClayAnalyticsDashboard';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import RecordsSection from '@/components/RecordsSection';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
+import { formatAmmunitionLabel } from '@/utils/ammoLabels';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
@@ -567,7 +568,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
                   const val = e.target.value;
                   const a = ammunition.find(x => x.id === val);
                   onChange('ammunition_id', val);
-                  if (a) onChange('ammunition_used', `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`.trim());
+                  if (a) onChange('ammunition_used', formatAmmunitionLabel(a));
                 }}
                 className={selectCls}
               >
@@ -575,7 +576,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
                 {ammunition.filter(a => {
                   const selectedShotgun = shotguns.find(s => s.id === data.shotgun_id);
                   return !selectedShotgun || !selectedShotgun.gauge || a.caliber === selectedShotgun.gauge;
-                }).map(a => <option key={a.id} value={a.id}>{`${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`}</option>)}
+                }).map(a => <option key={a.id} value={a.id}>{formatAmmunitionLabel(a)}</option>)}
               </select>
             </div>
           )}
