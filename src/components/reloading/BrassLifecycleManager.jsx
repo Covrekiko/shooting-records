@@ -119,15 +119,12 @@ export default function BrassLifecycleManager({ brass, onUpdated }) {
 
         <ActionInput action="manual-fired" onConfirm={handleManualFired} />
         {editing !== 'manual-fired' && state.currently_loaded > 0 && (
-          <button onClick={() => { setQuantity(''); setEditing('manual-fired'); }} className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-border rounded hover:bg-secondary"><Plus className="w-3 h-3" /> Move loaded to fired</button>
+          <button onClick={() => { setQuantity(''); setEditing('manual-fired'); }} className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-border rounded hover:bg-secondary"><Plus className="w-3 h-3" /> Log fired brass</button>
         )}
 
         <ActionInput action="recover" onConfirm={handleRecover} />
         {editing !== 'recover' && state.fired_awaiting_cleaning_or_inspection > 0 && (
-          <button onClick={() => { setQuantity(String(state.fired_awaiting_cleaning_or_inspection)); setEditing('recover'); }} className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-border rounded hover:bg-secondary text-green-700 dark:text-green-400"><RotateCcw className="w-3 h-3" /> Recover to available</button>
-        )}
-        {editing !== 'recover' && state.fired_awaiting_cleaning_or_inspection === 0 && (
-          <span className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-border rounded text-muted-foreground bg-secondary/40"><RotateCcw className="w-3 h-3" /> No fired brass to recover</span>
+          <button onClick={() => { setQuantity(String(state.fired_awaiting_cleaning_or_inspection)); setEditing('recover'); }} className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-border rounded hover:bg-secondary text-green-700 dark:text-green-400"><RotateCcw className="w-3 h-3" /> Recover fired brass</button>
         )}
 
         <button onClick={handleAnneal} disabled={saving} className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-border rounded hover:bg-secondary text-amber-600 dark:text-amber-400"><Wrench className="w-3 h-3" /> Anneal brass</button>
