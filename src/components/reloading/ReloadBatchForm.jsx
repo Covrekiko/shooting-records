@@ -730,7 +730,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Bullet</label>
           <select value={formData.bullet_id} onChange={(e) => setFormData({ ...formData, bullet_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required>
             <option value="">Select bullet</option>
-            {components.bullet.map(b => <option key={b.id} value={b.id}>{b.name}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''} - {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
+            {components.bullet.map(b => <option key={b.id} value={b.id}>{b.name}{b.weight ? ` ${b.weight}${b.weight_unit || 'gr'}` : ''}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''} - {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
           </select>
           {stockWarnings.bullet && (
              <p className="text-xs font-semibold mt-2.5 text-destructive">{stockWarnings.bullet}</p>

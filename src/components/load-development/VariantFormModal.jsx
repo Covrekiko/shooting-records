@@ -260,7 +260,7 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
               <option value="">Select bullet…</option>
               <option value="manual">Manual Entry</option>
               {components.bullet.filter(c => (c.quantity_remaining || 0) > 0).map(c => (
-                <option key={c.id} value={c.id}>{[c.brand, c.name].filter(Boolean).join(' ') || 'Bullet'}{c.lot_number ? ` (Lot: ${c.lot_number})` : ''} ({c.quantity_remaining} remaining)</option>
+                <option key={c.id} value={c.id}>{[c.brand, c.name].filter(Boolean).join(' ') || 'Bullet'}{c.weight ? ` ${c.weight}${c.weight_unit || 'gr'}` : ''}{c.lot_number ? ` (Lot: ${c.lot_number})` : ''} ({c.quantity_remaining} remaining)</option>
               ))}
             </select>
           </div>
