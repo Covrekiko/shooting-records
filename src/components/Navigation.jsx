@@ -168,7 +168,7 @@ export default function Navigation() {
       </div>
 
       {/* ── MOBILE TOP BAR ──────────────────────────────────────────── */}
-      <div className="md:hidden sticky top-0 z-[30] bg-background">
+      <div className="md:hidden sticky top-0 z-[30] bg-background safe-area-top">
         <div className="mx-3 mt-2 mb-1.5 bg-card rounded-2xl shadow-sm border border-border px-4 py-2.5 flex items-center justify-between">
           {isDashboard ? (
             <Link to="/" className="text-sm font-bold text-foreground flex items-center gap-2">

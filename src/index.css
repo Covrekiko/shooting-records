@@ -4,6 +4,8 @@
 
 @layer base {
   :root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
     --background: 0 0% 98%;
     --foreground: 215 20% 12%;
     --card: 0 0% 100%;
@@ -134,11 +136,15 @@
 }
 
 .safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: var(--safe-bottom);
 }
 
 .safe-area-top {
-  padding-top: env(safe-area-inset-top, 0px);
+  padding-top: var(--safe-top);
+}
+
+.safe-page-top {
+  padding-top: var(--safe-top);
 }
 
 /* Mobile page content — clears the bottom tab bar */

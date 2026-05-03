@@ -101,7 +101,7 @@ export function ModalFooter({ children }) {
       className="flex gap-3 px-5 border-t border-border flex-shrink-0 bg-card"
       style={{
         paddingTop: '12px',
-        paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))',
+        paddingBottom: 'calc(var(--safe-bottom) + 16px)',
       }}
     >
       {children}
@@ -208,8 +208,8 @@ export default function GlobalModal({
               zIndex: Z_MODAL,
               paddingLeft: '12px',
               paddingRight: '12px',
-              paddingTop: 'max(12px, env(safe-area-inset-top, 12px))',
-              paddingBottom: 'max(12px, env(safe-area-inset-bottom, 12px))',
+              paddingTop: 'calc(var(--safe-top) + 8px)',
+              paddingBottom: 'calc(var(--safe-bottom) + 8px)',
               height: '100dvh',
               overflowY: 'auto',
               overscrollBehavior: 'contain',
@@ -231,7 +231,7 @@ export default function GlobalModal({
                 style={{
                   maxWidth: '100%',
                   overflowX: 'hidden',
-                  maxHeight: 'min(90dvh, calc(100dvh - max(36px, env(safe-area-inset-top, 18px)) - max(36px, env(safe-area-inset-bottom, 18px))))',
+                  maxHeight: 'calc(100dvh - var(--safe-top) - var(--safe-bottom) - 16px)',
                 }}
               >
                 {(title || showClose) && (
