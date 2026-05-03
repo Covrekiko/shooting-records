@@ -5,6 +5,7 @@ import { useTabHistory, getTabForPath, TAB_DEFAULT } from '../context/TabHistory
 import { useOffline } from '@/context/OfflineContext';
 import { useOuting } from '@/context/OutingContext';
 import { useModules } from '@/context/ModulesContext';
+import { useAuth } from '@/lib/AuthContext';
 
 const TABS = [
   { key: 'home',    label: 'Home',    icon: Home },
@@ -30,6 +31,7 @@ export default function MobileTabBar() {
   const { isOnline, isSyncing, hasPending, syncFailed, pendingCount, manualSync } = useOffline();
   const { activeOuting } = useOuting();
   const { isEnabled } = useModules();
+  const { isAuthenticated, isLoadingAuth, user } = useAuth();
 
   // Track path changes into tab history
   useEffect(() => {
@@ -37,7 +39,10 @@ export default function MobileTabBar() {
     if (tab) setLastPath(tab, location.pathname);
   }, [location.pathname, setLastPath]);
 
-  if (location.pathname === '/deer-stalking') return null;
+  const isPublicRoute = location.pathname === '/privacy-policy' || location.pathname === '/support';
+  const profileComplete = user?.profileComplete === true;
+
+  if (isLoadingAuth || !isAuthenticated || !profileComplete || isPublicRoute || location.pathname === '/deer-stalking') return null;
 
   const activeTab = getVisibleTab(location.pathname);
 
