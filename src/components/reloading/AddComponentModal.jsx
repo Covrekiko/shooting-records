@@ -53,14 +53,26 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
 
   const set = (k, v) => setFormData(f => ({ ...f, [k]: v }));
 
+  const toNumber = (value, fallback = 0) => {
+    if (value === '' || value === null || value === undefined) return fallback;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
+  const toInteger = (value, fallback = 0) => {
+    if (value === '' || value === null || value === undefined) return fallback;
+    const n = parseInt(value, 10);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
   const convertToGrams = (value, unit) => {
     const conversions = { grams: 1, kg: 1000, oz: 28.3495, lb: 453.592, grains: 0.06479891 };
     return value * (conversions[unit] || 1);
   };
 
   const handleSubmit = () => {
-    const qty = parseFloat(formData.quantity_total) || 0;
-    const price = parseFloat(formData.price_total) || 0;
+    const qty = toNumber(formData.quantity_total);
+    const price = toNumber(formData.price_total);
 
     let quantityTotal = qty;
     let quantityRemaining = qty;
@@ -82,7 +94,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
       brand: formData.brand,
       caliber: formData.caliber,
       bullet_name: formData.bullet_name,
-      weight: parseFloat(formData.weight) || null,
+      ...(formData.weight !== '' ? { weight: toNumber(formData.weight) } : {}),
       weight_unit: formData.weight_unit,
       quantity_total: quantityTotal,
       quantity_remaining: quantityRemaining,
@@ -109,9 +121,13 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
       componentData.fired_new_awaiting_cleaning_or_inspection = 0;
       componentData.fired_used_awaiting_cleaning_or_inspection = 0;
       componentData.retired_or_discarded = 0;
+      componentData.times_fired = 0;
+      componentData.times_reloaded = 0;
       componentData.reload_cycle_count = 0;
       componentData.lifetime_reload_count = 0;
-      componentData.anneal_count = 0;
+      componentData.max_reloads = 5;
+      componentData.reload_limit = 5;
+      componentData.anneal_count = toInteger(formData.anneal_count);
       componentData.last_annealed_date = '';
     }
 

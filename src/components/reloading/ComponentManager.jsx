@@ -89,6 +89,73 @@ export default function ComponentManager() {
     }
   };
 
+  const toNumber = (value, fallback = 0) => {
+    if (value === '' || value === null || value === undefined) return fallback;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
+  const toInteger = (value, fallback = 0) => {
+    if (value === '' || value === null || value === undefined) return fallback;
+    const n = parseInt(value, 10);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
+  const normalizeComponentPayload = (data) => {
+    const quantityTotal = toNumber(data.quantity_total);
+    const quantityRemaining = toNumber(data.quantity_remaining, quantityTotal);
+    const normalized = {
+      ...data,
+      quantity_total: quantityTotal,
+      quantity_remaining: quantityRemaining,
+      price_total: toNumber(data.price_total),
+      cost_per_unit: toNumber(data.cost_per_unit),
+      is_used_brass: data.is_used_brass === true,
+      available_to_reload: toNumber(data.available_to_reload),
+      available_new_unloaded: toNumber(data.available_new_unloaded),
+      available_used_recovered: toNumber(data.available_used_recovered),
+      currently_loaded: toNumber(data.currently_loaded),
+      currently_loaded_new: toNumber(data.currently_loaded_new),
+      currently_loaded_used: toNumber(data.currently_loaded_used),
+      fired_awaiting_cleaning_or_inspection: toNumber(data.fired_awaiting_cleaning_or_inspection),
+      fired_new_awaiting_cleaning_or_inspection: toNumber(data.fired_new_awaiting_cleaning_or_inspection),
+      fired_used_awaiting_cleaning_or_inspection: toNumber(data.fired_used_awaiting_cleaning_or_inspection),
+      retired_or_discarded: toNumber(data.retired_or_discarded),
+      first_use_cost_remaining_quantity: toNumber(data.first_use_cost_remaining_quantity),
+      cost_consumed_quantity: toNumber(data.cost_consumed_quantity),
+      max_reloads: toInteger(data.max_reloads, 5),
+      reload_limit: toInteger(data.reload_limit || data.max_reloads, 5),
+      times_fired: toInteger(data.times_fired),
+      times_reloaded: toInteger(data.times_reloaded),
+      reload_cycle_count: toInteger(data.reload_cycle_count || data.times_reloaded || data.times_fired),
+      lifetime_reload_count: toInteger(data.lifetime_reload_count),
+      anneal_count: toInteger(data.anneal_count),
+    };
+
+    if (normalized.component_type === 'brass') {
+      const currentCount = normalized.is_used_brass ? toInteger(data.times_fired || data.times_reloaded || data.reload_cycle_count) : 0;
+      normalized.total_owned = quantityTotal;
+      normalized.available_new_unloaded = normalized.is_used_brass ? 0 : quantityTotal;
+      normalized.available_used_recovered = normalized.is_used_brass ? quantityTotal : 0;
+      normalized.available_to_reload = quantityTotal;
+      normalized.first_use_cost_remaining_quantity = normalized.is_used_brass ? 0 : quantityTotal;
+      normalized.cost_consumed_quantity = normalized.is_used_brass ? quantityTotal : 0;
+      normalized.currently_loaded = 0;
+      normalized.currently_loaded_new = 0;
+      normalized.currently_loaded_used = 0;
+      normalized.fired_awaiting_cleaning_or_inspection = 0;
+      normalized.fired_new_awaiting_cleaning_or_inspection = 0;
+      normalized.fired_used_awaiting_cleaning_or_inspection = 0;
+      normalized.retired_or_discarded = 0;
+      normalized.times_fired = currentCount;
+      normalized.times_reloaded = currentCount;
+      normalized.reload_cycle_count = currentCount;
+      normalized.lifetime_reload_count = currentCount;
+    }
+
+    return normalized;
+  };
+
   const convertToGrams = (value, unit) => {
     const conversions = {
       'grams': 1,
@@ -125,7 +192,7 @@ export default function ComponentManager() {
         storageUnit = 'grams';
       }
 
-      const data = {
+      let data = normalizeComponentPayload({
         ...formData,
         name: displayName,
         quantity_total: quantityTotal,
@@ -133,7 +200,7 @@ export default function ComponentManager() {
         unit: storageUnit,
         price_total: parseFloat(formData.price_total),
         cost_per_unit: costPerUnit,
-      };
+      });
 
       if (data.component_type === 'brass' && !editingId) {
         data.is_used_brass = data.is_used_brass === true;
