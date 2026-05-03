@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Trash2, Edit2, ChevronDown, Download, Eye } from 'lucide-react';
+import { Plus, Trash2, Edit2, ChevronDown, FileText, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { searchCalibers } from '@/utils/caliberCatalog';
 import BrassLifecycleManager from './BrassLifecycleManager';
@@ -905,9 +905,9 @@ export default function ComponentManager() {
                              <button
                                onClick={() => downloadBrassBatchPdf(comp)}
                                className="w-9 h-9 flex items-center justify-center hover:bg-secondary rounded-lg transition-colors text-muted-foreground"
-                               title="Download batch report PDF"
+                               title="View batch report PDF"
                              >
-                               <Download className="w-4 h-4" />
+                               <FileText className="w-4 h-4" />
                              </button>
                            </>
                          )}

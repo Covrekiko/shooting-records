@@ -2,7 +2,7 @@ import jsPDF from 'jspdf';
 import { format } from 'date-fns';
 
 /**
- * Generate and download a PDF report for a single brass batch component.
+ * Generate and open a PDF report for a single brass batch component.
  * @param {object} brass - ReloadingComponent record (brass)
  */
 export function downloadBrassBatchPdf(brass) {
@@ -123,6 +123,8 @@ export function downloadBrassBatchPdf(brass) {
   doc.text(`Batch ID: ${brass.id || 'N/A'}`, margin, doc.internal.pageSize.getHeight() - 10);
   doc.text('Shooting Records App', pageW - margin, doc.internal.pageSize.getHeight() - 10, { align: 'right' });
 
-  const safeName = (brass.batch_number || brass.name || 'brass').replace(/[^a-z0-9]/gi, '_');
-  doc.save(`${safeName}.pdf`);
+  const pdfBlob = doc.output('blob');
+  const pdfUrl = URL.createObjectURL(pdfBlob);
+  window.open(pdfUrl, '_blank');
+  setTimeout(() => URL.revokeObjectURL(pdfUrl), 60000);
 }
