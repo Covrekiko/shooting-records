@@ -110,8 +110,14 @@ export default function ComponentManager() {
         cost_per_unit: costPerUnit,
       };
 
+      if (data.weight === '') {
+        delete data.weight;
+      } else {
+        data.weight = parseFloat(data.weight);
+      }
+
       if (editingId) {
-        await base44.entities.ReloadingComponent.update(editingId, {
+        const updateData = {
           component_type: data.component_type,
           name: data.name,
           quantity_total: data.quantity_total,
@@ -125,9 +131,10 @@ export default function ComponentManager() {
           caliber: data.caliber,
           brand: data.brand,
           bullet_name: data.bullet_name,
-          weight: data.weight,
           weight_unit: data.weight_unit,
-        });
+        };
+        if (data.weight !== undefined) updateData.weight = data.weight;
+        await base44.entities.ReloadingComponent.update(editingId, updateData);
       } else {
         await base44.entities.ReloadingComponent.create(data);
       }
