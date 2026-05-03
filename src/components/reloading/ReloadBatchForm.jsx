@@ -373,6 +373,24 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     setCaliberResults(results);
   };
 
+  const normalizeCaliber = (value = '') => String(value)
+    .toLowerCase()
+    .replace(/winchester/g, 'win')
+    .replace(/remington/g, 'rem')
+    .replace(/springfield/g, '')
+    .replace(/nato/g, '')
+    .replace(/[^a-z0-9.]+/g, '');
+
+  const matchesSelectedCaliber = (component) => {
+    const selected = normalizeCaliber(formData.caliber);
+    if (!selected) return true;
+    const componentCaliber = normalizeCaliber(component.caliber || component.name || '');
+    return componentCaliber === selected || componentCaliber.includes(selected) || selected.includes(componentCaliber);
+  };
+
+  const caliberFilteredBrass = components.brass.filter(matchesSelectedCaliber);
+  const caliberFilteredBullets = components.bullet.filter(matchesSelectedCaliber);
+
   const checkStockWarnings = () => {
     const cartridgesLoaded = parseInt(formData.cartridges_loaded) || 0;
     const warnings = {};
@@ -549,7 +567,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                 value={formData.caliber ?? ''}
                 onChange={(e) => {
                   const val = e.target.value;
-                  setFormData({ ...formData, caliber: val });
+                  setFormData({ ...formData, caliber: val, brass_id: '', used_brass_id: '', brass_is_used: false, bullet_id: '' });
                   handleCaliberSearch(val);
                   setShowCaliberDropdown(true);
                 }}
@@ -565,7 +583,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                       key={idx}
                       type="button"
                       onClick={() => {
-                        setFormData({ ...formData, caliber });
+                        setFormData({ ...formData, caliber, brass_id: '', used_brass_id: '', brass_is_used: false, bullet_id: '' });
                         setShowCaliberDropdown(false);
                         setCaliberResults([]);
                       }}
@@ -680,7 +698,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                 className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none flex-1"
               >
                 <option value="">— Select new brass —</option>
-                {components.brass.filter(b => getBrassState(b).available_to_reload > 0).map(b => {
+                {caliberFilteredBrass.filter(b => getBrassState(b).available_to_reload > 0).map(b => {
                   const state = getBrassState(b);
                   return <option key={b.id} value={b.id}>{b.name}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''}{b.caliber ? ` (${b.caliber})` : ''} — {state.available_new_unloaded} new + {state.available_used_recovered} recovered available (£{b.cost_per_unit.toFixed(4)}/new case)</option>;
                 })}
@@ -714,7 +732,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
             >
               <option value="">— Select used brass —</option>
-              {components.brass.filter(b => getBrassState(b).available_used_recovered > 0).map(b => {
+              {caliberFilteredBrass.filter(b => getBrassState(b).available_used_recovered > 0).map(b => {
                 const state = getBrassState(b);
                 return (
                 <option key={b.id} value={b.id}>
@@ -774,7 +792,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Bullet</label>
           <select value={formData.bullet_id ?? ''} onChange={(e) => setFormData({ ...formData, bullet_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required>
             <option value="">Select bullet</option>
-            {components.bullet.map(b => <option key={b.id} value={b.id}>{b.name}{b.weight ? ` ${b.weight}${b.weight_unit || 'gr'}` : ''}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''} - {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
+            {caliberFilteredBullets.map(b => <option key={b.id} value={b.id}>{b.name}{b.weight ? ` ${b.weight}${b.weight_unit || 'gr'}` : ''}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''} - {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
           </select>
           {stockWarnings.bullet && (
              <p className="text-xs font-semibold mt-2.5 text-destructive">{stockWarnings.bullet}</p>
