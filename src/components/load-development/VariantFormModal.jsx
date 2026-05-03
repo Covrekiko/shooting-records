@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import GlobalModal, { ModalSaveButton, ModalCancelButton } from '@/components/ui/GlobalModal.jsx';
-import PrimerDetailsCard from '@/components/reloading/PrimerDetailsCard';
 
 export default function VariantFormModal({ open, test, variant, variantCount, onClose, onSaved }) {
   const [components, setComponents] = useState({ powder: [], bullet: [], brass: [], primer: [] });
@@ -134,7 +133,7 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
         brass_lot_number: form.brass_lot_number,
         primer_brand: form.primer_brand,
         primer_component_id: form.primer_component_id,
-        primer_quantity_used: parseInt(form.primer_quantity_used) || 0,
+        primer_quantity_used: parseInt(form.round_count) || 0,
         primer_lot_number: form.primer_lot_number,
         seating_depth: form.seating_depth,
         coal_oal: form.coal_oal,
@@ -327,17 +326,6 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
                 <option key={c.id} value={c.id}>{c.name}{c.lot_number ? ` (Lot: ${c.lot_number})` : ''} ({c.quantity_remaining} remaining)</option>
               ))}
             </select>
-          </div>
-          <PrimerDetailsCard primer={components.primer.find(p => p.id === form.primer_component_id)} />
-          <div>
-            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Primer Brand / Model</label>
-            <input value={form.primer_brand ?? ''} onChange={e => set('primer_brand', e.target.value)} placeholder="e.g. CCI BR2"
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Quantity Used</label>
-            <input value={form.primer_quantity_used ?? ''} onChange={e => set('primer_quantity_used', e.target.value)} type="number" placeholder="20"
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
           </div>
           <div>
             <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Primer Lot / Batch Number</label>
