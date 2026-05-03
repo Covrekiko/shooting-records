@@ -25,6 +25,8 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
+import { getRepository } from '@/lib/offlineSupport';
+import { queueFieldCheckoutEffects } from '@/lib/offlineFieldSessions';
 
 export default function ClayShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -112,12 +114,12 @@ export default function ClayShooting() {
        try {
          const currentUser = await base44.auth.me();
          const [clubsList, shotgunsList, ammoList, activeSessions, standsList, allSessionsList] = await Promise.all([
-           base44.entities.Club.filter({ created_by: currentUser.email }),
-           base44.entities.Shotgun.filter({ created_by: currentUser.email }),
+           getRepository('Club').filter({ created_by: currentUser.email }),
+           getRepository('Shotgun').filter({ created_by: currentUser.email }),
            loadOwnedAmmunitionWithReloads(currentUser),
-           base44.entities.SessionRecord.filter({ created_by: currentUser.email, category: 'clay_shooting', status: 'active' }),
+           getRepository('SessionRecord').filter({ created_by: currentUser.email, category: 'clay_shooting', status: 'active' }),
            base44.entities.ClayStand.filter({ created_by: currentUser.email }),
-           base44.entities.SessionRecord.filter({ created_by: currentUser.email, category: 'clay_shooting', status: 'completed' }),
+           getRepository('SessionRecord').filter({ created_by: currentUser.email, category: 'clay_shooting', status: 'completed' }),
          ]);
          setClubs(clubsList);
          setShotguns(shotgunsList);
@@ -209,7 +211,7 @@ export default function ClayShooting() {
         category: 'clay_shooting',
       });
 
-      const session = await base44.entities.SessionRecord.create({
+      const session = await getRepository('SessionRecord').create({
         ...checkinData,
         category: 'clay_shooting',
         status: 'active',
@@ -219,6 +221,7 @@ export default function ClayShooting() {
         notes: checkinData.notes || '',
         photos: [],
         gps_track: [],
+        _offline_status: navigator.onLine ? 'synced' : 'pending_sync',
       });
       console.log('[CLAY CHECKIN DEBUG] session created =', session.id, session.status);
       setActiveSession(session);
@@ -231,6 +234,9 @@ export default function ClayShooting() {
       trackingService.startTracking(session.id, 'clay');
       console.log('[CLAY CHECKIN DEBUG] tracking started =', session.id);
       setShowCheckin(false);
+      if (!navigator.onLine) {
+        alert('Saved offline. This will sync when internet returns.');
+      }
       setCheckinData({ date: new Date().toISOString().split('T')[0], club_id: '', checkin_time: new Date().toTimeString().slice(0, 5), notes: '' });
     } catch (error) {
       console.error('Check-in failed:', error.message);
@@ -244,10 +250,6 @@ export default function ClayShooting() {
       return;
     }
     try {
-      if (!navigator.onLine) {
-        alert('This action requires internet connection to protect stock accuracy.');
-        return;
-      }
       // Collect GPS track BEFORE stopping tracking
       const finalTrack = trackingService.getTrack();
       if (finalTrack.length === 0) {
@@ -256,25 +258,25 @@ export default function ClayShooting() {
 
       // Update shotgun cartridge count using fresh DB value (not stale cache)
        const cartridgesFired = parseInt(formData.rounds_fired) || 0;
-       if (formData.shotgun_id && cartridgesFired > 0) {
-         // Fetch fresh shotgun from Base44 (don't use stale cache)
-         const freshShotgun = await base44.entities.Shotgun.get(formData.shotgun_id);
-         if (!freshShotgun) {
-           throw new Error('Shotgun not found. Cannot update Armory counter.');
-         }
+       if (navigator.onLine && formData.shotgun_id && cartridgesFired > 0) {
+        // Fetch fresh shotgun from Base44 (don't use stale cache)
+        const freshShotgun = await base44.entities.Shotgun.get(formData.shotgun_id);
+        if (!freshShotgun) {
+          throw new Error('Shotgun not found. Cannot update Armory counter.');
+        }
 
-         const before = Number(freshShotgun.total_cartridges_fired || 0);
-         const after = before + cartridgesFired;
+        const before = Number(freshShotgun.total_cartridges_fired || 0);
+        const after = before + cartridgesFired;
 
-         await base44.entities.Shotgun.update(formData.shotgun_id, {
-           total_cartridges_fired: after,
-         });
+        await base44.entities.Shotgun.update(formData.shotgun_id, {
+          total_cartridges_fired: after,
+        });
 
-         // Armory counter updated from fresh database value.
+        // Armory counter updated from fresh database value.
        }
 
       // Decrement ammo if needed — pass session ID for reliable restore on delete
-      if (formData.ammunition_id && formData.rounds_fired) {
+      if (navigator.onLine && formData.ammunition_id && formData.rounds_fired) {
         await decrementAmmoStock(formData.ammunition_id, parseInt(formData.rounds_fired), 'clay_shooting', activeSession.id);
       }
 
@@ -286,7 +288,7 @@ export default function ClayShooting() {
       let updateError = null;
       for (let attempt = 1; attempt <= 2; attempt++) {
         try {
-          await base44.entities.SessionRecord.update(activeSession.id, {
+          await getRepository('SessionRecord').update(activeSession.id, {
             status: 'completed',
             checkout_time: formData.checkout_time || new Date().toTimeString().slice(0, 5),
             shotgun_id: formData.shotgun_id,
@@ -297,6 +299,7 @@ export default function ClayShooting() {
             photos: photoUrls,
             active_checkin: false,
             gps_track: finalTrack,
+            _offline_status: navigator.onLine ? 'synced' : 'pending_sync',
           });
           if (finalTrack.length > 0) {
             console.log('[GPS DEBUG] record linked to route', { recordId: activeSession.id, pointsSaved: finalTrack.length });
@@ -314,6 +317,16 @@ export default function ClayShooting() {
 
       if (!updateSuccess) {
         throw new Error('Failed to save session after 2 attempts: ' + updateError?.message);
+      }
+
+      if (!navigator.onLine) {
+        await queueFieldCheckoutEffects({
+          recordId: activeSession.id,
+          category: 'clay_shooting',
+          ammoUsages: formData.ammunition_id && cartridgesFired > 0 ? [{ ammunition_id: formData.ammunition_id, quantity: cartridgesFired }] : [],
+          shotgunUpdates: formData.shotgun_id && cartridgesFired > 0 ? [{ shotgun_id: formData.shotgun_id, rounds: cartridgesFired }] : [],
+        });
+        alert('Checkout saved offline. Ammunition and armory updates will sync when internet returns.');
       }
 
       // Only stop tracking AFTER successful database save

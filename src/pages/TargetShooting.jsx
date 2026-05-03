@@ -27,6 +27,8 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
+import { getRepository } from '@/lib/offlineSupport';
+import { queueFieldCheckoutEffects } from '@/lib/offlineFieldSessions';
 
 export default function TargetShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -111,10 +113,10 @@ export default function TargetShooting() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
         const [clubsList, riflesList, ammoList, activeSession] = await Promise.all([
-          base44.entities.Club.filter({ created_by: currentUser.email }),
-          base44.entities.Rifle.filter({ created_by: currentUser.email }),
+          getRepository('Club').filter({ created_by: currentUser.email }),
+          getRepository('Rifle').filter({ created_by: currentUser.email }),
           loadOwnedAmmunitionWithReloads(currentUser),
-          base44.entities.SessionRecord.filter({ created_by: currentUser.email, category: 'target_shooting', status: 'active' }),
+          getRepository('SessionRecord').filter({ created_by: currentUser.email, category: 'target_shooting', status: 'active' }),
         ]);
         setClubs(clubsList);
         setRifles(riflesList);
@@ -188,7 +190,7 @@ export default function TargetShooting() {
       }
 
       const selectedClub = clubs.find(c => c.id === checkinData.club_id);
-      const session = await base44.entities.SessionRecord.create({
+      const session = await getRepository('SessionRecord').create({
         ...checkinData,
         category: 'target_shooting',
         status: 'active',
@@ -196,9 +198,10 @@ export default function TargetShooting() {
         location_name: selectedClub?.name || 'Unknown Club',
         club_name: selectedClub?.name || 'Unknown Club',
         start_time: checkinData.checkin_time,
-        notes: checkinData.notes || '',
+        notes: '',
         photos: [],
         gps_track: [],
+        _offline_status: navigator.onLine ? 'synced' : 'pending_sync',
       });
       setActiveSession(session);
 
@@ -210,6 +213,9 @@ export default function TargetShooting() {
       trackingService.startTracking(session.id, 'target');
       setGpsTrack([]);
       setShowCheckin(false);
+      if (!navigator.onLine) {
+        alert('Saved offline. This will sync when internet returns.');
+      }
       setCheckinData({ date: new Date().toISOString().split('T')[0], club_id: '', checkin_time: new Date().toTimeString().slice(0, 5), notes: '' });
       } catch (error) {
       alert('Check-in failed: ' + (error.message || 'Unknown error'));
@@ -222,10 +228,6 @@ export default function TargetShooting() {
       return;
     }
     try {
-      if (!navigator.onLine) {
-        alert('This action requires internet connection to protect stock accuracy.');
-        return;
-      }
       // Collect GPS track BEFORE stopping tracking
       const finalTrack = trackingService.getTrack();
       if (finalTrack.length === 0) {
@@ -240,18 +242,20 @@ export default function TargetShooting() {
 
         // Update rifle total using fresh fetch (don't use stale cache)
         if (rifle.rifle_id && roundsFired > 0) {
-          // Fetch fresh rifle from Base44 (don't use stale cache)
-          const freshRifle = await base44.entities.Rifle.get(rifle.rifle_id);
-          if (!freshRifle) {
-            throw new Error(`Rifle ${rifle.rifle_id} not found. Cannot update Armory counter.`);
+          if (navigator.onLine) {
+            // Fetch fresh rifle from Base44 (don't use stale cache)
+            const freshRifle = await base44.entities.Rifle.get(rifle.rifle_id);
+            if (!freshRifle) {
+              throw new Error(`Rifle ${rifle.rifle_id} not found. Cannot update Armory counter.`);
+            }
+
+            const before = Number(freshRifle.total_rounds_fired || 0);
+            const after = before + roundsFired;
+
+            await base44.entities.Rifle.update(rifle.rifle_id, {
+              total_rounds_fired: after,
+            });
           }
-
-          const before = Number(freshRifle.total_rounds_fired || 0);
-          const after = before + roundsFired;
-
-          await base44.entities.Rifle.update(rifle.rifle_id, {
-            total_rounds_fired: after,
-          });
 
         }
 
@@ -262,8 +266,10 @@ export default function TargetShooting() {
       }
 
       // Decrement each unique ammo entry once with the total rounds used
-      for (const [ammoId, totalRounds] of Object.entries(ammoTotals)) {
-        await decrementAmmoStock(ammoId, totalRounds, 'target_shooting', activeSession.id);
+      if (navigator.onLine) {
+        for (const [ammoId, totalRounds] of Object.entries(ammoTotals)) {
+          await decrementAmmoStock(ammoId, totalRounds, 'target_shooting', activeSession.id);
+        }
       }
 
       // Prepare data
@@ -281,7 +287,7 @@ export default function TargetShooting() {
       let updateError = null;
       for (let attempt = 1; attempt <= 2; attempt++) {
         try {
-          await base44.entities.SessionRecord.update(activeSession.id, {
+          await getRepository('SessionRecord').update(activeSession.id, {
             status: 'completed',
             checkout_time: formData.checkout_time,
             rifles_used: formData.rifles_used,
@@ -293,6 +299,7 @@ export default function TargetShooting() {
             photos: photoUrls,
             active_checkin: false,
             gps_track: finalTrack,
+            _offline_status: navigator.onLine ? 'synced' : 'pending_sync',
           });
           updateSuccess = true;
           break;
@@ -307,6 +314,16 @@ export default function TargetShooting() {
 
       if (!updateSuccess) {
         throw new Error('Failed to save session after 2 attempts: ' + updateError?.message);
+      }
+
+      if (!navigator.onLine) {
+        await queueFieldCheckoutEffects({
+          recordId: activeSession.id,
+          category: 'target_shooting',
+          ammoUsages: Object.entries(ammoTotals).map(([ammunition_id, quantity]) => ({ ammunition_id, quantity })),
+          rifleUpdates: (formData.rifles_used || []).map((rifle) => ({ rifle_id: rifle.rifle_id, rounds: parseInt(rifle.rounds_fired) || 0 })).filter((entry) => entry.rifle_id && entry.rounds > 0),
+        });
+        alert('Checkout saved offline. Ammunition and armory updates will sync when internet returns.');
       }
 
       // Only stop tracking AFTER successful database save

@@ -70,10 +70,6 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   const totalCount = formData.species_list.reduce((sum, s) => sum + (parseInt(s.count) || 0), 0);
 
   const handleSubmit = () => {
-    if (!navigator.onLine) {
-      alert('This action requires internet connection to protect stock accuracy.');
-      return;
-    }
     // rounds_fired defaults to total animal count if not explicitly entered
     const roundsFired = formData.shot_anything
       ? (parseInt(formData.rounds_fired) > 0 ? parseInt(formData.rounds_fired) : totalCount)

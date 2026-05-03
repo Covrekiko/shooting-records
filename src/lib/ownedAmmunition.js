@@ -1,9 +1,9 @@
-import { base44 } from '@/api/base44Client';
+import { getRepository } from '@/lib/offlineSupport';
 
 export async function loadOwnedAmmunitionWithReloads(currentUser) {
   const [ammunition = [], reloadSessions = []] = await Promise.all([
-    base44.entities.Ammunition.list('-updated_date', 500),
-    base44.entities.ReloadingSession.filter({ created_by: currentUser.email }),
+    getRepository('Ammunition').list('-updated_date', 500),
+    getRepository('ReloadingSession').filter({ created_by: currentUser.email }),
   ]);
 
   const reloadSessionIds = new Set(reloadSessions.map(session => session.id));

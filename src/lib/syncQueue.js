@@ -112,12 +112,76 @@ function getEntitySDK(entityName) {
   return base44.entities[entityName];
 }
 
+function remapIds(value, idMap) {
+  if (!value || Object.keys(idMap).length === 0) return value;
+  if (typeof value === 'string') return idMap[value] || value;
+  if (Array.isArray(value)) return value.map((item) => remapIds(item, idMap));
+  if (typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, val]) => [key, remapIds(val, idMap)]));
+  }
+  return value;
+}
+
+async function processFieldCheckoutEffects(entry) {
+  const { decrementAmmoStock } = await import('./ammoUtils');
+  const payload = entry.payload || {};
+  const recordId = payload.recordId;
+  const transactionId = entry.transactionId;
+
+  if (!recordId) return { success: false, error: 'Missing field record id' };
+
+  const record = await base44.entities.SessionRecord.get(recordId).catch(() => null);
+  if (record?._field_effects_applied_transaction_id === transactionId) {
+    return { success: true, alreadySynced: true, serverRecord: record };
+  }
+
+  for (const usage of payload.ammoUsages || []) {
+    if (!usage.ammunition_id || !usage.quantity) continue;
+    const ammo = await base44.entities.Ammunition.get(usage.ammunition_id);
+    if ((ammo.quantity_in_stock || 0) < usage.quantity) {
+      return { success: false, conflict: true, error: 'Stock changed while offline. Please review this pending record.' };
+    }
+  }
+
+  for (const rifleUpdate of payload.rifleUpdates || []) {
+    if (!rifleUpdate.rifle_id || !rifleUpdate.rounds) continue;
+    const rifle = await base44.entities.Rifle.get(rifleUpdate.rifle_id);
+    await base44.entities.Rifle.update(rifleUpdate.rifle_id, {
+      total_rounds_fired: Number(rifle.total_rounds_fired || 0) + Number(rifleUpdate.rounds || 0),
+    });
+  }
+
+  for (const shotgunUpdate of payload.shotgunUpdates || []) {
+    if (!shotgunUpdate.shotgun_id || !shotgunUpdate.rounds) continue;
+    const shotgun = await base44.entities.Shotgun.get(shotgunUpdate.shotgun_id);
+    await base44.entities.Shotgun.update(shotgunUpdate.shotgun_id, {
+      total_cartridges_fired: Number(shotgun.total_cartridges_fired || 0) + Number(shotgunUpdate.rounds || 0),
+    });
+  }
+
+  for (const usage of payload.ammoUsages || []) {
+    if (!usage.ammunition_id || !usage.quantity) continue;
+    await decrementAmmoStock(usage.ammunition_id, usage.quantity, payload.category, recordId);
+  }
+
+  await base44.entities.SessionRecord.update(recordId, {
+    _field_effects_applied_transaction_id: transactionId,
+    _offline_status: 'synced',
+  }).catch(() => {});
+
+  return { success: true, serverRecord: { id: recordId } };
+}
+
 /**
  * Process a single queue entry against the server.
  * IDEMPOTENCY: Includes transactionId in payload to detect and skip duplicate syncs.
  * Returns { success, serverRecord, error, alreadySynced }.
  */
 async function processSyncEntry(entry) {
+  if (entry.entityName === 'FieldCheckoutEffects') {
+    return processFieldCheckoutEffects(entry);
+  }
+
   const sdk = getEntitySDK(entry.entityName);
   if (!sdk) {
     return { success: false, error: `Unknown entity: ${entry.entityName}` };
@@ -184,6 +248,7 @@ export async function runSync(onProgress) {
   let failed = 0;
   let conflicts = 0;
   let expired = 0;
+  const idMap = {};
 
   for (const entry of queue) {
     // Skip expired entries (shouldn't happen after getPendingQueue filters, but double-check)
@@ -197,12 +262,21 @@ export async function runSync(onProgress) {
     const updatedEntry = { ...entry, status: SYNC_STATUS.SYNCING, lastAttemptTime: Date.now() };
     await offlineDB.put('sync_queue', updatedEntry);
 
-    const result = await processSyncEntry(updatedEntry);
+    const entryToProcess = {
+      ...updatedEntry,
+      localId: idMap[updatedEntry.localId] || updatedEntry.localId,
+      payload: remapIds(updatedEntry.payload, idMap),
+    };
+
+    const result = await processSyncEntry(entryToProcess);
 
     if (result.success) {
       synced++;
       // If it was a CREATE, update local store with server id
       if (entry.action === SYNC_ACTIONS.CREATE && result.serverRecord) {
+        if (entry.localId && result.serverRecord.id) {
+          idMap[entry.localId] = result.serverRecord.id;
+        }
         const { ENTITY_STORE_MAP } = await import('./offlineDB');
             const storeName = ENTITY_STORE_MAP[entry.entityName];
             if (storeName && result.serverRecord) {

@@ -15,6 +15,8 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
+import { getRepository } from '@/lib/offlineSupport';
+import { queueFieldCheckoutEffects } from '@/lib/offlineFieldSessions';
 
 let liveGpsTrack = [];
 
@@ -42,8 +44,8 @@ export default function DeerManagement() {
     try {
         const currentUser = await base44.auth.me();
         const [areasList, riflesList, ammoList] = await Promise.all([
-          base44.entities.Area.filter({ created_by: currentUser.email }),
-          base44.entities.Rifle.filter({ created_by: currentUser.email }),
+          getRepository('Area').filter({ created_by: currentUser.email }),
+          getRepository('Rifle').filter({ created_by: currentUser.email }),
           loadOwnedAmmunitionWithReloads(currentUser),
         ]);
         setAreas(areasList);
@@ -102,6 +104,9 @@ export default function DeerManagement() {
       }
 
       setShowCheckin(false);
+      if (!navigator.onLine) {
+        alert('Saved offline. This will sync when internet returns.');
+      }
       setCheckinData({ date: new Date().toISOString().split('T')[0], location_id: '', place_name: '', start_time: new Date().toTimeString().slice(0, 5), share_outing_with_owner: false, share_live_location: false });
     } catch (error) {
       console.error('Check-in failed:', error.message);
@@ -112,10 +117,6 @@ export default function DeerManagement() {
   const handleCheckout = async (checkoutData) => {
     if (!activeOuting) { alert('No active outing to check out from'); return; }
     try {
-      if (!navigator.onLine) {
-        alert('This action requires internet connection to protect stock accuracy.');
-        return;
-      }
       // Collect GPS track BEFORE stopping tracking
       const finalTrack = trackingService.getTrack();
       console.log('🟢 Checkout: Collected', finalTrack.length, 'GPS points before stop');
@@ -130,25 +131,27 @@ export default function DeerManagement() {
         console.log('[DEER ARMORY DEBUG] rifle_id =', checkoutData.rifle_id);
         console.log('[DEER ARMORY DEBUG] roundsFired =', roundsFired);
 
-        // Fetch fresh rifle from Base44 (don't use stale cache)
-        const freshRifle = await base44.entities.Rifle.get(checkoutData.rifle_id);
-        if (!freshRifle) {
-          throw new Error('Rifle not found. Cannot update Armory counter.');
+        if (navigator.onLine) {
+          // Fetch fresh rifle from Base44 (don't use stale cache)
+          const freshRifle = await base44.entities.Rifle.get(checkoutData.rifle_id);
+          if (!freshRifle) {
+            throw new Error('Rifle not found. Cannot update Armory counter.');
+          }
+
+          const before = Number(freshRifle.total_rounds_fired || 0);
+          const after = before + roundsFired;
+
+          console.log('[DEER ARMORY DEBUG] before =', before);
+          console.log('[DEER ARMORY DEBUG] after =', after);
+
+          await base44.entities.Rifle.update(checkoutData.rifle_id, {
+            total_rounds_fired: after,
+          });
+
+          // Verify update succeeded
+          const verify = await base44.entities.Rifle.get(checkoutData.rifle_id);
+          console.log('[DEER ARMORY DEBUG] verify =', verify.total_rounds_fired);
         }
-
-        const before = Number(freshRifle.total_rounds_fired || 0);
-        const after = before + roundsFired;
-
-        console.log('[DEER ARMORY DEBUG] before =', before);
-        console.log('[DEER ARMORY DEBUG] after =', after);
-
-        await base44.entities.Rifle.update(checkoutData.rifle_id, {
-          total_rounds_fired: after,
-        });
-
-        // Verify update succeeded
-        const verify = await base44.entities.Rifle.get(checkoutData.rifle_id);
-        console.log('[DEER ARMORY DEBUG] verify =', verify.total_rounds_fired);
       }
 
       // Prepare data first — determine if anything was shot before touching stock
@@ -163,12 +166,22 @@ export default function DeerManagement() {
       }
 
       // Decrement ammo only if something was actually shot
-      if (checkoutData.shot_anything && checkoutData.ammunition_id && roundsFired > 0) {
+      if (navigator.onLine && checkoutData.shot_anything && checkoutData.ammunition_id && roundsFired > 0) {
         await decrementAmmoStock(checkoutData.ammunition_id, roundsFired, 'deer_management', activeOuting.id);
       }
 
       // Save to database FIRST, then stop tracking
-      await endOutingWithData(activeOuting.id, submitData, finalTrack);
+      const completedRecordId = await endOutingWithData(activeOuting.id, submitData, finalTrack);
+
+      if (!navigator.onLine) {
+        await queueFieldCheckoutEffects({
+          recordId: completedRecordId || activeOuting.id,
+          category: 'deer_management',
+          ammoUsages: checkoutData.shot_anything && checkoutData.ammunition_id && roundsFired > 0 ? [{ ammunition_id: checkoutData.ammunition_id, quantity: roundsFired }] : [],
+          rifleUpdates: checkoutData.shot_anything && checkoutData.rifle_id && roundsFired > 0 ? [{ rifle_id: checkoutData.rifle_id, rounds: roundsFired }] : [],
+        });
+        alert('Checkout saved offline. Ammunition and armory updates will sync when internet returns.');
+      }
       
       console.log('🟢 Checkout complete - tracking saved successfully');
       

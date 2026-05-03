@@ -7,6 +7,7 @@ import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
 import { getRecordsPdfBlob, exportRecordsToPdf } from '@/utils/recordsPdfExport';
 import MobilePdfViewer from '@/components/MobilePdfViewer';
 import { resolveClayClubName, getClayScoreSummary, buildClayScoreCardData, calculateDuration, normalizePhotos } from '@/lib/claySessionUtils';
+import { isPendingOfflineRecord } from '@/lib/offlineFieldSessions';
 
 export default function RecordsSection({ category, title, emptyMessage = 'No records yet', onRecordDeleted, showTargetAnalysis = false }) {
    const [records, setRecords] = useState([]);
@@ -145,11 +146,16 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
         <div key={record.id} className="bg-card border border-border rounded-lg p-4 hover:shadow-md transition-shadow">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-sm">
-                {isClay
-                  ? `Clay Shooting - ${scoreSummary ? scoreSummary.label : `${record.rounds_fired || 0} cartridges`}`
-                  : clubName}
-              </p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-semibold text-sm">
+                  {isClay
+                    ? `Clay Shooting - ${scoreSummary ? scoreSummary.label : `${record.rounds_fired || 0} cartridges`}`
+                    : clubName}
+                </p>
+                {isPendingOfflineRecord(record) && (
+                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wide">Pending sync</span>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 {format(new Date(record.date), 'MMM d, yyyy')} at {record.checkin_time || record.start_time}
               </p>

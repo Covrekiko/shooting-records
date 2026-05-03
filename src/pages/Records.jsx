@@ -14,6 +14,7 @@ import { exportRecordsToPdf, getRecordsPdfBlob } from '@/utils/recordsPdfExport'
 import { DESIGN } from '@/lib/designConstants';
 import RecordDetailModal from '@/components/RecordDetailModal';
 import ProfileBackLink from '@/components/ProfileBackLink';
+import { isPendingOfflineRecord } from '@/lib/offlineFieldSessions';
 
 export default function Records() {
   const [allRecords, setAllRecords] = useState([]);
@@ -160,7 +161,7 @@ export default function Records() {
 
   const handleSaveManualRecord = async (data, recordType, recordId) => {
     try {
-      if (!navigator.onLine) {
+      if (!navigator.onLine && recordId) {
         alert('This action requires internet connection to protect stock accuracy.');
         return;
       }
@@ -197,7 +198,13 @@ export default function Records() {
         setAllRecords(allRecords.map(r => r.id === recordId ? { ...r, ...recordData, recordType } : r));
       } else {
         // Create new manual record — no ammo deduction (manual records are historical logs)
-        const newRecord = await base44.entities.SessionRecord.create(recordData);
+        const newRecord = await getRepository('SessionRecord').create({
+          ...recordData,
+          _offline_status: navigator.onLine ? 'synced' : 'pending_sync',
+        });
+        if (!navigator.onLine) {
+          alert('Saved offline. This will sync when internet returns.');
+        }
         setAllRecords([{ ...newRecord, recordType }, ...allRecords]);
       }
     } catch (error) {
@@ -371,7 +378,12 @@ function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, o
     <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-lg break-words" style={{ overflowWrap: 'anywhere' }}>{getRecordTitle()}</h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="font-semibold text-lg break-words" style={{ overflowWrap: 'anywhere' }}>{getRecordTitle()}</h3>
+            {isPendingOfflineRecord(record) && (
+              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wide">Pending sync</span>
+            )}
+          </div>
           <p className="text-sm text-muted-foreground mb-2">{record.date} • {getBadgeLabel(record.recordType)}</p>
           <p className="text-sm text-muted-foreground">{resolveLocationName()}</p>
         </div>

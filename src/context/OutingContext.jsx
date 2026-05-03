@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { trackingService } from '@/lib/trackingService';
 import { offlineDB } from '@/lib/offlineDB';
+import { getRepository } from '@/lib/offlineSupport';
+import { queueFieldCheckoutEffects } from '@/lib/offlineFieldSessions';
 
 const defaultOutingContext = {
   activeOuting: null,
@@ -108,7 +110,7 @@ export function OutingProvider({ children }) {
        const currentUser = await base44.auth.me();
 
        let sharedClientLog = null;
-       if (data.share_outing_with_owner && data.area_share_id && data.shared_owner_email) {
+       if (navigator.onLine && data.share_outing_with_owner && data.area_share_id && data.shared_owner_email) {
          sharedClientLog = await base44.entities.SharedClientOutingLog.create({
            area_share_id: data.area_share_id,
            owner_email: data.shared_owner_email,
@@ -125,7 +127,7 @@ export function OutingProvider({ children }) {
        }
 
        // Create DeerOuting (map system) - primary record with area_id link
-       const outing = await base44.entities.DeerOuting.create({
+       const outing = await getRepository('DeerOuting').create({
          location_name: data.place_name || data.location_name || '',
          area_id: data.location_id || data.area_id || '',
          start_time: isoDateTime,
@@ -138,6 +140,7 @@ export function OutingProvider({ children }) {
          share_outing_with_owner: data.share_outing_with_owner === true,
          share_live_location: data.share_live_location === true,
          shared_client_log_id: sharedClientLog?.id || '',
+         _offline_status: navigator.onLine ? 'synced' : 'pending_sync',
        });
 
        console.log('🟢 CHECK IN SAVE SUCCESS - DeerOuting created with ID:', outing.id, 'areaId:', outing.area_id, 'start_time:', isoDateTime);
@@ -147,7 +150,7 @@ export function OutingProvider({ children }) {
        const srLocationId = data.location_id || data.area_id;
        const srLocationName = data.place_name || data.location_name;
        if (srLocationName && srLocationId) {
-         const sr = await base44.entities.SessionRecord.create({
+         const sr = await getRepository('SessionRecord').create({
            category: 'deer_management',
            date: isoDate,
            location_id: srLocationId,
@@ -159,6 +162,7 @@ export function OutingProvider({ children }) {
            gps_track: [],
            checkin_time: isoTime,
            outing_id: outing.id,
+           _offline_status: navigator.onLine ? 'synced' : 'pending_sync',
          });
          console.log('🟢 SessionRecord created with ID:', sr.id, 'location_id:', sr.location_id, 'outing_id:', outing.id);
        }
@@ -213,7 +217,10 @@ export function OutingProvider({ children }) {
               active: false,
               gps_track: gpsTrack || [],
             };
-            await base44.entities.DeerOuting.update(outingId, updateOutingPayload);
+            await getRepository('DeerOuting').update(outingId, {
+              ...updateOutingPayload,
+              _offline_status: navigator.onLine ? 'synced' : 'pending_sync',
+            });
             console.log('🟢 DeerOuting updated and closed - ID:', outingId, 'GPS points saved:', gpsTrack?.length || 0);
             outingUpdateSuccess = true;
             break;
@@ -247,7 +254,8 @@ export function OutingProvider({ children }) {
         }
 
         // Update SessionRecord with checkout data - find by explicit outing_id link
-        const sessionRecords = await base44.entities.SessionRecord.filter({
+        let completedRecordId = null;
+        const sessionRecords = await getRepository('SessionRecord').filter({
           created_by: currentUser.email,
           category: 'deer_management',
           outing_id: outingId,
@@ -284,7 +292,10 @@ export function OutingProvider({ children }) {
           let srUpdateError = null;
           for (let attempt = 1; attempt <= 2; attempt++) {
             try {
-              await base44.entities.SessionRecord.update(srId, updateSrPayload);
+              await getRepository('SessionRecord').update(srId, {
+                ...updateSrPayload,
+                _offline_status: navigator.onLine ? 'synced' : 'pending_sync',
+              });
               console.log('🟢 SessionRecord updated and closed - ID:', srId, 'new status: completed');
               srUpdateSuccess = true;
               break;
@@ -300,6 +311,7 @@ export function OutingProvider({ children }) {
           if (!srUpdateSuccess) {
             throw new Error('Failed to update SessionRecord after 2 attempts: ' + srUpdateError?.message);
           }
+          completedRecordId = srId;
         } else {
           console.warn('⚠️ No SessionRecord found for outing:', outingId, 'creating completed record');
           const endTimeStr = new Date().toTimeString().slice(0, 5);
@@ -310,7 +322,7 @@ export function OutingProvider({ children }) {
             ? (parseInt(checkoutData.rounds_fired) > 0 ? parseInt(checkoutData.rounds_fired) : parseInt(checkoutData.total_count || 0))
             : 0;
 
-          await base44.entities.SessionRecord.create({
+          const createdSessionRecord = await getRepository('SessionRecord').create({
             category: 'deer_management',
             title: activeOuting?.location_name || checkoutData.place_name || 'Deer Management Outing',
             date: dateStr,
@@ -332,7 +344,9 @@ export function OutingProvider({ children }) {
             rifle_id: checkoutData.shot_anything ? (checkoutData.rifle_id || null) : null,
             ammunition_used: checkoutData.shot_anything ? (checkoutData.ammunition_used || null) : null,
             ammunition_id: checkoutData.shot_anything ? (checkoutData.ammunition_id || null) : null,
+            _offline_status: navigator.onLine ? 'synced' : 'pending_sync',
           });
+          completedRecordId = createdSessionRecord.id;
         }
 
         setActiveOuting(null);
@@ -341,6 +355,7 @@ export function OutingProvider({ children }) {
 
         // Stop GPS tracking after successful checkout
         trackingService.stopTracking();
+        return completedRecordId;
         } catch (error) {
         console.error('🔴 Error ending outing with data:', error.message, error.status, error.response?.data);
         throw error;
