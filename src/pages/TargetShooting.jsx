@@ -11,6 +11,7 @@ import { Plus, Map, Crosshair, ScanLine, Microscope, Calculator, Calendar, MapPi
 import { Link } from 'react-router-dom';
 import BallisticCalculator from '@/components/target-analysis/BallisticCalculator';
 import { decrementAmmoStock, refundAmmoForRecord, getSelectableAmmunition } from '@/lib/ammoUtils';
+import { formatAmmunitionLabel } from '@/utils/ammoLabels';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
@@ -726,7 +727,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                         const a = ammunition.find(x => x.id === val);
                         setData(prev => {
                           const updated = [...prev.rifles_used];
-                          updated[index] = { ...updated[index], ammunition_id: val, ammunition_brand: a?.brand || '', caliber: a?.caliber || '', bullet_type: a?.bullet_type || '', grain: a?.grain || '' };
+                          updated[index] = { ...updated[index], ammunition_id: val, ammunition_brand: formatAmmunitionLabel(a), caliber: a?.caliber || '', bullet_type: a?.bullet_type || '', grain: a?.grain || '' };
                           return { ...prev, rifles_used: updated };
                         });
                       }}
@@ -737,7 +738,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                         const selectedRifle = rifles.find(r => r.id === rifle.rifle_id);
                         return getSelectableAmmunition(ammunition, selectedRifle?.caliber || '').map(a => (
                           <option key={a.id} value={a.id}>
-                            {`${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.ammo_type === 'reloaded' ? ' [Reloaded]' : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}`}
+                            {formatAmmunitionLabel(a)}
                           </option>
                         ));
                       })()}

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
+import { formatAmmunitionLabel } from '@/utils/ammoLabels';
 
 export default function AddRifleForm({ rifles, ammunition, formData, setFormData }) {
   const [showForm, setShowForm] = useState(false);
@@ -15,7 +16,7 @@ export default function AddRifleForm({ rifles, ammunition, formData, setFormData
 
     const selectedRifle = rifles[rifle];
     const selectedAmmo = ammoId ? ammunition.find(a => a.id === ammoId) : null;
-    const ammoBrand = selectedAmmo?.brand || ammoManual;
+    const ammoBrand = selectedAmmo ? formatAmmunitionLabel(selectedAmmo) : ammoManual;
 
     const newRifle = {
       rifle_id: rifle,
@@ -93,7 +94,7 @@ export default function AddRifleForm({ rifles, ammunition, formData, setFormData
               value={ammoId}
               onChange={setAmmoId}
               placeholder="Select saved ammunition"
-              options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}` }))}
+              options={ammunition.map(a => ({ value: a.id, label: formatAmmunitionLabel(a) }))}
             />
             {!ammoId && (
               <>

@@ -7,6 +7,7 @@ import AddRifleForm from './AddRifleForm';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import NumberInput from '@/components/ui/NumberInput.jsx';
+import { formatAmmunitionLabel } from '@/utils/ammoLabels';
 
 async function handlePhotoUpload(files, data, setFormData) {
   if (!files || files.length === 0) return;
@@ -355,11 +356,11 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                       setFormData(prev => ({
                         ...prev,
                         ammunition_id: val,
-                        ammunition_used: selectedAmmo ? `${selectedAmmo.brand}${selectedAmmo.caliber ? ` ${selectedAmmo.caliber}` : ''}`.trim() : prev.ammunition_used,
+                        ammunition_used: selectedAmmo ? formatAmmunitionLabel(selectedAmmo) : prev.ammunition_used,
                       }));
                     }}
                     placeholder="Select saved ammunition"
-                    options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}` }))}
+                    options={ammunition.map(a => ({ value: a.id, label: formatAmmunitionLabel(a) }))}
                   />
                 </div>
               </div>
@@ -453,11 +454,11 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
                     setFormData(prev => ({
                       ...prev,
                       ammunition_id: val,
-                      ammunition_used: selectedAmmo ? `${selectedAmmo.brand} ${selectedAmmo.caliber || ''} ${selectedAmmo.bullet_type || ''}`.trim() : prev.ammunition_used,
+                      ammunition_used: selectedAmmo ? formatAmmunitionLabel(selectedAmmo) : prev.ammunition_used,
                     }));
                   }}
                   placeholder="Select saved ammunition"
-                  options={ammunition.map(a => ({ value: a.id, label: `${a.brand}${a.caliber ? ` (${a.caliber})` : ''}${a.bullet_type ? ` - ${a.bullet_type}` : ''}` }))}
+                  options={ammunition.map(a => ({ value: a.id, label: formatAmmunitionLabel(a) }))}
                 />
                 <span className="text-xs text-muted-foreground">Or enter manually:</span>
                 <input
