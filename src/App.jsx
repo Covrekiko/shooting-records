@@ -51,6 +51,8 @@ import BetaFeedback from './pages/BetaFeedback';
 import BetaTesters from './pages/admin/BetaTesters';
 import BetaFeedbackAdmin from './pages/admin/BetaFeedbackAdmin';
 
+console.log('[ROUTE_DEBUG] App.jsx loaded - redirect debug version ACTIVE');
+
 // Sync dark mode with system preference
 function ThemeSync() {
   useEffect(() => {
@@ -92,10 +94,11 @@ function AnimatedRoutes({ children }) {
 }
 
 const AuthenticatedApp = () => {
+  const location = useLocation();
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user, refreshUser } = useAuth();
   const { enabledModules, loading: modulesLoading, saveModules } = useModules();
   const loginRedirectedRef = useRef(false);
-  const authRedirectStorageKey = `shooting_records_auth_redirect:${window.location.pathname}`;
+  const authRedirectStorageKey = `shooting_records_auth_redirect:${location.pathname}`;
 
   useEffect(() => {
     if (user) {
@@ -104,13 +107,37 @@ const AuthenticatedApp = () => {
   }, [user, authRedirectStorageKey]);
 
   useEffect(() => {
+    const routeDebugState = {
+      pathname: location.pathname,
+      authLoading: isLoadingAuth,
+      profileLoading: false,
+      publicSettingsLoading: isLoadingPublicSettings,
+      modulesLoading,
+      userExists: Boolean(user),
+      profileExists: Boolean(user),
+      profileComplete: user?.profileComplete === true,
+      authErrorType: authError?.type || null,
+      redirectTarget: authError?.type === 'auth_required' ? 'Base44 login' : null,
+      redirectReason: authError?.type === 'auth_required' ? 'auth_required' : null,
+      redirectGuardFired: loginRedirectedRef.current,
+      sessionGuardFired: Boolean(sessionStorage.getItem(authRedirectStorageKey)),
+    };
+    console.log('[ROUTE_DEBUG] auth redirect decision', routeDebugState);
+
     if (!isLoadingPublicSettings && !isLoadingAuth && !modulesLoading && authError?.type === 'auth_required' && !loginRedirectedRef.current) {
       if (sessionStorage.getItem(authRedirectStorageKey)) return;
+      console.log('[ROUTE_DEBUG] redirect requested', {
+        from: location.pathname,
+        to: 'Base44 login',
+        reason: 'auth_required after loading completed',
+        loadingStates: routeDebugState,
+        guardRefState: loginRedirectedRef.current,
+      });
       sessionStorage.setItem(authRedirectStorageKey, 'true');
       loginRedirectedRef.current = true;
-      navigateToLogin();
+      navigateToLogin('auth_required after loading completed');
     }
-  }, [isLoadingPublicSettings, isLoadingAuth, modulesLoading, authError, navigateToLogin, authRedirectStorageKey]);
+  }, [isLoadingPublicSettings, isLoadingAuth, modulesLoading, authError, navigateToLogin, authRedirectStorageKey, location.pathname, user]);
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth || modulesLoading) {
@@ -132,6 +159,20 @@ const AuthenticatedApp = () => {
 
   // Show profile setup for users who haven't completed their profile
   if (user && !user.profileComplete) {
+    console.log('[ROUTE_DEBUG] ProfileSetup shown', {
+      pathname: location.pathname,
+      authLoading: isLoadingAuth,
+      profileLoading: false,
+      publicSettingsLoading: isLoadingPublicSettings,
+      modulesLoading,
+      userExists: Boolean(user),
+      profileExists: Boolean(user),
+      profileComplete: user?.profileComplete === true,
+      authErrorType: authError?.type || null,
+      redirectTarget: null,
+      redirectReason: 'profile incomplete - rendering setup, no route redirect',
+      redirectGuardFired: loginRedirectedRef.current,
+    });
     return <ProfileSetup onComplete={refreshUser} />;
   }
 

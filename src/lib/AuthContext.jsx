@@ -174,6 +174,20 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async (shouldRedirect = true) => {
+    console.log('[ROUTE_DEBUG] redirect requested', {
+      from: window.location.href,
+      to: shouldRedirect ? window.location.href : 'SDK logout default',
+      reason: 'logout called',
+      loadingStates: {
+        authLoading: isLoadingAuth,
+        publicSettingsLoading: isLoadingPublicSettings,
+        userExists: Boolean(user),
+        profileExists: Boolean(user),
+        profileComplete: user?.profileComplete === true,
+        authErrorType: authError?.type || null,
+      },
+      guardRefState: null,
+    });
     try {
       // SECURITY FIX: Clear all user-specific offline data before logout
       const userStores = [
@@ -222,7 +236,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const navigateToLogin = () => {
+  const navigateToLogin = (reason = 'auth_required') => {
+    console.log('[ROUTE_DEBUG] redirect requested', {
+      from: window.location.href,
+      to: 'Base44 login',
+      reason,
+      loadingStates: {
+        authLoading: isLoadingAuth,
+        publicSettingsLoading: isLoadingPublicSettings,
+        userExists: Boolean(user),
+        profileExists: Boolean(user),
+        profileComplete: user?.profileComplete === true,
+        authErrorType: authError?.type || null,
+      },
+      guardRefState: null,
+    });
     // Use the SDK's redirectToLogin method
     base44.auth.redirectToLogin(window.location.href);
   };
