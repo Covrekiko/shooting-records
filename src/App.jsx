@@ -16,7 +16,7 @@ import OfflineStatusBar from '@/components/OfflineStatusBar';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { TabHistoryProvider } from '@/context/TabHistoryContext';
 import MobileTabBar from '@/components/MobileTabBar';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import ProfileSetup from './pages/ProfileSetup';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
@@ -94,6 +94,14 @@ function AnimatedRoutes({ children }) {
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user, refreshUser } = useAuth();
   const { enabledModules, loading: modulesLoading, saveModules } = useModules();
+  const loginRedirectedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isLoadingPublicSettings && !isLoadingAuth && !modulesLoading && authError?.type === 'auth_required' && !loginRedirectedRef.current) {
+      loginRedirectedRef.current = true;
+      navigateToLogin();
+    }
+  }, [isLoadingPublicSettings, isLoadingAuth, modulesLoading, authError, navigateToLogin]);
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth || modulesLoading) {
@@ -109,7 +117,6 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      navigateToLogin();
       return null;
     }
   }
