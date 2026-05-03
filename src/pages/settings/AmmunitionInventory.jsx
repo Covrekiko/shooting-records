@@ -100,6 +100,8 @@ export default function AmmunitionInventory() {
       cost_per_unit: 0,
       date_purchased: new Date().toISOString().split('T')[0],
       low_stock_threshold: 50,
+      lot_number: '',
+      supplier: '',
       notes: '',
     });
     setEditingId(null);
