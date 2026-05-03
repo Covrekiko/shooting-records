@@ -139,6 +139,13 @@ export default function Profile() {
                 <Palette className="w-4 h-4" />
                 App Theme
               </Link>
+              <Link
+                to="/privacy-policy"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-foreground hover:bg-secondary"
+              >
+                <FileText className="w-4 h-4" />
+                Privacy Policy
+              </Link>
               <button
                 onClick={handleLogout}
                 disabled={loading}

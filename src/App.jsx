@@ -50,6 +50,7 @@ import ReferenceDatabase from './pages/settings/ReferenceDatabase';
 import BetaFeedback from './pages/BetaFeedback';
 import BetaTesters from './pages/admin/BetaTesters';
 import BetaFeedbackAdmin from './pages/admin/BetaFeedbackAdmin';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 console.log('[ROUTE_DEBUG] App.jsx loaded - redirect debug version ACTIVE');
 
@@ -231,6 +232,32 @@ const AuthenticatedApp = () => {
 };
 
 
+function AppContent() {
+  const location = useLocation();
+
+  if (location.pathname === '/privacy-policy') {
+    return (
+      <>
+        <ThemeSync />
+        <Routes>
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="*" element={<PageNotFound />} />
+        </Routes>
+        <Toaster />
+      </>
+    );
+  }
+
+  return (
+    <TabHistoryProvider>
+      <OfflineStatusBar />
+      <AuthenticatedApp />
+      <MobileTabBar />
+      <Toaster />
+    </TabHistoryProvider>
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
@@ -241,12 +268,7 @@ function App() {
               <ModulesProvider>
                 <OutingProvider>
                   <Router>
-                    <TabHistoryProvider>
-                      <OfflineStatusBar />
-                      <AuthenticatedApp />
-                      <MobileTabBar />
-                      <Toaster />
-                    </TabHistoryProvider>
+                    <AppContent />
                   </Router>
                 </OutingProvider>
               </ModulesProvider>

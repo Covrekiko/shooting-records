@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
 
@@ -45,6 +46,7 @@ export default function ProfileSetup({ onComplete }) {
   });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [privacyAgreed, setPrivacyAgreed] = useState(false);
 
   const set = (field, value) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -56,6 +58,7 @@ export default function ProfileSetup({ onComplete }) {
     if (!form.firstName.trim()) e.firstName = 'First name is required';
     if (!form.lastName.trim()) e.lastName = 'Surname is required';
     if (!form.addressLine1.trim()) e.addressLine1 = 'Address is required';
+    if (!privacyAgreed) e.privacyAgreed = 'Please agree to the Privacy Policy';
     if (!form.dateOfBirth) {
       e.dateOfBirth = 'Date of birth is required';
     } else {
@@ -238,6 +241,24 @@ export default function ProfileSetup({ onComplete }) {
                 </div>
               </div>
             </div>
+          </div>
+
+          <div>
+            <label className="flex items-start gap-3 text-sm text-muted-foreground">
+              <input
+                type="checkbox"
+                checked={privacyAgreed}
+                onChange={(e) => {
+                  setPrivacyAgreed(e.target.checked);
+                  if (errors.privacyAgreed) setErrors(prev => ({ ...prev, privacyAgreed: null }));
+                }}
+                className="mt-1 h-4 w-4 rounded border-border"
+              />
+              <span>
+                I agree to the <Link to="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Privacy Policy</Link>
+              </span>
+            </label>
+            {errors.privacyAgreed && <p className="text-destructive text-xs mt-1">{errors.privacyAgreed}</p>}
           </div>
 
           {/* Submit */}
