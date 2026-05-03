@@ -722,6 +722,10 @@ export default function ComponentManager() {
                 {!showForm && (
                     <button
                       onClick={() => {
+                        if (type.value === 'brass') {
+                          setShowAddBrassModal(true);
+                          return;
+                        }
                         setEditingId(null);
                         setLockedComponentType(type.value);
                         setFormData({
