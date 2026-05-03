@@ -6,11 +6,6 @@ export default function BulletDetailsCard({ bullet }) {
     ['Bullet Name', bullet.bullet_name],
     ['Caliber', bullet.caliber],
     ['Weight', bullet.weight ? `${bullet.weight}${bullet.weight_unit || 'gr'}` : null],
-    ['Stock', `${bullet.quantity_remaining ?? bullet.quantity_total ?? 0}/${bullet.quantity_total ?? 0} ${bullet.unit || 'pieces'}`],
-    ['Unit Cost', typeof bullet.cost_per_unit === 'number' ? `£${bullet.cost_per_unit.toFixed(4)}` : null],
-    ['Total Cost', typeof bullet.price_total === 'number' ? `£${bullet.price_total.toFixed(2)}` : null],
-    ['Added', bullet.date_acquired],
-    ['Lot', bullet.lot_number],
   ].filter(([, value]) => value !== null && value !== undefined && value !== '');
 
   return (
@@ -24,12 +19,7 @@ export default function BulletDetailsCard({ bullet }) {
           </div>
         ))}
       </div>
-      {bullet.notes && (
-        <div className="mt-2 pt-2 border-t border-border">
-          <p className="text-muted-foreground font-semibold uppercase text-[10px]">Notes</p>
-          <p className="text-foreground">{bullet.notes}</p>
-        </div>
-      )}
+
     </div>
   );
 }

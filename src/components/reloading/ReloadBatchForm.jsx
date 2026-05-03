@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react';
 import { searchCalibers } from '@/utils/caliberCatalog';
 import AddBrassModal from './AddBrassModal';
 import BulletDetailsCard from './BulletDetailsCard';
+import PrimerDetailsCard from './PrimerDetailsCard';
 
 export default function ReloadBatchForm({ onSubmit, onClose }) {
 
@@ -576,6 +577,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           {stockWarnings.primer && (
             <p className="text-xs font-semibold mt-2.5 text-destructive">{stockWarnings.primer}</p>
           )}
+          <PrimerDetailsCard primer={components.primer.find(p => p.id === formData.primer_id)} />
         </div>
 
         <div>

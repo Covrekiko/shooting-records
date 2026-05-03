@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import GlobalModal, { ModalSaveButton, ModalCancelButton } from '@/components/ui/GlobalModal.jsx';
 import BulletDetailsCard from '@/components/reloading/BulletDetailsCard';
+import PrimerDetailsCard from '@/components/reloading/PrimerDetailsCard';
 
 export default function VariantFormModal({ open, test, variant, variantCount, onClose, onSaved }) {
   const [components, setComponents] = useState({ powder: [], bullet: [], brass: [], primer: [] });
@@ -303,6 +304,7 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
               ))}
             </select>
           </div>
+          <PrimerDetailsCard primer={components.primer.find(p => p.id === form.primer_component_id)} />
           <div>
             <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Primer Brand / Model</label>
             <input value={form.primer_brand ?? ''} onChange={e => set('primer_brand', e.target.value)} placeholder="e.g. CCI BR2"
