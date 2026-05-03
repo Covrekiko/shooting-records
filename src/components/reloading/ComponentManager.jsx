@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Trash2, Edit2, X, ChevronDown, Download } from 'lucide-react';
+import { Plus, Trash2, Edit2, ChevronDown, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { searchCalibers } from '@/utils/caliberCatalog';
 import BrassLifecycleManager from './BrassLifecycleManager';
 import { downloadBrassBatchPdf } from '@/utils/brassPdfExport';
 import AddBrassModal from './AddBrassModal';
 import AddComponentModal from './AddComponentModal';
+import GlobalModal from '@/components/ui/GlobalModal.jsx';
 
 const COMPONENT_TYPES = [
   { value: 'primer', label: 'Primer', units: ['pieces'] },
@@ -364,17 +365,15 @@ export default function ComponentManager() {
         onSave={handleSaveComponent}
         componentType={addComponentType}
       />
-      {/* Form */}
-      {showForm && (
-        <div className="bg-card border border-border rounded-2xl overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-4 border-b border-border">
-            <h3 className="font-bold text-lg">{editingId ? 'Edit Component' : 'Add Component'}</h3>
-            <button onClick={() => { setShowForm(false); setEditingId(null); setShowDropdown(false); setShowCaliberDropdown(false); setLockedComponentType(null); }} className="w-10 h-10 flex items-center justify-center hover:bg-secondary rounded-xl">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="p-4 space-y-4">
+      {/* Edit Form Modal */}
+      <GlobalModal
+        open={showForm}
+        onClose={() => { setShowForm(false); setEditingId(null); setShowDropdown(false); setShowCaliberDropdown(false); setLockedComponentType(null); }}
+        title={editingId ? 'Edit Component' : 'Add Component'}
+        footer={null}
+        maxWidth="max-w-2xl"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Component Type</label>
               {lockedComponentType ? (
@@ -688,8 +687,7 @@ export default function ComponentManager() {
               {editingId ? 'Update Component' : 'Add Component'}
             </button>
           </form>
-        </div>
-      )}
+      </GlobalModal>
 
       {/* Components List */}
       <div className="space-y-6">
