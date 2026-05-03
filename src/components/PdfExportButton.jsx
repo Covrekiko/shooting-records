@@ -8,6 +8,9 @@ export default function PdfExportButton({ onClick, variant = 'icon' }) {
     setIsLoading(true);
     try {
       await onClick();
+    } catch (error) {
+      console.error('PDF export failed:', error);
+      alert('PDF export failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

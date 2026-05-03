@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 
 export async function generateRecordPDF(record, options = {}) {
   const doc = new jsPDF();

@@ -96,7 +96,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
       setPreviewingPdf({ record, url });
     } catch (error) {
       console.error('Error generating PDF preview:', error);
-      alert('Failed to generate PDF preview');
+      alert('PDF export failed. Please try again.');
     } finally {
       setGeneratingPdf(null);
     }

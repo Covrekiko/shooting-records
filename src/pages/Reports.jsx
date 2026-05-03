@@ -119,7 +119,7 @@ export default function Reports() {
       setPreviewPdf(url);
     } catch (error) {
       console.error('Error generating preview:', error);
-      alert('Error generating preview');
+      alert('PDF export failed. Please try again.');
     } finally {
       setPreviewLoading(false);
     }
@@ -170,7 +170,7 @@ export default function Reports() {
       }
     } catch (error) {
       console.error('Error generating report:', error);
-      alert('Error generating report');
+      alert('PDF export failed. Please try again.');
     }
   };
 
