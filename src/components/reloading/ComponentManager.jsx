@@ -36,6 +36,7 @@ export default function ComponentManager() {
     quantity_total: '',
     unit: 'pieces',
     price_total: '',
+    lot_number: '',
     date_acquired: format(new Date(), 'yyyy-MM-dd'),
     notes: '',
     caliber: '',
@@ -119,6 +120,7 @@ export default function ComponentManager() {
           price_total: data.price_total,
           cost_per_unit: data.cost_per_unit,
           date_acquired: data.date_acquired,
+          lot_number: data.lot_number,
           notes: data.notes,
           caliber: data.caliber,
           brand: data.brand,
@@ -140,6 +142,7 @@ export default function ComponentManager() {
         quantity_total: '',
         unit: 'pieces',
         price_total: '',
+        lot_number: '',
         date_acquired: format(new Date(), 'yyyy-MM-dd'),
         notes: '',
         caliber: '',
@@ -185,6 +188,7 @@ export default function ComponentManager() {
       quantity_total: displayQuantity,
       unit: displayUnit,
       price_total: component.price_total,
+      lot_number: component.lot_number || '',
       date_acquired: component.date_acquired,
       notes: component.notes,
       caliber: component.caliber || '',
@@ -659,6 +663,17 @@ export default function ComponentManager() {
                 placeholder="100"
                 step="0.01"
                 required
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Lot Number (optional)</label>
+              <input
+                type="text"
+                value={formData.lot_number}
+                onChange={(e) => setFormData({ ...formData, lot_number: e.target.value })}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                placeholder="e.g., LOT-12345"
               />
             </div>
 

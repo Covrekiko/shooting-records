@@ -13,6 +13,7 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
 
   const [formData, setFormData] = useState({
     batch_number: autoNumber,
+    lot_number: '',
     name: '',
     brand: '',
     caliber: '',
@@ -37,6 +38,7 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
       component_type: 'brass',
       is_used_brass: isUsed,
       batch_number: formData.batch_number,
+      lot_number: formData.lot_number,
       name,
       brand: formData.brand,
       caliber: formData.caliber,
@@ -53,6 +55,7 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
     });
     setFormData({
       batch_number: autoNumber,
+      lot_number: '',
       name: '', brand: '', caliber: '',
       quantity_total: '', price_total: '',
       times_fired: '', max_reloads: '',
@@ -94,6 +97,12 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
           <label className={lbl}>Batch Number</label>
           <input type="text" value={formData.batch_number} onChange={(e) => set('batch_number', e.target.value)}
             className={inp} required />
+        </div>
+
+        <div>
+          <label className={lbl}>Lot Number (optional)</label>
+          <input type="text" value={formData.lot_number} onChange={(e) => set('lot_number', e.target.value)}
+            className={inp} placeholder="e.g., LOT-12345" />
         </div>
 
         <div>

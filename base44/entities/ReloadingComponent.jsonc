@@ -20,6 +20,10 @@
       "type": "string",
       "description": "Unique batch identifier for this component lot"
     },
+    "lot_number": {
+      "type": "string",
+      "description": "Manufacturer or supplier lot number"
+    },
     "is_used_brass": {
       "type": "boolean",
       "default": false,

@@ -22,6 +22,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
     quantity_total: '',
     unit: componentType === 'powder' ? 'grams' : 'pieces',
     price_total: '',
+    lot_number: '',
     date_acquired: format(new Date(), 'yyyy-MM-dd'),
     notes: '',
   });
@@ -67,6 +68,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
       unit: storageUnit,
       price_total: price,
       cost_per_unit: qty > 0 ? price / qty : 0,
+      lot_number: formData.lot_number,
       date_acquired: formData.date_acquired,
       notes: formData.notes,
     });
@@ -191,6 +193,12 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
           allowDecimal
           required
         />
+
+        <div>
+          <label className={lbl}>Lot Number (optional)</label>
+          <input type="text" value={formData.lot_number} onChange={(e) => set('lot_number', e.target.value)}
+            className={inp} placeholder="e.g., LOT-12345" />
+        </div>
 
         <div>
           <label className={lbl}>Date Acquired</label>
