@@ -443,7 +443,7 @@ export default function DeerStalkingMap() {
       <div className="fixed inset-0 flex items-center justify-center bg-slate-900">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-3"></div>
-          <p className="text-white text-xs text-slate-400">Map initializing...</p>
+          <p className="text-white text-sm">Map initializing...</p>
         </div>
       </div>
     );
@@ -522,7 +522,7 @@ export default function DeerStalkingMap() {
                     )}
                     <button
                       onClick={() => handleDeletePOI(marker.id)}
-                      className="w-full mt-2 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                      className="w-full mt-2 px-2 py-1.5 bg-red-500 text-white text-sm rounded hover:bg-red-600"
                     >
                       Delete
                     </button>
@@ -583,13 +583,13 @@ export default function DeerStalkingMap() {
                     )}
                     <button
                       onClick={() => setFocusedHarvestId(focusedHarvestId === harvest.id ? null : harvest.id)}
-                      className="w-full mt-2 px-2 py-1 bg-primary text-white text-xs rounded hover:bg-primary/90"
+                      className="w-full mt-2 px-2 py-1.5 bg-primary text-white text-sm rounded hover:bg-primary/90"
                     >
                       {focusedHarvestId === harvest.id ? 'Unpin' : 'Pin on Map'}
                     </button>
                     <button
                       onClick={() => handleDeleteHarvest(harvest.id)}
-                      className="w-full mt-1 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
+                      className="w-full mt-1 px-2 py-1.5 bg-red-500 text-white text-sm rounded hover:bg-red-600"
                     >
                       Delete
                     </button>
@@ -690,7 +690,7 @@ export default function DeerStalkingMap() {
             <span className="text-sm font-semibold">Tap map to place pin</span>
             <button
               onClick={() => setWaitingForPin(null)}
-              className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+              className="text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
             >
               Cancel
             </button>

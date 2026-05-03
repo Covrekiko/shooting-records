@@ -380,7 +380,7 @@ export default function TargetShooting() {
                   </p>
                   <p className="text-xs text-muted-foreground">Started {activeSession.checkin_time}</p>
                   {activeSession.check_in_method === 'auto_geolocation' && (
-                    <p className="text-[10px] text-primary font-medium mt-0.5">📍 Auto by Geolocation</p>
+                    <p className="text-xs text-primary font-medium mt-0.5">📍 Auto by Geolocation</p>
                   )}
                 </div>
               </div>
@@ -464,7 +464,7 @@ export default function TargetShooting() {
 
 // ─── Check-in Modal ───────────────────────────────────────────────
 function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
-  const labelCls = 'text-[11px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5';
+  const labelCls = 'text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1.5';
   const fieldCls = 'w-full h-11 rounded-xl border border-slate-200 bg-white pl-4 pr-4 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all focus:border-green-700 focus:ring-2 focus:ring-green-700/10';
   const iconWrapCls = 'w-11 h-11 rounded-xl bg-green-50 text-green-700 flex items-center justify-center flex-shrink-0';
 
@@ -632,7 +632,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
   const fieldCls = 'w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition-all focus:border-green-700 focus:ring-2 focus:ring-green-700/10';
   const sectionCls = 'rounded-2xl border border-slate-200 bg-white p-3 shadow-sm';
   const sectionIconCls = 'w-10 h-10 rounded-xl bg-green-50 text-green-700 flex items-center justify-center flex-shrink-0';
-  const sectionLabelCls = 'text-[11px] font-bold text-slate-600 uppercase tracking-widest';
+  const sectionLabelCls = 'text-xs font-bold text-slate-600 uppercase tracking-widest';
 
   return (
     <GlobalModal
@@ -698,7 +698,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Rifle</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Rifle</label>
                   <select value={rifle.rifle_id} onChange={(e) => updateRifleEntry(index, 'rifle_id', e.target.value)} className={fieldCls}>
                     <option value="">Select rifle</option>
                     {rifles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
@@ -707,17 +707,17 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Rounds</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Rounds</label>
                     <input type="number" placeholder="Rounds" value={rifle.rounds_fired} onChange={(e) => updateRifleEntry(index, 'rounds_fired', e.target.value)} className={`${fieldCls} min-w-0`} />
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Distance</label>
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Distance</label>
                     <input type="number" placeholder="Meters" value={rifle.meters_range} onChange={(e) => updateRifleEntry(index, 'meters_range', e.target.value)} className={`${fieldCls} min-w-0`} />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Ammunition *</label>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest block mb-1.5">Ammunition *</label>
                   {rifle.rifle_id ? (
                     <select
                       value={rifle.ammunition_id || ''}
@@ -820,7 +820,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
                 <Crosshair className="w-5 h-5" />
               </span>
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">Target Analysis</p>
+                <p className="text-xs font-bold text-slate-700 uppercase tracking-widest">Target Analysis</p>
                 <p className="text-xs text-slate-500 mt-0.5">Analyze your performance and group your shots (optional)</p>
                 <TargetAnalysisSummary sessionRecordId={sessionRecordId} />
               </div>

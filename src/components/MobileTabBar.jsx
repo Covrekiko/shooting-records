@@ -11,6 +11,16 @@ const TABS = [
   { key: 'profile', label: 'Profile', icon: User },
 ];
 
+const VISIBLE_TAB_MAP = {
+  sessions: 'home',
+  field: 'home',
+};
+
+function getVisibleTab(pathname) {
+  const tab = getTabForPath(pathname);
+  return VISIBLE_TAB_MAP[tab] || tab;
+}
+
 export default function MobileTabBar() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -26,7 +36,7 @@ export default function MobileTabBar() {
   // Hide on full-screen pages like the stalking map
   if (location.pathname === '/deer-stalking') return null;
 
-  const activeTab = getTabForPath(location.pathname);
+  const activeTab = getVisibleTab(location.pathname);
 
   const handleTabPress = (tabKey) => {
     const lastPath = getLastPath(tabKey);

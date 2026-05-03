@@ -389,7 +389,7 @@ export default function ClayShooting() {
                   </p>
                   <p className="text-xs text-slate-400 dark:text-slate-500">Started {activeSession.checkin_time}</p>
                   {activeSession.check_in_method === 'auto_geolocation' && (
-                    <p className="text-[10px] text-primary font-medium mt-0.5">📍 Auto by Geolocation</p>
+                    <p className="text-xs text-primary font-medium mt-0.5">📍 Auto by Geolocation</p>
                   )}
                 </div>
               </div>
@@ -560,7 +560,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
             placeholder="e.g. Hull Comp X 28g No.7" className={inputCls} />
           {ammunition.length > 0 && (
             <div className="mt-2">
-              <p className="text-[10px] text-muted-foreground mb-1">Or pick from saved:</p>
+              <p className="text-xs text-muted-foreground mb-1">Or pick from saved:</p>
               <select
                 value={data.ammunition_id || ''}
                 onChange={(e) => {

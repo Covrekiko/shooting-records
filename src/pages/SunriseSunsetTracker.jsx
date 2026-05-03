@@ -90,7 +90,7 @@ function LegalShootingHoursWidgetLarge() {
           <div className="text-sm font-medium text-muted-foreground mb-2">Legal Shooting Hours</div>
           <div className="text-xl font-bold text-primary">{legalStartTime} — {legalEndTime}</div>
           <div className="text-xs text-muted-foreground mt-2">(1 hour before sunrise to 1 hour after sunset)</div>
-          <div className="text-[10px] text-muted-foreground mt-1">UK Government Wildlife & Countryside Act 1981</div>
+          <div className="text-xs text-muted-foreground mt-1">UK Government Wildlife & Countryside Act 1981</div>
         </div>
         
         <div className="flex items-center justify-between gap-4 bg-card rounded-2xl p-4">
@@ -199,7 +199,7 @@ function SunriseSunsetForecast() {
                 </div>
               </div>
               <div className="bg-primary/5 rounded px-2 py-1">
-                <div className="text-[11px] font-medium text-primary">{formatTime(legalStart)} — {formatTime(legalEnd)}</div>
+                <div className="text-xs font-medium text-primary">{formatTime(legalStart)} — {formatTime(legalEnd)}</div>
               </div>
             </div>
           );

@@ -64,7 +64,7 @@ const sections = [
   {
     title: '9. Account and Data Deletion',
     content: [
-      'Users may request deletion of their account and associated personal data by contacting covrekiko@icloud.com.',
+      'Users can delete their account directly in the app from Profile → Account Management → Delete Account. Users may also contact covrekiko@icloud.com for privacy or deletion support.',
       'Some information may be retained if required for legal, security, fraud prevention, backup, or compliance reasons.'
     ]
   },
