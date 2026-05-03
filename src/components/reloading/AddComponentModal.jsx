@@ -158,6 +158,15 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
           </>
         )}
 
+        {/* Primer name */}
+        {componentType === 'primer' && (
+          <div>
+            <label className={lbl}>Primer Name</label>
+            <input type="text" value={formData.name} onChange={(e) => set('name', e.target.value)}
+              className={inp} placeholder="e.g., CCI 200, Federal 210M" required />
+          </div>
+        )}
+
         {/* Powder name */}
         {componentType === 'powder' && (
           <div>
