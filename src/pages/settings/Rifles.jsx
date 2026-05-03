@@ -3,6 +3,8 @@ import { base44 } from '@/api/base44Client';
 import ChildScreenHeader from '@/components/ChildScreenHeader';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
+import FirstTimeGuideModal from '@/components/FirstTimeGuideModal';
+import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuideContent';
 
 const inp = 'w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring/40';
 const lbl = 'block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5';
@@ -111,6 +113,8 @@ export default function Rifles() {
           <Plus className="w-5 h-5" />
           Add Rifle
         </button>
+
+        {showForm && !editingId && <FirstTimeGuideModal {...FIRST_TIME_GUIDES.firearmCreate} />}
 
         <GlobalModal
           open={showForm}
