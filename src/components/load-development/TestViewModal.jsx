@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Download, Edit2, Star, CheckCircle2, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
-import GlobalModal, { ModalFooter } from '@/components/ui/GlobalModal.jsx';
+import GlobalModal from '@/components/ui/GlobalModal.jsx';
 
 const Section = ({ title, children }) => (
   <div className="mb-6">
@@ -43,21 +43,23 @@ export default function TestViewModal({ open, test, variants, results, onClose, 
   };
 
   const footer = (
-    <ModalFooter>
-      <button onClick={onClose} className="flex-1 rounded-xl font-semibold text-sm bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors active:scale-95" style={{ minHeight: '44px' }}>
+    <div className="grid grid-cols-3 gap-2 w-full">
+      <button onClick={onClose} className="h-11 rounded-xl font-semibold text-sm bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors active:scale-95 whitespace-nowrap">
         Close
       </button>
       {onExportPDF && (
-        <button onClick={onExportPDF} className="flex-1 rounded-xl font-semibold text-sm border border-border hover:bg-secondary transition-colors active:scale-95 flex items-center justify-center gap-1.5" style={{ minHeight: '44px' }}>
-          <Download className="w-3.5 h-3.5" />PDF
+        <button onClick={onExportPDF} className="h-11 rounded-xl font-semibold text-sm border border-border hover:bg-secondary transition-colors active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap">
+          <Download className="w-3.5 h-3.5 flex-shrink-0" />
+          <span>PDF</span>
         </button>
       )}
       {onEdit && (
-        <button onClick={onEdit} className="flex-1 rounded-xl font-semibold text-sm bg-primary text-primary-foreground hover:opacity-90 transition-colors active:scale-95 flex items-center justify-center gap-1.5" style={{ minHeight: '44px' }}>
-          <Edit2 className="w-3.5 h-3.5" />Edit
+        <button onClick={onEdit} className="h-11 rounded-xl font-semibold text-sm bg-primary text-primary-foreground hover:opacity-90 transition-colors active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap">
+          <Edit2 className="w-3.5 h-3.5 flex-shrink-0" />
+          <span>Edit</span>
         </button>
       )}
-    </ModalFooter>
+    </div>
   );
 
   return (
