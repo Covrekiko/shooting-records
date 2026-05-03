@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { ArrowLeft, Plus, Download, Star, Trash2, Edit2, ChevronDown, ChevronUp, Eye, EyeOff, BookOpen } from 'lucide-react';
-import TestViewModal from './TestViewModal';
+import { ArrowLeft, Plus, Download, Star, Trash2, Edit2, Eye, EyeOff, BookOpen } from 'lucide-react';
 import { format } from 'date-fns';
 import VariantFormModal from './VariantFormModal';
 import ResultFormModal from './ResultFormModal';
@@ -33,7 +32,6 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
   const [saving, setSaving] = useState(false);
   const [expandedVariants, setExpandedVariants] = useState({});
   const [expandedResults, setExpandedResults] = useState({});
-  const [showViewModal, setShowViewModal] = useState(false);
 
   const toggleVariant = (id) => setExpandedVariants(p => ({ ...p, [id]: !p[id] }));
   const toggleResult = (id) => setExpandedResults(p => ({ ...p, [id]: !p[id] }));
@@ -109,6 +107,12 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
     doc.save(`load-test-${test.name.replace(/\s+/g, '-')}.pdf`);
   };
 
+  const handleViewPDF = () => {
+    const doc = generateLoadTestPDF(test, variants, results);
+    const url = URL.createObjectURL(doc.output('blob'));
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   const handleStatusChange = async (status) => {
     try {
       await base44.entities.ReloadingTest.update(test.id, { status });
@@ -116,7 +120,7 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
     } catch (e) { alert('Error: ' + e.message); }
   };
 
-  const tabs = ['overview', 'variants', 'results', 'export'];
+  const tabs = ['overview', 'variants', 'results'];
 
   return (
     <div>
@@ -144,7 +148,7 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
             >
               {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
-            <button onClick={() => setShowViewModal(true)} className="p-2 hover:bg-primary/10 text-primary rounded-xl" title="View Summary">
+            <button onClick={handleViewPDF} className="p-2 hover:bg-primary/10 text-primary rounded-xl" title="View PDF">
               <BookOpen className="w-4 h-4" />
             </button>
             <button onClick={handleExportPDF} className="p-2 hover:bg-primary/10 text-primary rounded-xl" title="Export PDF">
@@ -160,7 +164,7 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
               className={`px-4 py-2.5 text-sm font-medium border-b-2 capitalize whitespace-nowrap transition-colors ${
                 activeTab === tab ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}>
-              {tab === 'export' ? 'PDF / Export' : tab}
+              {tab}
               {tab === 'variants' && variants.length > 0 && (
                 <span className="ml-1.5 text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">{variants.length}</span>
               )}
@@ -349,6 +353,19 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
                           {v.case_prep_notes && <p className="text-xs text-muted-foreground italic">{v.case_prep_notes}</p>}
                           {v.notes && <p className="text-xs text-muted-foreground italic border-t border-border pt-2">{v.notes}</p>}
 
+                          {result?.photos?.length > 0 && (
+                            <div className="border-t border-border pt-3">
+                              <p className="text-[10px] font-semibold text-muted-foreground uppercase mb-1.5">Photos</p>
+                              <div className="flex gap-2 flex-wrap">
+                                {result.photos.map((url, i) => (
+                                  <a key={i} href={url} target="_blank" rel="noopener noreferrer" title="Open photo">
+                                    <img src={url} alt={`Variant ${idx + 1} photo ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity" />
+                                  </a>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
                           {result?.tested && (
                             <div className="mt-1 pt-2 border-t border-border">
                               <p className="text-[10px] font-semibold text-muted-foreground uppercase mb-1.5">Result Summary</p>
@@ -493,51 +510,7 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
           </div>
         )}
 
-        {/* Export Tab */}
-        {activeTab === 'export' && (
-          <div className="space-y-4">
-            <h2 className="font-semibold">PDF Export</h2>
-            <div className="bg-card border border-border rounded-xl p-5 space-y-4">
-              <div className="text-sm text-muted-foreground space-y-1">
-                <p>Export a full load development report including:</p>
-                <ul className="list-disc list-inside space-y-0.5 mt-2">
-                  <li>Test overview and details</li>
-                  <li>All {variants.length} variant(s) with full component data</li>
-                  <li>Results for each variant (velocity, ES, SD, group size)</li>
-                  <li>Best variant highlighted</li>
-                  <li>Final notes and comments</li>
-                </ul>
-              </div>
-              <button onClick={handleExportPDF}
-                className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold flex items-center justify-center gap-2 hover:opacity-90">
-                <Download className="w-4 h-4" />
-                Export PDF Report
-              </button>
-            </div>
-
-            <div className="bg-card border border-border rounded-xl p-4">
-              <p className="text-xs font-semibold text-muted-foreground uppercase mb-2">Audit Info</p>
-              <div className="text-xs space-y-1 text-muted-foreground">
-                <p>Created: {test.created_date ? format(new Date(test.created_date), 'MMM d, yyyy HH:mm') : 'N/A'}</p>
-                <p>Last Updated: {test.updated_date ? format(new Date(test.updated_date), 'MMM d, yyyy HH:mm') : 'N/A'}</p>
-                <p>Status: {test.status}</p>
-                <p>Variants: {variants.length}</p>
-                <p>Results Recorded: {results.filter(r => r.tested).length}</p>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
-
-      <TestViewModal
-        open={showViewModal}
-        test={test}
-        variants={variants}
-        results={results}
-        onClose={() => setShowViewModal(false)}
-        onEdit={() => { setShowViewModal(false); setActiveTab('overview'); setEditingTest(true); }}
-        onExportPDF={handleExportPDF}
-      />
 
       <VariantFormModal
         open={showVariantForm}
