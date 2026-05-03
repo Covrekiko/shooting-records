@@ -29,8 +29,8 @@ export default function MobileTabBar() {
   const activeTab = getTabForPath(location.pathname);
 
   const handleTabPress = (tabKey) => {
-    // Always navigate to the tab's default root — no "resume last path" behaviour
-    navigate(TAB_DEFAULT[tabKey]);
+    const lastPath = getLastPath(tabKey);
+    navigate(lastPath || TAB_DEFAULT[tabKey]);
   };
 
   // Sync status pill config
@@ -57,7 +57,7 @@ export default function MobileTabBar() {
           <button
             onClick={syncPill.action || undefined}
             disabled={!syncPill.action}
-            className={`w-full flex items-center justify-center gap-1.5 py-1 text-destructive-foreground text-[10px] font-semibold select-none ${syncPill.bg === 'bg-amber-500' ? 'bg-amber-500' : syncPill.bg === 'bg-red-500' ? 'bg-destructive' : syncPill.bg === 'bg-blue-500' ? 'bg-primary' : 'bg-muted'} ${syncPill.action ? 'active:opacity-80' : ''}`}
+            className={`w-full flex items-center justify-center gap-1.5 py-1.5 text-destructive-foreground text-xs font-semibold select-none ${syncPill.bg === 'bg-amber-500' ? 'bg-amber-500' : syncPill.bg === 'bg-red-500' ? 'bg-destructive' : syncPill.bg === 'bg-blue-500' ? 'bg-primary' : 'bg-muted'} ${syncPill.action ? 'active:opacity-80' : ''}`}
           >
             <PillIcon className={`w-3 h-3 flex-shrink-0 ${syncPill.spinning ? 'animate-spin' : ''}`} />
             {syncPill.label}
@@ -71,7 +71,8 @@ export default function MobileTabBar() {
             <button
               key={key}
               onClick={() => handleTabPress(key)}
-              className={`flex-1 flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 transition-colors active:scale-90 transform-gpu select-none ${
+              aria-current={isActive ? 'page' : undefined}
+              className={`flex-1 min-h-[56px] flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 transition-colors active:scale-90 transform-gpu select-none ${
                 isActive ? 'text-primary' : 'text-muted-foreground'
               }`}
             >
@@ -80,7 +81,7 @@ export default function MobileTabBar() {
               }`}>
                 <Icon style={{ width: isActive ? 20 : 18, height: isActive ? 20 : 18 }} />
               </div>
-              <span className={`text-[9px] font-semibold tracking-tight leading-none ${
+              <span className={`text-xs font-semibold tracking-tight leading-tight ${
                 isActive ? 'text-primary' : 'text-muted-foreground'
               }`}>
                 {label}

@@ -132,7 +132,7 @@ function ActiveSessionBanner({ outing }) {
       >
         <div className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold text-emerald-200 uppercase tracking-widest">Active Outing</p>
+          <p className="text-xs font-bold text-emerald-200 uppercase tracking-widest">Active Outing</p>
           <p className="text-sm font-bold text-white truncate mt-0.5">{outing.location_name || 'Deer Stalking'}</p>
         </div>
         {elapsed !== null && (
@@ -159,7 +159,7 @@ const KpiRow = React.memo(function KpiRow({ stats }) {
       {items.map((item) => (
         <div key={item.label} className="bg-card rounded-xl px-2 py-2.5 text-center border border-border shadow-sm">
           <p className="text-base md:text-lg font-bold text-foreground leading-none">{item.value}</p>
-          <p className="text-[10px] text-muted-foreground mt-1 font-medium">{item.label}</p>
+          <p className="text-xs text-muted-foreground mt-1 font-medium">{item.label}</p>
         </div>
       ))}
     </div>
@@ -205,7 +205,7 @@ const SecondaryGrid = React.memo(function SecondaryGrid({ user }) {
              <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground [&_svg]:w-5 [&_svg]:h-5 select-none">
                {item.icon}
              </div>
-             <p className="text-[10px] font-semibold text-muted-foreground leading-tight tracking-wide">{item.label}</p>
+             <p className="text-xs font-semibold text-muted-foreground leading-tight tracking-wide">{item.label}</p>
            </div>
          </Link>
        ))}
