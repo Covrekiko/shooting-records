@@ -13,6 +13,161 @@
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+const num = (value) => Number(value || 0);
+
+const getBrassState = (brass) => ({
+  total_owned: num(brass.total_owned ?? brass.quantity_total),
+  available_to_reload: num(brass.available_to_reload ?? brass.quantity_remaining),
+  currently_loaded: num(brass.currently_loaded),
+  fired_awaiting_cleaning_or_inspection: num(brass.fired_awaiting_cleaning_or_inspection),
+  retired_or_discarded: num(brass.retired_or_discarded),
+  reload_cycle_count: num(brass.reload_cycle_count ?? brass.times_reloaded),
+  lifetime_reload_count: num(brass.lifetime_reload_count),
+  reload_limit: num(brass.reload_limit ?? brass.max_reloads),
+  anneal_count: num(brass.anneal_count),
+  last_annealed_date: brass.last_annealed_date || '',
+});
+
+const brassStateTotal = (state) =>
+  num(state.available_to_reload) + num(state.currently_loaded) + num(state.fired_awaiting_cleaning_or_inspection) + num(state.retired_or_discarded);
+
+const normalizeBrassState = (state) => {
+  const normalized = {
+    ...state,
+    total_owned: num(state.total_owned),
+    available_to_reload: Math.max(0, num(state.available_to_reload)),
+    currently_loaded: Math.max(0, num(state.currently_loaded)),
+    fired_awaiting_cleaning_or_inspection: Math.max(0, num(state.fired_awaiting_cleaning_or_inspection)),
+    retired_or_discarded: Math.max(0, num(state.retired_or_discarded)),
+  };
+  let overflow = brassStateTotal(normalized) - normalized.total_owned;
+  if (overflow > 0) {
+    const availableReduction = Math.min(normalized.available_to_reload, overflow);
+    normalized.available_to_reload -= availableReduction;
+    overflow -= availableReduction;
+  }
+  if (overflow > 0) {
+    const firedReduction = Math.min(normalized.fired_awaiting_cleaning_or_inspection, overflow);
+    normalized.fired_awaiting_cleaning_or_inspection -= firedReduction;
+    overflow -= firedReduction;
+  }
+  if (overflow > 0) {
+    const loadedReduction = Math.min(normalized.currently_loaded, overflow);
+    normalized.currently_loaded -= loadedReduction;
+  }
+  return normalized;
+};
+
+const stateUpdate = (state) => {
+  const normalized = normalizeBrassState(state);
+  return {
+    total_owned: normalized.total_owned,
+    quantity_total: normalized.total_owned,
+    available_to_reload: normalized.available_to_reload,
+    quantity_remaining: normalized.available_to_reload,
+    currently_loaded: normalized.currently_loaded,
+    fired_awaiting_cleaning_or_inspection: normalized.fired_awaiting_cleaning_or_inspection,
+    retired_or_discarded: normalized.retired_or_discarded,
+    reload_cycle_count: normalized.reload_cycle_count,
+    times_reloaded: normalized.reload_cycle_count,
+    lifetime_reload_count: normalized.lifetime_reload_count,
+    reload_limit: normalized.reload_limit,
+    max_reloads: normalized.reload_limit,
+    anneal_count: normalized.anneal_count,
+    last_annealed_date: normalized.last_annealed_date,
+  };
+};
+
+async function logBrassMovement(base44, { brassId, reloadBatchId, recordId, ammunitionId, quantity, movementType, previousState, newState, notes }) {
+  await base44.asServiceRole.entities.BrassMovementLog.create({
+    brass_id: brassId,
+    reload_batch_id: reloadBatchId || '',
+    record_id: recordId || '',
+    ammunition_id: ammunitionId || '',
+    quantity: parseInt(quantity) || 0,
+    movement_type: movementType,
+    previous_state: previousState,
+    new_state: newState,
+    movement_date: new Date().toISOString(),
+    notes: notes || '',
+  });
+}
+
+async function getReloadSessionForAmmo(base44, ammo) {
+  const sessionId = ammo.reload_session_id || ammo.source_id;
+  if (!sessionId || ammo.source_type !== 'reload_batch') return null;
+  return await base44.asServiceRole.entities.ReloadingSession.get(sessionId);
+}
+
+async function getReusedBrassStockRestoreWarning(base44, ammo, recordId, userEmail) {
+  const firedLogs = await base44.asServiceRole.entities.BrassMovementLog.filter({ record_id: recordId, ammunition_id: ammo.id, movement_type: 'fired_from_loaded_ammo' });
+  for (const firedLog of firedLogs) {
+    const brassLogs = await base44.asServiceRole.entities.BrassMovementLog.filter({ brass_id: firedLog.brass_id });
+    const orderedLogs = brassLogs.filter(log => log.movement_date).sort((a, b) => new Date(a.movement_date) - new Date(b.movement_date));
+    const firedTime = new Date(firedLog.movement_date).getTime();
+    const recoveredLog = orderedLogs.find(log => log.movement_type === 'recovered_after_firing' && new Date(log.movement_date).getTime() > firedTime);
+    if (!recoveredLog) continue;
+    const recoveredTime = new Date(recoveredLog.movement_date).getTime();
+    const reusedLog = orderedLogs.find(log => log.movement_type === 'used_in_reload_batch' && log.reload_batch_id !== firedLog.reload_batch_id && new Date(log.movement_date).getTime() > recoveredTime);
+    if (reusedLog) return { firedLog, recoveredLog, reusedLog, brassId: firedLog.brass_id };
+  }
+  return null;
+}
+
+async function restoreFiredBrassToLoadedForRecord(base44, ammo, quantity, recordId, userEmail) {
+  const existingRestores = await base44.asServiceRole.entities.BrassMovementLog.filter({ record_id: recordId, movement_type: 'restored_after_record_delete' });
+  if (existingRestores.some(log => log.ammunition_id === ammo.id)) return { restored: 0 };
+
+  const firedLogs = await base44.asServiceRole.entities.BrassMovementLog.filter({ record_id: recordId, movement_type: 'fired_from_loaded_ammo' });
+  const log = firedLogs.find(item => item.ammunition_id === ammo.id);
+  const session = await getReloadSessionForAmmo(base44, ammo);
+  const sessionBrass = session?.components?.find(c => c.type?.toLowerCase() === 'brass');
+  const brassId = log?.brass_id || ammo.brass_component_id || session?.brass_component_id || sessionBrass?.component_id;
+  if (!brassId) return { restored: 0 };
+
+  const brass = await base44.asServiceRole.entities.ReloadingComponent.get(brassId);
+  const previousState = getBrassState(brass);
+  const qty = Math.min(parseInt(quantity) || log?.quantity || 0, previousState.fired_awaiting_cleaning_or_inspection);
+  if (qty <= 0) return { restored: 0 };
+
+  const newState = {
+    ...previousState,
+    fired_awaiting_cleaning_or_inspection: Math.max(0, previousState.fired_awaiting_cleaning_or_inspection - qty),
+    currently_loaded: previousState.currently_loaded + qty,
+  };
+  await base44.asServiceRole.entities.ReloadingComponent.update(brassId, stateUpdate(newState));
+  await logBrassMovement(base44, {
+    brassId,
+    reloadBatchId: log?.reload_batch_id || ammo.reload_session_id || ammo.source_id,
+    recordId,
+    ammunitionId: ammo.id,
+    quantity: qty,
+    movementType: 'restored_after_record_delete',
+    previousState,
+    newState,
+    notes: 'Record deletion reversed fired brass movement',
+  });
+  return { restored: qty };
+}
+
+async function logSkippedAmmoStockRestore(base44, { ammo, recordId, quantity, warning }) {
+  const brassId = warning?.brassId || ammo.brass_component_id;
+  if (!brassId) return;
+  const brass = await base44.asServiceRole.entities.ReloadingComponent.get(brassId);
+  const state = getBrassState(brass);
+  await logBrassMovement(base44, {
+    brassId,
+    reloadBatchId: warning?.firedLog?.reload_batch_id || ammo.reload_session_id || ammo.source_id,
+    recordId,
+    ammunitionId: ammo.id,
+    quantity,
+    movementType: 'stock_restore_skipped_brass_already_reused',
+    previousState: state,
+    newState: state,
+    notes: 'Used brass was not restored because it was already recovered/reused in a later reload batch.',
+  });
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -92,18 +247,39 @@ Deno.serve(async (req) => {
           continue;
         }
 
+        const reusedWarning = ammoEntry.source_type === 'reload_batch'
+          ? await getReusedBrassStockRestoreWarning(base44, ammoEntry, sessionId, user.email)
+          : null;
+
+        if (reusedWarning) {
+          await logSkippedAmmoStockRestore(base44, { ammo: ammoEntry, recordId: sessionId, quantity: ammo.rounds, warning: reusedWarning });
+          refundSummary.ammunition_refunded[ammo.ammo_id] = {
+            before: ammoEntry.quantity_in_stock,
+            refunded: 0,
+            after: ammoEntry.quantity_in_stock,
+            skipped: true,
+            warning: 'Used brass was not restored because it was already recovered/reused in a later reload batch.',
+          };
+          console.warn(`[DELETE REFUND] Used brass restore skipped for ammo ${ammo.ammo_id}`);
+          continue;
+        }
+
         const newStock = (ammoEntry.quantity_in_stock || 0) + ammo.rounds;
         await base44.asServiceRole.entities.Ammunition.update(ammo.ammo_id, {
           quantity_in_stock: newStock,
         });
+        const brassResult = ammoEntry.source_type === 'reload_batch'
+          ? await restoreFiredBrassToLoadedForRecord(base44, ammoEntry, ammo.rounds, sessionId, user.email)
+          : { restored: 0 };
 
         refundSummary.ammunition_refunded[ammo.ammo_id] = {
           before: ammoEntry.quantity_in_stock,
           refunded: ammo.rounds,
           after: newStock,
+          brass_restored: brassResult.restored || 0,
         };
 
-        console.log(`[DELETE REFUND] Ammo ${ammo.ammo_id}: ${ammoEntry.quantity_in_stock} → +${ammo.rounds} → ${newStock}`);
+        console.log(`[DELETE REFUND] Ammo ${ammo.ammo_id}: ${ammoEntry.quantity_in_stock} → +${ammo.rounds} → ${newStock}, brass restored ${brassResult.restored || 0}`);
       } catch (err) {
         console.error(`[DELETE REFUND] Error refunding ammo ${ammo.ammo_id}:`, err.message);
         refundSummary.error = `Failed to refund ammunition ${ammo.ammo_id}`;

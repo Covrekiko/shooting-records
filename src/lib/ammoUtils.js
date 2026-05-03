@@ -59,11 +59,11 @@ export async function restoreAmmoStock(ammunitionId, quantity, sessionId = null,
       : null;
 
     if (reusedWarning) {
-      console.warn('Ammo stock restore skipped: fired brass was already recovered and reused in a later reload batch.');
+      console.warn('Used brass was not restored because it was already recovered/reused in a later reload batch.');
       await logSkippedAmmoStockRestore({ ammo, recordId: sessionId, quantity, warning: reusedWarning });
       return {
         skipped: true,
-        warning: 'Ammo stock was not restored because the fired brass from this record was already recovered and reused in a later reload batch.'
+        warning: 'Used brass was not restored because it was already recovered/reused in a later reload batch.'
       };
     }
 

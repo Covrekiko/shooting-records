@@ -174,7 +174,7 @@ export async function logSkippedAmmoStockRestore({ ammo, recordId, quantity, war
     movementType: 'stock_restore_skipped_brass_already_reused',
     previousState: state,
     newState: state,
-    notes: 'Ammo stock was not restored because the fired brass from this record was already recovered and reused in a later reload batch.',
+    notes: 'Used brass was not restored because it was already recovered/reused in a later reload batch.',
   });
 }
 
@@ -185,7 +185,9 @@ export async function restoreFiredBrassToLoadedForRecord(ammo, quantity, recordI
 
   const firedLogs = await base44.entities.BrassMovementLog.filter({ created_by: user.email, record_id: recordId, movement_type: 'fired_from_loaded_ammo' });
   const log = firedLogs.find(item => item.ammunition_id === ammo.id);
-  const brassId = log?.brass_id || ammo.brass_component_id;
+  const session = await getReloadSessionForAmmo(ammo);
+  const sessionBrass = session?.components?.find(c => c.type?.toLowerCase() === 'brass');
+  const brassId = log?.brass_id || ammo.brass_component_id || session?.brass_component_id || sessionBrass?.component_id;
   if (!brassId) return;
 
   const brass = await base44.entities.ReloadingComponent.get(brassId);
