@@ -3,7 +3,6 @@ import { format } from 'date-fns';
 import { searchCalibers } from '@/utils/caliberCatalog';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import NumberInput from '@/components/ui/NumberInput.jsx';
-import { cleanPrimerName } from '@/utils/primerName';
 
 const TITLES = { brass: 'Add Brass Cartridge', bullet: 'Add Bullet', powder: 'Add Powder', primer: 'Add Primer' };
 const UNIT_OPTIONS = { powder: ['grains', 'grams', 'kg', 'oz', 'lb'], primer: ['pieces'], brass: ['pieces'], bullet: ['pieces'] };
@@ -66,7 +65,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
     let quantityTotal = qty;
     let quantityRemaining = qty;
     let storageUnit = formData.unit;
-    let displayName = componentType === 'primer' ? cleanPrimerName(formData.name) : formData.name;
+    let displayName = formData.name;
 
     if (componentType === 'powder') {
       quantityTotal = convertToGrams(qty, formData.unit);

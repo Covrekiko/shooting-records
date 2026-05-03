@@ -9,7 +9,6 @@ import AddBrassModal from './AddBrassModal';
 import AddComponentModal from './AddComponentModal';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { getBrassState } from '@/lib/brassLifecycle';
-import { cleanPrimerName } from '@/utils/primerName';
 
 const COMPONENT_TYPES = [
   { value: 'primer', label: 'Primer', units: ['pieces'] },
@@ -107,7 +106,7 @@ export default function ComponentManager() {
       const costPerUnit = parseFloat(formData.price_total) / parseFloat(formData.quantity_total);
 
       // For bullets, create a unique identifier combining brand, bullet_name, and caliber
-      let displayName = formData.component_type === 'primer' ? cleanPrimerName(formData.name) : formData.name;
+      let displayName = formData.name;
       if (formData.component_type === 'bullet') {
         displayName = `${formData.brand} ${formData.bullet_name} (${formData.caliber})`;
       }
@@ -272,7 +271,7 @@ export default function ComponentManager() {
 
     setFormData({
       component_type: component.component_type || 'primer',
-      name: component.component_type === 'primer' ? cleanPrimerName(component.name) : (component.name || ''),
+      name: component.name || '',
       quantity_total: displayQuantity ?? '',
       quantity_remaining: component.quantity_remaining ?? '',
       unit: displayUnit || 'pieces',
@@ -441,9 +440,7 @@ export default function ComponentManager() {
     } else if (componentType === 'brass') {
       displayName = catalogItem.brand;
     } else {
-      displayName = componentType === 'primer'
-        ? cleanPrimerName(catalogItem.short_name || catalogItem.product_name || '')
-        : (catalogItem.product_name || catalogItem.short_name || '');
+      displayName = catalogItem.product_name || catalogItem.short_name || '';
       notesText = `${catalogItem.brand || ''} ${catalogItem.product_line || ''}`.trim();
     }
     
@@ -952,7 +949,7 @@ export default function ComponentManager() {
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="font-semibold">{comp.component_type === 'primer' ? cleanPrimerName(comp.name) : comp.name}</h4>
+                            <h4 className="font-semibold">{comp.name}</h4>
                             {comp.component_type === 'brass' && (
                               comp.is_used_brass
                                 ? <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">USED</span>
