@@ -9,34 +9,39 @@ import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 import ProfileBackLink from '@/components/ProfileBackLink';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function AmmoSummary() {
+  const { user } = useAuth();
   const [rifles, setRifles] = useState([]);
   const [shotguns, setShotguns] = useState([]);
   const [loading, setLoading] = useState(true);
   const { Guide: CleaningGuide, showGuideThen: showCleaningGuideThen } = useFirstTimeGuide(FIRST_TIME_GUIDES.cleaningCreate);
 
   useEffect(() => {
-  loadData();
-  }, []);
+    if (user?.email) {
+      loadData();
+    }
+  }, [user?.email]);
 
   useEffect(() => {
-  const handleVisibilityChange = () => {
-  if (document.visibilityState === 'visible') {
-  loadData();
-  }
-  };
+    if (!user?.email) return;
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        loadData();
+      }
+    };
 
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-  return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [user?.email]);
 
   const loadData = async () => {
+    if (!user?.email) return;
     try {
-      const currentUser = await base44.auth.me();
       const [riflesList, shotgunsList] = await Promise.all([
-        base44.entities.Rifle.filter({ created_by: currentUser.email }),
-        base44.entities.Shotgun.filter({ created_by: currentUser.email }),
+        base44.entities.Rifle.filter({ created_by: user.email }),
+        base44.entities.Shotgun.filter({ created_by: user.email }),
       ]);
       setRifles(riflesList);
       setShotguns(shotgunsList);
