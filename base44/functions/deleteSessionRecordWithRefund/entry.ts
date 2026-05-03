@@ -14,47 +14,79 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const num = (value) => Number(value || 0);
+const hasValue = (value) => value !== undefined && value !== null;
 
-const getBrassState = (brass) => ({
-  total_owned: num(brass.total_owned ?? brass.quantity_total),
-  available_to_reload: num(brass.available_to_reload ?? brass.quantity_remaining),
-  currently_loaded: num(brass.currently_loaded),
-  fired_awaiting_cleaning_or_inspection: num(brass.fired_awaiting_cleaning_or_inspection),
-  retired_or_discarded: num(brass.retired_or_discarded),
-  reload_cycle_count: num(brass.reload_cycle_count ?? brass.times_reloaded),
-  lifetime_reload_count: num(brass.lifetime_reload_count),
-  reload_limit: num(brass.reload_limit ?? brass.max_reloads),
-  anneal_count: num(brass.anneal_count),
-  last_annealed_date: brass.last_annealed_date || '',
-});
+const getBrassState = (brass) => {
+  const totalOwned = num(brass.total_owned ?? brass.quantity_total);
+  const legacyAvailable = num(brass.available_to_reload ?? brass.quantity_remaining);
+  const isLegacySplitMissing = !hasValue(brass.available_new_unloaded) && !hasValue(brass.available_used_recovered);
+  const addedAsUsed = brass.is_used_brass === true;
+  const available_new_unloaded = isLegacySplitMissing ? (addedAsUsed ? 0 : legacyAvailable) : num(brass.available_new_unloaded);
+  const available_used_recovered = isLegacySplitMissing ? (addedAsUsed ? legacyAvailable : 0) : num(brass.available_used_recovered);
+  const currently_loaded_new = hasValue(brass.currently_loaded_new) ? num(brass.currently_loaded_new) : (addedAsUsed ? 0 : num(brass.currently_loaded));
+  const currently_loaded_used = hasValue(brass.currently_loaded_used) ? num(brass.currently_loaded_used) : (addedAsUsed ? num(brass.currently_loaded) : 0);
+  const fired_new_awaiting_cleaning_or_inspection = hasValue(brass.fired_new_awaiting_cleaning_or_inspection) ? num(brass.fired_new_awaiting_cleaning_or_inspection) : (addedAsUsed ? 0 : num(brass.fired_awaiting_cleaning_or_inspection));
+  const fired_used_awaiting_cleaning_or_inspection = hasValue(brass.fired_used_awaiting_cleaning_or_inspection) ? num(brass.fired_used_awaiting_cleaning_or_inspection) : (addedAsUsed ? num(brass.fired_awaiting_cleaning_or_inspection) : 0);
+  const first_use_cost_remaining_quantity = hasValue(brass.first_use_cost_remaining_quantity) ? num(brass.first_use_cost_remaining_quantity) : (addedAsUsed ? 0 : available_new_unloaded);
+  const cost_consumed_quantity = hasValue(brass.cost_consumed_quantity) ? num(brass.cost_consumed_quantity) : (addedAsUsed ? 0 : Math.max(0, totalOwned - available_new_unloaded));
+
+  return {
+    total_owned: totalOwned,
+    available_new_unloaded,
+    available_used_recovered,
+    available_to_reload: available_new_unloaded + available_used_recovered,
+    currently_loaded_new,
+    currently_loaded_used,
+    currently_loaded: currently_loaded_new + currently_loaded_used,
+    fired_new_awaiting_cleaning_or_inspection,
+    fired_used_awaiting_cleaning_or_inspection,
+    fired_awaiting_cleaning_or_inspection: fired_new_awaiting_cleaning_or_inspection + fired_used_awaiting_cleaning_or_inspection,
+    retired_or_discarded: num(brass.retired_or_discarded),
+    first_use_cost_remaining_quantity,
+    cost_consumed_quantity,
+    reload_cycle_count: num(brass.reload_cycle_count ?? brass.times_reloaded),
+    lifetime_reload_count: num(brass.lifetime_reload_count),
+    reload_limit: num(brass.reload_limit ?? brass.max_reloads),
+    anneal_count: num(brass.anneal_count),
+    last_annealed_date: brass.last_annealed_date || '',
+  };
+};
 
 const brassStateTotal = (state) =>
-  num(state.available_to_reload) + num(state.currently_loaded) + num(state.fired_awaiting_cleaning_or_inspection) + num(state.retired_or_discarded);
+  num(state.available_new_unloaded) + num(state.available_used_recovered) + num(state.currently_loaded_new) + num(state.currently_loaded_used) + num(state.fired_new_awaiting_cleaning_or_inspection) + num(state.fired_used_awaiting_cleaning_or_inspection) + num(state.retired_or_discarded);
 
 const normalizeBrassState = (state) => {
   const normalized = {
     ...state,
     total_owned: num(state.total_owned),
-    available_to_reload: Math.max(0, num(state.available_to_reload)),
-    currently_loaded: Math.max(0, num(state.currently_loaded)),
-    fired_awaiting_cleaning_or_inspection: Math.max(0, num(state.fired_awaiting_cleaning_or_inspection)),
+    available_new_unloaded: Math.max(0, num(state.available_new_unloaded)),
+    available_used_recovered: Math.max(0, num(state.available_used_recovered)),
+    currently_loaded_new: Math.max(0, num(state.currently_loaded_new)),
+    currently_loaded_used: Math.max(0, num(state.currently_loaded_used)),
+    fired_new_awaiting_cleaning_or_inspection: Math.max(0, num(state.fired_new_awaiting_cleaning_or_inspection)),
+    fired_used_awaiting_cleaning_or_inspection: Math.max(0, num(state.fired_used_awaiting_cleaning_or_inspection)),
     retired_or_discarded: Math.max(0, num(state.retired_or_discarded)),
+    first_use_cost_remaining_quantity: Math.max(0, num(state.first_use_cost_remaining_quantity)),
+    cost_consumed_quantity: Math.max(0, num(state.cost_consumed_quantity)),
   };
   let overflow = brassStateTotal(normalized) - normalized.total_owned;
-  if (overflow > 0) {
-    const availableReduction = Math.min(normalized.available_to_reload, overflow);
-    normalized.available_to_reload -= availableReduction;
-    overflow -= availableReduction;
-  }
-  if (overflow > 0) {
-    const firedReduction = Math.min(normalized.fired_awaiting_cleaning_or_inspection, overflow);
-    normalized.fired_awaiting_cleaning_or_inspection -= firedReduction;
-    overflow -= firedReduction;
-  }
-  if (overflow > 0) {
-    const loadedReduction = Math.min(normalized.currently_loaded, overflow);
-    normalized.currently_loaded -= loadedReduction;
-  }
+  const reduce = (field) => {
+    if (overflow <= 0) return;
+    const reduction = Math.min(normalized[field], overflow);
+    normalized[field] -= reduction;
+    overflow -= reduction;
+  };
+  reduce('available_used_recovered');
+  reduce('available_new_unloaded');
+  reduce('fired_used_awaiting_cleaning_or_inspection');
+  reduce('fired_new_awaiting_cleaning_or_inspection');
+  reduce('currently_loaded_used');
+  reduce('currently_loaded_new');
+  normalized.available_to_reload = normalized.available_new_unloaded + normalized.available_used_recovered;
+  normalized.currently_loaded = normalized.currently_loaded_new + normalized.currently_loaded_used;
+  normalized.fired_awaiting_cleaning_or_inspection = normalized.fired_new_awaiting_cleaning_or_inspection + normalized.fired_used_awaiting_cleaning_or_inspection;
+  normalized.first_use_cost_remaining_quantity = Math.min(normalized.first_use_cost_remaining_quantity, normalized.available_new_unloaded);
+  normalized.cost_consumed_quantity = Math.min(normalized.cost_consumed_quantity, normalized.total_owned);
   return normalized;
 };
 
@@ -63,11 +95,19 @@ const stateUpdate = (state) => {
   return {
     total_owned: normalized.total_owned,
     quantity_total: normalized.total_owned,
+    available_new_unloaded: normalized.available_new_unloaded,
+    available_used_recovered: normalized.available_used_recovered,
     available_to_reload: normalized.available_to_reload,
     quantity_remaining: normalized.available_to_reload,
+    currently_loaded_new: normalized.currently_loaded_new,
+    currently_loaded_used: normalized.currently_loaded_used,
     currently_loaded: normalized.currently_loaded,
+    fired_new_awaiting_cleaning_or_inspection: normalized.fired_new_awaiting_cleaning_or_inspection,
+    fired_used_awaiting_cleaning_or_inspection: normalized.fired_used_awaiting_cleaning_or_inspection,
     fired_awaiting_cleaning_or_inspection: normalized.fired_awaiting_cleaning_or_inspection,
     retired_or_discarded: normalized.retired_or_discarded,
+    first_use_cost_remaining_quantity: normalized.first_use_cost_remaining_quantity,
+    cost_consumed_quantity: normalized.cost_consumed_quantity,
     reload_cycle_count: normalized.reload_cycle_count,
     times_reloaded: normalized.reload_cycle_count,
     lifetime_reload_count: normalized.lifetime_reload_count,
@@ -130,11 +170,23 @@ async function restoreFiredBrassToLoadedForRecord(base44, ammo, quantity, record
   const qty = Math.min(parseInt(quantity) || log?.quantity || 0, previousState.fired_awaiting_cleaning_or_inspection);
   if (qty <= 0) return { restored: 0 };
 
+  const useType = ammo.brass_use_type || session?.brass_use_type || sessionBrass?.brass_use_type || 'used';
+  const firedField = useType === 'new' ? 'fired_new_awaiting_cleaning_or_inspection' : 'fired_used_awaiting_cleaning_or_inspection';
+  const loadedField = useType === 'new' ? 'currently_loaded_new' : 'currently_loaded_used';
+  const qtyFromType = Math.min(qty, previousState[firedField]);
+  const fallbackQty = qty - qtyFromType;
   const newState = {
     ...previousState,
-    fired_awaiting_cleaning_or_inspection: Math.max(0, previousState.fired_awaiting_cleaning_or_inspection - qty),
-    currently_loaded: previousState.currently_loaded + qty,
+    [firedField]: Math.max(0, previousState[firedField] - qtyFromType),
+    [loadedField]: previousState[loadedField] + qtyFromType,
   };
+  if (fallbackQty > 0) {
+    const fallbackFiredField = useType === 'new' ? 'fired_used_awaiting_cleaning_or_inspection' : 'fired_new_awaiting_cleaning_or_inspection';
+    const fallbackLoadedField = useType === 'new' ? 'currently_loaded_used' : 'currently_loaded_new';
+    const movedFallback = Math.min(fallbackQty, previousState[fallbackFiredField]);
+    newState[fallbackFiredField] = Math.max(0, previousState[fallbackFiredField] - movedFallback);
+    newState[fallbackLoadedField] = previousState[fallbackLoadedField] + movedFallback;
+  }
   await base44.asServiceRole.entities.ReloadingComponent.update(brassId, stateUpdate(newState));
   await logBrassMovement(base44, {
     brassId,

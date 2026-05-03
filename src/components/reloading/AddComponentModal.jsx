@@ -55,7 +55,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
       displayName = `${formData.brand} ${formData.bullet_name} (${formData.caliber})`;
     }
 
-    onSave({
+    const componentData = {
       component_type: componentType,
       name: displayName,
       brand: formData.brand,
@@ -71,7 +71,30 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
       lot_number: formData.lot_number,
       date_acquired: formData.date_acquired,
       notes: formData.notes,
-    });
+    };
+
+    if (componentType === 'brass') {
+      componentData.is_used_brass = false;
+      componentData.total_owned = quantityTotal;
+      componentData.available_new_unloaded = quantityRemaining;
+      componentData.available_used_recovered = 0;
+      componentData.available_to_reload = quantityRemaining;
+      componentData.first_use_cost_remaining_quantity = quantityRemaining;
+      componentData.cost_consumed_quantity = 0;
+      componentData.currently_loaded = 0;
+      componentData.currently_loaded_new = 0;
+      componentData.currently_loaded_used = 0;
+      componentData.fired_awaiting_cleaning_or_inspection = 0;
+      componentData.fired_new_awaiting_cleaning_or_inspection = 0;
+      componentData.fired_used_awaiting_cleaning_or_inspection = 0;
+      componentData.retired_or_discarded = 0;
+      componentData.reload_cycle_count = 0;
+      componentData.lifetime_reload_count = 0;
+      componentData.anneal_count = 0;
+      componentData.last_annealed_date = '';
+    }
+
+    onSave(componentData);
   };
 
   const title = TITLES[componentType] || 'Add Component';

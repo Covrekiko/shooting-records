@@ -49,10 +49,14 @@ export default function BrassLifecycleManager({ brass, onUpdated }) {
   const handleManualFired = () => run(async () => {
     const qty = Math.min(parseInt(quantity) || 0, state.currently_loaded);
     if (qty <= 0) return;
+    const newFired = Math.min(qty, state.currently_loaded_new);
+    const usedFired = Math.min(qty - newFired, state.currently_loaded_used);
     const newState = {
       ...state,
-      currently_loaded: state.currently_loaded - qty,
-      fired_awaiting_cleaning_or_inspection: state.fired_awaiting_cleaning_or_inspection + qty,
+      currently_loaded_new: state.currently_loaded_new - newFired,
+      currently_loaded_used: state.currently_loaded_used - usedFired,
+      fired_new_awaiting_cleaning_or_inspection: state.fired_new_awaiting_cleaning_or_inspection + newFired,
+      fired_used_awaiting_cleaning_or_inspection: state.fired_used_awaiting_cleaning_or_inspection + usedFired,
     };
     await base44.entities.ReloadingComponent.update(brass.id, { ...stateUpdate(newState), times_fired: (brass.times_fired || 0) + qty });
     await logBrassMovement({ brassId: brass.id, quantity: qty, movementType: 'manual_fired_brass', previousState: state, newState });
@@ -84,12 +88,15 @@ export default function BrassLifecycleManager({ brass, onUpdated }) {
 
   return (
     <div className="mt-3 pt-3 border-t border-border space-y-3">
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
         <div><p className="text-muted-foreground">Total owned</p><p className="font-bold">{state.total_owned}</p></div>
-        <div><p className="text-muted-foreground">Available</p><p className="font-bold text-green-700 dark:text-green-400">{state.available_to_reload}</p></div>
+        <div><p className="text-muted-foreground">New / never loaded</p><p className="font-bold text-green-700 dark:text-green-400">{state.available_new_unloaded}</p></div>
+        <div><p className="text-muted-foreground">Used / recovered</p><p className="font-bold text-emerald-700 dark:text-emerald-400">{state.available_used_recovered}</p></div>
         <div><p className="text-muted-foreground">Loaded</p><p className="font-bold text-blue-700 dark:text-blue-400">{state.currently_loaded}</p></div>
         <div><p className="text-muted-foreground">Fired / cleaning</p><p className="font-bold text-amber-700 dark:text-amber-400">{state.fired_awaiting_cleaning_or_inspection}</p></div>
         <div><p className="text-muted-foreground">Retired</p><p className="font-bold text-destructive">{state.retired_or_discarded}</p></div>
+        <div><p className="text-muted-foreground">First-use cost remaining</p><p className="font-bold">{state.first_use_cost_remaining_quantity}</p></div>
+        <div><p className="text-muted-foreground">Cost consumed</p><p className="font-bold">{state.cost_consumed_quantity}</p></div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

@@ -8,6 +8,7 @@ import { downloadBrassBatchPdf } from '@/utils/brassPdfExport';
 import AddBrassModal from './AddBrassModal';
 import AddComponentModal from './AddComponentModal';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
+import { getBrassState } from '@/lib/brassLifecycle';
 
 const COMPONENT_TYPES = [
   { value: 'primer', label: 'Primer', units: ['pieces'] },
@@ -120,9 +121,17 @@ export default function ComponentManager() {
       if (data.component_type === 'brass' && !editingId) {
         data.is_used_brass = data.is_used_brass === true;
         data.total_owned = quantityTotal;
+        data.available_new_unloaded = data.is_used_brass ? 0 : quantityRemaining;
+        data.available_used_recovered = data.is_used_brass ? quantityRemaining : 0;
         data.available_to_reload = quantityRemaining;
+        data.first_use_cost_remaining_quantity = data.is_used_brass ? 0 : quantityRemaining;
+        data.cost_consumed_quantity = 0;
         data.currently_loaded = 0;
+        data.currently_loaded_new = 0;
+        data.currently_loaded_used = 0;
         data.fired_awaiting_cleaning_or_inspection = 0;
+        data.fired_new_awaiting_cleaning_or_inspection = 0;
+        data.fired_used_awaiting_cleaning_or_inspection = 0;
         data.retired_or_discarded = 0;
         data.times_fired = brassCurrentCount;
         data.times_reloaded = brassCurrentCount;
@@ -861,6 +870,8 @@ export default function ComponentManager() {
                       }
                     }
 
+                    const brassState = comp.component_type === 'brass' ? getBrassState(comp) : null;
+
                     return (
                     <div key={comp.id} className="bg-card border border-border rounded-lg p-4">
                       <div className="flex items-start justify-between mb-2">
@@ -876,16 +887,23 @@ export default function ComponentManager() {
                           {comp.component_type === 'brass' && comp.batch_number && (
                             <p className="text-xs text-muted-foreground mt-0.5 font-mono">#{comp.batch_number}</p>
                           )}
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {displayRemaining}/{displayTotal} {displayUnit}
-                          </p>
-                          {comp.component_type === 'brass' && (
+                          {comp.component_type === 'brass' ? (
+                            <div className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                              <p>Total owned: {brassState.total_owned}</p>
+                              <p>New / never loaded: {brassState.available_new_unloaded} • Used / recovered: {brassState.available_used_recovered}</p>
+                              <p>Loaded: {brassState.currently_loaded} • Fired/cleaning: {brassState.fired_awaiting_cleaning_or_inspection} • Retired: {brassState.retired_or_discarded}</p>
+                              <p>First-use cost remaining: {brassState.first_use_cost_remaining_quantity} • Cost consumed: {brassState.cost_consumed_quantity}</p>
+                              <p>
+                                Fired/reloaded: {brassState.reload_cycle_count}
+                                {brassState.reload_limit ? ` / limit ${brassState.reload_limit}` : ''}
+                              </p>
+                            </div>
+                          ) : (
                             <p className="text-xs text-muted-foreground mt-1">
-                              Fired/reloaded: {comp.times_reloaded ?? comp.reload_cycle_count ?? comp.times_fired ?? 0}
-                              {(comp.max_reloads || comp.reload_limit) ? ` / limit ${comp.max_reloads || comp.reload_limit}` : ''}
+                              {displayRemaining}/{displayTotal} {displayUnit}
                             </p>
                           )}
-                          {comp.component_type === 'brass' && (comp.max_reloads || comp.reload_limit) > 0 && (comp.times_reloaded ?? comp.reload_cycle_count ?? 0) >= (comp.max_reloads || comp.reload_limit) && (
+                          {comp.component_type === 'brass' && brassState.reload_limit > 0 && brassState.reload_cycle_count >= brassState.reload_limit && (
                             <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mt-1">Reload limit reached</p>
                           )}
                           {comp.component_type === 'brass' && viewingBrassId === comp.id && (
