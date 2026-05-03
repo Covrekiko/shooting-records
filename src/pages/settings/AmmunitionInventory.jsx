@@ -7,6 +7,7 @@ import AmmoSpendingBreakdown from '@/components/AmmoSpendingBreakdown';
 import GlobalModal, { ModalCancelButton, ModalSaveButton } from '@/components/ui/GlobalModal';
 import { loadOwnedAmmunitionWithReloads } from '@/lib/ownedAmmunition';
 import { formatAmmunitionLabel } from '@/utils/ammoLabels';
+import { deleteReloadBatchWithRestore, isReloadedAmmunition } from '@/lib/reloadingDeleteUtils';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 
@@ -76,7 +77,14 @@ export default function AmmunitionInventory() {
   const handleDelete = async () => {
     if (!deletingItem?.id) return;
     try {
-      await base44.entities.Ammunition.delete(deletingItem.id);
+      if (isReloadedAmmunition(deletingItem)) {
+        const result = await deleteReloadBatchWithRestore({ ammunitionId: deletingItem.id });
+        if (result.warnings?.length > 0) {
+          alert(result.warnings.join('\n'));
+        }
+      } else {
+        await base44.entities.Ammunition.delete(deletingItem.id);
+      }
       setDeletingItem(null);
       await loadAmmo();
     } catch (error) {
@@ -382,7 +390,9 @@ export default function AmmunitionInventory() {
           )}
         >
           <p className="text-sm text-muted-foreground">
-            This will permanently remove this ammunition from your inventory.
+            {deletingItem && isReloadedAmmunition(deletingItem)
+              ? 'This ammunition was created from a reload batch. Deleting it will also remove the linked reload session and restore unused components where safe.'
+              : 'This will permanently remove this ammunition from your inventory.'}
           </p>
         </GlobalModal>
       </main>
