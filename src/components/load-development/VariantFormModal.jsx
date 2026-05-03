@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import BulletReferencePicker from '@/components/reference/BulletReferencePicker';
 import GlobalModal, { ModalSaveButton, ModalCancelButton } from '@/components/ui/GlobalModal.jsx';
 
 export default function VariantFormModal({ open, test, variant, variantCount, onClose, onSaved }) {
@@ -12,7 +11,10 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
     powder_component_id: '',
     powder_charge_grains: '',
     bullet_brand: test.bullet_brand || '',
+    bullet_name: '',
+    bullet_grains: '',
     bullet_component_id: '',
+    bullet_entry_mode: 'stock',
     bullet_quantity_used: '',
     brass_brand: test.brass_brand || '',
     brass_component_id: '',
@@ -57,10 +59,24 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
     set(`${type}_component_id`, id);
     if (comp) {
       if (type === 'powder') set('powder_name', comp.name);
-      if (type === 'bullet') set('bullet_brand', comp.brand || comp.name);
+      if (type === 'bullet') set('bullet_brand', [comp.brand, comp.name].filter(Boolean).join(' ') || comp.name);
       if (type === 'brass') set('brass_brand', comp.brand || comp.name);
       if (type === 'primer') set('primer_brand', comp.brand || comp.name);
     }
+  };
+
+  const handleBulletSelect = (value) => {
+    if (value === 'manual') {
+      setForm(f => ({ ...f, bullet_entry_mode: 'manual', bullet_component_id: '' }));
+      return;
+    }
+    const comp = components.bullet.find(c => c.id === value);
+    setForm(f => ({
+      ...f,
+      bullet_entry_mode: 'stock',
+      bullet_component_id: value,
+      bullet_brand: comp ? [comp.brand, comp.name].filter(Boolean).join(' ') || comp.name : f.bullet_brand,
+    }));
   };
 
   const autoLabel = () => {
@@ -83,7 +99,9 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
         powder_name: form.powder_name,
         powder_component_id: form.powder_component_id,
         powder_charge_grains: parseFloat(form.powder_charge_grains) || 0,
-        bullet_brand: form.bullet_brand,
+        bullet_brand: form.bullet_entry_mode === 'manual'
+          ? [form.bullet_brand, form.bullet_name, form.bullet_grains ? `${form.bullet_grains}gr` : ''].filter(Boolean).join(' ')
+          : form.bullet_brand,
         bullet_component_id: form.bullet_component_id,
         bullet_quantity_used: parseInt(form.bullet_quantity_used) || 0,
         brass_brand: form.brass_brand,
@@ -230,29 +248,34 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
         <div className="bg-secondary/30 rounded-xl p-3 space-y-2">
           <p className="text-xs font-bold text-muted-foreground uppercase">Bullet</p>
           <div>
-            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Bullet Reference Database <span className="normal-case font-normal">(optional autofill)</span></label>
-            <BulletReferencePicker
-              onSelect={(b) => {
-                set('bullet_brand', b.manufacturer + (b.bullet_name ? ` ${b.bullet_name}` : ''));
-              }}
-              onClear={() => {}}
-            />
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Select Bullet from Stock</label>
-            <select value={form.bullet_component_id} onChange={e => handleComponentSelect('bullet', e.target.value)}
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Select Bullet</label>
+            <select value={form.bullet_entry_mode === 'manual' ? 'manual' : form.bullet_component_id} onChange={e => handleBulletSelect(e.target.value)}
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none">
-              <option value="">— Select —</option>
+              <option value="manual">Manual Entry</option>
               {components.bullet.map(c => (
-                <option key={c.id} value={c.id}>{c.name} ({c.quantity_remaining} remaining)</option>
+                <option key={c.id} value={c.id}>{[c.brand, c.name].filter(Boolean).join(' ') || 'Bullet'} ({c.quantity_remaining} remaining)</option>
               ))}
             </select>
           </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Bullet Brand / Name</label>
-            <input value={form.bullet_brand ?? ''} onChange={e => set('bullet_brand', e.target.value)} placeholder="e.g. Berger 175gr"
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
-          </div>
+          {form.bullet_entry_mode === 'manual' && (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div>
+                <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Bullet Brand</label>
+                <input value={form.bullet_brand ?? ''} onChange={e => set('bullet_brand', e.target.value)} placeholder="e.g. Berger"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Bullet Name</label>
+                <input value={form.bullet_name ?? ''} onChange={e => set('bullet_name', e.target.value)} placeholder="e.g. VLD"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Grains</label>
+                <input value={form.bullet_grains ?? ''} onChange={e => set('bullet_grains', e.target.value)} type="number" placeholder="175"
+                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+              </div>
+            </div>
+          )}
           <div>
             <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Quantity Used</label>
             <input value={form.bullet_quantity_used ?? ''} onChange={e => set('bullet_quantity_used', e.target.value)} type="number" placeholder="20"
