@@ -141,7 +141,7 @@ export default function Records() {
     if (!confirm('Delete this record? This will restore all ammunition stock.')) return;
     try {
       if (!navigator.onLine) {
-        alert('You are offline. You must be online to delete records and restore ammunition stock. Please connect to the internet and try again.');
+        alert('This action requires internet connection to protect stock accuracy.');
         return;
       }
       if (!record.id) {
@@ -160,6 +160,10 @@ export default function Records() {
 
   const handleSaveManualRecord = async (data, recordType, recordId) => {
     try {
+      if (!navigator.onLine) {
+        alert('This action requires internet connection to protect stock accuracy.');
+        return;
+      }
       const categoryMap = { 'target': 'target_shooting', 'clay': 'clay_shooting', 'deer': 'deer_management' };
       const recordData = { ...data, category: categoryMap[recordType] };
       

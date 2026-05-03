@@ -112,6 +112,10 @@ export default function DeerManagement() {
   const handleCheckout = async (checkoutData) => {
     if (!activeOuting) { alert('No active outing to check out from'); return; }
     try {
+      if (!navigator.onLine) {
+        alert('This action requires internet connection to protect stock accuracy.');
+        return;
+      }
       // Collect GPS track BEFORE stopping tracking
       const finalTrack = trackingService.getTrack();
       console.log('🟢 Checkout: Collected', finalTrack.length, 'GPS points before stop');

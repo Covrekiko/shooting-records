@@ -222,6 +222,10 @@ export default function TargetShooting() {
       return;
     }
     try {
+      if (!navigator.onLine) {
+        alert('This action requires internet connection to protect stock accuracy.');
+        return;
+      }
       // Collect GPS track BEFORE stopping tracking
       const finalTrack = trackingService.getTrack();
       if (finalTrack.length === 0) {
@@ -555,6 +559,10 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
 // ─── Photo upload helper ──────────────────────────────────────────
 async function uploadPhotos(files, existingPhotos, setUploading) {
   if (!files || files.length === 0) return null;
+  if (!navigator.onLine) {
+    alert('Photo upload requires internet. Please try again when online.');
+    return null;
+  }
   setUploading(true);
   try {
     const newPhotos = [...(existingPhotos || [])];

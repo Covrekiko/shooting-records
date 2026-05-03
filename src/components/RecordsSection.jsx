@@ -106,7 +106,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
      if (!confirm('Delete this record? Ammunition and firearm counts will be restored.')) return;
     try {
       if (!navigator.onLine) {
-        alert('You must be online to delete records and restore ammunition. Please connect to the internet and try again.');
+        alert('This action requires internet connection to protect stock accuracy.');
         return;
       }
       if (!recordId) {

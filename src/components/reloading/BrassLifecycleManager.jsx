@@ -28,6 +28,10 @@ export default function BrassLifecycleManager({ brass, onUpdated }) {
   const nearLimit = state.reload_limit > 0 && state.reload_cycle_count >= state.reload_limit - 1 && !atLimit;
 
   const run = async (action) => {
+    if (!navigator.onLine) {
+      alert('This action requires internet connection to protect stock accuracy.');
+      return;
+    }
     setSaving(true);
     try {
       await action();

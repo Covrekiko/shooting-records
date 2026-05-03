@@ -14,6 +14,11 @@ export default function HarvestModal({ location, onClose, onSubmit }) {
   const handlePhotoUpload = async (e) => {
     const files = e.target.files;
     if (!files) return;
+    e.target.value = '';
+    if (!navigator.onLine) {
+      alert('Photo upload requires internet. Please try again when online.');
+      return;
+    }
     setUploading(true);
     try {
       for (const file of files) {

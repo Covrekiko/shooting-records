@@ -48,6 +48,10 @@ export default function ReloadingManagement() {
   const pullToRefresh = usePullToRefresh(loadSessions, { disabled: showForm || showBatchForm });
 
   const handleDelete = async (id) => {
+    if (!navigator.onLine) {
+      alert('This action requires internet connection to protect stock accuracy.');
+      return;
+    }
     if (!confirm('Delete this reloading session? Component stock will be restored.')) return;
     try {
       const result = await deleteReloadBatchWithRestore({ reloadSessionId: id });
@@ -133,7 +137,13 @@ export default function ReloadingManagement() {
             <p className="text-muted-foreground">Track and manage your reloading sessions</p>
           </div>
           <button
-            onClick={() => showReloadingBatchGuideThen(() => setShowBatchForm(true))}
+            onClick={() => {
+              if (!navigator.onLine) {
+                alert('This action requires internet connection to protect stock accuracy.');
+                return;
+              }
+              showReloadingBatchGuideThen(() => setShowBatchForm(true));
+            }}
             className="px-6 py-3 bg-primary text-primary-foreground rounded-2xl hover:opacity-90 flex items-center gap-2 font-semibold whitespace-nowrap"
           >
             <Plus className="w-5 h-5" />

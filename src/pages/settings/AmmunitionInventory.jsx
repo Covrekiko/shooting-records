@@ -63,6 +63,10 @@ export default function AmmunitionInventory() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!navigator.onLine) {
+      alert('This action requires internet connection to protect stock accuracy.');
+      return;
+    }
     try {
       if (editingId) {
         await base44.entities.Ammunition.update(editingId, { ...formData, caliber: normalizeCaliber(formData.caliber) });
@@ -80,6 +84,10 @@ export default function AmmunitionInventory() {
 
   const handleDelete = async () => {
     if (!deletingItem?.id) return;
+    if (!navigator.onLine) {
+      alert('This action requires internet connection to protect stock accuracy.');
+      return;
+    }
     try {
       if (isReloadedAmmunition(deletingItem)) {
         const result = await deleteReloadBatchWithRestore({ ammunitionId: deletingItem.id });
@@ -145,7 +153,13 @@ export default function AmmunitionInventory() {
             <p className="text-muted-foreground">Track and manage your ammunition stock</p>
           </div>
           <button
-            onClick={() => showForm ? setShowForm(false) : showAmmoGuideThen(() => setShowForm(true))}
+            onClick={() => {
+              if (!navigator.onLine && !showForm) {
+                alert('This action requires internet connection to protect stock accuracy.');
+                return;
+              }
+              showForm ? setShowForm(false) : showAmmoGuideThen(() => setShowForm(true));
+            }}
             className="px-6 py-3 bg-primary text-primary-foreground rounded-2xl hover:opacity-90 flex items-center gap-2 font-semibold whitespace-nowrap"
           >
             <Plus className="w-5 h-5" />

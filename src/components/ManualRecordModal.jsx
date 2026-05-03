@@ -12,6 +12,10 @@ import { loadOwnedAmmunitionWithReloads } from '@/lib/ownedAmmunition';
 
 async function handlePhotoUpload(files, data, setFormData) {
   if (!files || files.length === 0) return;
+  if (!navigator.onLine) {
+    alert('Photo upload requires internet. Please try again when online.');
+    return;
+  }
   
   const uploadedPhotos = [];
   for (const file of files) {

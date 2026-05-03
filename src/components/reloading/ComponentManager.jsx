@@ -169,6 +169,10 @@ export default function ComponentManager() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!navigator.onLine) {
+      alert('This action requires internet connection to protect stock accuracy.');
+      return;
+    }
     try {
       const costPerUnit = parseFloat(formData.price_total) / parseFloat(formData.quantity_total);
 
@@ -376,6 +380,10 @@ export default function ComponentManager() {
   };
 
   const handleDelete = async (id) => {
+    if (!navigator.onLine) {
+      alert('This action requires internet connection to protect stock accuracy.');
+      return;
+    }
     if (!confirm('Delete this component?')) return;
     try {
       await base44.entities.ReloadingComponent.delete(id);
@@ -465,6 +473,10 @@ export default function ComponentManager() {
   };
 
   const handleSaveBrass = async (brassData) => {
+    if (!navigator.onLine) {
+      alert('This action requires internet connection to protect stock accuracy.');
+      return;
+    }
     try {
       await base44.entities.ReloadingComponent.create(brassData);
       setShowAddBrassModal(false);
@@ -476,6 +488,10 @@ export default function ComponentManager() {
   };
 
   const handleSaveComponent = async (componentData) => {
+    if (!navigator.onLine) {
+      alert('This action requires internet connection to protect stock accuracy.');
+      return;
+    }
     try {
       await base44.entities.ReloadingComponent.create(componentData);
       setShowAddComponentModal(false);
@@ -940,6 +956,10 @@ export default function ComponentManager() {
                 {!showForm && (
                     <button
                       onClick={() => {
+                        if (!navigator.onLine) {
+                          alert('This action requires internet connection to protect stock accuracy.');
+                          return;
+                        }
                         setEditingId(null);
                         setLockedComponentType(type.value);
                         setFormData({
@@ -1074,7 +1094,13 @@ export default function ComponentManager() {
                            </>
                          )}
                           <button
-                            onClick={() => handleEdit(comp)}
+                            onClick={() => {
+                              if (!navigator.onLine) {
+                                alert('This action requires internet connection to protect stock accuracy.');
+                                return;
+                              }
+                              handleEdit(comp);
+                            }}
                             className="w-9 h-9 flex items-center justify-center hover:bg-secondary rounded-lg transition-colors"
                           >
                             <Edit2 className="w-4 h-4" />

@@ -10,6 +10,10 @@ export default function PhotoUpload({ photos = [], onPhotosChange }) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
     e.target.value = '';
+    if (!navigator.onLine) {
+      alert('Photo upload requires internet. Please try again when online.');
+      return;
+    }
     setUploading(true);
     try {
       const newUrls = [];

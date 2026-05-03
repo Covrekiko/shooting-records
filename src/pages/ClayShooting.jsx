@@ -244,6 +244,10 @@ export default function ClayShooting() {
       return;
     }
     try {
+      if (!navigator.onLine) {
+        alert('This action requires internet connection to protect stock accuracy.');
+        return;
+      }
       // Collect GPS track BEFORE stopping tracking
       const finalTrack = trackingService.getTrack();
       if (finalTrack.length === 0) {
@@ -494,6 +498,10 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
 // ─── Photo upload helper ──────────────────────────────────────────
 async function handlePhotoUpload(files, data, onChange) {
   if (!files || files.length === 0) return;
+  if (!navigator.onLine) {
+    alert('Photo upload requires internet. Please try again when online.');
+    return;
+  }
   const maxFileSize = 5 * 1024 * 1024;
   const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
   const uploadedPhotos = [];

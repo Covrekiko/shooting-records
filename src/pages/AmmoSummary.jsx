@@ -53,6 +53,10 @@ export default function AmmoSummary() {
   };
 
   const handleMarkCleaned = async (rifleId) => {
+    if (!navigator.onLine) {
+      alert('This action requires internet connection to protect stock accuracy.');
+      return;
+    }
     try {
       const rifle = rifles.find(r => r.id === rifleId);
       if (!rifle) return;
@@ -83,6 +87,10 @@ export default function AmmoSummary() {
   };
 
   const handleShotgunMarkCleaned = async (shotgunId) => {
+    if (!navigator.onLine) {
+      alert('This action requires internet connection to protect stock accuracy.');
+      return;
+    }
     try {
       const shotgun = shotguns.find(s => s.id === shotgunId);
       if (!shotgun) return;

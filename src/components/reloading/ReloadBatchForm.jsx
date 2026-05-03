@@ -169,6 +169,11 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
     setValidationError(null);
 
+    if (!navigator.onLine) {
+      setValidationError('This action requires internet connection to protect stock accuracy.');
+      return;
+    }
+
     // Validate stock before proceeding
     const validation = validateStock();
     if (!validation.valid) {
@@ -191,6 +196,10 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
   };
 
   const handleAddBrassSaved = async (brassData) => {
+    if (!navigator.onLine) {
+      alert('This action requires internet connection to protect stock accuracy.');
+      return;
+    }
     try {
       const normalizedBrassData = { ...brassData, ...stateUpdate(getBrassState(brassData)) };
       const newBrass = await base44.entities.ReloadingComponent.create(normalizedBrassData);

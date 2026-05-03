@@ -317,6 +317,10 @@ export default function DeerStalkingMap() {
     if (!activeOuting) return;
 
     try {
+      if (!navigator.onLine) {
+        alert('This action requires internet connection to protect stock accuracy.');
+        return;
+      }
       const finalTrack = trackingService.getTrack();
       const roundsFired = checkoutData.shot_anything
         ? (parseInt(checkoutData.rounds_fired) > 0 ? parseInt(checkoutData.rounds_fired) : parseInt(checkoutData.total_count) || 0)
@@ -444,11 +448,21 @@ export default function DeerStalkingMap() {
   };
 
   if (loading || outingLoading || !isLoaded) {
+    const offlineMapUnavailable = !navigator.onLine && !isLoaded;
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-slate-900">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-3"></div>
-          <p className="text-white text-sm">Map initializing...</p>
+      <div className="fixed inset-0 flex items-center justify-center bg-slate-900 px-6">
+        <div className="text-center max-w-sm">
+          {offlineMapUnavailable ? (
+            <>
+              <AlertCircle className="w-10 h-10 text-amber-400 mx-auto mb-3" />
+              <p className="text-white text-sm font-semibold">Map imagery requires internet. GPS points can still be saved if location is available.</p>
+            </>
+          ) : (
+            <>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-3"></div>
+              <p className="text-white text-sm">Map initializing...</p>
+            </>
+          )}
         </div>
       </div>
     );

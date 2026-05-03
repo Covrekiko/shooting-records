@@ -30,6 +30,11 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   const handlePhotoUpload = async (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+    e.target.value = '';
+    if (!navigator.onLine) {
+      alert('Photo upload requires internet. Please try again when online.');
+      return;
+    }
     setUploading(true);
     try {
       for (const file of files) {
@@ -65,6 +70,10 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   const totalCount = formData.species_list.reduce((sum, s) => sum + (parseInt(s.count) || 0), 0);
 
   const handleSubmit = () => {
+    if (!navigator.onLine) {
+      alert('This action requires internet connection to protect stock accuracy.');
+      return;
+    }
     // rounds_fired defaults to total animal count if not explicitly entered
     const roundsFired = formData.shot_anything
       ? (parseInt(formData.rounds_fired) > 0 ? parseInt(formData.rounds_fired) : totalCount)
