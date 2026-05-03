@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import GlobalModal, { ModalSaveButton, ModalCancelButton } from '@/components/ui/GlobalModal.jsx';
+import BulletDetailsCard from '@/components/reloading/BulletDetailsCard';
 
 export default function VariantFormModal({ open, test, variant, variantCount, onClose, onSaved }) {
   const [components, setComponents] = useState({ powder: [], bullet: [], brass: [], primer: [] });
@@ -262,6 +263,7 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
               ))}
             </select>
           </div>
+          <BulletDetailsCard bullet={components.bullet.find(b => b.id === form.bullet_component_id)} />
           {form.bullet_entry_mode === 'manual' && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div>

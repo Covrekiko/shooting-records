@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { Plus } from 'lucide-react';
 import { searchCalibers } from '@/utils/caliberCatalog';
 import AddBrassModal from './AddBrassModal';
+import BulletDetailsCard from './BulletDetailsCard';
 
 export default function ReloadBatchForm({ onSubmit, onClose }) {
 
@@ -729,6 +730,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           {stockWarnings.bullet && (
              <p className="text-xs font-semibold mt-2.5 text-destructive">{stockWarnings.bullet}</p>
            )}
+          <BulletDetailsCard bullet={components.bullet.find(b => b.id === formData.bullet_id)} />
         </div>
 
         <div className="rounded-lg p-4 space-y-3 bg-muted/50 border border-border">
