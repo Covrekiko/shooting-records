@@ -60,12 +60,16 @@ export default function Records() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      // Load all users for record display
-      const allUsers = await base44.entities.User.list();
+      // Load user display data without calling admin-only User.list for normal users
       const userMap = {};
-      allUsers.forEach(u => {
-        userMap[u.email] = u;
-      });
+      if (currentUser.role === 'admin') {
+        const allUsers = await base44.entities.User.list();
+        allUsers.forEach(u => {
+          userMap[u.email] = u;
+        });
+      } else {
+        userMap[currentUser.email] = currentUser;
+      }
       setUsers(userMap);
 
       // Load rifles, shotguns, clubs, and locations (offline-aware)

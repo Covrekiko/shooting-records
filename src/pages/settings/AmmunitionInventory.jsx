@@ -7,7 +7,7 @@ import AmmoSpendingBreakdown from '@/components/AmmoSpendingBreakdown';
 import GlobalModal, { ModalCancelButton, ModalSaveButton } from '@/components/ui/GlobalModal';
 import { loadOwnedAmmunitionWithReloads } from '@/lib/ownedAmmunition';
 import { formatAmmunitionLabel } from '@/utils/ammoLabels';
-import { deleteReloadBatchWithRestore, isReloadedAmmunition } from '@/lib/reloadingDeleteUtils';
+import { isReloadedAmmunition } from '@/lib/reloadingDeleteUtils';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 import CaliberTypeahead from '@/components/CaliberTypeahead';
@@ -69,7 +69,10 @@ export default function AmmunitionInventory() {
     }
     try {
       if (editingId) {
-        await base44.entities.Ammunition.update(editingId, { ...formData, caliber: normalizeCaliber(formData.caliber) });
+        await base44.functions.invoke('updateAmmunitionForUser', {
+          ammunitionId: editingId,
+          ammunition: { ...formData, caliber: normalizeCaliber(formData.caliber) },
+        });
       } else {
         await base44.functions.invoke('createAmmunitionForUser', {
           ammunition: { ...formData, caliber: normalizeCaliber(formData.caliber) },
@@ -89,13 +92,12 @@ export default function AmmunitionInventory() {
       return;
     }
     try {
-      if (isReloadedAmmunition(deletingItem)) {
-        const result = await deleteReloadBatchWithRestore({ ammunitionId: deletingItem.id });
-        if (result.warnings?.length > 0) {
-          alert(result.warnings.join('\n'));
-        }
-      } else {
-        await base44.entities.Ammunition.delete(deletingItem.id);
+      const response = await base44.functions.invoke('deleteAmmunitionForUser', {
+        ammunitionId: deletingItem.id,
+      });
+      const result = response.data;
+      if (result.warnings?.length > 0) {
+        alert(result.warnings.join('\n'));
       }
       setDeletingItem(null);
       await loadAmmo();

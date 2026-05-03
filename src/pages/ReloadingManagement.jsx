@@ -78,29 +78,8 @@ export default function ReloadingManagement() {
         const safeUpdate = { ...data, rounds_loaded: editingSession.rounds_loaded };
         await base44.entities.ReloadingSession.update(editingSession.id, safeUpdate);
       } else {
-        const createdSession = await base44.entities.ReloadingSession.create(data);
-        
-        // Auto-add to ammunition if enabled
-        if (data.create_ammo) {
-          const user = await base44.auth.me();
-          // Create a per-batch ammo entry tagged with reload_batch:<id> for reliable reversal
-          const batchNotes = `reload_batch:${createdSession.id} | Batch ${data.batch_number}`;
-          await base44.entities.Ammunition.create({
-            brand: 'Reloaded',
-            caliber: data.caliber,
-            bullet_type: 'Custom',
-            quantity_in_stock: data.rounds_loaded,
-            units: 'rounds',
-            cost_per_unit: data.rounds_loaded > 0 ? data.total_cost / data.rounds_loaded : 0,
-            date_purchased: data.date,
-            low_stock_threshold: 10,
-            ammo_type: 'reloaded',
-            source_type: 'reload_batch',
-            reload_session_id: createdSession.id,
-            source_id: createdSession.id,
-            notes: batchNotes,
-          });
-        }
+        alert('Please use New Batch so component stock and brass lifecycle are updated safely.');
+        return;
       }
       setShowForm(false);
       setEditingSession(null);

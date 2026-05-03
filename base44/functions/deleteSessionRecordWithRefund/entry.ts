@@ -362,7 +362,12 @@ Deno.serve(async (req) => {
       const spending = await base44.asServiceRole.entities.AmmoSpending.filter({
         created_by: ownerEmail,
       });
-      const matchingSpending = spending.filter(s => s.session_id === sessionId);
+      const spendingTags = [`session:${sessionId}`, `record:${sessionId}`];
+      if (record.outing_id) spendingTags.push(`outing:${record.outing_id}`);
+      const matchingSpending = spending.filter(s =>
+        s.session_id === sessionId ||
+        spendingTags.some(tag => String(s.notes || '').includes(tag))
+      );
       for (const spend of matchingSpending) {
         await base44.asServiceRole.entities.AmmoSpending.delete(spend.id);
       }
