@@ -14,7 +14,7 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
     bullet_name: '',
     bullet_grains: '',
     bullet_component_id: '',
-    bullet_entry_mode: 'stock',
+    bullet_entry_mode: '',
     bullet_quantity_used: '',
     brass_brand: test.brass_brand || '',
     brass_component_id: '',
@@ -66,6 +66,10 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
   };
 
   const handleBulletSelect = (value) => {
+    if (!value) {
+      setForm(f => ({ ...f, bullet_entry_mode: '', bullet_component_id: '' }));
+      return;
+    }
     if (value === 'manual') {
       setForm(f => ({ ...f, bullet_entry_mode: 'manual', bullet_component_id: '' }));
       return;
@@ -251,8 +255,9 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
             <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Select Bullet</label>
             <select value={form.bullet_entry_mode === 'manual' ? 'manual' : form.bullet_component_id} onChange={e => handleBulletSelect(e.target.value)}
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none">
+              <option value="">Select bullet…</option>
               <option value="manual">Manual Entry</option>
-              {components.bullet.map(c => (
+              {components.bullet.filter(c => (c.quantity_remaining || 0) > 0).map(c => (
                 <option key={c.id} value={c.id}>{[c.brand, c.name].filter(Boolean).join(' ') || 'Bullet'} ({c.quantity_remaining} remaining)</option>
               ))}
             </select>
