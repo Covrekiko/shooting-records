@@ -1010,13 +1010,18 @@ export default function ComponentManager() {
                     }
 
                     const brassState = comp.component_type === 'brass' ? getBrassState(comp) : null;
+                    const brassDisplayName = comp.component_type === 'brass'
+                      ? (comp.name?.toLowerCase().includes((comp.caliber || '').toLowerCase())
+                        ? comp.name
+                        : [comp.brand || comp.name, comp.caliber].filter(Boolean).join(' '))
+                      : comp.name;
 
                     return (
                     <div key={comp.id} className="bg-card border border-border rounded-lg p-4">
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h4 className="font-semibold">{comp.name}</h4>
+                            <h4 className="font-semibold">{brassDisplayName}</h4>
                             {comp.component_type === 'brass' && (
                               comp.is_used_brass
                                 ? <span className="px-1.5 py-0.5 rounded text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">USED</span>
