@@ -13,6 +13,8 @@ import {
   generateCategoryReportPDF,
 } from '@/utils/pdfExport';
 import { generateFormalReport } from '@/utils/formalReportPDF';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 
 export default function Reports() {
   const [records, setRecords] = useState([]);
@@ -122,6 +124,8 @@ export default function Reports() {
     }
   };
 
+  const pullToRefresh = usePullToRefresh(loadRecords, { disabled: !!previewPdf || previewLoading });
+
   const handleGenerateReport = async () => {
     try {
       let filteredRecords = records;
@@ -187,6 +191,7 @@ export default function Reports() {
   return (
     <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
+      <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       <main className="max-w-7xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Reports & Analytics</h1>

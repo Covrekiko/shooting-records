@@ -6,6 +6,8 @@ import GoalCard from '@/components/GoalCard';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
 import { Plus, Trophy } from 'lucide-react';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 
 export default function Goals() {
   const [goals, setGoals] = useState([]);
@@ -45,6 +47,8 @@ export default function Goals() {
     }
   };
 
+  const pullToRefresh = usePullToRefresh(loadGoals, { disabled: showForm });
+
   if (loading) {
     return (
       <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
@@ -59,6 +63,7 @@ export default function Goals() {
   return (
     <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
+      <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-8 flex items-center justify-between">
           <div>

@@ -4,6 +4,8 @@ import ChildScreenHeader from '@/components/ChildScreenHeader';
 import BottomSheetSelect from '@/components/BottomSheetSelect';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 
 const inp = 'w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring/40';
 const lbl = 'block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5';
@@ -71,6 +73,8 @@ export default function Clubs() {
     setShowForm(true);
   };
 
+  const pullToRefresh = usePullToRefresh(loadClubs, { disabled: showForm });
+
   if (loading) {
     return (
       <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
@@ -85,6 +89,7 @@ export default function Clubs() {
   return (
     <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <ChildScreenHeader title="Clubs" />
+      <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       <main className="max-w-4xl mx-auto px-4 py-8 mobile-page-padding">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Clubs</h1>

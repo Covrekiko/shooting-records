@@ -4,6 +4,8 @@ import { base44 } from '@/api/base44Client';
 import { MapPin, Clock, Navigation2, Users } from 'lucide-react';
 import { DESIGN } from '@/lib/designConstants';
 import LiveClientMapModal from '@/components/deer-stalking/LiveClientMapModal';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 
 export default function DeerStalkingLogs() {
   const [outings, setOutings] = useState([]);
@@ -59,6 +61,7 @@ export default function DeerStalkingLogs() {
   const clientNames = Array.from(new Set([...(areaShares || []).map(s => s.invitee_name), ...(clientLogs || []).map(l => l.client_name)].filter(Boolean)));
   const activeLiveClientLogs = clientLogs.filter(log => log.status === 'active' && log.live_tracking_enabled && log.live_current_location);
   const visibleClientLogs = selectedClient ? clientLogs.filter(log => log.client_name === selectedClient) : [];
+  const pullToRefresh = usePullToRefresh(loadData, { disabled: showLiveClientMap });
 
   const tabs = [
     { id: 'outings', label: 'Outings', count: outings.length },
@@ -81,6 +84,7 @@ export default function DeerStalkingLogs() {
   return (
     <div className={`${DESIGN.PAGE_BG} min-h-screen`}>
       <Navigation />
+      <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
 
         {/* Header */}

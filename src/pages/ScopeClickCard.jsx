@@ -8,6 +8,8 @@ import ScopeProfileForm from '@/components/scope/ScopeProfileForm';
 import ScopeDetailView from '@/components/scope/ScopeDetailView';
 import { exportAllRifleScopeDataPDF } from '@/utils/scopePdfExport';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 
 export default function ScopeClickCard() {
   const [profiles, setProfiles] = useState([]);
@@ -84,6 +86,7 @@ export default function ScopeClickCard() {
   };
 
   useBodyScrollLock(!!(showForm || selectedProfile));
+  const pullToRefresh = usePullToRefresh(loadData, { disabled: !!(showForm || selectedProfile) });
 
   const filteredProfiles = profiles.filter(p => {
     const q = searchQuery.toLowerCase();
@@ -107,6 +110,7 @@ export default function ScopeClickCard() {
   return (
     <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
+      <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         {/* Header */}
         <div className="flex items-start justify-between mb-5">

@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import ChildScreenHeader from '@/components/ChildScreenHeader';
 import { Plus, Edit2, Trash2, MapPin } from 'lucide-react';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 
 export default function Locations() {
   const [locations, setLocations] = useState([]);
@@ -98,6 +100,8 @@ export default function Locations() {
     setShowForm(true);
   };
 
+  const pullToRefresh = usePullToRefresh(loadLocations, { disabled: showForm });
+
   if (loading) {
     return (
       <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
@@ -112,6 +116,7 @@ export default function Locations() {
   return (
     <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <ChildScreenHeader title="Deer Locations" />
+      <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       <main className="max-w-4xl mx-auto px-4 py-8 mobile-page-padding">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">Deer Locations</h1>

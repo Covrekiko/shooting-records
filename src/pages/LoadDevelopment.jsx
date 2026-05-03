@@ -8,6 +8,8 @@ import CreateTestModal from '@/components/load-development/CreateTestModal';
 import TestDetailPage from '@/components/load-development/TestDetailPage';
 import TestViewModal from '@/components/load-development/TestViewModal';
 import { generateLoadTestPDF } from '@/utils/loadTestPDF';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 
 
 const STATUS_COLORS = {
@@ -90,6 +92,7 @@ export default function LoadDevelopment() {
   };
 
   const caliberOptions = [...new Set(tests.map(t => t.caliber).filter(Boolean))];
+  const pullToRefresh = usePullToRefresh(loadTests, { disabled: showCreate || !!viewTest });
 
   const filtered = tests.filter(t => {
     const matchSearch = !search || t.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -113,6 +116,7 @@ export default function LoadDevelopment() {
   return (
     <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
+      <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
