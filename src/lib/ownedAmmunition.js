@@ -1,6 +1,12 @@
+import { base44 } from '@/api/base44Client';
 import { getRepository } from '@/lib/offlineSupport';
 
 export async function loadOwnedAmmunitionWithReloads(currentUser) {
+  if (navigator.onLine) {
+    const response = await base44.functions.invoke('listAmmunitionForUser', {});
+    return response.data.ammunition || [];
+  }
+
   const [ammunition = [], reloadSessions = []] = await Promise.all([
     getRepository('Ammunition').list('-updated_date', 500),
     getRepository('ReloadingSession').filter({ created_by: currentUser.email }),

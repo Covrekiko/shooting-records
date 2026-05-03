@@ -13,6 +13,7 @@ import BulletReferencePicker from '@/components/reference/BulletReferencePicker'
 import BulletReferenceImporter from '@/components/reference/BulletReferenceImporter';
 import CaliberTypeahead from '@/components/CaliberTypeahead';
 import { normalizeCaliber } from '@/utils/caliberCatalog';
+import { loadOwnedAmmunitionWithReloads } from '@/lib/ownedAmmunition';
 
 export default function Ammunition() {
   const [ammunition, setAmmunition] = useState([]);
@@ -40,7 +41,7 @@ export default function Ammunition() {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
 
-        const ammoList = await base44.entities.Ammunition.filter({ created_by: currentUser.email });
+        const ammoList = await loadOwnedAmmunitionWithReloads(currentUser);
         setAmmunition(ammoList);
       } catch (error) {
         console.error('Error loading data:', error);
