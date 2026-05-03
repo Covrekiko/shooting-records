@@ -8,6 +8,31 @@ function convertToGrams(value, unit) {
   return num(value) * (unitConversions[unit] || 1);
 }
 
+function normalizeCaliber(value = '') {
+  const trimmed = String(value || '').trim();
+  const key = trimmed.toLowerCase().replace(/\s+/g, ' ');
+  const aliases = {
+    '.308': '.308 Winchester',
+    '308': '.308 Winchester',
+    '.308 win': '.308 Winchester',
+    '308 win': '.308 Winchester',
+    '.308 winchester': '.308 Winchester',
+    '308 winchester': '.308 Winchester',
+    '.303': '.303 British',
+    '303': '.303 British',
+    '.303 brit': '.303 British',
+    '303 brit': '.303 British',
+    '.303 british': '.303 British',
+    '303 british': '.303 British',
+  };
+  return aliases[key] || trimmed;
+}
+
+function cleanText(value) {
+  const text = String(value ?? '').trim();
+  return text && !['undefined', 'null'].includes(text.toLowerCase()) ? text : '';
+}
+
 function getBrassState(brass) {
   const totalOwned = num(brass.total_owned ?? brass.quantity_total);
   const legacyAvailable = num(brass.available_to_reload ?? brass.quantity_remaining);
@@ -197,18 +222,21 @@ Deno.serve(async (req) => {
       notes: formData.notes || '',
     });
 
-    const bulletLabel = bullet.bullet_name || bullet.name || 'Custom';
-    const ammunition = await base44.entities.Ammunition.create({
-      brand: 'Reloaded',
-      caliber: formData.caliber,
+    const bulletBrand = cleanText(bullet.brand);
+    const bulletLabel = cleanText(bullet.bullet_name || bullet.name || bullet.product_name || 'Custom');
+    const bulletWeight = cleanText(bullet.weight || bullet.weight_grains || bullet.bullet_weight_grains || bullet.grain);
+    const normalizedCaliber = normalizeCaliber(formData.caliber);
+    const ammoPayload = {
+      brand: bulletBrand || 'Reloaded',
+      caliber: normalizedCaliber,
       bullet_type: bulletLabel,
-      grain: bullet.weight ? String(bullet.weight) : '',
+      grain: bulletWeight,
       quantity_in_stock: cartridgesLoaded,
       units: 'rounds',
       cost_per_unit: costPerRound,
       date_purchased: formData.date,
       low_stock_threshold: 10,
-      notes: `reload_batch:${reloadSession.id} | Batch ${formData.batch_number}${bulletLabel ? ` | ${bulletLabel}` : ''}`,
+      notes: `reload_batch:${reloadSession.id} | Batch ${formData.batch_number}${bulletLabel ? ` | ${[bulletBrand, bulletLabel].filter(Boolean).join(' ')}` : ''}`,
       ammo_type: 'reloaded',
       source_type: 'reload_batch',
       source_id: reloadSession.id,
@@ -219,7 +247,13 @@ Deno.serve(async (req) => {
       brass_use_type: brassUseType,
       brass_new_quantity_used: brassNewQuantityUsed,
       brass_used_quantity_used: brassUsedQuantityUsed,
-    });
+    };
+
+    const existingAmmo = (await base44.entities.Ammunition.filter({ created_by: user.email }))
+      .find((ammo) => ammo.reload_session_id === reloadSession.id || ammo.source_id === reloadSession.id);
+    const ammunition = existingAmmo
+      ? await base44.entities.Ammunition.update(existingAmmo.id, ammoPayload)
+      : await base44.entities.Ammunition.create(ammoPayload);
 
     await base44.asServiceRole.entities.BrassMovementLog.create({
       created_by: user.email,
