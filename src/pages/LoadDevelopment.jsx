@@ -260,7 +260,8 @@ export default function LoadDevelopment() {
         onEdit={() => { setSelectedTest(viewTest); setViewTest(null); }}
         onExportPDF={viewTest ? () => {
           const doc = generateLoadTestPDF(viewTest, viewData.variants, viewData.results);
-          doc.save(`load-test-${viewTest.name.replace(/\s+/g, '-')}.pdf`);
+          const url = URL.createObjectURL(doc.output('blob'));
+          window.open(url, '_blank', 'noopener,noreferrer');
         } : undefined}
       />
 
