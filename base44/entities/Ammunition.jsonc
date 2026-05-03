@@ -76,6 +76,14 @@
     "batch_number": {
       "type": "string",
       "description": "Batch identifier for reloaded ammo"
+    },
+    "brass_component_id": {
+      "type": "string",
+      "description": "Source brass component for reloaded ammunition"
+    },
+    "brass_reload_cycle_count": {
+      "type": "integer",
+      "description": "Brass cycle count when this ammunition was loaded"
     }
   },
   "required": [

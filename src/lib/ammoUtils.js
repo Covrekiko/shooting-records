@@ -1,4 +1,5 @@
 import { base44 } from '@/api/base44Client';
+import { moveLoadedAmmoToFiredBrass, restoreFiredBrassToLoadedForRecord } from '@/lib/brassLifecycle';
 
 /**
  * Decrement ammunition stock and log the spending.
@@ -16,6 +17,7 @@ export async function decrementAmmoStock(ammunitionId, quantity, sessionType = n
     console.log(`[AMMO DEBUG] action: AMMO_USED sourceType: ${sessionType} sourceId: ${sessionId} outingId: ${outingId} ammoId: ${ammunitionId} quantityChange: -${quantity} stockBefore: ${stockBefore} stockAfter: ${newQuantity}`);
 
     await base44.entities.Ammunition.update(ammunitionId, { quantity_in_stock: newQuantity });
+    await moveLoadedAmmoToFiredBrass(ammo, quantity, sessionId, sessionType);
 
     // Log spending — store both IDs for Deer (to handle both SessionRecord.id and DeerOuting.id cleanup paths)
     // For Deer: notes = "session:${sessionId}|outing:${outingId}" allows fallback cleanup
@@ -55,6 +57,7 @@ export async function restoreAmmoStock(ammunitionId, quantity, sessionId = null,
     const newQuantity = stockBefore + quantity;
     console.log(`[AMMO DEBUG] action: AMMO_REFUNDED sourceId: ${sessionId} outingId: ${outingId} ammoId: ${ammunitionId} quantityChange: +${quantity} stockBefore: ${stockBefore} stockAfter: ${newQuantity}`);
     await base44.entities.Ammunition.update(ammunitionId, { quantity_in_stock: newQuantity });
+    await restoreFiredBrassToLoadedForRecord(ammo, quantity, sessionId);
 
     // Clean up spending log entries tied to this session (with fallback for Deer)
     if (sessionId || outingId) {

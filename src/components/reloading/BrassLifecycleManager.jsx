@@ -1,175 +1,122 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { RotateCcw, Edit2, Plus, AlertTriangle, CheckCircle2, Crosshair } from 'lucide-react';
+import { RotateCcw, Edit2, Plus, AlertTriangle, CheckCircle2, Crosshair, Wrench, Archive } from 'lucide-react';
+import { annealBrass, getBrassState, recoverFiredBrass, retireBrass, logBrassMovement, stateUpdate } from '@/lib/brassLifecycle';
 
-/**
- * Inline brass lifecycle panel shown inside a brass card in ComponentManager.
- * Props: brass (component object), onUpdated (callback to reload components)
- */
 export default function BrassLifecycleManager({ brass, onUpdated }) {
-  const [editing, setEditing] = useState(null); // 'limit' | 'fired' | null
-  const [maxReloads, setMaxReloads] = useState(brass.max_reloads || '');
-  const [firedCount, setFiredCount] = useState('');
+  const [editing, setEditing] = useState(null);
+  const [maxReloads, setMaxReloads] = useState(brass.reload_limit ?? brass.max_reloads ?? '');
+  const [quantity, setQuantity] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const timesReloaded = brass.times_reloaded || 0;
-  const maxLimit = brass.max_reloads || 0;
-  const atLimit = maxLimit > 0 && timesReloaded >= maxLimit;
-  const nearLimit = maxLimit > 0 && timesReloaded >= maxLimit - 1 && !atLimit;
+  const state = getBrassState(brass);
+  const atLimit = state.reload_limit > 0 && state.reload_cycle_count >= state.reload_limit;
+  const nearLimit = state.reload_limit > 0 && state.reload_cycle_count >= state.reload_limit - 1 && !atLimit;
 
-  const handleSaveLimit = async () => {
+  const run = async (action) => {
     setSaving(true);
     try {
-      await base44.entities.ReloadingComponent.update(brass.id, {
-        max_reloads: parseInt(maxReloads) || 0,
-      });
+      await action();
       setEditing(null);
+      setQuantity('');
       onUpdated();
     } catch (e) {
-      alert('Error saving: ' + e.message);
+      alert('Error: ' + e.message);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleResetCounter = async () => {
-    if (!confirm('Reset the reload counter to 0? Do this after trimming/annealing the brass.')) return;
-    setSaving(true);
-    try {
-      await base44.entities.ReloadingComponent.update(brass.id, {
-        times_reloaded: 0,
-      });
-      onUpdated();
-    } catch (e) {
-      alert('Error resetting: ' + e.message);
-    } finally {
-      setSaving(false);
-    }
-  };
+  const handleSaveLimit = () => run(async () => {
+    const limit = parseInt(maxReloads) || 0;
+    await base44.entities.ReloadingComponent.update(brass.id, { reload_limit: limit, max_reloads: limit });
+  });
 
-  const handleLogFired = async () => {
-    const count = parseInt(firedCount);
-    if (!count || count <= 0) return;
-    setSaving(true);
-    try {
-      await base44.entities.ReloadingComponent.update(brass.id, {
-        times_fired: (brass.times_fired || 0) + count,
-      });
-      setEditing(null);
-      setFiredCount('');
-      onUpdated();
-    } catch (e) {
-      alert('Error logging: ' + e.message);
-    } finally {
-      setSaving(false);
-    }
+  const handleManualFired = () => run(async () => {
+    const qty = Math.min(parseInt(quantity) || 0, state.currently_loaded);
+    if (qty <= 0) return;
+    const newState = {
+      ...state,
+      currently_loaded: state.currently_loaded - qty,
+      fired_awaiting_cleaning_or_inspection: state.fired_awaiting_cleaning_or_inspection + qty,
+    };
+    await base44.entities.ReloadingComponent.update(brass.id, { ...stateUpdate(newState), times_fired: (brass.times_fired || 0) + qty });
+    await logBrassMovement({ brassId: brass.id, quantity: qty, movementType: 'manual_fired_brass', previousState: state, newState });
+  });
+
+  const handleRecover = () => run(() => recoverFiredBrass(brass, quantity || state.fired_awaiting_cleaning_or_inspection));
+  const handleAnneal = () => {
+    const reset = confirm('Reset the current reload cycle count after annealing? Lifetime reload history will be kept.');
+    run(() => annealBrass(brass, reset));
   };
+  const handleRetire = () => run(() => retireBrass(brass, quantity));
+
+  const ActionInput = ({ action, placeholder = 'qty', onConfirm }) => editing === action ? (
+    <div className="flex items-center gap-1">
+      <input
+        type="number"
+        value={quantity}
+        onChange={(e) => setQuantity(e.target.value)}
+        className="w-20 px-2 py-1 text-xs border border-border rounded bg-background"
+        placeholder={placeholder}
+        min="1"
+        autoFocus
+      />
+      <button onClick={onConfirm} disabled={saving} className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded font-medium hover:opacity-90">Save</button>
+      <button onClick={() => setEditing(null)} className="px-2 py-1 text-xs border border-border rounded hover:bg-secondary">Cancel</button>
+    </div>
+  ) : null;
 
   return (
-    <div className="mt-2 pt-2 border-t border-border space-y-2">
-      {/* Status badge */}
-      <div className="flex flex-wrap items-center gap-2">
-        {atLimit ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-destructive/10 text-destructive text-xs font-bold">
-            <AlertTriangle className="w-3 h-3" /> Reload limit reached — retire or trim
-          </span>
-        ) : nearLimit ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-semibold">
-            <AlertTriangle className="w-3 h-3" /> Near limit ({timesReloaded}/{maxLimit})
-          </span>
-        ) : maxLimit > 0 ? (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-semibold">
-            <CheckCircle2 className="w-3 h-3" /> {timesReloaded}/{maxLimit} reloads
-          </span>
-        ) : (
-          <span className="text-xs text-muted-foreground">{timesReloaded} reload{timesReloaded !== 1 ? 's' : ''} • No limit set</span>
-        )}
-        {brass.times_fired > 0 && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-xs text-muted-foreground">
-            <Crosshair className="w-3 h-3" /> {brass.times_fired} rounds fired
-          </span>
-        )}
+    <div className="mt-3 pt-3 border-t border-border space-y-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+        <div><p className="text-muted-foreground">Total owned</p><p className="font-bold">{state.total_owned}</p></div>
+        <div><p className="text-muted-foreground">Available</p><p className="font-bold text-green-700 dark:text-green-400">{state.available_to_reload}</p></div>
+        <div><p className="text-muted-foreground">Loaded</p><p className="font-bold text-blue-700 dark:text-blue-400">{state.currently_loaded}</p></div>
+        <div><p className="text-muted-foreground">Fired / cleaning</p><p className="font-bold text-amber-700 dark:text-amber-400">{state.fired_awaiting_cleaning_or_inspection}</p></div>
+        <div><p className="text-muted-foreground">Retired</p><p className="font-bold text-destructive">{state.retired_or_discarded}</p></div>
       </div>
 
-      {/* Actions row */}
+      <div className="flex flex-wrap items-center gap-2">
+        {atLimit ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-destructive/10 text-destructive text-xs font-bold"><AlertTriangle className="w-3 h-3" /> Reload limit reached</span>
+        ) : nearLimit ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-semibold"><AlertTriangle className="w-3 h-3" /> Near limit ({state.reload_cycle_count}/{state.reload_limit})</span>
+        ) : state.reload_limit > 0 ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-semibold"><CheckCircle2 className="w-3 h-3" /> {state.reload_cycle_count}/{state.reload_limit} reloads</span>
+        ) : (
+          <span className="text-xs text-muted-foreground">{state.reload_cycle_count} reloads • No limit set</span>
+        )}
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-xs text-muted-foreground"><Crosshair className="w-3 h-3" /> Lifetime loaded: {state.lifetime_reload_count}</span>
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-xs text-muted-foreground"><Wrench className="w-3 h-3" /> Annealed {state.anneal_count}x{state.last_annealed_date ? ` • ${state.last_annealed_date}` : ''}</span>
+      </div>
+
       <div className="flex flex-wrap gap-2">
-        {/* Set limit */}
         {editing === 'limit' ? (
           <div className="flex items-center gap-1">
-            <input
-              type="number"
-              value={maxReloads}
-              onChange={(e) => setMaxReloads(e.target.value)}
-              className="w-16 px-2 py-1 text-xs border border-border rounded bg-background"
-              placeholder="e.g. 5"
-              min="0"
-              autoFocus
-            />
-            <button
-              onClick={handleSaveLimit}
-              disabled={saving}
-              className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded font-medium hover:opacity-90"
-            >
-              Save
-            </button>
-            <button onClick={() => setEditing(null)} className="px-2 py-1 text-xs border border-border rounded hover:bg-secondary">
-              Cancel
-            </button>
+            <input type="number" value={maxReloads} onChange={(e) => setMaxReloads(e.target.value)} className="w-16 px-2 py-1 text-xs border border-border rounded bg-background" placeholder="5" min="0" autoFocus />
+            <button onClick={handleSaveLimit} disabled={saving} className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded font-medium hover:opacity-90">Save</button>
+            <button onClick={() => setEditing(null)} className="px-2 py-1 text-xs border border-border rounded hover:bg-secondary">Cancel</button>
           </div>
         ) : (
-          <button
-            onClick={() => { setMaxReloads(brass.max_reloads || ''); setEditing('limit'); }}
-            className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-border rounded hover:bg-secondary"
-          >
-            <Edit2 className="w-3 h-3" />
-            {maxLimit > 0 ? `Limit: ${maxLimit}` : 'Set reload limit'}
-          </button>
+          <button onClick={() => { setMaxReloads(state.reload_limit || ''); setEditing('limit'); }} className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-border rounded hover:bg-secondary"><Edit2 className="w-3 h-3" /> {state.reload_limit > 0 ? `Limit: ${state.reload_limit}` : 'Set reload limit'}</button>
         )}
 
-        {/* Reset counter (after trimming) */}
-        {timesReloaded > 0 && (
-          <button
-            onClick={handleResetCounter}
-            disabled={saving}
-            className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-border rounded hover:bg-secondary text-amber-600 dark:text-amber-400"
-          >
-            <RotateCcw className="w-3 h-3" />
-            Reset after trim
-          </button>
+        <ActionInput action="manual-fired" onConfirm={handleManualFired} />
+        {editing !== 'manual-fired' && state.currently_loaded > 0 && (
+          <button onClick={() => { setQuantity(''); setEditing('manual-fired'); }} className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-border rounded hover:bg-secondary"><Plus className="w-3 h-3" /> Log fired brass</button>
         )}
 
-        {/* Log fired rounds */}
-        {editing === 'fired' ? (
-          <div className="flex items-center gap-1">
-            <span className="text-xs text-muted-foreground">+</span>
-            <input
-              type="number"
-              value={firedCount}
-              onChange={(e) => setFiredCount(e.target.value)}
-              className="w-16 px-2 py-1 text-xs border border-border rounded bg-background"
-              placeholder="rounds"
-              min="1"
-              autoFocus
-            />
-            <button
-              onClick={handleLogFired}
-              disabled={saving}
-              className="px-2 py-1 text-xs bg-primary text-primary-foreground rounded font-medium hover:opacity-90"
-            >
-              Log
-            </button>
-            <button onClick={() => setEditing(null)} className="px-2 py-1 text-xs border border-border rounded hover:bg-secondary">
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => { setFiredCount(''); setEditing('fired'); }}
-            className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-border rounded hover:bg-secondary"
-          >
-            <Plus className="w-3 h-3" />
-            Log fired rounds
-          </button>
+        <ActionInput action="recover" onConfirm={handleRecover} />
+        {editing !== 'recover' && state.fired_awaiting_cleaning_or_inspection > 0 && (
+          <button onClick={() => { setQuantity(String(state.fired_awaiting_cleaning_or_inspection)); setEditing('recover'); }} className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-border rounded hover:bg-secondary text-green-700 dark:text-green-400"><RotateCcw className="w-3 h-3" /> Recover fired brass</button>
+        )}
+
+        <button onClick={handleAnneal} disabled={saving} className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-border rounded hover:bg-secondary text-amber-600 dark:text-amber-400"><Wrench className="w-3 h-3" /> Anneal brass</button>
+
+        <ActionInput action="retire" onConfirm={handleRetire} />
+        {editing !== 'retire' && (
+          <button onClick={() => { setQuantity(''); setEditing('retire'); }} className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-border rounded hover:bg-secondary text-destructive"><Archive className="w-3 h-3" /> Retire brass</button>
         )}
       </div>
     </div>

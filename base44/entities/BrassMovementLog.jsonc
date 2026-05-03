@@ -1,0 +1,61 @@
+{
+  "name": "BrassMovementLog",
+  "type": "object",
+  "properties": {
+    "brass_id": {
+      "type": "string",
+      "description": "ReloadingComponent brass ID"
+    },
+    "reload_batch_id": {
+      "type": "string",
+      "description": "ReloadingSession ID if applicable"
+    },
+    "record_id": {
+      "type": "string",
+      "description": "Shooting SessionRecord ID if applicable"
+    },
+    "ammunition_id": {
+      "type": "string",
+      "description": "Ammunition ID if applicable"
+    },
+    "quantity": {
+      "type": "integer"
+    },
+    "movement_type": {
+      "type": "string",
+      "enum": [
+        "added_new_brass",
+        "added_used_brass",
+        "used_in_reload_batch",
+        "fired_from_loaded_ammo",
+        "recovered_after_firing",
+        "annealed",
+        "retired",
+        "restored_after_record_delete",
+        "restored_after_batch_delete",
+        "manual_fired_brass"
+      ]
+    },
+    "previous_state": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "new_state": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "movement_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "brass_id",
+    "quantity",
+    "movement_type",
+    "movement_date"
+  ]
+}

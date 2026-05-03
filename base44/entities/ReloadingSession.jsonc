@@ -23,6 +23,14 @@
       "type": "integer",
       "description": "Number of rounds produced"
     },
+    "brass_component_id": {
+      "type": "string",
+      "description": "Source brass component used for this reload batch"
+    },
+    "brass_reload_cycle_count": {
+      "type": "integer",
+      "description": "Reload cycle count of the brass after this batch"
+    },
     "total_cost": {
       "type": "number",
       "description": "Total cost of all components"
@@ -47,6 +55,9 @@
               "shot"
             ]
           },
+          "component_id": {
+            "type": "string"
+          },
           "brand": {
             "type": "string"
           },
@@ -65,8 +76,17 @@
           "total_cost": {
             "type": "number"
           },
+          "cost": {
+            "type": "number"
+          },
           "lot_number": {
             "type": "string"
+          },
+          "is_used_brass": {
+            "type": "boolean"
+          },
+          "brass_reload_cycle_count": {
+            "type": "integer"
           }
         }
       }

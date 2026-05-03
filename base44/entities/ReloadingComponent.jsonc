@@ -35,7 +35,54 @@
     },
     "quantity_remaining": {
       "type": "number",
-      "description": "Current quantity in stock"
+      "description": "Current quantity in stock / available to reload"
+    },
+    "total_owned": {
+      "type": "number",
+      "description": "Total brass cases owned in this lot"
+    },
+    "available_to_reload": {
+      "type": "number",
+      "description": "Brass cases available to reload"
+    },
+    "currently_loaded": {
+      "type": "number",
+      "default": 0,
+      "description": "Brass cases currently inside loaded ammunition"
+    },
+    "fired_awaiting_cleaning_or_inspection": {
+      "type": "number",
+      "default": 0,
+      "description": "Fired cases waiting to be cleaned or inspected"
+    },
+    "retired_or_discarded": {
+      "type": "number",
+      "default": 0,
+      "description": "Cases retired or discarded"
+    },
+    "reload_cycle_count": {
+      "type": "integer",
+      "default": 0,
+      "description": "Current reload cycle count for this brass lot"
+    },
+    "lifetime_reload_count": {
+      "type": "integer",
+      "default": 0,
+      "description": "Lifetime number of cases loaded from this brass lot"
+    },
+    "reload_limit": {
+      "type": "integer",
+      "description": "Maximum reload cycles before retirement"
+    },
+    "anneal_count": {
+      "type": "integer",
+      "default": 0,
+      "description": "Number of annealing events logged"
+    },
+    "last_annealed_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Last annealing date"
     },
     "unit": {
       "type": "string",
@@ -75,16 +122,16 @@
     "times_reloaded": {
       "type": "integer",
       "default": 0,
-      "description": "How many times this brass has been reloaded (brass only)"
+      "description": "Legacy/current reload cycle count"
     },
     "max_reloads": {
       "type": "integer",
-      "description": "Maximum number of reloads before brass should be retired or trimmed (0 = no limit)"
+      "description": "Legacy reload limit"
     },
     "times_fired": {
       "type": "integer",
       "default": 0,
-      "description": "Total rounds fired through this brass (manually tracked)"
+      "description": "Total rounds fired through this brass"
     }
   },
   "required": [

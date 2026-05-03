@@ -16,6 +16,7 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
+import { getBrassState, logBrassMovement, stateUpdate } from '@/lib/brassLifecycle';
 
 export default function ReloadingManagement() {
   const navigate = useNavigate();
@@ -122,13 +123,25 @@ export default function ReloadingManagement() {
                 const usedInGrams = parseFloat(comp.quantity_used || 0) * (unitConversions[comp.unit] || 1);
                 const newRemaining = component.quantity_remaining + usedInGrams / (unitConversions[component.unit] || 1);
                 updateFields = { quantity_remaining: newRemaining };
-              } else if (isUsedBrass) {
-                // Restore quantity AND decrement times_reloaded for used brass
-                const newRemaining = component.quantity_remaining + Number(comp.quantity_used || 0);
-                updateFields = {
-                  quantity_remaining: newRemaining,
-                  times_reloaded: Math.max(0, (component.times_reloaded || 0) - 1),
+              } else if (normalizedType === 'brass') {
+                const previousState = getBrassState(component);
+                const qty = Number(comp.quantity_used || 0);
+                const newState = {
+                  ...previousState,
+                  currently_loaded: Math.max(0, previousState.currently_loaded - qty),
+                  available_to_reload: previousState.available_to_reload + qty,
+                  reload_cycle_count: Math.max(0, previousState.reload_cycle_count - 1),
                 };
+                updateFields = stateUpdate(newState);
+                await logBrassMovement({
+                  brassId: component.id,
+                  reloadBatchId: id,
+                  quantity: qty,
+                  movementType: 'restored_after_batch_delete',
+                  previousState,
+                  newState,
+                  notes: `Deleted reload batch ${session?.batch_number || id}`,
+                });
               } else {
                 const newRemaining = component.quantity_remaining + Number(comp.quantity_used || 0);
                 updateFields = { quantity_remaining: newRemaining };

@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react';
 import { searchCalibers } from '@/utils/caliberCatalog';
 import AddBrassModal from './AddBrassModal';
 import PrimerDetailsCard from './PrimerDetailsCard';
+import { getBrassState, logBrassMovement, stateUpdate } from '@/lib/brassLifecycle';
 
 export default function ReloadBatchForm({ onSubmit, onClose }) {
 
@@ -209,14 +210,17 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       console.log('Powder used (in stored unit):', powderUsed);
       console.log('Powder remaining (in stored unit):', powderRemaining);
 
-      // Deduct from component stock (clamp to minimum 0)
-      // Used brass: deduct stock AND increment times_reloaded (same as new brass for stock)
-      const brassUpdate = formData.brass_is_used
-        ? {
-            quantity_remaining: Math.max(0, (brass.quantity_remaining ?? brass.quantity_total) - cartridgesLoaded),
-            times_reloaded: (brass.times_reloaded || 0) + 1,
-          }
-        : { quantity_remaining: Math.max(0, brass.quantity_remaining - cartridgesLoaded) };
+      // Brass lifecycle: move brass from available stock into loaded ammunition
+      const previousBrassState = getBrassState(brass);
+      const nextReloadCycle = previousBrassState.reload_cycle_count + 1;
+      const newBrassState = {
+        ...previousBrassState,
+        available_to_reload: Math.max(0, previousBrassState.available_to_reload - cartridgesLoaded),
+        currently_loaded: previousBrassState.currently_loaded + cartridgesLoaded,
+        reload_cycle_count: nextReloadCycle,
+        lifetime_reload_count: previousBrassState.lifetime_reload_count + cartridgesLoaded,
+      };
+      const brassUpdate = stateUpdate(newBrassState);
 
       await Promise.all([
         base44.entities.ReloadingComponent.update(formData.primer_id, {
@@ -238,12 +242,14 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
         batch_number: formData.batch_number,
         firearm_id: formData.rifle_id || null,
         rounds_loaded: cartridgesLoaded,
+        brass_component_id: brassLookupId,
+        brass_reload_cycle_count: nextReloadCycle,
         total_cost: costBreakdown.totalCost,
         cost_per_round: costBreakdown.costPerCartridge,
         components: [
           { type: 'primer', component_id: formData.primer_id, name: primer.name, quantity_used: cartridgesLoaded, cost: costBreakdown.primerCost, lot_number: formData.primer_lot || primer.lot_number || '' },
           { type: 'powder', component_id: formData.powder_id, name: powder.name, quantity_used: powderUsed, unit: powder.unit, cost: costBreakdown.powderCost, lot_number: formData.powder_lot || powder.lot_number || '' },
-          { type: 'brass', component_id: brassLookupId, name: brass.name, quantity_used: cartridgesLoaded, cost: costBreakdown.brassCost, is_used_brass: formData.brass_is_used, lot_number: formData.brass_lot || brass.lot_number || '' },
+          { type: 'brass', component_id: brassLookupId, name: brass.name, quantity_used: cartridgesLoaded, cost: costBreakdown.brassCost, is_used_brass: formData.brass_is_used, lot_number: formData.brass_lot || brass.lot_number || '', brass_reload_cycle_count: nextReloadCycle },
           { type: 'bullet', component_id: formData.bullet_id, name: bullet.name, quantity_used: cartridgesLoaded, cost: costBreakdown.bulletCost, lot_number: formData.bullet_lot || bullet.lot_number || '' },
         ],
         notes: formData.notes,
@@ -294,6 +300,18 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           source_id: createdSession.id,
           reload_session_id: createdSession.id,
           batch_number: formData.batch_number,
+          brass_component_id: brassLookupId,
+          brass_reload_cycle_count: nextReloadCycle,
+        });
+        await logBrassMovement({
+          brassId: brassLookupId,
+          reloadBatchId: createdSession.id,
+          ammunitionId: newAmmo.id,
+          quantity: cartridgesLoaded,
+          movementType: 'used_in_reload_batch',
+          previousState: previousBrassState,
+          newState: newBrassState,
+          notes: `Batch ${formData.batch_number}`,
         });
         console.log(`[RELOAD DEBUG] ammoStockItemId = ${newAmmo.id}`);
         console.log(`[RELOAD DEBUG] stock quantity added = ${cartridgesLoaded}`);
@@ -310,6 +328,13 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
   const handleAddBrassSaved = async (brassData) => {
     try {
       const newBrass = await base44.entities.ReloadingComponent.create(brassData);
+      await logBrassMovement({
+        brassId: newBrass.id,
+        quantity: newBrass.quantity_total || 0,
+        movementType: newBrass.is_used_brass ? 'added_used_brass' : 'added_new_brass',
+        previousState: {},
+        newState: getBrassState(newBrass),
+      });
       setComponents({
         ...components,
         brass: [...components.brass, newBrass],
@@ -386,7 +411,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     if (formData.brass_is_used && formData.used_brass_id) {
       const brass = components.brass.find(b => b.id === formData.used_brass_id);
       if (brass) {
-        const remaining = brass.quantity_remaining ?? brass.quantity_total;
+        const remaining = brass.available_to_reload ?? brass.quantity_remaining ?? brass.quantity_total;
         if (remaining < cartridgesLoaded) {
           warnings.brass = `Only ${remaining} used brass in stock`;
         }
@@ -448,7 +473,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     // Brass validation
     if (formData.brass_is_used) {
       if (!brass) return { valid: false, message: 'Please select your used brass' };
-      const remaining = brass.quantity_remaining ?? brass.quantity_total;
+      const remaining = brass.available_to_reload ?? brass.quantity_remaining ?? brass.quantity_total;
       if (remaining < cartridgesLoaded) {
         return { valid: false, message: `Used brass: only ${remaining} in stock` };
       }
@@ -674,7 +699,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               <option value="">— Select used brass —</option>
               {components.brass.filter(b => b.is_used_brass).map(b => (
                 <option key={b.id} value={b.id}>
-                  {b.name}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''}{b.caliber ? ` (${b.caliber})` : ''}{b.batch_number ? ` #${b.batch_number}` : ''} — {b.quantity_remaining ?? b.quantity_total} in stock, reloaded {b.times_reloaded || 0}x
+                  {b.name}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''}{b.caliber ? ` (${b.caliber})` : ''}{b.batch_number ? ` #${b.batch_number}` : ''} — {b.available_to_reload ?? b.quantity_remaining ?? b.quantity_total} available, reloaded {(b.reload_cycle_count ?? b.times_reloaded) || 0}x
                 </option>
               ))}
             </select>
@@ -684,8 +709,8 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               {formData.used_brass_id && (() => {
                 const selectedBrass = components.brass.find(b => b.id === formData.used_brass_id);
                 if (!selectedBrass) return null;
-                const reloaded = selectedBrass.times_reloaded || 0;
-                const maxLimit = selectedBrass.max_reloads || 0;
+                const reloaded = (selectedBrass.reload_cycle_count ?? selectedBrass.times_reloaded) || 0;
+                const maxLimit = (selectedBrass.reload_limit ?? selectedBrass.max_reloads) || 0;
                 const willBe = reloaded + 1;
                 const atLimit = maxLimit > 0 && reloaded >= maxLimit;
                 const willHitLimit = maxLimit > 0 && willBe >= maxLimit;
@@ -697,7 +722,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                          <span className="text-base leading-none mt-0.5">⚠️</span>
                          <div className="flex-1">
                            <p>This brass has reached its reload limit ({reloaded}/{maxLimit}).</p>
-                           <p className="font-normal mt-1">Consider retiring or trimming it first, then reset the counter in Manage Components.</p>
+                           <p className="font-normal mt-1">Consider retiring it or annealing it first in Manage Components.</p>
                            <label className="flex items-center gap-2 mt-2.5 cursor-pointer font-normal hover:opacity-80 transition-opacity">
                              <input
                                type="checkbox"
