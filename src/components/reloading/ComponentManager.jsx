@@ -722,12 +722,24 @@ export default function ComponentManager() {
                 {!showForm && (
                     <button
                       onClick={() => {
-                        if (type.value === 'brass') {
-                          setShowAddBrassModal(true);
-                        } else {
-                          setAddComponentType(type.value);
-                          setShowAddComponentModal(true);
-                        }
+                        setEditingId(null);
+                        setLockedComponentType(type.value);
+                        setFormData({
+                          component_type: type.value,
+                          name: '',
+                          quantity_total: '',
+                          unit: type.units[0],
+                          price_total: '',
+                          lot_number: '',
+                          date_acquired: format(new Date(), 'yyyy-MM-dd'),
+                          notes: '',
+                          caliber: '',
+                          brand: '',
+                          bullet_name: '',
+                          weight: '',
+                          weight_unit: 'gr',
+                        });
+                        setShowForm(true);
                       }}
                       className="px-3 py-1 bg-primary text-primary-foreground rounded-lg text-sm font-medium flex items-center gap-1 hover:opacity-90"
                     >
