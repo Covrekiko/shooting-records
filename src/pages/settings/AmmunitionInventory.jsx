@@ -68,18 +68,27 @@ export default function AmmunitionInventory() {
       return;
     }
     try {
+      let response;
       if (editingId) {
-        await base44.functions.invoke('updateAmmunitionForUser', {
+        response = await base44.functions.invoke('updateAmmunitionForUser', {
           ammunitionId: editingId,
           ammunition: { ...formData, caliber: normalizeCaliber(formData.caliber) },
         });
       } else {
-        await base44.functions.invoke('createAmmunitionForUser', {
+        response = await base44.functions.invoke('createAmmunitionForUser', {
           ammunition: { ...formData, caliber: normalizeCaliber(formData.caliber) },
         });
       }
+
+      const savedAmmo = response?.data?.ammunition;
+      if (savedAmmo) {
+        setAmmo((current) => editingId
+          ? current.map((item) => item.id === savedAmmo.id ? savedAmmo : item)
+          : [savedAmmo, ...current]
+        );
+      }
       resetForm();
-      loadAmmo();
+      await loadAmmo();
     } catch (error) {
       console.error('Error saving ammunition:', error);
       alert(error.response?.data?.error || error.message || 'Error saving ammunition');
