@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { searchCalibers } from '@/utils/caliberCatalog';
+import { searchCalibers, normalizeCaliber } from '@/utils/caliberCatalog';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import NumberInput from '@/components/ui/NumberInput.jsx';
 
@@ -60,7 +60,7 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
       lot_number: formData.lot_number,
       name,
       brand: formData.brand,
-      caliber: formData.caliber,
+      caliber: normalizeCaliber(formData.caliber),
       quantity_total: qty,
       quantity_remaining: qty,
       total_owned: qty,

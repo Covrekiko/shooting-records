@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Plus, Trash2, Edit2, ChevronDown, FileText, Eye } from 'lucide-react';
 import { format } from 'date-fns';
-import { searchCalibers } from '@/utils/caliberCatalog';
+import { searchCalibers, normalizeCaliber } from '@/utils/caliberCatalog';
 import BrassLifecycleManager from './BrassLifecycleManager';
 import { downloadBrassBatchPdf } from '@/utils/brassPdfExport';
 import AddBrassModal from './AddBrassModal';
@@ -110,6 +110,7 @@ export default function ComponentManager() {
       quantity_remaining: quantityRemaining,
       price_total: toNumber(data.price_total),
       cost_per_unit: toNumber(data.cost_per_unit),
+      caliber: normalizeCaliber(data.caliber),
       is_used_brass: data.is_used_brass === true,
       available_to_reload: toNumber(data.available_to_reload),
       available_new_unloaded: toNumber(data.available_new_unloaded),

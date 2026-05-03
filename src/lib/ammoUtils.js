@@ -1,5 +1,6 @@
 import { base44 } from '@/api/base44Client';
 import { moveLoadedAmmoToFiredBrass, restoreFiredBrassToLoadedForRecord, getReusedBrassStockRestoreWarning, logSkippedAmmoStockRestore } from '@/lib/brassLifecycle';
+import { caliberKey } from '@/utils/caliberCatalog';
 
 /**
  * Decrement ammunition stock and log the spending.
@@ -243,15 +244,7 @@ export async function reverseArmoryCountersForRecord(record, recordCategory) {
 export function getSelectableAmmunition(ammunition, selectedCaliber) {
   if (!ammunition || !selectedCaliber) return ammunition;
 
-  const normalizeCaliber = (cal) => {
-    if (!cal) return '';
-    const normalized = cal.toLowerCase().trim()
-      .replace(/\s+win(chester)?$/i, '') // Remove Win/Winchester
-      .replace(/^\./, ''); // Remove leading dot
-    return normalized;
-  };
-
-  const selectedNorm = normalizeCaliber(selectedCaliber);
+  const selectedNorm = caliberKey(selectedCaliber);
 
   return ammunition.filter(ammo => {
     // Skip ammo with no stock (but log reloaded ammo for debugging)
@@ -265,7 +258,7 @@ export function getSelectableAmmunition(ammunition, selectedCaliber) {
     // Skip ammo with no caliber
     if (!ammo.caliber) return true;
 
-    const ammoNorm = normalizeCaliber(ammo.caliber);
-    return ammoNorm === selectedNorm || ammoNorm.startsWith(selectedNorm) || selectedNorm.startsWith(ammoNorm);
+    const ammoNorm = caliberKey(ammo.caliber);
+    return ammoNorm === selectedNorm;
   });
 }

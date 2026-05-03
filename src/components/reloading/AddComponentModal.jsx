@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { searchCalibers } from '@/utils/caliberCatalog';
+import { searchCalibers, normalizeCaliber } from '@/utils/caliberCatalog';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import NumberInput from '@/components/ui/NumberInput.jsx';
 
@@ -92,7 +92,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
       component_type: componentType,
       name: displayName,
       brand: formData.brand,
-      caliber: formData.caliber,
+      caliber: normalizeCaliber(formData.caliber),
       bullet_name: formData.bullet_name,
       ...(formData.weight !== '' ? { weight: toNumber(formData.weight) } : {}),
       weight_unit: formData.weight_unit,

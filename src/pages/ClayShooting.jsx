@@ -10,7 +10,7 @@ import ClayCheckoutSummary from '@/components/clay/ClayCheckoutSummary';
 import ClayAnalyticsDashboard from '@/components/clay/ClayAnalyticsDashboard';
 import GpsPathViewer from '@/components/GpsPathViewer';
 import RecordsSection from '@/components/RecordsSection';
-import { decrementAmmoStock } from '@/lib/ammoUtils';
+import { decrementAmmoStock, getSelectableAmmunition } from '@/lib/ammoUtils';
 import { formatAmmunitionLabel } from '@/utils/ammoLabels';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
@@ -573,10 +573,10 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
                 className={selectCls}
               >
                 <option value="">Select saved ammunition</option>
-                {ammunition.filter(a => {
+                {(() => {
                   const selectedShotgun = shotguns.find(s => s.id === data.shotgun_id);
-                  return !selectedShotgun || !selectedShotgun.gauge || a.caliber === selectedShotgun.gauge;
-                }).map(a => <option key={a.id} value={a.id}>{formatAmmunitionLabel(a)}</option>)}
+                  return getSelectableAmmunition(ammunition, selectedShotgun?.gauge || '').map(a => <option key={a.id} value={a.id}>{formatAmmunitionLabel(a)}</option>);
+                })()}
               </select>
             </div>
           )}

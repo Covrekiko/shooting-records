@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { Plus } from 'lucide-react';
-import { searchCalibers } from '@/utils/caliberCatalog';
+import { searchCalibers, normalizeCaliber, caliberKey } from '@/utils/caliberCatalog';
 import AddBrassModal from './AddBrassModal';
 import { getBrassState, logBrassMovement, stateUpdate } from '@/lib/brassLifecycle';
 
@@ -257,7 +257,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       // Create reload session
       const reloadSession = {
         date: formData.date,
-        caliber: formData.caliber,
+        caliber: normalizeCaliber(formData.caliber),
         batch_number: formData.batch_number,
         firearm_id: formData.rifle_id || null,
         rounds_loaded: cartridgesLoaded,
@@ -297,7 +297,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
         quantityToAdd: cartridgesLoaded,
         ammunitionData: {
           brand: batchBrand,
-          caliber: formData.caliber,
+          caliber: normalizeCaliber(formData.caliber),
           bullet_type: batchBulletType,
           grain: bulletComp?.weight ? String(bulletComp.weight) : '',
           quantity_in_stock: cartridgesLoaded,
@@ -372,19 +372,11 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     setCaliberResults(results);
   };
 
-  const normalizeCaliber = (value = '') => String(value)
-    .toLowerCase()
-    .replace(/winchester/g, 'win')
-    .replace(/remington/g, 'rem')
-    .replace(/springfield/g, '')
-    .replace(/nato/g, '')
-    .replace(/[^a-z0-9.]+/g, '');
-
   const matchesSelectedCaliber = (component) => {
-    const selected = normalizeCaliber(formData.caliber);
+    const selected = caliberKey(formData.caliber);
     if (!selected) return true;
-    const componentCaliber = normalizeCaliber(component.caliber || component.name || '');
-    return componentCaliber === selected || componentCaliber.includes(selected) || selected.includes(componentCaliber);
+    const componentCaliber = caliberKey(component.caliber || component.name || '');
+    return componentCaliber === selected;
   };
 
   const caliberFilteredBrass = components.brass.filter(matchesSelectedCaliber);
@@ -579,6 +571,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                   setShowCaliberDropdown(true);
                 }}
                 onFocus={() => setShowCaliberDropdown(formData.caliber.length >= 1)}
+                onBlur={(e) => setFormData({ ...formData, caliber: normalizeCaliber(e.target.value) })}
                 placeholder=".308 Win"
                 className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
                 required

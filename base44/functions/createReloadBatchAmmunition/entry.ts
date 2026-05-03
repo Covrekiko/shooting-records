@@ -34,6 +34,9 @@ Deno.serve(async (req) => {
 
     const created = await base44.asServiceRole.entities.Ammunition.create({
       ...ammunitionData,
+      quantity_in_stock: Number(ammunitionData.quantity_in_stock) || Number(quantityToAdd) || 0,
+      cost_per_unit: Number(ammunitionData.cost_per_unit) || 0,
+      low_stock_threshold: Number(ammunitionData.low_stock_threshold) || 10,
       created_by: user.email,
       source_id: reloadSessionId,
       reload_session_id: reloadSessionId,

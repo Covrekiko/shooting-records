@@ -42,8 +42,8 @@ export default function MobileTabBar() {
   const activeTab = getVisibleTab(location.pathname);
 
   const handleTabPress = (tabKey) => {
-    if (tabKey === 'armory') {
-      navigate(TAB_DEFAULT.armory);
+    if (tabKey === 'armory' || tabKey === 'profile') {
+      navigate(TAB_DEFAULT[tabKey]);
       return;
     }
 
