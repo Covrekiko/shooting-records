@@ -131,7 +131,7 @@ async function alreadyRestored(sessionId, session) {
     reload_batch_id: sessionId,
     movement_type: 'restored_after_batch_delete',
   });
-  return logs.length > 0;
+  return logs.some((log) => num(log.quantity) > 0);
 }
 
 async function restoreComponentsForSession(session, remainingUnfired) {
