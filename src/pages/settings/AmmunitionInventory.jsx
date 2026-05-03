@@ -81,14 +81,20 @@ export default function AmmunitionInventory() {
       }
 
       const savedAmmo = response?.data?.ammunition;
-      if (savedAmmo) {
-        setAmmo((current) => editingId
-          ? current.map((item) => item.id === savedAmmo.id ? savedAmmo : item)
-          : [savedAmmo, ...current]
-        );
-      }
+      const wasEditing = Boolean(editingId);
       resetForm();
       await loadAmmo();
+      if (savedAmmo) {
+        setAmmo((current) => {
+          const exists = current.some((item) => item.id === savedAmmo.id);
+          if (wasEditing) {
+            return exists
+              ? current.map((item) => item.id === savedAmmo.id ? savedAmmo : item)
+              : [savedAmmo, ...current];
+          }
+          return exists ? current : [savedAmmo, ...current];
+        });
+      }
     } catch (error) {
       console.error('Error saving ammunition:', error);
       alert(error.response?.data?.error || error.message || 'Error saving ammunition');
