@@ -8,6 +8,7 @@ import GlobalModal, { ModalCancelButton, ModalSaveButton } from '@/components/ui
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 import { normalizeCaliber } from '@/utils/caliberCatalog';
+import { deleteReloadBatchWithRestore, isReloadLinkedAmmo } from '@/lib/reloadingDeleteUtils';
 
 export default function AmmunitionInventory() {
   const [ammo, setAmmo] = useState([]);
@@ -43,7 +44,7 @@ export default function AmmunitionInventory() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       const ammoList = await base44.entities.Ammunition.filter({ created_by: currentUser.email });
-      setAmmo(ammoList);
+      setAmmo(ammoList.filter((item) => item.isDeleted !== true && item.archived !== true && item.status !== 'deleted'));
     } catch (err) {
       // If rate-limited, retry once after a short delay
       if (err.message?.includes('Rate limit') && attempt < 2) {
@@ -99,7 +100,14 @@ export default function AmmunitionInventory() {
   const handleDelete = async () => {
     if (!deletingItem?.id) return;
     try {
-      await base44.entities.Ammunition.delete(deletingItem.id);
+      if (isReloadLinkedAmmo(deletingItem)) {
+        const result = await deleteReloadBatchWithRestore({ ammunitionId: deletingItem.id });
+        if (result.warnings?.length > 0) {
+          alert(result.warnings.join('\n'));
+        }
+      } else {
+        await base44.entities.Ammunition.delete(deletingItem.id);
+      }
       setDeletingItem(null);
       await loadAmmo();
     } catch (error) {
@@ -414,7 +422,9 @@ export default function AmmunitionInventory() {
           )}
         >
           <p className="text-sm text-muted-foreground">
-            This will permanently remove this ammunition from your inventory.
+            {deletingItem && isReloadLinkedAmmo(deletingItem)
+              ? 'This ammunition was created from a reload batch. Deleting it will also remove the linked reload session and restore unused components where safe.'
+              : 'This will permanently remove this ammunition from your inventory.'}
           </p>
         </GlobalModal>
       </main>

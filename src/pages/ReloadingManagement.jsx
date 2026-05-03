@@ -16,7 +16,7 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
-import { getBrassState, logBrassMovement, stateUpdate, exceedsBrassTotal } from '@/lib/brassLifecycle';
+import { deleteReloadBatchWithRestore } from '@/lib/reloadingDeleteUtils';
 
 export default function ReloadingManagement() {
   const navigate = useNavigate();
@@ -36,7 +36,8 @@ export default function ReloadingManagement() {
     try {
       const user = await base44.auth.me();
       const data = await base44.entities.ReloadingSession.filter({ created_by: user.email });
-      setSessions(data.sort((a, b) => new Date(b.date) - new Date(a.date)));
+      const visibleSessions = data.filter((session) => session.isDeleted !== true && session.status !== 'deleted' && session.reload_session_deleted !== true);
+      setSessions(visibleSessions.sort((a, b) => new Date(b.date) - new Date(a.date)));
     } catch (error) {
       console.error('Error loading sessions:', error);
     } finally {
@@ -49,133 +50,11 @@ export default function ReloadingManagement() {
   const handleDelete = async (id) => {
     if (!confirm('Delete this reloading session? Component stock will be restored.')) return;
     try {
-      const session = sessions.find(s => s.id === id);
-      const user = await base44.auth.me();
-
-      // ── STEP 1: Find linked ammo stock item (FIX 4) ─────────────────
-      const ammoList = await base44.entities.Ammunition.filter({ created_by: user.email });
-      // Try stable fields first, then fallback to notes parsing
-      let matchedAmmo = ammoList.find(a => a.source_id === id || a.reload_session_id === id);
-      if (!matchedAmmo) {
-       matchedAmmo = ammoList.find(a => a.notes && a.notes.includes(`reload_batch:${id}`));
+      const result = await deleteReloadBatchWithRestore({ reloadSessionId: id });
+      if (result.warnings?.length > 0) {
+        alert(result.warnings.join('\n'));
       }
-      if (!matchedAmmo && session) {
-       matchedAmmo = ammoList.find(a =>
-         (a.brand === 'Reloaded') &&
-         a.caliber === session.caliber &&
-         a.notes && a.notes.includes(session.batch_number)
-       );
-      }
-
-      console.log(`[RELOAD DELETE DEBUG] batchId = ${id}`);
-      console.log(`[RELOAD DELETE DEBUG] ammoStockItemId = ${matchedAmmo?.id || 'NOT FOUND'}`);
-      console.log(`[RELOAD DELETE DEBUG] roundsProduced = ${session?.rounds_loaded || 0}`);
-      console.log(`[RELOAD DELETE DEBUG] ammoInventoryBefore = ${matchedAmmo?.quantity_in_stock ?? 'N/A'}`);
-
-      // ── STEP 2: Restore only unfired loaded rounds still in this batch ─
-      const roundsRemaining = Math.max(0, (matchedAmmo?.quantity_in_stock || 0));
-      const roundsProduced = Math.max(1, Number(session?.rounds_loaded || 1));
-      const restoreRatio = Math.min(1, roundsRemaining / roundsProduced);
-      console.log(`[RELOAD DELETE DEBUG] roundsRemaining = ${roundsRemaining}`);
-      console.log(`[RELOAD DELETE DEBUG] restoreRatio = ${restoreRatio}`);
-
-      // ── STEP 3: Delete the linked ammo stock item entirely ───────────
-      if (matchedAmmo) {
-        await base44.entities.Ammunition.delete(matchedAmmo.id);
-        console.log(`[RELOAD DELETE DEBUG] removingFromInventory = true (deleted ammo id ${matchedAmmo.id})`);
-        console.log(`[RELOAD DELETE DEBUG] ammoInventoryAfter = 0 (item deleted)`);
-      } else {
-        console.warn(`[RELOAD DELETE DEBUG] removingFromInventory = false (no linked ammo found)`);
-      }
-
-      // ── STEP 5: Restore components ───────────────────────────────────
-      const unitConversions = { grams: 1, kg: 1000, oz: 28.3495, lb: 453.592, grains: 0.06479891 };
-      if (session?.components) {
-        // Fetch all user's components once to avoid repeated filter calls
-        const allComponents = await base44.entities.ReloadingComponent.filter({ created_by: user.email });
-
-        for (const comp of session.components) {
-          try {
-            // Normalise component type FIRST — handles Primer/primers/PRIMER/primer from old batches
-            const normalizedType = comp.type?.toLowerCase()?.replace(/^primers?$/, 'primer') || '';
-            const isPrimer = normalizedType === 'primer';
-            const isUsedBrass = normalizedType === 'brass' && comp.is_used_brass;
-
-            // Find matching component: by ID first, then by normalizedType + name as fallback
-            const component = comp.component_id
-              ? allComponents.find(c => c.id === comp.component_id)
-              : allComponents.find(c => c.component_type === normalizedType && c.name === comp.name);
-
-            console.log(`[RELOAD DELETE] type=${comp.type} normalizedType=${normalizedType} component_id=${comp.component_id || 'none'} found=${!!component}`);
-
-            if (component) {
-              let updateFields;
-              if (normalizedType === 'powder') {
-                const restoreAmount = (parseFloat(comp.quantity_used || 0) * restoreRatio);
-                const usedInGrams = restoreAmount * (unitConversions[comp.unit] || 1);
-                const newRemaining = component.quantity_remaining + usedInGrams / (unitConversions[component.unit] || 1);
-                updateFields = { quantity_remaining: newRemaining };
-              } else if (normalizedType === 'brass') {
-                const previousState = getBrassState(component);
-                const qty = Math.min(roundsRemaining, Number(comp.quantity_used || 0), previousState.currently_loaded);
-                const brassNewQuantity = Math.min(qty, Number(comp.brass_new_quantity_used || (comp.brass_use_type === 'new' ? comp.quantity_used : 0) || 0), previousState.currently_loaded_new);
-                const brassUsedQuantity = Math.min(qty - brassNewQuantity, Number(comp.brass_used_quantity_used || (comp.brass_use_type === 'used' ? comp.quantity_used : 0) || 0), previousState.currently_loaded_used);
-                let newState = {
-                  ...previousState,
-                  currently_loaded_new: Math.max(0, previousState.currently_loaded_new - brassNewQuantity),
-                  currently_loaded_used: Math.max(0, previousState.currently_loaded_used - brassUsedQuantity),
-                  available_new_unloaded: previousState.available_new_unloaded + brassNewQuantity,
-                  available_used_recovered: previousState.available_used_recovered + brassUsedQuantity,
-                  first_use_cost_remaining_quantity: previousState.first_use_cost_remaining_quantity + brassNewQuantity,
-                  cost_consumed_quantity: Math.max(0, previousState.cost_consumed_quantity - brassNewQuantity),
-                  reload_cycle_count: Math.max(0, previousState.reload_cycle_count - (qty > 0 ? 1 : 0)),
-                };
-                const wouldExceed = exceedsBrassTotal(newState);
-                updateFields = stateUpdate(newState);
-                const savedState = { ...newState, ...getBrassState(updateFields) };
-                if (wouldExceed) {
-                  await logBrassMovement({
-                    brassId: component.id,
-                    reloadBatchId: id,
-                    quantity: qty,
-                    movementType: 'brass_inventory_invariant_clamped',
-                    previousState,
-                    newState: savedState,
-                    notes: `Brass invariant clamp while deleting reload batch ${session?.batch_number || id}`,
-                  });
-                }
-                await logBrassMovement({
-                  brassId: component.id,
-                  reloadBatchId: id,
-                  quantity: qty,
-                  movementType: 'restored_after_batch_delete',
-                  previousState,
-                  newState: savedState,
-                  notes: `Deleted reload batch ${session?.batch_number || id}`,
-                });
-              } else {
-                const restoreAmount = Number(comp.quantity_used || 0) * restoreRatio;
-                const newRemaining = component.quantity_remaining + restoreAmount;
-                updateFields = { quantity_remaining: newRemaining };
-              }
-              await base44.entities.ReloadingComponent.update(component.id, updateFields);
-              console.log(`[RELOAD DELETE] restored ${normalizedType}: +${comp.quantity_used} → new remaining = ${updateFields.quantity_remaining}`);
-            } else {
-              console.warn(`[RELOAD DELETE] Could not find component for type=${normalizedType} name="${comp.name}" — stock not restored`);
-            }
-          } catch (compError) {
-            console.warn('Could not restore component:', comp.type, comp.name, compError);
-          }
-        }
-        console.log(`[RELOAD DELETE DEBUG] componentsRestored = true`);
-      }
-
-      // ── STEP 6: Delete the session record ────────────────────────────
-      await base44.entities.ReloadingSession.delete(id);
-      console.log(`[RELOAD DELETE DEBUG] batchDeleteOrArchiveSuccess = true`);
-      console.log(`[RELOAD DELETE DEBUG] inventoryRefreshTriggered = true`);
-
-      loadSessions();
+      await loadSessions();
     } catch (error) {
       console.error('Error deleting session:', error);
       alert('Error deleting session: ' + error.message);
