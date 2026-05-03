@@ -24,7 +24,6 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
   const [isVoiceActive, setIsVoiceActive] = useState(false);
   const [standComplete, setStandComplete] = useState(false);
   const [voiceFlash, setVoiceFlash] = useState(null);
-  const [showDebug, setShowDebug] = useState(false);
   const [lastCommand, setLastCommand] = useState(null);
   const [editingIndex, setEditingIndex] = useState(null);
 
@@ -177,48 +176,6 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
     }
   };
 
-  const handleResetStand = () => {
-    if (!confirm('Clear all shots and reset this stand?')) return;
-    
-    // Stop voice
-    if (isListening || isVoiceActive) {
-      stopVoice();
-      setIsVoiceActive(false);
-    }
-    
-    // Clear all results
-    onChange(Array(totalShots).fill(null));
-    onShotMeta(Array(totalShots).fill({ input_method: 'manual' }));
-    
-    // Reset state
-    setActiveShotIndex(0);
-    setEditingIndex(null);
-    setStandComplete(false);
-  };
-
-  const handleUndoLast = () => {
-    const arr = [...shots];
-    // Find last non-null shot
-    let lastIdx = -1;
-    for (let i = arr.length - 1; i >= 0; i--) {
-      if (arr[i] !== null) {
-        lastIdx = i;
-        break;
-      }
-    }
-    
-    if (lastIdx !== -1) {
-      arr[lastIdx] = null;
-      onChange(arr);
-      const updatedMeta = [...(shotMeta || [])];
-      updatedMeta[lastIdx] = { input_method: 'manual' };
-      onShotMeta?.(updatedMeta);
-      setActiveShotIndex(lastIdx);
-      setEditingIndex(null);
-      setStandComplete(false);
-    }
-  };
-
   const handleTapShot = (shotIndex) => {
     // User tapped a shot — if it has a result, enter edit mode; otherwise set as active
     if (shots[shotIndex] !== null && shots[shotIndex] !== undefined) {
@@ -242,21 +199,6 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
       setEditingIndex(shotIndex);
       editShotResult(shotIndex, result);
     }
-  };
-
-  // ─── DEBUG PANEL ──────────────────────────────────────────────────
-  const debugInfo = {
-    activeShotIndex,
-    activeShotIndexRef: activeShotIndexRef.current,
-    voiceModeActive: isVoiceActive,
-    listening: isListening,
-    lastCommand,
-    lastHeard,
-    shots: shots.map((r, i) => `${i + 1}:${r || '—'}`).join(' '),
-    validScored,
-    dead,
-    lost,
-    noBirds,
   };
 
   // ─── RENDER ──────────────────────────────────────────────────────
@@ -416,46 +358,7 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
         })}
       </div>
 
-      {/* Control buttons */}
-      <div className="flex gap-2">
-        <motion.button
-          type="button"
-          whileTap={{ scale: 0.95 }}
-          onClick={handleUndoLast}
-          className="flex-1 py-2.5 bg-secondary text-secondary-foreground rounded-xl text-xs font-semibold hover:bg-secondary/80"
-        >
-          ↩ Undo
-        </motion.button>
-        <motion.button
-          type="button"
-          whileTap={{ scale: 0.95 }}
-          onClick={handleResetStand}
-          className="flex-1 py-2.5 bg-secondary text-secondary-foreground rounded-xl text-xs font-semibold hover:bg-secondary/80"
-        >
-          Reset
-        </motion.button>
-        <motion.button
-          type="button"
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setShowDebug(!showDebug)}
-          className="px-3 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold hover:bg-slate-300 dark:hover:bg-slate-600"
-        >
-          🔧
-        </motion.button>
-      </div>
-
-      {/* Debug Panel */}
-      {showDebug && (
-        <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-3 text-xs font-mono space-y-1">
-          <p className="font-bold text-slate-700 dark:text-slate-300 mb-2">Debug Panel</p>
-          {Object.entries(debugInfo).map(([key, value]) => (
-            <div key={key} className="flex gap-2 text-xs">
-              <span className="text-slate-600 dark:text-slate-400 w-24">{key}:</span>
-              <span className="text-slate-900 dark:text-slate-100 break-all">{String(value)}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Secondary actions are rendered once below by StandFormWrapper. */}
     </div>
   );
 }
