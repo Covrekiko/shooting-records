@@ -45,6 +45,9 @@ export default function ComponentManager() {
     weight: '',
     weight_unit: 'gr',
     is_used_brass: false,
+    times_fired: '',
+    times_reloaded: '',
+    max_reloads: '',
   });
 
   useEffect(() => {
@@ -93,6 +96,8 @@ export default function ComponentManager() {
       let quantityTotal = parseFloat(formData.quantity_total);
       let quantityRemaining = parseFloat(formData.quantity_total);
       let storageUnit = formData.unit;
+      const brassCurrentCount = formData.is_used_brass ? (parseInt(formData.times_fired || formData.times_reloaded) || 0) : 0;
+      const brassReloadLimit = parseInt(formData.max_reloads) || 0;
 
       if (formData.component_type === 'powder') {
         // Convert to grams for storage
@@ -118,12 +123,14 @@ export default function ComponentManager() {
         data.currently_loaded = 0;
         data.fired_awaiting_cleaning_or_inspection = 0;
         data.retired_or_discarded = 0;
-        data.times_reloaded = 0;
-        data.reload_cycle_count = 0;
-        data.lifetime_reload_count = 0;
+        data.times_fired = brassCurrentCount;
+        data.times_reloaded = brassCurrentCount;
+        data.reload_cycle_count = brassCurrentCount;
+        data.lifetime_reload_count = brassCurrentCount;
+        data.max_reloads = brassReloadLimit;
+        data.reload_limit = brassReloadLimit;
         data.anneal_count = 0;
         data.last_annealed_date = '';
-        data.times_fired = 0;
       }
 
       if (data.weight === '') {
@@ -149,7 +156,15 @@ export default function ComponentManager() {
           bullet_name: data.bullet_name,
           weight_unit: data.weight_unit,
         };
-        if (data.component_type === 'brass') updateData.is_used_brass = data.is_used_brass === true;
+        if (data.component_type === 'brass') {
+          updateData.is_used_brass = data.is_used_brass === true;
+          updateData.times_fired = brassCurrentCount;
+          updateData.times_reloaded = brassCurrentCount;
+          updateData.reload_cycle_count = brassCurrentCount;
+          updateData.lifetime_reload_count = brassCurrentCount;
+          updateData.max_reloads = brassReloadLimit;
+          updateData.reload_limit = brassReloadLimit;
+        }
         if (data.weight !== undefined) updateData.weight = data.weight;
         await base44.entities.ReloadingComponent.update(editingId, updateData);
       } else {
@@ -175,6 +190,9 @@ export default function ComponentManager() {
         weight: '',
         weight_unit: 'gr',
         is_used_brass: false,
+        times_fired: '',
+        times_reloaded: '',
+        max_reloads: '',
       });
     } catch (error) {
       console.error('Error saving component:', error);
@@ -222,6 +240,9 @@ export default function ComponentManager() {
       weight: component.weight || '',
       weight_unit: component.weight_unit || 'gr',
       is_used_brass: component.is_used_brass === true,
+      times_fired: component.times_fired || component.reload_cycle_count || '',
+      times_reloaded: component.times_reloaded || component.reload_cycle_count || '',
+      max_reloads: component.max_reloads || component.reload_limit || '',
     });
     setShowForm(true);
   };
@@ -700,6 +721,34 @@ export default function ComponentManager() {
               </div>
             </div>
 
+            {formData.component_type === 'brass' && formData.is_used_brass && (
+              <div>
+                <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Times already fired / reloaded</label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={formData.times_fired}
+                  onChange={(e) => setFormData({ ...formData, times_fired: e.target.value, times_reloaded: e.target.value })}
+                  className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-base"
+                  placeholder="0"
+                />
+              </div>
+            )}
+
+            {formData.component_type === 'brass' && (
+              <div>
+                <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Warn me after this many reloads/firings</label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  value={formData.max_reloads}
+                  onChange={(e) => setFormData({ ...formData, max_reloads: e.target.value })}
+                  className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-base"
+                  placeholder="e.g., 5"
+                />
+              </div>
+            )}
+
             <div>
               <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Total Price (£)</label>
               <input
@@ -829,6 +878,15 @@ export default function ComponentManager() {
                           <p className="text-xs text-muted-foreground mt-1">
                             {displayRemaining}/{displayTotal} {displayUnit}
                           </p>
+                          {comp.component_type === 'brass' && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Fired/reloaded: {comp.times_reloaded ?? comp.reload_cycle_count ?? comp.times_fired ?? 0}
+                              {(comp.max_reloads || comp.reload_limit) ? ` / limit ${comp.max_reloads || comp.reload_limit}` : ''}
+                            </p>
+                          )}
+                          {comp.component_type === 'brass' && (comp.max_reloads || comp.reload_limit) > 0 && (comp.times_reloaded ?? comp.reload_cycle_count ?? 0) >= (comp.max_reloads || comp.reload_limit) && (
+                            <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mt-1">Reload limit reached</p>
+                          )}
                           {comp.component_type === 'brass' && (
                            <BrassLifecycleManager brass={comp} onUpdated={loadComponents} />
                          )}
