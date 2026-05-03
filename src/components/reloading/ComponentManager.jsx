@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Plus, Trash2, Edit2, ChevronDown, Download } from 'lucide-react';
+import { Plus, Trash2, Edit2, ChevronDown, Download, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { searchCalibers } from '@/utils/caliberCatalog';
 import BrassLifecycleManager from './BrassLifecycleManager';
@@ -30,6 +30,7 @@ export default function ComponentManager() {
   const [showAddBrassModal, setShowAddBrassModal] = useState(false);
   const [showAddComponentModal, setShowAddComponentModal] = useState(false);
   const [addComponentType, setAddComponentType] = useState(null);
+  const [viewingBrassId, setViewingBrassId] = useState(null);
   const [formData, setFormData] = useState({
     component_type: 'primer',
     name: '',
@@ -887,19 +888,28 @@ export default function ComponentManager() {
                           {comp.component_type === 'brass' && (comp.max_reloads || comp.reload_limit) > 0 && (comp.times_reloaded ?? comp.reload_cycle_count ?? 0) >= (comp.max_reloads || comp.reload_limit) && (
                             <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 mt-1">Reload limit reached</p>
                           )}
-                          {comp.component_type === 'brass' && (
+                          {comp.component_type === 'brass' && viewingBrassId === comp.id && (
                            <BrassLifecycleManager brass={comp} onUpdated={loadComponents} />
-                         )}
+                          )}
                         </div>
                         <div className="flex gap-1 flex-shrink-0">
                          {comp.component_type === 'brass' && (
-                           <button
-                             onClick={() => downloadBrassBatchPdf(comp)}
-                             className="w-9 h-9 flex items-center justify-center hover:bg-secondary rounded-lg transition-colors text-muted-foreground"
-                             title="Download batch report PDF"
-                           >
-                             <Download className="w-4 h-4" />
-                           </button>
+                           <>
+                             <button
+                               onClick={() => setViewingBrassId(viewingBrassId === comp.id ? null : comp.id)}
+                               className="w-9 h-9 flex items-center justify-center hover:bg-secondary rounded-lg transition-colors text-muted-foreground"
+                               title="View brass details"
+                             >
+                               <Eye className="w-4 h-4" />
+                             </button>
+                             <button
+                               onClick={() => downloadBrassBatchPdf(comp)}
+                               className="w-9 h-9 flex items-center justify-center hover:bg-secondary rounded-lg transition-colors text-muted-foreground"
+                               title="Download batch report PDF"
+                             >
+                               <Download className="w-4 h-4" />
+                             </button>
+                           </>
                          )}
                           <button
                             onClick={() => handleEdit(comp)}
