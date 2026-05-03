@@ -57,7 +57,9 @@ export default function POIModal({ location, onClose, onSubmit }) {
   };
 
   const handleSubmit = () => {
-    onSubmit({ type, ...data, quantity: parseInt(data.quantity) || 1 });
+    const payload = { type, ...data };
+    if (type === 'deer_sighting') payload.quantity = parseInt(data.quantity) || 1;
+    onSubmit(payload);
   };
 
   const renderTextInput = (label, field, placeholder = '') => (

@@ -365,7 +365,7 @@ export default function DeerStalkingMap() {
     marker.marker_type === 'animal' && marker.pest_species && ['Pest species', marker.pest_species],
     marker.marker_type === 'animal' && marker.custom_animal_name && ['Animal name', marker.custom_animal_name],
     marker.marker_type === 'feeding_area' && marker.feed_type && ['Feed type', marker.feed_type],
-    marker.marker_type === 'trail_camera' && marker.battery_life && ['Battery life', marker.battery_life],
+    marker.marker_type === 'trail_camera' && ['Battery life', marker.battery_life || 'Not set'],
     marker.marker_type === 'trail_camera' && marker.placed_date && ['Placed date', new Date(marker.placed_date).toLocaleDateString()],
     marker.created_at && ['Created', new Date(marker.created_at).toLocaleString()],
     marker.latitude && marker.longitude && ['Coordinates', `${marker.latitude.toFixed(5)}, ${marker.longitude.toFixed(5)}`],
