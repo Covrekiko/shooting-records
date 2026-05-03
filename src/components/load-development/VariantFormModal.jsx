@@ -109,10 +109,10 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
           ? [form.bullet_brand, form.bullet_name, form.bullet_grains ? `${form.bullet_grains}gr` : ''].filter(Boolean).join(' ')
           : form.bullet_brand,
         bullet_component_id: form.bullet_component_id,
-        bullet_quantity_used: parseInt(form.bullet_quantity_used) || 0,
+        bullet_quantity_used: parseInt(form.round_count) || 0,
         brass_brand: form.brass_brand,
         brass_component_id: form.brass_component_id,
-        brass_quantity_used: parseInt(form.brass_quantity_used) || 0,
+        brass_quantity_used: parseInt(form.round_count) || 0,
         primer_brand: form.primer_brand,
         primer_component_id: form.primer_component_id,
         primer_quantity_used: parseInt(form.primer_quantity_used) || 0,
@@ -153,9 +153,9 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
 
         await Promise.all([
           deductComp(form.powder_component_id, roundCount, true, parseFloat(form.powder_charge_grains) || 0),
-          deductComp(form.bullet_component_id, parseInt(form.bullet_quantity_used) || roundCount, false),
+          deductComp(form.bullet_component_id, roundCount, false),
           deductComp(form.primer_component_id, parseInt(form.primer_quantity_used) || roundCount, false),
-          deductComp(form.brass_component_id, parseInt(form.brass_quantity_used) || 0, false),
+          deductComp(form.brass_component_id, roundCount, false),
         ]);
 
         payload.stock_deducted = true;
@@ -222,7 +222,7 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
             type="number" placeholder="20"
             className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none"
           />
-          {form.round_count && <p className="text-[10px] text-muted-foreground mt-1">Bullet, primer and brass quantities auto-set to {form.round_count}</p>}
+          {form.round_count && <p className="text-[10px] text-muted-foreground mt-1">Bullet and brass quantities auto-set to {form.round_count}</p>}
         </div>
 
         {/* Powder */}
@@ -284,11 +284,6 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
               </div>
             </div>
           )}
-          <div>
-            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Quantity Used</label>
-            <input value={form.bullet_quantity_used ?? ''} onChange={e => set('bullet_quantity_used', e.target.value)} type="number" placeholder="20"
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
-          </div>
         </div>
 
         {/* Primer */}
@@ -333,11 +328,6 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
           <div>
             <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Brass Brand</label>
             <input value={form.brass_brand ?? ''} onChange={e => set('brass_brand', e.target.value)} placeholder="e.g. Lapua"
-              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Quantity Used</label>
-            <input value={form.brass_quantity_used ?? ''} onChange={e => set('brass_quantity_used', e.target.value)} type="number" placeholder="20"
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
           </div>
         </div>
