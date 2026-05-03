@@ -151,7 +151,7 @@ export default function AmmoSummary() {
             className="px-4 py-2.5 bg-primary text-white rounded-xl hover:opacity-90 flex items-center gap-2 text-sm font-semibold shadow-sm"
           >
             <Download className="w-4 h-4" />
-            Export PDF
+            View PDF
           </button>
         </div>
 
