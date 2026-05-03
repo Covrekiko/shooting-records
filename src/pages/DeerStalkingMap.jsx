@@ -261,6 +261,8 @@ export default function DeerStalkingMap() {
         pest_species: data.pest_species || '',
         custom_animal_name: data.custom_animal_name || '',
         feed_type: data.feed_type || '',
+        battery_life: data.battery_life || '',
+        placed_date: data.placed_date || '',
         notes: data.notes,
         photos: data.photos || [],
         created_at: now,
@@ -348,6 +350,7 @@ export default function DeerStalkingMap() {
     tracks_signs: 'Tracks / Signs',
     animal: 'Other Animal',
     feeding_area: 'Feeding Area',
+    trail_camera: 'Trail Camera',
     other: 'Other',
   }[type] || (type || 'Point of Interest').replace(/_/g, ' '));
 
@@ -362,6 +365,8 @@ export default function DeerStalkingMap() {
     marker.pest_species && ['Pest species', marker.pest_species],
     marker.custom_animal_name && ['Animal name', marker.custom_animal_name],
     marker.feed_type && ['Feed type', marker.feed_type],
+    marker.battery_life && ['Battery life', marker.battery_life],
+    marker.placed_date && ['Placed date', new Date(marker.placed_date).toLocaleDateString()],
     marker.created_at && ['Created', new Date(marker.created_at).toLocaleString()],
     marker.latitude && marker.longitude && ['Coordinates', `${marker.latitude.toFixed(5)}, ${marker.longitude.toFixed(5)}`],
   ].filter(Boolean);

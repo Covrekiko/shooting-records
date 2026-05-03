@@ -10,6 +10,7 @@
         "high_seat",
         "feeding_area",
         "tracks_signs",
+        "trail_camera",
         "other"
       ],
       "description": "Type of point of interest"
@@ -61,6 +62,15 @@
     "feed_type": {
       "type": "string",
       "description": "Feed type for feeding areas"
+    },
+    "battery_life": {
+      "type": "string",
+      "description": "Battery life or percentage for trail cameras"
+    },
+    "placed_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the point, such as a trail camera, was placed"
     },
     "notes": {
       "type": "string",

@@ -11,6 +11,7 @@ const POI_TYPES = [
   { value: 'tracks_signs', label: '👣 Tracks / Signs', title: 'Tracks / Signs' },
   { value: 'animal', label: '🐾 Other Animal', title: 'Other Animal' },
   { value: 'feeding_area', label: '🌾 Feeding Area', title: 'Feeding Area' },
+  { value: 'trail_camera', label: '📷 Trail Camera', title: 'Trail Camera' },
   { value: 'other', label: '📍 Other', title: 'Other' },
 ];
 
@@ -29,6 +30,8 @@ const emptyData = {
   pest_species: '',
   custom_animal_name: '',
   feed_type: '',
+  battery_life: '',
+  placed_date: new Date().toISOString().slice(0, 10),
   notes: '',
   photos: [],
 };
@@ -71,6 +74,13 @@ export default function POIModal({ location, onClose, onSubmit }) {
         <option value="">{placeholder}</option>
         {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
       </select>
+    </div>
+  );
+
+  const renderDateInput = (label, field) => (
+    <div>
+      <label className={DESIGN.LABEL}>{label}</label>
+      <input type="date" value={data[field]} onChange={(e) => update(field, e.target.value)} className={DESIGN.INPUT} />
     </div>
   );
 
@@ -127,6 +137,19 @@ export default function POIModal({ location, onClose, onSubmit }) {
 
     if (type === 'feeding_area') {
       return <>{renderTextInput('Feeding area name (optional)', 'title')}{renderTextInput('Feed type (optional)', 'feed_type')}{renderCommonFields()}</>;
+    }
+
+    if (type === 'trail_camera') {
+      return (
+        <>
+          {renderTextInput('Camera name', 'title', 'e.g. North Ride Camera')}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {renderDateInput('Placed date', 'placed_date')}
+            {renderTextInput('Battery life', 'battery_life', 'e.g. 85% or Good')}
+          </div>
+          {renderCommonFields()}
+        </>
+      );
     }
 
     if (type === 'other') {
