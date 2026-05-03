@@ -96,12 +96,7 @@ export default function Records() {
       allLocations.forEach(l => locationMap[l.id] = l);
       setDeerLocations(locationMap);
 
-      let query = {};
-      if (currentUser.role !== 'admin') {
-        query.created_by = currentUser.email;
-      }
-
-      const sessionRecords = await getRepository('SessionRecord').filter(query);
+      const sessionRecords = await getRepository('SessionRecord').filter({ created_by: currentUser.email });
 
       // Map category to recordType for compatibility + filter out deleted records
       const records = sessionRecords

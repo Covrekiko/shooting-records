@@ -32,6 +32,12 @@ Deno.serve(async (req) => {
 
     // Load the full session record first
     const session = await base44.asServiceRole.entities.SessionRecord.get(sessionId);
+    if (!session) {
+      return Response.json({ error: 'Record not found' }, { status: 404 });
+    }
+    if (user.role !== 'admin' && session.created_by !== user.email) {
+      return Response.json({ error: 'Forbidden: not your record' }, { status: 403 });
+    }
     console.log(`[AMMO DELETE DEBUG] record type: ${session.category}`);
     console.log(`[AMMO DELETE DEBUG] fullRecordBeforeDelete: ammunition_id=${session.ammunition_id} rounds_fired=${session.rounds_fired} total_count=${session.total_count} rifles_used_count=${session.rifles_used?.length || 0}`);
 
@@ -45,6 +51,10 @@ Deno.serve(async (req) => {
       }
       try {
         const ammo = await base44.asServiceRole.entities.Ammunition.get(ammunitionId);
+        if (!ammo) return false;
+        if (user.role !== 'admin' && ammo.created_by !== user.email) {
+          throw new Error('Forbidden: ammunition does not belong to you');
+        }
         const stockBefore = ammo.quantity_in_stock || 0;
         const stockAfter = stockBefore + qty;
         console.log(`[AMMO DELETE DEBUG] ammoId: ${ammunitionId} label: ${label} stockBefore: ${stockBefore} refundQuantity: +${qty} stockAfter: ${stockAfter}`);
@@ -63,6 +73,10 @@ Deno.serve(async (req) => {
       if (!rifleId || !(qty > 0)) return;
       try {
         const rifle = await base44.asServiceRole.entities.Rifle.get(rifleId);
+        if (!rifle) return;
+        if (user.role !== 'admin' && rifle.created_by !== user.email) {
+          throw new Error('Forbidden: rifle does not belong to you');
+        }
         const newTotal = Math.max(0, (rifle.total_rounds_fired || 0) - qty);
         await base44.asServiceRole.entities.Rifle.update(rifleId, { total_rounds_fired: newTotal });
         restorations.push({ type: 'rifle_rounds', id: rifleId, qty });
@@ -77,6 +91,10 @@ Deno.serve(async (req) => {
       if (!shotgunId || !(qty > 0)) return;
       try {
         const shotgun = await base44.asServiceRole.entities.Shotgun.get(shotgunId);
+        if (!shotgun) return;
+        if (user.role !== 'admin' && shotgun.created_by !== user.email) {
+          throw new Error('Forbidden: shotgun does not belong to you');
+        }
         const newTotal = Math.max(0, (shotgun.total_cartridges_fired || 0) - qty);
         await base44.asServiceRole.entities.Shotgun.update(shotgunId, { total_cartridges_fired: newTotal });
         restorations.push({ type: 'shotgun_cartridges', id: shotgunId, qty });

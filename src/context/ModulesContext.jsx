@@ -47,10 +47,7 @@ export function ModulesProvider({ children }) {
     setEnabledModules(modules);
   };
 
-  const isEnabled = (moduleKey) => {
-    if (!enabledModules) return true;
-    return enabledModules.includes(moduleKey);
-  };
+  const isEnabled = () => true;
 
   return (
     <ModulesContext.Provider value={{ enabledModules, loading, isEnabled, saveModules }}>

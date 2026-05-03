@@ -14,6 +14,7 @@ export default function AdminUsers() {
   const [searchQuery, setSearchQuery] = useState('');
   const { invalidateUserCache } = useAuth();
   const [selectedUserMenu, setSelectedUserMenu] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     loadUsers();
@@ -21,6 +22,9 @@ export default function AdminUsers() {
 
   const loadUsers = async () => {
     try {
+      const me = await base44.auth.me();
+      setCurrentUser(me);
+      if (me?.role !== 'admin') return;
       const allUsers = await base44.entities.User.list();
       setUsers(allUsers);
     } catch (error) {
@@ -84,6 +88,17 @@ export default function AdminUsers() {
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
         </div>
+      </div>
+    );
+  }
+
+  if (currentUser?.role !== 'admin') {
+    return (
+      <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
+        <Navigation />
+        <main className="max-w-2xl mx-auto px-4 py-8 mobile-page-padding text-center text-muted-foreground">
+          Admin access only
+        </main>
       </div>
     );
   }

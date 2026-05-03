@@ -132,7 +132,7 @@ export default function Navigation() {
               />
             </Link>
             <div className="flex gap-0.5 items-center">
-              {DESKTOP_ITEMS.filter(item => !item.module || isEnabled(item.module)).map((item) => {
+              {DESKTOP_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path);
                 return (
@@ -214,12 +214,10 @@ export default function Navigation() {
               className="mx-3 mb-1 bg-card rounded-2xl shadow-xl border border-border overflow-hidden"
             >
               {NAV_SECTIONS.map((section) => {
-                const visibleItems = section.items.filter(item => !item.module || isEnabled(item.module));
-                if (visibleItems.length === 0) return null;
                 return (
                 <div key={section.label} className="px-2 pt-2 pb-1">
                   <p className="px-3 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{section.label}</p>
-                  {visibleItems.map((item) => {
+                  {section.items.map((item) => {
                     const Icon = item.icon;
                     const active = isActive(item.path);
                     return (
