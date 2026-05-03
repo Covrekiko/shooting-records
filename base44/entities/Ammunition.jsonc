@@ -84,6 +84,25 @@
     "brass_reload_cycle_count": {
       "type": "integer",
       "description": "Brass cycle count when this ammunition was loaded"
+    },
+    "brass_use_type": {
+      "type": "string",
+      "enum": [
+        "new",
+        "used",
+        "mixed"
+      ],
+      "description": "Whether this reloaded ammunition used new, used/recovered, or mixed brass"
+    },
+    "brass_new_quantity_used": {
+      "type": "integer",
+      "default": 0,
+      "description": "Number of new first-use cases in this reload batch"
+    },
+    "brass_used_quantity_used": {
+      "type": "integer",
+      "default": 0,
+      "description": "Number of used/recovered cases in this reload batch"
     }
   },
   "required": [

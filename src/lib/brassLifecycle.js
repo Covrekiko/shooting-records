@@ -168,26 +168,38 @@ export async function moveLoadedAmmoToFiredBrass(ammo, quantity, recordId, sessi
   const qty = Math.min(parseInt(quantity) || 0, previousState.currently_loaded || parseInt(quantity) || 0);
   if (qty <= 0) return;
 
-  const useType = ammo.brass_use_type || session?.brass_use_type || session?.components?.find(c => c.type === 'brass')?.brass_use_type || 'used';
-  const fromNew = useType === 'new';
-  const loadedField = fromNew ? 'currently_loaded_new' : 'currently_loaded_used';
-  const firedField = fromNew ? 'fired_new_awaiting_cleaning_or_inspection' : 'fired_used_awaiting_cleaning_or_inspection';
-  const qtyFromType = Math.min(qty, previousState[loadedField]);
-  const fallbackQty = qty - qtyFromType;
+  const brassComponent = session?.components?.find(c => c.type === 'brass');
+  const useType = ammo.brass_use_type || session?.brass_use_type || brassComponent?.brass_use_type || 'used';
+  let newFired = 0;
+  let usedFired = 0;
+
+  if (useType === 'mixed') {
+    const batchNew = num(ammo.brass_new_quantity_used ?? session?.brass_new_quantity_used ?? brassComponent?.brass_new_quantity_used);
+    const batchUsed = num(ammo.brass_used_quantity_used ?? session?.brass_used_quantity_used ?? brassComponent?.brass_used_quantity_used);
+    const totalBatchBrass = Math.max(1, batchNew + batchUsed);
+    newFired = Math.min(qty, previousState.currently_loaded_new, Math.round(qty * (batchNew / totalBatchBrass)));
+    usedFired = Math.min(qty - newFired, previousState.currently_loaded_used);
+    const remaining = qty - newFired - usedFired;
+    if (remaining > 0) {
+      const extraNew = Math.min(remaining, previousState.currently_loaded_new - newFired);
+      newFired += extraNew;
+      usedFired += Math.min(remaining - extraNew, previousState.currently_loaded_used - usedFired);
+    }
+  } else if (useType === 'new') {
+    newFired = Math.min(qty, previousState.currently_loaded_new);
+    usedFired = Math.min(qty - newFired, previousState.currently_loaded_used);
+  } else {
+    usedFired = Math.min(qty, previousState.currently_loaded_used);
+    newFired = Math.min(qty - usedFired, previousState.currently_loaded_new);
+  }
 
   const newState = {
     ...previousState,
-    [loadedField]: Math.max(0, previousState[loadedField] - qtyFromType),
-    [firedField]: previousState[firedField] + qtyFromType,
+    currently_loaded_new: Math.max(0, previousState.currently_loaded_new - newFired),
+    currently_loaded_used: Math.max(0, previousState.currently_loaded_used - usedFired),
+    fired_new_awaiting_cleaning_or_inspection: previousState.fired_new_awaiting_cleaning_or_inspection + newFired,
+    fired_used_awaiting_cleaning_or_inspection: previousState.fired_used_awaiting_cleaning_or_inspection + usedFired,
   };
-
-  if (fallbackQty > 0) {
-    const fallbackLoadedField = fromNew ? 'currently_loaded_used' : 'currently_loaded_new';
-    const fallbackFiredField = fromNew ? 'fired_used_awaiting_cleaning_or_inspection' : 'fired_new_awaiting_cleaning_or_inspection';
-    const movedFallback = Math.min(fallbackQty, previousState[fallbackLoadedField]);
-    newState[fallbackLoadedField] = Math.max(0, previousState[fallbackLoadedField] - movedFallback);
-    newState[fallbackFiredField] = previousState[fallbackFiredField] + movedFallback;
-  }
 
   await base44.entities.ReloadingComponent.update(brassId, {
     ...stateUpdate(newState),
@@ -276,24 +288,30 @@ export async function restoreFiredBrassToLoadedForRecord(ammo, quantity, recordI
   if (qty <= 0) return;
 
   const useType = ammo.brass_use_type || session?.brass_use_type || sessionBrass?.brass_use_type || 'used';
-  const firedField = useType === 'new' ? 'fired_new_awaiting_cleaning_or_inspection' : 'fired_used_awaiting_cleaning_or_inspection';
-  const loadedField = useType === 'new' ? 'currently_loaded_new' : 'currently_loaded_used';
-  const qtyFromType = Math.min(qty, previousState[firedField]);
-  const fallbackQty = qty - qtyFromType;
+  let newRestored = 0;
+  let usedRestored = 0;
+
+  if (useType === 'mixed') {
+    const batchNew = num(ammo.brass_new_quantity_used ?? session?.brass_new_quantity_used ?? sessionBrass?.brass_new_quantity_used);
+    const batchUsed = num(ammo.brass_used_quantity_used ?? session?.brass_used_quantity_used ?? sessionBrass?.brass_used_quantity_used);
+    const totalBatchBrass = Math.max(1, batchNew + batchUsed);
+    newRestored = Math.min(qty, previousState.fired_new_awaiting_cleaning_or_inspection, Math.round(qty * (batchNew / totalBatchBrass)));
+    usedRestored = Math.min(qty - newRestored, previousState.fired_used_awaiting_cleaning_or_inspection);
+  } else if (useType === 'new') {
+    newRestored = Math.min(qty, previousState.fired_new_awaiting_cleaning_or_inspection);
+    usedRestored = Math.min(qty - newRestored, previousState.fired_used_awaiting_cleaning_or_inspection);
+  } else {
+    usedRestored = Math.min(qty, previousState.fired_used_awaiting_cleaning_or_inspection);
+    newRestored = Math.min(qty - usedRestored, previousState.fired_new_awaiting_cleaning_or_inspection);
+  }
 
   const newState = {
     ...previousState,
-    [firedField]: Math.max(0, previousState[firedField] - qtyFromType),
-    [loadedField]: previousState[loadedField] + qtyFromType,
+    fired_new_awaiting_cleaning_or_inspection: Math.max(0, previousState.fired_new_awaiting_cleaning_or_inspection - newRestored),
+    fired_used_awaiting_cleaning_or_inspection: Math.max(0, previousState.fired_used_awaiting_cleaning_or_inspection - usedRestored),
+    currently_loaded_new: previousState.currently_loaded_new + newRestored,
+    currently_loaded_used: previousState.currently_loaded_used + usedRestored,
   };
-
-  if (fallbackQty > 0) {
-    const fallbackFiredField = useType === 'new' ? 'fired_used_awaiting_cleaning_or_inspection' : 'fired_new_awaiting_cleaning_or_inspection';
-    const fallbackLoadedField = useType === 'new' ? 'currently_loaded_used' : 'currently_loaded_new';
-    const movedFallback = Math.min(fallbackQty, previousState[fallbackFiredField]);
-    newState[fallbackFiredField] = Math.max(0, previousState[fallbackFiredField] - movedFallback);
-    newState[fallbackLoadedField] = previousState[fallbackLoadedField] + movedFallback;
-  }
 
   await base44.entities.ReloadingComponent.update(brassId, stateUpdate(newState));
   await logBrassMovement({

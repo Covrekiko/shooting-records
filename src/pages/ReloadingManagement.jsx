@@ -118,10 +118,16 @@ export default function ReloadingManagement() {
               } else if (normalizedType === 'brass') {
                 const previousState = getBrassState(component);
                 const qty = Math.min(roundsRemaining, Number(comp.quantity_used || 0), previousState.currently_loaded);
+                const brassNewQuantity = Math.min(qty, Number(comp.brass_new_quantity_used || (comp.brass_use_type === 'new' ? comp.quantity_used : 0) || 0), previousState.currently_loaded_new);
+                const brassUsedQuantity = Math.min(qty - brassNewQuantity, Number(comp.brass_used_quantity_used || (comp.brass_use_type === 'used' ? comp.quantity_used : 0) || 0), previousState.currently_loaded_used);
                 let newState = {
                   ...previousState,
-                  currently_loaded: Math.max(0, previousState.currently_loaded - qty),
-                  available_to_reload: previousState.available_to_reload + qty,
+                  currently_loaded_new: Math.max(0, previousState.currently_loaded_new - brassNewQuantity),
+                  currently_loaded_used: Math.max(0, previousState.currently_loaded_used - brassUsedQuantity),
+                  available_new_unloaded: previousState.available_new_unloaded + brassNewQuantity,
+                  available_used_recovered: previousState.available_used_recovered + brassUsedQuantity,
+                  first_use_cost_remaining_quantity: previousState.first_use_cost_remaining_quantity + brassNewQuantity,
+                  cost_consumed_quantity: Math.max(0, previousState.cost_consumed_quantity - brassNewQuantity),
                   reload_cycle_count: Math.max(0, previousState.reload_cycle_count - (qty > 0 ? 1 : 0)),
                 };
                 const wouldExceed = exceedsBrassTotal(newState);

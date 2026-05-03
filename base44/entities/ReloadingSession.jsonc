@@ -31,6 +31,25 @@
       "type": "integer",
       "description": "Reload cycle count of the brass after this batch"
     },
+    "brass_use_type": {
+      "type": "string",
+      "enum": [
+        "new",
+        "used",
+        "mixed"
+      ],
+      "description": "Whether the batch used new, used/recovered, or mixed brass"
+    },
+    "brass_new_quantity_used": {
+      "type": "integer",
+      "default": 0,
+      "description": "Number of new first-use cases in this reload batch"
+    },
+    "brass_used_quantity_used": {
+      "type": "integer",
+      "default": 0,
+      "description": "Number of used/recovered cases in this reload batch"
+    },
     "total_cost": {
       "type": "number",
       "description": "Total cost of all components"
@@ -84,6 +103,22 @@
           },
           "is_used_brass": {
             "type": "boolean"
+          },
+          "brass_use_type": {
+            "type": "string",
+            "enum": [
+              "new",
+              "used",
+              "mixed"
+            ]
+          },
+          "brass_new_quantity_used": {
+            "type": "integer",
+            "default": 0
+          },
+          "brass_used_quantity_used": {
+            "type": "integer",
+            "default": 0
           },
           "brass_reload_cycle_count": {
             "type": "integer"

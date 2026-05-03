@@ -212,6 +212,10 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
       // Delete succeeded — update local state
       setRecords(records.filter((r) => r.id !== recordId));
 
+      if (refundResult?.warnings?.length > 0) {
+       alert(refundResult.warnings.join('\n'));
+      }
+
       // Notify parent to refresh analytics + dashboard
       if (onRecordDeleted) onRecordDeleted();
     } catch (error) {

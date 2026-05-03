@@ -120,8 +120,8 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     console.log('Cost for batch (£):', powderCost);
 
     const primerCost = primer.cost_per_unit * cartridgesLoaded;
-    const paidNewCases = Math.min(cartridgesLoaded, brassState?.first_use_cost_remaining_quantity || 0);
-    const brassCost = formData.brass_is_used ? 0 : brass.cost_per_unit * paidNewCases;
+    const paidNewCases = formData.brass_is_used ? 0 : Math.min(cartridgesLoaded, brassState?.available_new_unloaded || 0, brassState?.first_use_cost_remaining_quantity || 0);
+    const brassCost = brass.cost_per_unit * paidNewCases;
     const bulletCost = bullet.cost_per_unit * cartridgesLoaded;
     const totalCost = primerCost + powderCost + brassCost + bulletCost;
     const costPerCartridge = totalCost / cartridgesLoaded;
@@ -176,9 +176,11 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       const brassLookupId = formData.brass_is_used ? formData.used_brass_id : formData.brass_id;
       const brass = components.brass.find(c => c.id === brassLookupId);
       const bullet = components.bullet.find(c => c.id === formData.bullet_id);
-      const brassUseType = formData.brass_is_used ? 'used' : 'new';
-
       const cartridgesLoaded = parseInt(formData.cartridges_loaded);
+      const previousBrassState = getBrassState(brass);
+      const brassNewQuantityUsed = formData.brass_is_used ? 0 : Math.min(cartridgesLoaded, previousBrassState.available_new_unloaded);
+      const brassUsedQuantityUsed = cartridgesLoaded - brassNewQuantityUsed;
+      const brassUseType = brassNewQuantityUsed > 0 && brassUsedQuantityUsed > 0 ? 'mixed' : (brassUsedQuantityUsed > 0 ? 'used' : 'new');
 
       // ===== POWDER DEDUCTION - ALL IN GRAMS =====
       const chargePerRoundInGrams = convertToGrams(parseFloat(formData.powder_charge), formData.powder_unit);
@@ -214,20 +216,15 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       console.log('Powder remaining (in stored unit):', powderRemaining);
 
       // Brass lifecycle: move selected new/used brass into loaded ammunition
-      const previousBrassState = getBrassState(brass);
       const nextReloadCycle = previousBrassState.reload_cycle_count + 1;
-      const newBrassState = formData.brass_is_used ? {
+      const newBrassState = {
         ...previousBrassState,
-        available_used_recovered: Math.max(0, previousBrassState.available_used_recovered - cartridgesLoaded),
-        currently_loaded_used: previousBrassState.currently_loaded_used + cartridgesLoaded,
-        reload_cycle_count: nextReloadCycle,
-        lifetime_reload_count: previousBrassState.lifetime_reload_count + cartridgesLoaded,
-      } : {
-        ...previousBrassState,
-        available_new_unloaded: Math.max(0, previousBrassState.available_new_unloaded - cartridgesLoaded),
-        currently_loaded_new: previousBrassState.currently_loaded_new + cartridgesLoaded,
-        first_use_cost_remaining_quantity: Math.max(0, previousBrassState.first_use_cost_remaining_quantity - cartridgesLoaded),
-        cost_consumed_quantity: previousBrassState.cost_consumed_quantity + cartridgesLoaded,
+        available_new_unloaded: Math.max(0, previousBrassState.available_new_unloaded - brassNewQuantityUsed),
+        available_used_recovered: Math.max(0, previousBrassState.available_used_recovered - brassUsedQuantityUsed),
+        currently_loaded_new: previousBrassState.currently_loaded_new + brassNewQuantityUsed,
+        currently_loaded_used: previousBrassState.currently_loaded_used + brassUsedQuantityUsed,
+        first_use_cost_remaining_quantity: Math.max(0, previousBrassState.first_use_cost_remaining_quantity - brassNewQuantityUsed),
+        cost_consumed_quantity: previousBrassState.cost_consumed_quantity + brassNewQuantityUsed,
         reload_cycle_count: nextReloadCycle,
         lifetime_reload_count: previousBrassState.lifetime_reload_count + cartridgesLoaded,
       };
@@ -256,12 +253,14 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
         brass_component_id: brassLookupId,
         brass_reload_cycle_count: nextReloadCycle,
         brass_use_type: brassUseType,
+        brass_new_quantity_used: brassNewQuantityUsed,
+        brass_used_quantity_used: brassUsedQuantityUsed,
         total_cost: costBreakdown.totalCost,
         cost_per_round: costBreakdown.costPerCartridge,
         components: [
           { type: 'primer', component_id: formData.primer_id, name: primer.name, quantity_used: cartridgesLoaded, cost: costBreakdown.primerCost, lot_number: formData.primer_lot || primer.lot_number || '' },
           { type: 'powder', component_id: formData.powder_id, name: powder.name, quantity_used: powderUsed, unit: powder.unit, cost: costBreakdown.powderCost, lot_number: formData.powder_lot || powder.lot_number || '' },
-          { type: 'brass', component_id: brassLookupId, name: brass.name, quantity_used: cartridgesLoaded, cost: costBreakdown.brassCost, is_used_brass: formData.brass_is_used, brass_use_type: brassUseType, lot_number: formData.brass_lot || brass.lot_number || '', brass_reload_cycle_count: nextReloadCycle },
+          { type: 'brass', component_id: brassLookupId, name: brass.name, quantity_used: cartridgesLoaded, cost: costBreakdown.brassCost, is_used_brass: formData.brass_is_used, brass_use_type: brassUseType, brass_new_quantity_used: brassNewQuantityUsed, brass_used_quantity_used: brassUsedQuantityUsed, lot_number: formData.brass_lot || brass.lot_number || '', brass_reload_cycle_count: nextReloadCycle },
           { type: 'bullet', component_id: formData.bullet_id, name: bullet.name, quantity_used: cartridgesLoaded, cost: costBreakdown.bulletCost, lot_number: formData.bullet_lot || bullet.lot_number || '' },
         ],
         notes: formData.notes,
@@ -315,7 +314,9 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           brass_component_id: brassLookupId,
           brass_reload_cycle_count: nextReloadCycle,
           brass_use_type: brassUseType,
-        });
+          brass_new_quantity_used: brassNewQuantityUsed,
+          brass_used_quantity_used: brassUsedQuantityUsed,
+          });
         await logBrassMovement({
           brassId: brassLookupId,
           reloadBatchId: createdSession.id,
@@ -418,8 +419,8 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     if (!formData.brass_is_used && formData.brass_id) {
       const brass = components.brass.find(b => b.id === formData.brass_id);
       const brassState = brass ? getBrassState(brass) : null;
-      if (brassState && brassState.available_new_unloaded < cartridgesLoaded) {
-        warnings.brass = `Only ${brassState.available_new_unloaded} new brass available`;
+      if (brassState && brassState.available_to_reload < cartridgesLoaded) {
+        warnings.brass = `Only ${brassState.available_to_reload} brass available (${brassState.available_new_unloaded} new, ${brassState.available_used_recovered} recovered)`;
       }
     }
     if (formData.brass_is_used && formData.used_brass_id) {
@@ -494,8 +495,8 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
         return { valid: false, message: `This brass has reached its reload limit (${brassState.reload_cycle_count}/${maxLimit}). Tick "Use anyway" to override.` };
       }
     } else {
-      if (!brassState || brassState.available_new_unloaded < cartridgesLoaded) {
-        return { valid: false, message: `New brass: only ${brassState?.available_new_unloaded || 0} available` };
+      if (!brassState || brassState.available_to_reload < cartridgesLoaded) {
+        return { valid: false, message: `Brass: only ${brassState?.available_to_reload || 0} available (${brassState?.available_new_unloaded || 0} new, ${brassState?.available_used_recovered || 0} recovered)` };
       }
     }
 
@@ -668,7 +669,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
         {/* Brass section: two separate selects for new vs used */}
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">New Brass</label>
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Brass (uses new first, then recovered if needed)</label>
             <div className="flex gap-2">
               <select
                 value={formData.brass_is_used ? '' : formData.brass_id}
@@ -676,9 +677,9 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                 className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none flex-1"
               >
                 <option value="">— Select new brass —</option>
-                {components.brass.filter(b => getBrassState(b).available_new_unloaded > 0).map(b => {
+                {components.brass.filter(b => getBrassState(b).available_to_reload > 0).map(b => {
                   const state = getBrassState(b);
-                  return <option key={b.id} value={b.id}>{b.name}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''}{b.caliber ? ` (${b.caliber})` : ''} — New / never loaded available: {state.available_new_unloaded} (£{b.cost_per_unit.toFixed(4)}/ea)</option>;
+                  return <option key={b.id} value={b.id}>{b.name}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''}{b.caliber ? ` (${b.caliber})` : ''} — {state.available_new_unloaded} new + {state.available_used_recovered} recovered available (£{b.cost_per_unit.toFixed(4)}/new case)</option>;
                 })}
               </select>
               <button
@@ -808,7 +809,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
              <div className="grid grid-cols-2 gap-3 text-sm">
                <div><span className="text-muted-foreground">Primers:</span> <span className="font-semibold ml-2 text-foreground">£{costBreakdown.primerCost.toFixed(2)}</span></div>
                <div><span className="text-muted-foreground">Powder:</span> <span className="font-semibold ml-2 text-foreground">£{costBreakdown.powderCost.toFixed(2)}</span></div>
-               <div><span className="text-muted-foreground">Brass:</span> <span className="font-semibold ml-2 text-foreground">£{costBreakdown.brassCost.toFixed(2)}</span><span className="block text-[11px] text-muted-foreground mt-0.5">{formData.brass_is_used ? 'Reused brass cost: £0' : 'New brass first-use cost'}</span></div>
+               <div><span className="text-muted-foreground">Brass:</span> <span className="font-semibold ml-2 text-foreground">£{costBreakdown.brassCost.toFixed(2)}</span><span className="block text-[11px] text-muted-foreground mt-0.5">{formData.brass_is_used ? 'Reused brass cost: £0' : 'Charges only new first-use cases; recovered brass is £0'}</span></div>
                <div><span className="text-muted-foreground">Bullets:</span> <span className="font-semibold ml-2 text-foreground">£{costBreakdown.bulletCost.toFixed(2)}</span></div>
              </div>
              <div className="border-t border-border pt-3.5 mt-3.5">
