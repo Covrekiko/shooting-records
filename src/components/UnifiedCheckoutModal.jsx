@@ -8,6 +8,15 @@ const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water 
 const PEST_SPECIES = ['Fox', 'Rabbit', 'Grey Squirrel', 'Brown Rat', 'Mink', 'Stoat', 'Weasel', 'Mole', 'Pigeon (Feral)', 'Pigeon (Wood)', 'Crow', 'Magpie', 'Jackdaw', 'Jay', 'Rook', 'Canada Goose', 'Other (Pest)'];
 const OTHER_SPECIES = ['Other', 'Other (Pest)'];
 
+const formatAmmoLabel = (ammo) => {
+  if (!ammo) return '';
+  const isReloaded = ammo.ammo_type === 'reloaded' || ammo.source_type === 'reload_batch' || ammo.brand === 'Reloaded';
+  const bulletDetails = [ammo.bullet_type, ammo.grain ? `${ammo.grain}gr` : ''].filter(Boolean).join(' ');
+  return isReloaded
+    ? ['Reloaded', ammo.caliber, bulletDetails].filter(Boolean).join(' - ')
+    : [ammo.brand, ammo.caliber, bulletDetails].filter(Boolean).join(' ');
+};
+
 export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition, onSubmit, onClose }) {
   const [formData, setFormData] = useState({
     end_time: new Date().toTimeString().slice(0, 5),
@@ -315,10 +324,10 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                   <select value={formData.ammunition_id} onChange={e => {
                     const ammo = ammunition.find(a => a.id === e.target.value);
                     set('ammunition_id', e.target.value);
-                    set('ammunition_used', ammo ? `${ammo.brand} ${ammo.caliber}` : '');
+                    set('ammunition_used', formatAmmoLabel(ammo));
                   }} className={inputCls}>
                     <option value="">Select ammunition</option>
-                    {filteredAmmo.map(a => <option key={a.id} value={a.id}>{a.brand} {a.caliber}</option>)}
+                    {filteredAmmo.map(a => <option key={a.id} value={a.id}>{formatAmmoLabel(a)}</option>) }
                   </select>
                 </div>
               </div>
