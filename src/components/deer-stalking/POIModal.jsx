@@ -2,8 +2,6 @@ import { useState } from 'react';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import PhotoUpload from '@/components/PhotoUpload';
 import { DESIGN } from '@/lib/designConstants';
-import FirstTimeGuideModal from '@/components/FirstTimeGuideModal';
-import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuideContent';
 
 const POI_TYPES = [
   { value: 'deer_sighting', label: '🦌 Deer Sighting', title: 'Deer Sighting' },
@@ -129,8 +127,7 @@ export default function POIModal({ location, onClose, onSubmit }) {
   };
 
   return (
-    <>
-      <GlobalModal
+    <GlobalModal
       open={true}
       onClose={onClose}
       title={selectedType ? `Add ${selectedType.title}` : 'Add Point of Interest'}
@@ -160,9 +157,6 @@ export default function POIModal({ location, onClose, onSubmit }) {
           {renderFields()}
         </div>
       )}
-      </GlobalModal>
-      {!selectedType && <FirstTimeGuideModal {...FIRST_TIME_GUIDES.poiCreate} />}
-      {type === 'high_seat' && <FirstTimeGuideModal {...FIRST_TIME_GUIDES.highSeatCreate} />}
-    </>
+    </GlobalModal>
   );
 }

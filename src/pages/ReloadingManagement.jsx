@@ -14,8 +14,6 @@ import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { generateReloadingBatchPDF } from '@/utils/pdfGenerators';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
-import FirstTimeGuideModal from '@/components/FirstTimeGuideModal';
-import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuideContent';
 
 export default function ReloadingManagement() {
   const navigate = useNavigate();
@@ -382,8 +380,6 @@ export default function ReloadingManagement() {
         {activeTab === 'inventory' && <ReloadingInventoryWidget />}
 
         {/* Reload Batch Form Modal */}
-        {showBatchForm && <FirstTimeGuideModal {...FIRST_TIME_GUIDES.reloadingBatchCreate} />}
-
         <GlobalModal
           open={showBatchForm}
           onClose={() => setShowBatchForm(false)}

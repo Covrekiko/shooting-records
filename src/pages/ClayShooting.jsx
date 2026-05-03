@@ -21,8 +21,6 @@ import { useAutoCheckin } from '@/hooks/useAutoCheckin';
 import AutoCheckinBanner from '@/components/AutoCheckinBanner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
-import FirstTimeGuideModal from '@/components/FirstTimeGuideModal';
-import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuideContent';
 
 export default function ClayShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -434,10 +432,7 @@ export default function ClayShooting() {
       </main>
 
       {showCheckin && (
-        <>
-          <CheckinModal data={checkinData} clubs={clubs} onSubmit={handleCheckin} onChange={(f, v) => setCheckinData({ ...checkinData, [f]: v })} onClose={() => setShowCheckin(false)} />
-          <FirstTimeGuideModal {...FIRST_TIME_GUIDES.claySessionCreate} />
-        </>
+        <CheckinModal data={checkinData} clubs={clubs} onSubmit={handleCheckin} onChange={(f, v) => setCheckinData({ ...checkinData, [f]: v })} onClose={() => setShowCheckin(false)} />
       )}
       {showCheckout && activeSession && (
         <CheckoutModal shotguns={shotguns} ammunition={ammunition} onSubmit={handleCheckout} onClose={() => setShowCheckout(false)} gpsTrack={gpsTrack} onViewTrack={setViewingTrack} sessionId={activeSession?.id} onShowScorecard={() => { setShowCheckout(false); setShowScorecard(true); }} />

@@ -12,8 +12,6 @@ import { motion } from 'framer-motion';
 import { DESIGN } from '@/lib/designConstants';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
-import FirstTimeGuideModal from '@/components/FirstTimeGuideModal';
-import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuideContent';
 
 let liveGpsTrack = [];
 
@@ -243,16 +241,13 @@ export default function DeerManagement() {
         </div>
 
         {showCheckin && (
-          <>
-            <CheckinModal
-              data={checkinData}
-              areas={areas}
-              onSubmit={handleCheckin}
-              onChange={(field, value) => setCheckinData((prev) => ({ ...prev, [field]: value }))}
-              onClose={() => setShowCheckin(false)}
-            />
-            <FirstTimeGuideModal {...FIRST_TIME_GUIDES.deerOutingCreate} />
-          </>
+          <CheckinModal
+            data={checkinData}
+            areas={areas}
+            onSubmit={handleCheckin}
+            onChange={(field, value) => setCheckinData((prev) => ({ ...prev, [field]: value }))}
+            onClose={() => setShowCheckin(false)}
+          />
         )}
         {showCheckout && (
           <UnifiedCheckoutModal

@@ -6,16 +6,11 @@ import { format } from 'date-fns';
 import { generateAmmunitionSummaryPDF } from '@/utils/pdfGenerators';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
-import FirstTimeGuideModal from '@/components/FirstTimeGuideModal';
-import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuideContent';
-import { getGuideStorageKey } from '@/hooks/useFirstTimeGuide';
 
 export default function AmmoSummary() {
   const [rifles, setRifles] = useState([]);
   const [shotguns, setShotguns] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showCleaningGuide, setShowCleaningGuide] = useState(false);
-  const [pendingCleaningAction, setPendingCleaningAction] = useState(null);
 
   useEffect(() => {
   loadData();
@@ -73,11 +68,6 @@ export default function AmmoSummary() {
       });
       
       await loadData();
-      setRifles(prev => prev.map(r => r.id === rifleId ? {
-        ...r,
-        rounds_at_last_cleaning: rifle.total_rounds_fired || 0,
-        last_cleaning_date: today,
-      } : r));
     } catch (error) {
       console.error('Error marking rifle cleaned:', error);
     }
@@ -124,16 +114,6 @@ export default function AmmoSummary() {
 
   const pullToRefresh = usePullToRefresh(loadData);
 
-  const handleCleaningGuideAction = (action) => {
-    const guide = FIRST_TIME_GUIDES.cleaningCreate;
-    if (window.localStorage.getItem(getGuideStorageKey(guide.guideKey)) === 'true') {
-      action();
-      return;
-    }
-    setPendingCleaningAction(() => action);
-    setShowCleaningGuide(true);
-  };
-
   if (loading) {
     return (
       <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
@@ -149,17 +129,6 @@ export default function AmmoSummary() {
     <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
       <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
-      {showCleaningGuide && (
-        <FirstTimeGuideModal
-          {...FIRST_TIME_GUIDES.cleaningCreate}
-          onContinue={() => {
-            const action = pendingCleaningAction;
-            setPendingCleaningAction(null);
-            setShowCleaningGuide(false);
-            action?.();
-          }}
-        />
-      )}
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
@@ -198,7 +167,7 @@ export default function AmmoSummary() {
                         </p>
                       </div>
                       <button
-                        onClick={() => handleCleaningGuideAction(() => handleMarkCleaned(rifle.id))}
+                        onClick={() => handleMarkCleaned(rifle.id)}
                         className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs rounded-lg font-semibold transition-colors"
                       >
                         Mark Clean
@@ -312,7 +281,7 @@ export default function AmmoSummary() {
                          </div>
                        )}
                        <button
-                         onClick={() => handleCleaningGuideAction(() => handleMarkCleaned(rifle.id))}
+                         onClick={() => handleMarkCleaned(rifle.id)}
                          className="w-full px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
                        >
                          <Droplet className="w-4 h-4" />
@@ -427,7 +396,7 @@ export default function AmmoSummary() {
                         </div>
                       )}
                       <button
-                        onClick={() => handleCleaningGuideAction(() => handleShotgunMarkCleaned(shotgun.id))}
+                        onClick={() => handleShotgunMarkCleaned(shotgun.id)}
                         className="w-full px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
                       >
                         <Droplet className="w-4 h-4" />

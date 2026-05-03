@@ -11,8 +11,6 @@ import AmmoEditModal from '@/components/AmmoEditModal';
 import { generateAmmunitionInventoryPDF } from '@/utils/pdfGenerators';
 import BulletReferencePicker from '@/components/reference/BulletReferencePicker';
 import BulletReferenceImporter from '@/components/reference/BulletReferenceImporter';
-import FirstTimeGuideModal from '@/components/FirstTimeGuideModal';
-import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuideContent';
 
 export default function Ammunition() {
   const [ammunition, setAmmunition] = useState([]);
@@ -143,8 +141,6 @@ export default function Ammunition() {
             </button>
           )}
         </div>
-
-        {showForm && <FirstTimeGuideModal {...FIRST_TIME_GUIDES.ammoCreate} />}
 
         <GlobalModal
           open={showForm}

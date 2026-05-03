@@ -2,8 +2,6 @@ import { useState, useRef } from 'react';
 import { GoogleMap, Marker, Polyline, Polygon } from '@react-google-maps/api';
 import { Undo, X, Check, Lock, Satellite, LocateFixed } from 'lucide-react';
 import FloatingMapSearch from './FloatingMapSearch';
-import FirstTimeGuideModal from '@/components/FirstTimeGuideModal';
-import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuideContent';
 
 const mapContainerStyle = {
   width: '100%',
@@ -76,8 +74,6 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
 
   return (
     <>
-      <FirstTimeGuideModal {...FIRST_TIME_GUIDES.stalkingAreaCreate} />
-
       {/* Floating Map Search */}
       <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-[9999]">
         <FloatingMapSearch onSearch={handleMapSearch} />

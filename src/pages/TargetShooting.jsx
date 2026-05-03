@@ -23,8 +23,6 @@ import { useAutoCheckin } from '@/hooks/useAutoCheckin';
 import AutoCheckinBanner from '@/components/AutoCheckinBanner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
-import FirstTimeGuideModal from '@/components/FirstTimeGuideModal';
-import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuideContent';
 
 export default function TargetShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -451,10 +449,7 @@ export default function TargetShooting() {
       )}
 
       {showCheckin && (
-        <>
-          <CheckinModal data={checkinData} clubs={clubs} onSubmit={handleCheckin} onChange={(f, v) => setCheckinData({ ...checkinData, [f]: v })} onClose={() => setShowCheckin(false)} />
-          <FirstTimeGuideModal {...FIRST_TIME_GUIDES.targetSessionCreate} />
-        </>
+        <CheckinModal data={checkinData} clubs={clubs} onSubmit={handleCheckin} onChange={(f, v) => setCheckinData({ ...checkinData, [f]: v })} onClose={() => setShowCheckin(false)} />
       )}
       {showCheckout && activeSession && (
         <CheckoutModal rifles={rifles} ammunition={ammunition} onSubmit={handleCheckout} onClose={() => setShowCheckout(false)} gpsTrack={gpsTrack} onViewTrack={setViewingTrack} sessionRecordId={activeSession.id} />
