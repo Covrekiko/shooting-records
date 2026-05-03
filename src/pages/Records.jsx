@@ -251,6 +251,10 @@ export default function Records() {
       // STEP 9: Delete succeeded — update local state
       setAllRecords(allRecords.filter((r) => r.id !== record.id));
 
+      if (refundResult?.warnings?.length > 0) {
+        alert(refundResult.warnings.join('\n'));
+      }
+
       // Force reload
       setTimeout(() => loadRecords(), 500);
     } catch (error) {
