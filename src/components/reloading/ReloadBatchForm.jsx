@@ -574,7 +574,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
             <option value="">Select primer</option>
             {components.primer.map(p => {
               const primerName = [p.brand, p.name].filter(Boolean).join(' ') || 'Primer';
-              return <option key={p.id} value={p.id}>{primerName} - {p.quantity_remaining} in stock (£{p.cost_per_unit.toFixed(4)}/ea)</option>;
+              return <option key={p.id} value={p.id}>{primerName}{p.lot_number ? ` (Lot: ${p.lot_number})` : ''} - {p.quantity_remaining} in stock (£{p.cost_per_unit.toFixed(4)}/ea)</option>;
             })}
           </select>
           {stockWarnings.primer && (
@@ -597,7 +597,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               } else if (p.unit === 'grams') {
                 displayRemaining = p.quantity_remaining.toFixed(2);
               }
-              return <option key={p.id} value={p.id}>{p.name} - {displayRemaining} {displayUnit} remaining (£{p.cost_per_unit.toFixed(4)}/g)</option>;
+              return <option key={p.id} value={p.id}>{p.name}{p.lot_number ? ` (Lot: ${p.lot_number})` : ''} - {displayRemaining} {displayUnit} remaining (£{p.cost_per_unit.toFixed(4)}/g)</option>;
             })}
           </select>
           {stockWarnings.powder && (
@@ -641,7 +641,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               >
                 <option value="">— Select new brass —</option>
                 {components.brass.filter(b => !b.is_used_brass).map(b => (
-                  <option key={b.id} value={b.id}>{b.name}{b.caliber ? ` (${b.caliber})` : ''} — {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>
+                  <option key={b.id} value={b.id}>{b.name}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''}{b.caliber ? ` (${b.caliber})` : ''} — {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>
                 ))}
               </select>
               <button
@@ -675,7 +675,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
               <option value="">— Select used brass —</option>
               {components.brass.filter(b => b.is_used_brass).map(b => (
                 <option key={b.id} value={b.id}>
-                  {b.name}{b.caliber ? ` (${b.caliber})` : ''}{b.batch_number ? ` #${b.batch_number}` : ''} — {b.quantity_remaining ?? b.quantity_total} in stock, reloaded {b.times_reloaded || 0}x
+                  {b.name}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''}{b.caliber ? ` (${b.caliber})` : ''}{b.batch_number ? ` #${b.batch_number}` : ''} — {b.quantity_remaining ?? b.quantity_total} in stock, reloaded {b.times_reloaded || 0}x
                 </option>
               ))}
             </select>
@@ -730,7 +730,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Bullet</label>
           <select value={formData.bullet_id} onChange={(e) => setFormData({ ...formData, bullet_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required>
             <option value="">Select bullet</option>
-            {components.bullet.map(b => <option key={b.id} value={b.id}>{b.name} - {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
+            {components.bullet.map(b => <option key={b.id} value={b.id}>{b.name}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''} - {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
           </select>
           {stockWarnings.bullet && (
              <p className="text-xs font-semibold mt-2.5 text-destructive">{stockWarnings.bullet}</p>

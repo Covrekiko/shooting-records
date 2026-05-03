@@ -234,7 +234,7 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none">
               <option value="">— Select —</option>
               {components.powder.map(c => (
-                <option key={c.id} value={c.id}>{c.name} ({c.quantity_remaining?.toFixed(1)} {c.unit} remaining)</option>
+                <option key={c.id} value={c.id}>{c.name}{c.lot_number ? ` (Lot: ${c.lot_number})` : ''} ({c.quantity_remaining?.toFixed(1)} {c.unit} remaining)</option>
               ))}
             </select>
           </div>
@@ -260,7 +260,7 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
               <option value="">Select bullet…</option>
               <option value="manual">Manual Entry</option>
               {components.bullet.filter(c => (c.quantity_remaining || 0) > 0).map(c => (
-                <option key={c.id} value={c.id}>{[c.brand, c.name].filter(Boolean).join(' ') || 'Bullet'} ({c.quantity_remaining} remaining)</option>
+                <option key={c.id} value={c.id}>{[c.brand, c.name].filter(Boolean).join(' ') || 'Bullet'}{c.lot_number ? ` (Lot: ${c.lot_number})` : ''} ({c.quantity_remaining} remaining)</option>
               ))}
             </select>
           </div>
@@ -300,7 +300,7 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none">
               <option value="">— Select —</option>
               {components.primer.map(c => (
-                <option key={c.id} value={c.id}>{c.name} ({c.quantity_remaining} remaining)</option>
+                <option key={c.id} value={c.id}>{c.name}{c.lot_number ? ` (Lot: ${c.lot_number})` : ''} ({c.quantity_remaining} remaining)</option>
               ))}
             </select>
           </div>
@@ -326,7 +326,7 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none">
               <option value="">— Select —</option>
               {components.brass.map(c => (
-                <option key={c.id} value={c.id}>{c.name} ({c.quantity_remaining} remaining)</option>
+                <option key={c.id} value={c.id}>{c.name}{c.lot_number ? ` (Lot: ${c.lot_number})` : ''} ({c.quantity_remaining} remaining)</option>
               ))}
             </select>
           </div>
