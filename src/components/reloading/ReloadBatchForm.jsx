@@ -572,7 +572,10 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Primer</label>
           <select value={formData.primer_id} onChange={(e) => setFormData({ ...formData, primer_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required>
             <option value="">Select primer</option>
-            {components.primer.map(p => <option key={p.id} value={p.id}>{p.name} - {p.quantity_remaining} in stock (£{p.cost_per_unit.toFixed(4)}/ea)</option>)}
+            {components.primer.map(p => {
+              const primerName = [p.brand, p.name].filter(Boolean).join(' ') || 'Primer';
+              return <option key={p.id} value={p.id}>{primerName} - {p.quantity_remaining} in stock (£{p.cost_per_unit.toFixed(4)}/ea)</option>;
+            })}
           </select>
           {stockWarnings.primer && (
             <p className="text-xs font-semibold mt-2.5 text-destructive">{stockWarnings.primer}</p>
