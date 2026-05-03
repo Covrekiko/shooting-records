@@ -34,13 +34,13 @@ function cleanPayload(input = {}) {
 
     if (integerFields.has(field)) {
       const parsed = parseInt(value, 10);
-      if (Number.isFinite(parsed)) output[field] = parsed;
+      output[field] = Number.isFinite(parsed) ? parsed : 0;
       continue;
     }
 
     if (numberFields.has(field)) {
       const parsed = Number(value);
-      if (Number.isFinite(parsed)) output[field] = parsed;
+      output[field] = Number.isFinite(parsed) ? parsed : 0;
       continue;
     }
 
@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
-    if (!user) {
+    if (!user?.email) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
