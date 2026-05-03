@@ -95,13 +95,22 @@ const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user, refreshUser } = useAuth();
   const { enabledModules, loading: modulesLoading, saveModules } = useModules();
   const loginRedirectedRef = useRef(false);
+  const authRedirectStorageKey = `shooting_records_auth_redirect:${window.location.pathname}`;
+
+  useEffect(() => {
+    if (user) {
+      sessionStorage.removeItem(authRedirectStorageKey);
+    }
+  }, [user, authRedirectStorageKey]);
 
   useEffect(() => {
     if (!isLoadingPublicSettings && !isLoadingAuth && !modulesLoading && authError?.type === 'auth_required' && !loginRedirectedRef.current) {
+      if (sessionStorage.getItem(authRedirectStorageKey)) return;
+      sessionStorage.setItem(authRedirectStorageKey, 'true');
       loginRedirectedRef.current = true;
       navigateToLogin();
     }
-  }, [isLoadingPublicSettings, isLoadingAuth, modulesLoading, authError, navigateToLogin]);
+  }, [isLoadingPublicSettings, isLoadingAuth, modulesLoading, authError, navigateToLogin, authRedirectStorageKey]);
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth || modulesLoading) {
