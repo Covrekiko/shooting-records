@@ -7,7 +7,7 @@ import NumberInput from '@/components/ui/NumberInput.jsx';
 export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed = false }) {
   const autoNumber = `BRASS-${format(new Date(), 'yyyyMMdd-HHmm')}`;
 
-  const [isUsed, setIsUsed] = useState(defaultIsUsed);
+  const [isUsed, setIsUsed] = useState(!!defaultIsUsed);
   const [caliberResults, setCaliberResults] = useState([]);
   const [showCaliberDrop, setShowCaliberDrop] = useState(false);
 
@@ -18,9 +18,28 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
     brand: '',
     caliber: '',
     quantity_total: '',
+    quantity_remaining: '',
     price_total: '',
+    available_to_reload: '',
+    available_new_unloaded: '',
+    available_used_recovered: '',
+    currently_loaded: '',
+    currently_loaded_new: '',
+    currently_loaded_used: '',
+    fired_awaiting_cleaning_or_inspection: '',
+    fired_new_awaiting_cleaning_or_inspection: '',
+    fired_used_awaiting_cleaning_or_inspection: '',
+    retired_or_discarded: '',
+    first_use_cost_remaining_quantity: '',
+    cost_consumed_quantity: '',
     times_fired: '',
+    times_reloaded: '',
+    reload_cycle_count: '',
+    lifetime_reload_count: '',
     max_reloads: '',
+    reload_limit: '',
+    brass_use_type: defaultIsUsed ? 'used' : 'new',
+    is_used_brass: !!defaultIsUsed,
     date_acquired: format(new Date(), 'yyyy-MM-dd'),
     notes: '',
   });
@@ -75,8 +94,13 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
       batch_number: autoNumber,
       lot_number: '',
       name: '', brand: '', caliber: '',
-      quantity_total: '', price_total: '',
-      times_fired: '', max_reloads: '',
+      quantity_total: '', quantity_remaining: '', price_total: '',
+      available_to_reload: '', available_new_unloaded: '', available_used_recovered: '',
+      currently_loaded: '', currently_loaded_new: '', currently_loaded_used: '',
+      fired_awaiting_cleaning_or_inspection: '', fired_new_awaiting_cleaning_or_inspection: '', fired_used_awaiting_cleaning_or_inspection: '',
+      retired_or_discarded: '', first_use_cost_remaining_quantity: '', cost_consumed_quantity: '',
+      times_fired: '', times_reloaded: '', reload_cycle_count: '', lifetime_reload_count: '', max_reloads: '', reload_limit: '',
+      brass_use_type: isUsed ? 'used' : 'new', is_used_brass: !!isUsed,
       date_acquired: format(new Date(), 'yyyy-MM-dd'),
       notes: '',
     });
@@ -113,26 +137,26 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
 
         <div>
           <label className={lbl}>Batch Number</label>
-          <input type="text" value={formData.batch_number} onChange={(e) => set('batch_number', e.target.value)}
+          <input type="text" value={formData.batch_number ?? ''} onChange={(e) => set('batch_number', e.target.value)}
             className={inp} required />
         </div>
 
         <div>
           <label className={lbl}>Lot / Batch Number (optional)</label>
-          <input type="text" value={formData.lot_number} onChange={(e) => set('lot_number', e.target.value)}
+          <input type="text" value={formData.lot_number ?? ''} onChange={(e) => set('lot_number', e.target.value)}
             className={inp} placeholder="e.g., LOT-12345" />
         </div>
 
         <div>
           <label className={lbl}>Brand</label>
-          <input type="text" value={formData.brand} onChange={(e) => set('brand', e.target.value)}
+          <input type="text" value={formData.brand ?? ''} onChange={(e) => set('brand', e.target.value)}
             className={inp} placeholder="e.g., Lapua, Hornady, Federal" required />
         </div>
 
         {/* Caliber with autocomplete */}
         <div className="relative">
           <label className={lbl}>Caliber</label>
-          <input type="text" value={formData.caliber}
+          <input type="text" value={formData.caliber ?? ''}
             onChange={(e) => {
               set('caliber', e.target.value);
               setCaliberResults(e.target.value ? searchCalibers(e.target.value) : []);
@@ -155,21 +179,21 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
 
         <div>
           <label className={lbl}>Name / Description (optional)</label>
-          <input type="text" value={formData.name} onChange={(e) => set('name', e.target.value)}
+          <input type="text" value={formData.name ?? ''} onChange={(e) => set('name', e.target.value)}
             className={inp} placeholder="Leave blank to auto-generate from Brand + Caliber" />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <NumberInput
             label="Quantity"
-            value={formData.quantity_total}
+            value={formData.quantity_total ?? ''}
             onChange={(v) => set('quantity_total', v)}
             placeholder="100"
             required
           />
           <NumberInput
             label="Total Cost"
-            value={formData.price_total}
+            value={formData.price_total ?? ''}
             onChange={(v) => set('price_total', v)}
             placeholder="0.00"
             unit="£"
@@ -181,7 +205,7 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
         {isUsed && (
           <NumberInput
             label="Times Previously Fired"
-            value={formData.times_fired}
+            value={formData.times_fired ?? ''}
             onChange={(v) => set('times_fired', v)}
             placeholder="0"
           />
@@ -189,20 +213,20 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
 
         <NumberInput
           label="Max Reloads Limit (0 = no limit)"
-          value={formData.max_reloads}
+          value={formData.max_reloads ?? ''}
           onChange={(v) => set('max_reloads', v)}
           placeholder="e.g., 5"
         />
 
         <div>
           <label className={lbl}>Date Acquired</label>
-          <input type="date" value={formData.date_acquired} onChange={(e) => set('date_acquired', e.target.value)}
+          <input type="date" value={formData.date_acquired || format(new Date(), 'yyyy-MM-dd')} onChange={(e) => set('date_acquired', e.target.value)}
             className={inp} />
         </div>
 
         <div>
           <label className={lbl}>Notes (optional)</label>
-          <textarea value={formData.notes} onChange={(e) => set('notes', e.target.value)}
+          <textarea value={formData.notes ?? ''} onChange={(e) => set('notes', e.target.value)}
             className={inp} rows="2" placeholder="Any additional notes" />
         </div>
       </div>

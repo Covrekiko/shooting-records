@@ -36,6 +36,7 @@ export default function ComponentManager() {
     component_type: 'primer',
     name: '',
     quantity_total: '',
+    quantity_remaining: '',
     unit: 'pieces',
     price_total: '',
     lot_number: '',
@@ -47,9 +48,25 @@ export default function ComponentManager() {
     weight: '',
     weight_unit: 'gr',
     is_used_brass: false,
+    available_to_reload: '',
+    available_new_unloaded: '',
+    available_used_recovered: '',
+    currently_loaded: '',
+    currently_loaded_new: '',
+    currently_loaded_used: '',
+    fired_awaiting_cleaning_or_inspection: '',
+    fired_new_awaiting_cleaning_or_inspection: '',
+    fired_used_awaiting_cleaning_or_inspection: '',
+    retired_or_discarded: '',
+    first_use_cost_remaining_quantity: '',
+    cost_consumed_quantity: '',
     times_fired: '',
     times_reloaded: '',
+    reload_cycle_count: '',
+    lifetime_reload_count: '',
     max_reloads: '',
+    reload_limit: '',
+    brass_use_type: 'new',
   });
 
   useEffect(() => {
@@ -189,6 +206,7 @@ export default function ComponentManager() {
         component_type: 'primer',
         name: '',
         quantity_total: '',
+        quantity_remaining: '',
         unit: 'pieces',
         price_total: '',
         lot_number: '',
@@ -200,9 +218,25 @@ export default function ComponentManager() {
         weight: '',
         weight_unit: 'gr',
         is_used_brass: false,
+        available_to_reload: '',
+        available_new_unloaded: '',
+        available_used_recovered: '',
+        currently_loaded: '',
+        currently_loaded_new: '',
+        currently_loaded_used: '',
+        fired_awaiting_cleaning_or_inspection: '',
+        fired_new_awaiting_cleaning_or_inspection: '',
+        fired_used_awaiting_cleaning_or_inspection: '',
+        retired_or_discarded: '',
+        first_use_cost_remaining_quantity: '',
+        cost_consumed_quantity: '',
         times_fired: '',
         times_reloaded: '',
+        reload_cycle_count: '',
+        lifetime_reload_count: '',
         max_reloads: '',
+        reload_limit: '',
+        brass_use_type: 'new',
       });
     } catch (error) {
       console.error('Error saving component:', error);
@@ -236,23 +270,40 @@ export default function ComponentManager() {
     }
 
     setFormData({
-      component_type: component.component_type,
-      name: component.name,
-      quantity_total: displayQuantity,
-      unit: displayUnit,
-      price_total: component.price_total,
+      component_type: component.component_type || 'primer',
+      name: component.name || '',
+      quantity_total: displayQuantity ?? '',
+      quantity_remaining: component.quantity_remaining ?? '',
+      unit: displayUnit || 'pieces',
+      price_total: component.price_total ?? '',
       lot_number: component.lot_number || '',
-      date_acquired: component.date_acquired,
-      notes: component.notes,
+      date_acquired: component.date_acquired || format(new Date(), 'yyyy-MM-dd'),
+      notes: component.notes || '',
       caliber: component.caliber || '',
-      brand: brand,
-      bullet_name: bullet_name,
-      weight: component.weight || '',
+      brand: brand || '',
+      bullet_name: bullet_name || '',
+      weight: component.weight ?? '',
       weight_unit: component.weight_unit || 'gr',
       is_used_brass: component.is_used_brass === true,
-      times_fired: component.times_fired || component.reload_cycle_count || '',
-      times_reloaded: component.times_reloaded || component.reload_cycle_count || '',
-      max_reloads: component.max_reloads || component.reload_limit || '',
+      available_to_reload: component.available_to_reload ?? component.quantity_remaining ?? '',
+      available_new_unloaded: component.available_new_unloaded ?? '',
+      available_used_recovered: component.available_used_recovered ?? component.available_to_reload ?? component.quantity_remaining ?? '',
+      currently_loaded: component.currently_loaded ?? '',
+      currently_loaded_new: component.currently_loaded_new ?? '',
+      currently_loaded_used: component.currently_loaded_used ?? '',
+      fired_awaiting_cleaning_or_inspection: component.fired_awaiting_cleaning_or_inspection ?? '',
+      fired_new_awaiting_cleaning_or_inspection: component.fired_new_awaiting_cleaning_or_inspection ?? '',
+      fired_used_awaiting_cleaning_or_inspection: component.fired_used_awaiting_cleaning_or_inspection ?? '',
+      retired_or_discarded: component.retired_or_discarded ?? '',
+      first_use_cost_remaining_quantity: component.first_use_cost_remaining_quantity ?? component.quantity_remaining ?? '',
+      cost_consumed_quantity: component.cost_consumed_quantity ?? '',
+      times_fired: component.times_fired ?? component.reload_cycle_count ?? '',
+      times_reloaded: component.times_reloaded ?? component.reload_cycle_count ?? '',
+      reload_cycle_count: component.reload_cycle_count ?? component.times_reloaded ?? '',
+      lifetime_reload_count: component.lifetime_reload_count ?? '',
+      max_reloads: component.max_reloads ?? component.reload_limit ?? '',
+      reload_limit: component.reload_limit ?? component.max_reloads ?? '',
+      brass_use_type: component.brass_use_type || (component.is_used_brass ? 'used' : 'new'),
     });
     setShowForm(true);
   };
@@ -443,7 +494,7 @@ export default function ComponentManager() {
                 </div>
               ) : (
                 <select
-                  value={formData.component_type}
+                  value={formData.component_type || 'primer'}
                   onChange={(e) => {
                     const type = COMPONENT_TYPES.find(t => t.value === e.target.value);
                     setFormData({ ...formData, component_type: e.target.value, unit: type.units[0] });
@@ -483,7 +534,7 @@ export default function ComponentManager() {
                <div className="relative">
                  <input
                    type="text"
-                   value={formData.caliber}
+                   value={formData.caliber ?? ''}
                    onChange={(e) => {
                      setFormData({ ...formData, caliber: e.target.value });
                      handleCaliberSearch(e.target.value);
@@ -522,7 +573,7 @@ export default function ComponentManager() {
                  <div className="relative">
                    <input
                      type="text"
-                     value={formData.brand}
+                     value={formData.brand ?? ''}
                      onChange={(e) => {
                        setFormData({ ...formData, brand: e.target.value, bullet_name: '' });
                        searchBrandsCatalog(e.target.value);
@@ -559,7 +610,7 @@ export default function ComponentManager() {
                  <div className="relative">
                    <input
                      type="text"
-                     value={formData.bullet_name}
+                     value={formData.bullet_name ?? ''}
                      onChange={(e) => {
                        setFormData({ ...formData, bullet_name: e.target.value });
                        searchBulletModelsCatalog(e.target.value, formData.brand);
@@ -600,7 +651,7 @@ export default function ComponentManager() {
                  <div className="relative">
                    <input
                      type="text"
-                     value={formData.caliber}
+                     value={formData.caliber ?? ''}
                      onChange={(e) => {
                        setFormData({ ...formData, caliber: e.target.value });
                        handleCaliberSearch(e.target.value);
@@ -637,7 +688,7 @@ export default function ComponentManager() {
                    <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Weight (optional)</label>
                    <input
                      type="number"
-                     value={formData.weight}
+                     value={formData.weight ?? ''}
                      onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
                      placeholder="e.g., 140"
@@ -647,7 +698,7 @@ export default function ComponentManager() {
                  <div>
                    <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Unit</label>
                    <select
-                     value={formData.weight_unit}
+                     value={formData.weight_unit || 'gr'}
                      onChange={(e) => setFormData({ ...formData, weight_unit: e.target.value })}
                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
                    >
@@ -665,7 +716,7 @@ export default function ComponentManager() {
                 <div className="relative">
                   <input
                     type="text"
-                    value={formData.name}
+                    value={formData.name ?? ''}
                     onChange={(e) => {
                       setFormData({ ...formData, name: e.target.value });
                       searchCatalog(e.target.value, formData.component_type);
@@ -712,7 +763,7 @@ export default function ComponentManager() {
                 <input
                   type="number"
                   inputMode="decimal"
-                  value={formData.quantity_total}
+                  value={formData.quantity_total ?? ''}
                   onChange={(e) => setFormData({ ...formData, quantity_total: e.target.value })}
                   className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-base"
                   placeholder="1000"
@@ -722,7 +773,7 @@ export default function ComponentManager() {
               <div>
                 <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Unit</label>
                 <select
-                  value={formData.unit}
+                  value={formData.unit || 'pieces'}
                   onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
                   className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-base"
                 >
@@ -737,7 +788,7 @@ export default function ComponentManager() {
                 <input
                   type="number"
                   inputMode="numeric"
-                  value={formData.times_fired}
+                  value={formData.times_fired ?? ''}
                   onChange={(e) => setFormData({ ...formData, times_fired: e.target.value, times_reloaded: e.target.value })}
                   className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-base"
                   placeholder="0"
@@ -751,7 +802,7 @@ export default function ComponentManager() {
                 <input
                   type="number"
                   inputMode="numeric"
-                  value={formData.max_reloads}
+                  value={formData.max_reloads ?? ''}
                   onChange={(e) => setFormData({ ...formData, max_reloads: e.target.value })}
                   className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-base"
                   placeholder="e.g., 5"
@@ -764,7 +815,7 @@ export default function ComponentManager() {
               <input
                 type="number"
                 inputMode="decimal"
-                value={formData.price_total}
+                value={formData.price_total ?? ''}
                 onChange={(e) => setFormData({ ...formData, price_total: e.target.value })}
                 className="w-full px-3 py-3 border border-border rounded-xl bg-background text-foreground text-base"
                 placeholder="100"
@@ -777,7 +828,7 @@ export default function ComponentManager() {
               <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Lot / Batch Number (optional)</label>
               <input
                 type="text"
-                value={formData.lot_number}
+                value={formData.lot_number ?? ''}
                 onChange={(e) => setFormData({ ...formData, lot_number: e.target.value })}
                 className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
                 placeholder="e.g., LOT-12345"
@@ -788,7 +839,7 @@ export default function ComponentManager() {
               <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Date Acquired</label>
               <input
                 type="date"
-                value={formData.date_acquired}
+                value={formData.date_acquired || format(new Date(), 'yyyy-MM-dd')}
                 onChange={(e) => setFormData({ ...formData, date_acquired: e.target.value })}
                 className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
               />
@@ -797,7 +848,7 @@ export default function ComponentManager() {
             <div>
               <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Notes (optional)</label>
               <textarea
-                value={formData.notes}
+                value={formData.notes ?? ''}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
                 placeholder="Any notes about this component"
@@ -828,7 +879,8 @@ export default function ComponentManager() {
                           component_type: type.value,
                           name: '',
                           quantity_total: '',
-                          unit: type.units[0],
+                          quantity_remaining: '',
+                          unit: type.units[0] || 'pieces',
                           price_total: '',
                           lot_number: '',
                           date_acquired: format(new Date(), 'yyyy-MM-dd'),
@@ -838,6 +890,26 @@ export default function ComponentManager() {
                           bullet_name: '',
                           weight: '',
                           weight_unit: 'gr',
+                          is_used_brass: false,
+                          available_to_reload: '',
+                          available_new_unloaded: '',
+                          available_used_recovered: '',
+                          currently_loaded: '',
+                          currently_loaded_new: '',
+                          currently_loaded_used: '',
+                          fired_awaiting_cleaning_or_inspection: '',
+                          fired_new_awaiting_cleaning_or_inspection: '',
+                          fired_used_awaiting_cleaning_or_inspection: '',
+                          retired_or_discarded: '',
+                          first_use_cost_remaining_quantity: '',
+                          cost_consumed_quantity: '',
+                          times_fired: '',
+                          times_reloaded: '',
+                          reload_cycle_count: '',
+                          lifetime_reload_count: '',
+                          max_reloads: '',
+                          reload_limit: '',
+                          brass_use_type: 'new',
                         });
                         setShowForm(true);
                       }}

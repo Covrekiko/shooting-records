@@ -12,7 +12,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
   const [showCaliberDrop, setShowCaliberDrop] = useState(false);
 
   const [formData, setFormData] = useState({
-    component_type: componentType,
+    component_type: componentType || 'primer',
     name: '',
     brand: '',
     caliber: '',
@@ -20,11 +20,32 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
     weight: '',
     weight_unit: 'gr',
     quantity_total: '',
+    quantity_remaining: '',
     unit: componentType === 'powder' ? 'grams' : 'pieces',
     price_total: '',
     lot_number: '',
     date_acquired: format(new Date(), 'yyyy-MM-dd'),
     notes: '',
+    is_used_brass: false,
+    available_to_reload: '',
+    available_new_unloaded: '',
+    available_used_recovered: '',
+    currently_loaded: '',
+    currently_loaded_new: '',
+    currently_loaded_used: '',
+    fired_awaiting_cleaning_or_inspection: '',
+    fired_new_awaiting_cleaning_or_inspection: '',
+    fired_used_awaiting_cleaning_or_inspection: '',
+    retired_or_discarded: '',
+    first_use_cost_remaining_quantity: '',
+    cost_consumed_quantity: '',
+    times_fired: '',
+    times_reloaded: '',
+    reload_cycle_count: '',
+    lifetime_reload_count: '',
+    max_reloads: '',
+    reload_limit: '',
+    brass_use_type: 'new',
   });
 
   const inp = 'w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring/40';
@@ -115,7 +136,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
         {(componentType === 'brass' || componentType === 'bullet') && (
           <div className="relative">
             <label className={lbl}>Caliber</label>
-            <input type="text" value={formData.caliber}
+            <input type="text" value={formData.caliber ?? ''}
               onChange={(e) => {
                 set('caliber', e.target.value);
                 setCaliberResults(e.target.value ? searchCalibers(e.target.value) : []);
@@ -141,7 +162,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
         {(componentType !== 'bullet') && (
           <div>
             <label className={lbl}>Brand</label>
-            <input type="text" value={formData.brand}
+            <input type="text" value={formData.brand ?? ''}
               onChange={(e) => set('brand', e.target.value)}
               className={inp}
               placeholder={componentType === 'brass' ? 'e.g., Lapua, Hornady' : componentType === 'powder' ? 'e.g., Vihtavuori, Hodgdon' : 'e.g., CCI, Federal'}
@@ -154,25 +175,25 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
           <>
             <div>
               <label className={lbl}>Brand</label>
-              <input type="text" value={formData.brand} onChange={(e) => set('brand', e.target.value)}
+              <input type="text" value={formData.brand ?? ''} onChange={(e) => set('brand', e.target.value)}
                 className={inp} placeholder="e.g., Sako, Hornady, Sierra" required />
             </div>
             <div>
               <label className={lbl}>Bullet Name / Model</label>
-              <input type="text" value={formData.bullet_name} onChange={(e) => set('bullet_name', e.target.value)}
+              <input type="text" value={formData.bullet_name ?? ''} onChange={(e) => set('bullet_name', e.target.value)}
                 className={inp} placeholder="e.g., Gamehead, V-MAX, MatchKing" required />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <NumberInput
                 label="Weight (optional)"
-                value={formData.weight}
+                value={formData.weight ?? ''}
                 onChange={(v) => set('weight', v)}
                 placeholder="140"
                 allowDecimal
               />
               <div>
                 <label className={lbl}>Unit</label>
-                <select value={formData.weight_unit} onChange={(e) => set('weight_unit', e.target.value)} className={inp}>
+                <select value={formData.weight_unit || 'gr'} onChange={(e) => set('weight_unit', e.target.value)} className={inp}>
                   <option value="gr">gr (grains)</option>
                   <option value="g">g (grams)</option>
                 </select>
@@ -185,7 +206,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
         {componentType === 'primer' && (
           <div>
             <label className={lbl}>Primer Name</label>
-            <input type="text" value={formData.name} onChange={(e) => set('name', e.target.value)}
+            <input type="text" value={formData.name ?? ''} onChange={(e) => set('name', e.target.value)}
               className={inp} placeholder="e.g., CCI 200, Federal 210M" required />
           </div>
         )}
@@ -194,7 +215,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
         {componentType === 'powder' && (
           <div>
             <label className={lbl}>Powder Name</label>
-            <input type="text" value={formData.name} onChange={(e) => set('name', e.target.value)}
+            <input type="text" value={formData.name ?? ''} onChange={(e) => set('name', e.target.value)}
               className={inp} placeholder="e.g., Vihtavuori N140, H4350" required />
           </div>
         )}
@@ -203,7 +224,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
         <div className="grid grid-cols-2 gap-3">
           <NumberInput
             label="Quantity"
-            value={formData.quantity_total}
+            value={formData.quantity_total ?? ''}
             onChange={(v) => set('quantity_total', v)}
             placeholder={componentType === 'powder' ? '1000' : '100'}
             allowDecimal={componentType === 'powder'}
@@ -211,7 +232,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
           />
           <div>
             <label className={lbl}>Unit</label>
-            <select value={formData.unit} onChange={(e) => set('unit', e.target.value)} className={inp}>
+            <select value={formData.unit || (componentType === 'powder' ? 'grams' : 'pieces')} onChange={(e) => set('unit', e.target.value)} className={inp}>
               {unitOptions.map(u => <option key={u} value={u}>{u}</option>)}
             </select>
           </div>
@@ -219,7 +240,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
 
         <NumberInput
           label="Total Price (£)"
-          value={formData.price_total}
+          value={formData.price_total ?? ''}
           onChange={(v) => set('price_total', v)}
           placeholder="0.00"
           allowDecimal
@@ -228,19 +249,19 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
 
         <div>
           <label className={lbl}>Lot / Batch Number (optional)</label>
-          <input type="text" value={formData.lot_number} onChange={(e) => set('lot_number', e.target.value)}
+          <input type="text" value={formData.lot_number ?? ''} onChange={(e) => set('lot_number', e.target.value)}
             className={inp} placeholder="e.g., LOT-12345" />
         </div>
 
         <div>
           <label className={lbl}>Date Acquired</label>
-          <input type="date" value={formData.date_acquired}
+          <input type="date" value={formData.date_acquired || format(new Date(), 'yyyy-MM-dd')}
             onChange={(e) => set('date_acquired', e.target.value)} className={inp} />
         </div>
 
         <div>
           <label className={lbl}>Notes (optional)</label>
-          <textarea value={formData.notes} onChange={(e) => set('notes', e.target.value)}
+          <textarea value={formData.notes ?? ''} onChange={(e) => set('notes', e.target.value)}
             className={inp} rows="2" placeholder="Any additional notes" />
         </div>
       </div>

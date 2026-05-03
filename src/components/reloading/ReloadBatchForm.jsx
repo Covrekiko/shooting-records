@@ -9,7 +9,7 @@ import { getBrassState, logBrassMovement, stateUpdate } from '@/lib/brassLifecyc
 
 export default function ReloadBatchForm({ onSubmit, onClose }) {
 
-  const [components, setComponents] = useState({});
+  const [components, setComponents] = useState({ primer: [], powder: [], brass: [], bullet: [] });
   const [rifles, setRifles] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -40,6 +40,9 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     brass_lot: '',
     bullet_lot: '',
     notes: '',
+    brass_use_type: 'new',
+    brass_new_quantity_used: '',
+    brass_used_quantity_used: '',
   });
 
 
@@ -532,7 +535,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Date</label>
             <input
               type="date"
-              value={formData.date}
+              value={formData.date || format(new Date(), 'yyyy-MM-dd')}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
               className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
               required
@@ -543,7 +546,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
             <div className="relative">
               <input
                 type="text"
-                value={formData.caliber}
+                value={formData.caliber ?? ''}
                 onChange={(e) => {
                   const val = e.target.value;
                   setFormData({ ...formData, caliber: val });
@@ -579,13 +582,13 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
         <div>
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Batch Number</label>
-          <input type="text" value={formData.batch_number} onChange={(e) => setFormData({ ...formData, batch_number: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required />
+          <input type="text" value={formData.batch_number ?? ''} onChange={(e) => setFormData({ ...formData, batch_number: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Rifle (optional)</label>
-            <select value={formData.rifle_id} onChange={(e) => setFormData({ ...formData, rifle_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none">
+            <select value={formData.rifle_id ?? ''} onChange={(e) => setFormData({ ...formData, rifle_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none">
               <option value="">None</option>
               {rifles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
             </select>
@@ -596,7 +599,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
             <input
               type="number"
               inputMode="numeric"
-              value={formData.cartridges_loaded}
+              value={formData.cartridges_loaded ?? ''}
               onChange={(e) => setFormData({ ...formData, cartridges_loaded: e.target.value })}
               className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
               placeholder="100"
@@ -607,7 +610,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
         <div>
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Primer</label>
-          <select value={formData.primer_id} onChange={(e) => setFormData({ ...formData, primer_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required>
+          <select value={formData.primer_id ?? ''} onChange={(e) => setFormData({ ...formData, primer_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required>
             <option value="">Select primer</option>
             {components.primer.map(p => {
               const primerName = [p.brand, p.name].filter(Boolean).join(' ') || 'Primer';
@@ -622,7 +625,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
         <div>
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Powder</label>
-          <select value={formData.powder_id} onChange={(e) => setFormData({ ...formData, powder_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required>
+          <select value={formData.powder_id ?? ''} onChange={(e) => setFormData({ ...formData, powder_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required>
             <option value="">Select powder</option>
             {components.powder.map(p => {
               // Display powder with normalized unit
@@ -648,7 +651,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
             <input
                type="number"
                inputMode="decimal"
-               value={formData.powder_charge}
+               value={formData.powder_charge ?? ''}
                onChange={(e) => setFormData({ ...formData, powder_charge: e.target.value })}
                className="flex-1 min-w-0 px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
                placeholder="40.0"
@@ -656,7 +659,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                required
              />
              <select
-               value={formData.powder_unit}
+               value={formData.powder_unit || 'grains'}
                onChange={(e) => setFormData({ ...formData, powder_unit: e.target.value })}
                className="flex-shrink-0 w-28 px-3 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none font-medium"
              >
@@ -672,7 +675,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Brass (uses new first, then recovered if needed)</label>
             <div className="flex gap-2">
               <select
-                value={formData.brass_is_used ? '' : formData.brass_id}
+                value={formData.brass_is_used ? '' : (formData.brass_id ?? '')}
                 onChange={(e) => setFormData({ ...formData, brass_id: e.target.value, brass_is_used: false, used_brass_id: '' })}
                 className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none flex-1"
               >
@@ -706,7 +709,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <div>
             <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Used Brass (previously fired)</label>
             <select
-              value={formData.brass_is_used ? formData.used_brass_id : ''}
+              value={formData.brass_is_used ? (formData.used_brass_id ?? '') : ''}
               onChange={(e) => setFormData({ ...formData, used_brass_id: e.target.value, brass_is_used: !!e.target.value, brass_id: '', override_brass_limit: false })}
               className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
             >
@@ -743,7 +746,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                            <label className="flex items-center gap-2 mt-2.5 cursor-pointer font-normal hover:opacity-80 transition-opacity">
                              <input
                                type="checkbox"
-                               checked={formData.override_brass_limit}
+                               checked={!!formData.override_brass_limit}
                                onChange={(e) => setFormData({ ...formData, override_brass_limit: e.target.checked })}
                                className="w-3.5 h-3.5 rounded"
                              />
@@ -769,7 +772,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
         <div>
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Bullet</label>
-          <select value={formData.bullet_id} onChange={(e) => setFormData({ ...formData, bullet_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required>
+          <select value={formData.bullet_id ?? ''} onChange={(e) => setFormData({ ...formData, bullet_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required>
             <option value="">Select bullet</option>
             {components.bullet.map(b => <option key={b.id} value={b.id}>{b.name}{b.weight ? ` ${b.weight}${b.weight_unit || 'gr'}` : ''}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''} - {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
           </select>
@@ -784,17 +787,17 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
             <p className="text-xs text-muted-foreground mt-1">For your records only. This does not change stock deduction.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input value={formData.primer_lot} onChange={(e) => setFormData({ ...formData, primer_lot: e.target.value })} placeholder="Primer lot" className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg text-sm outline-none" />
-            <input value={formData.powder_lot} onChange={(e) => setFormData({ ...formData, powder_lot: e.target.value })} placeholder="Powder lot" className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg text-sm outline-none" />
-            <input value={formData.brass_lot} onChange={(e) => setFormData({ ...formData, brass_lot: e.target.value })} placeholder="Brass lot" className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg text-sm outline-none" />
-            <input value={formData.bullet_lot} onChange={(e) => setFormData({ ...formData, bullet_lot: e.target.value })} placeholder="Bullet lot" className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg text-sm outline-none" />
+            <input value={formData.primer_lot ?? ''} onChange={(e) => setFormData({ ...formData, primer_lot: e.target.value })} placeholder="Primer lot" className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg text-sm outline-none" />
+            <input value={formData.powder_lot ?? ''} onChange={(e) => setFormData({ ...formData, powder_lot: e.target.value })} placeholder="Powder lot" className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg text-sm outline-none" />
+            <input value={formData.brass_lot ?? ''} onChange={(e) => setFormData({ ...formData, brass_lot: e.target.value })} placeholder="Brass lot" className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg text-sm outline-none" />
+            <input value={formData.bullet_lot ?? ''} onChange={(e) => setFormData({ ...formData, bullet_lot: e.target.value })} placeholder="Bullet lot" className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg text-sm outline-none" />
           </div>
         </div>
 
         <div>
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Notes</label>
           <textarea
-            value={formData.notes}
+            value={formData.notes ?? ''}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
             placeholder="Batch notes"
