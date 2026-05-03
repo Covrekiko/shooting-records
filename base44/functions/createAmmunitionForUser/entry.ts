@@ -16,6 +16,27 @@ const integerFields = new Set([
   'bullet_weight_grains', 'weight_grains'
 ]);
 const numberFields = new Set(['cost_per_unit', 'unit_cost', 'total_cost']);
+const allowedRoles = new Set(['admin', 'normal_user', 'beta_tester', 'user']);
+
+function normalizeCaliber(value = '') {
+  const trimmed = String(value || '').trim();
+  const key = trimmed.toLowerCase().replace(/\s+/g, ' ');
+  const aliases = {
+    '.303': '.303 British',
+    '303': '.303 British',
+    '.303 brit': '.303 British',
+    '303 brit': '.303 British',
+    '.303 british': '.303 British',
+    '303 british': '.303 British',
+    '.308': '.308 Winchester',
+    '308': '.308 Winchester',
+    '.308 win': '.308 Winchester',
+    '308 win': '.308 Winchester',
+    '.308 winchester': '.308 Winchester',
+    '308 winchester': '.308 Winchester',
+  };
+  return aliases[key] || trimmed;
+}
 
 function cleanPayload(input = {}) {
   const output = {};
@@ -48,6 +69,7 @@ function cleanPayload(input = {}) {
   }
 
   output.brand = String(output.brand || '').trim();
+  output.caliber = normalizeCaliber(output.caliber);
   if (!output.brand) throw new Error('Ammunition brand is required.');
   if (!output.units) output.units = 'rounds';
   if (!output.ammo_type) output.ammo_type = 'factory';
@@ -63,6 +85,10 @@ Deno.serve(async (req) => {
 
     if (!user?.email) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (!allowedRoles.has(user.role)) {
+      return Response.json({ error: 'Forbidden: this account cannot create ammunition' }, { status: 403 });
     }
 
     const { ammunition } = await req.json();

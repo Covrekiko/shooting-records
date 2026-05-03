@@ -82,6 +82,7 @@ export default function AmmunitionInventory() {
       loadAmmo();
     } catch (error) {
       console.error('Error saving ammunition:', error);
+      alert(error.response?.data?.error || error.message || 'Error saving ammunition');
     }
   };
 

@@ -64,16 +64,18 @@ export default function Ammunition() {
       setShowForm(false);
     } catch (error) {
       console.error('Error adding ammunition:', error);
+      alert(error.response?.data?.error || error.message || 'Error adding ammunition');
     }
   };
 
   const handleDeleteAmmunition = async (id) => {
     if (confirm('Delete this ammunition?')) {
       try {
-        await base44.entities.Ammunition.delete(id);
+        await base44.functions.invoke('deleteAmmunitionForUser', { ammunitionId: id });
         setAmmunition(ammunition.filter(a => a.id !== id));
       } catch (error) {
         console.error('Error deleting ammunition:', error);
+        alert(error.response?.data?.error || error.message || 'Error deleting ammunition');
       }
     }
   };
@@ -86,12 +88,17 @@ export default function Ammunition() {
   const handleSaveEdit = async (updatedData) => {
     try {
       const normalizedData = { ...updatedData, caliber: normalizeCaliber(updatedData.caliber) };
-      await base44.entities.Ammunition.update(editingAmmo.id, normalizedData);
-      setAmmunition(ammunition.map(a => a.id === editingAmmo.id ? { ...a, ...normalizedData } : a));
+      const response = await base44.functions.invoke('updateAmmunitionForUser', {
+        ammunitionId: editingAmmo.id,
+        ammunition: normalizedData,
+      });
+      const updatedAmmo = response.data.ammunition || { ...editingAmmo, ...normalizedData };
+      setAmmunition(ammunition.map(a => a.id === editingAmmo.id ? updatedAmmo : a));
       setShowEditModal(false);
       setEditingAmmo(null);
     } catch (error) {
       console.error('Error saving ammunition:', error);
+      alert(error.response?.data?.error || error.message || 'Error saving ammunition');
     }
   };
 
