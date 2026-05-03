@@ -60,8 +60,9 @@ export default function BrassLifecycleManager({ brass, onUpdated }) {
 
   const handleRecover = () => run(() => recoverFiredBrass(brass, quantity || state.fired_awaiting_cleaning_or_inspection));
   const handleAnneal = () => {
-    const reset = confirm('Reset the current reload cycle count after annealing? Lifetime reload history will be kept.');
-    run(() => annealBrass(brass, reset));
+    const confirmed = confirm('Anneal this brass and reset the current reload cycle count? Lifetime reload history will be kept.');
+    if (!confirmed) return;
+    run(() => annealBrass(brass, true));
   };
   const handleRetire = () => run(() => retireBrass(brass, quantity));
 
