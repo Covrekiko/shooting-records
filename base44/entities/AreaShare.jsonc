@@ -1,0 +1,100 @@
+{
+  "name": "AreaShare",
+  "type": "object",
+  "properties": {
+    "owner_email": {
+      "type": "string"
+    },
+    "area_id": {
+      "type": "string"
+    },
+    "area_name": {
+      "type": "string"
+    },
+    "invitee_name": {
+      "type": "string"
+    },
+    "owner_display_name": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    },
+    "share_token": {
+      "type": "string"
+    },
+    "allow_outing_share": {
+      "type": "boolean",
+      "default": false
+    },
+    "allowed_live_tracking": {
+      "type": "boolean",
+      "default": false
+    },
+    "selected_marker_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "shared_markers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "polygon_coordinates": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "center_point": {
+      "type": "object",
+      "properties": {
+        "lat": {
+          "type": "number"
+        },
+        "lng": {
+          "type": "number"
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "accepted",
+        "revoked"
+      ],
+      "default": "active"
+    },
+    "accepted_by_email": {
+      "type": "string"
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "revoked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "owner_email",
+    "area_id",
+    "area_name",
+    "invitee_name",
+    "owner_display_name",
+    "share_token"
+  ]
+}

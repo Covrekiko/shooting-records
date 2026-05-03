@@ -1,0 +1,95 @@
+{
+  "name": "SharedClientOutingLog",
+  "type": "object",
+  "properties": {
+    "area_share_id": {
+      "type": "string"
+    },
+    "owner_email": {
+      "type": "string"
+    },
+    "client_email": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "shared_area_id": {
+      "type": "string"
+    },
+    "original_outing_id": {
+      "type": "string"
+    },
+    "area_name": {
+      "type": "string"
+    },
+    "check_in_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "check_out_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "gps_start": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "gps_end": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "gps_track": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "live_current_location": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "checkout_data": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "notes": {
+      "type": "string"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed"
+      ],
+      "default": "active"
+    },
+    "live_tracking_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "area_share_id",
+    "owner_email",
+    "client_email",
+    "client_name",
+    "area_name",
+    "status"
+  ]
+}

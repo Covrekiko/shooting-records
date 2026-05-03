@@ -10,6 +10,8 @@ export default function OutingModal({ onClose, onSubmit, selectedArea = null }) 
     location_id: selectedArea?.id || '',
     place_name: selectedArea?.name || '',
     start_time: new Date().toTimeString().slice(0, 5),
+    share_outing_with_owner: false,
+    share_live_location: false,
   });
 
   const selectedAreaRecord = areas.find(a => a.id === data.location_id) || selectedArea;
@@ -31,12 +33,18 @@ export default function OutingModal({ onClose, onSubmit, selectedArea = null }) 
 
   const handleAreaSelect = (areaId) => {
     const selected = areas.find(a => a.id === areaId);
-    if (selected) setData({ ...data, location_id: selected.id, place_name: selected.name });
+    if (selected) setData({ ...data, location_id: selected.id, place_name: selected.name, share_outing_with_owner: false, share_live_location: false });
     else setData({ ...data, location_id: areaId });
   };
 
   const handleSubmit = () => {
-    onSubmit(data);
+    onSubmit({
+      ...data,
+      shared_area: selectedAreaRecord?.shared_area === true,
+      area_share_id: selectedAreaRecord?.area_share_id || '',
+      shared_owner_email: selectedAreaRecord?.shared_owner_email || '',
+      shared_owner_name: selectedAreaRecord?.shared_owner_name || '',
+    });
   };
 
   return (
@@ -114,6 +122,21 @@ export default function OutingModal({ onClose, onSubmit, selectedArea = null }) 
             </div>
           </div>
         </section>
+
+        {selectedAreaRecord?.shared_area && selectedAreaRecord?.allow_outing_share && (
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" checked={data.share_outing_with_owner} onChange={(e) => setData({ ...data, share_outing_with_owner: e.target.checked, share_live_location: e.target.checked ? data.share_live_location : false })} className="mt-1" />
+              <span className="text-sm font-semibold text-slate-800">Share this outing information with {selectedAreaRecord.shared_owner_name || 'the area owner'}</span>
+            </label>
+            {selectedAreaRecord.allowed_live_tracking && data.share_outing_with_owner && (
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" checked={data.share_live_location} onChange={(e) => setData({ ...data, share_live_location: e.target.checked })} className="mt-1" />
+                <span className="text-sm font-semibold text-slate-800">Share live location while checked in</span>
+              </label>
+            )}
+          </section>
+        )}
 
         <section className={`relative overflow-hidden rounded-2xl border p-5 ${selectedAreaRecord ? 'border-green-200 bg-green-50' : 'border-slate-200 bg-slate-50'}`}>
           <div className="flex items-center gap-4 relative z-10">

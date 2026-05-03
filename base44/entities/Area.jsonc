@@ -51,6 +51,35 @@
       "type": "boolean",
       "default": true,
       "description": "Whether the area is active"
+    },
+    "shared_area": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this area was accepted from a share link"
+    },
+    "area_share_id": {
+      "type": "string",
+      "description": "AreaShare ID if this area was accepted from a share link"
+    },
+    "original_area_id": {
+      "type": "string",
+      "description": "Original owner area ID for shared areas"
+    },
+    "shared_owner_email": {
+      "type": "string",
+      "description": "Owner email for shared areas"
+    },
+    "shared_owner_name": {
+      "type": "string",
+      "description": "Owner or company display name for shared areas"
+    },
+    "allow_outing_share": {
+      "type": "boolean",
+      "default": false
+    },
+    "allowed_live_tracking": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

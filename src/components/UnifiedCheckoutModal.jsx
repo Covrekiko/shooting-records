@@ -191,6 +191,13 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
           </div>
         </section>
 
+        {activeOuting?.shared_area && activeOuting?.share_outing_with_owner && (
+          <section className={`${cardCls} p-4`}>
+            <p className="text-sm font-bold text-foreground">This outing will be shared with {activeOuting.shared_owner_name || 'the area owner'} after checkout.</p>
+            {activeOuting.share_live_location && <p className="text-xs text-muted-foreground mt-1">Live tracking stops when you check out.</p>}
+          </section>
+        )}
+
         <section className="rounded-2xl border border-green-200 bg-green-50/60 p-4 relative overflow-hidden">
           <div className="flex items-start gap-3 relative z-10">
             <input

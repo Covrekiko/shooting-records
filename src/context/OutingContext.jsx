@@ -105,6 +105,24 @@ export function OutingProvider({ children }) {
        // Extract plain date and time strings for SessionRecord
        const isoDate = isoDateTime.split('T')[0];
        const isoTime = isoDateTime.split('T')[1]?.slice(0, 5) || '00:00';
+       const currentUser = await base44.auth.me();
+
+       let sharedClientLog = null;
+       if (data.share_outing_with_owner && data.area_share_id && data.shared_owner_email) {
+         sharedClientLog = await base44.entities.SharedClientOutingLog.create({
+           area_share_id: data.area_share_id,
+           owner_email: data.shared_owner_email,
+           client_email: currentUser.email,
+           client_name: currentUser.full_name || currentUser.email,
+           shared_area_id: data.location_id || data.area_id || '',
+           area_name: data.place_name || data.location_name || '',
+           check_in_time: isoDateTime,
+           status: 'active',
+           live_tracking_enabled: data.share_live_location === true,
+           created_at: new Date().toISOString(),
+           updated_at: new Date().toISOString(),
+         });
+       }
 
        // Create DeerOuting (map system) - primary record with area_id link
        const outing = await base44.entities.DeerOuting.create({
@@ -113,6 +131,13 @@ export function OutingProvider({ children }) {
          start_time: isoDateTime,
          gps_track: [],
          active: true,
+         shared_area: data.shared_area === true,
+         area_share_id: data.area_share_id || '',
+         shared_owner_email: data.shared_owner_email || '',
+         shared_owner_name: data.shared_owner_name || '',
+         share_outing_with_owner: data.share_outing_with_owner === true,
+         share_live_location: data.share_live_location === true,
+         shared_client_log_id: sharedClientLog?.id || '',
        });
 
        console.log('🟢 CHECK IN SAVE SUCCESS - DeerOuting created with ID:', outing.id, 'areaId:', outing.area_id, 'start_time:', isoDateTime);
@@ -203,6 +228,22 @@ export function OutingProvider({ children }) {
 
         if (!outingUpdateSuccess) {
           throw new Error('Failed to update DeerOuting after 2 attempts: ' + outingUpdateError?.message);
+        }
+
+        if (activeOuting?.share_outing_with_owner && activeOuting?.shared_client_log_id) {
+          await base44.entities.SharedClientOutingLog.update(activeOuting.shared_client_log_id, {
+            original_outing_id: outingId,
+            check_out_time: new Date().toISOString(),
+            gps_start: gpsTrack?.[0] || null,
+            gps_end: gpsTrack?.[gpsTrack.length - 1] || null,
+            gps_track: gpsTrack || [],
+            checkout_data: checkoutData,
+            notes: checkoutData.notes || '',
+            photos: checkoutData.photos || [],
+            status: 'completed',
+            live_tracking_enabled: false,
+            updated_at: new Date().toISOString(),
+          });
         }
 
         // Update SessionRecord with checkout data - find by explicit outing_id link
@@ -309,6 +350,13 @@ export function OutingProvider({ children }) {
   const updateGpsTrack = async (outingId, track) => {
     try {
       await base44.entities.DeerOuting.update(outingId, { gps_track: track });
+      if (activeOuting?.share_live_location && activeOuting?.shared_client_log_id && track?.length) {
+        await base44.entities.SharedClientOutingLog.update(activeOuting.shared_client_log_id, {
+          live_current_location: track[track.length - 1],
+          gps_track: track,
+          updated_at: new Date().toISOString(),
+        });
+      }
       // Only update local state minimally — avoid triggering full re-renders
       setActiveOuting(prev => prev ? { ...prev, gps_track: track } : null);
     } catch (error) {

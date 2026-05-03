@@ -30,6 +30,8 @@ export default function DeerManagement() {
     location_id: '',
     place_name: '',
     start_time: new Date().toTimeString().slice(0, 5),
+    share_outing_with_owner: false,
+    share_live_location: false,
   });
 
   const loadData = useCallback(async () => {
@@ -79,7 +81,14 @@ export default function DeerManagement() {
         return;
       }
 
-      const outing = await startOuting(checkinData);
+      const selectedArea = areas.find(a => a.id === checkinData.location_id);
+      const outing = await startOuting({
+        ...checkinData,
+        shared_area: selectedArea?.shared_area === true,
+        area_share_id: selectedArea?.area_share_id || '',
+        shared_owner_email: selectedArea?.shared_owner_email || '',
+        shared_owner_name: selectedArea?.shared_owner_name || '',
+      });
 
       // Validate geolocation support before tracking starts from the check-in flow
       if (!navigator.geolocation) {
@@ -89,7 +98,7 @@ export default function DeerManagement() {
       }
 
       setShowCheckin(false);
-      setCheckinData({ date: new Date().toISOString().split('T')[0], location_id: '', place_name: '', start_time: new Date().toTimeString().slice(0, 5) });
+      setCheckinData({ date: new Date().toISOString().split('T')[0], location_id: '', place_name: '', start_time: new Date().toTimeString().slice(0, 5), share_outing_with_owner: false, share_live_location: false });
     } catch (error) {
       console.error('Check-in failed:', error.message);
       alert('Check-in failed: ' + error.message);
@@ -340,6 +349,21 @@ function CheckinModal({ data, areas, onSubmit, onChange, onClose }) {
                 </p>
               )}
             </div>
+
+            {selectedArea?.shared_area && selectedArea?.allow_outing_share && (
+              <div className="md:col-span-2 rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input type="checkbox" checked={data.share_outing_with_owner} onChange={(e) => onChange('share_outing_with_owner', e.target.checked)} className="mt-1" />
+                  <span className="text-sm font-semibold text-slate-800">Share this outing information with {selectedArea.shared_owner_name || 'the area owner'}</span>
+                </label>
+                {selectedArea.allowed_live_tracking && data.share_outing_with_owner && (
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <input type="checkbox" checked={data.share_live_location} onChange={(e) => onChange('share_live_location', e.target.checked)} className="mt-1" />
+                    <span className="text-sm font-semibold text-slate-800">Share live location while checked in</span>
+                  </label>
+                )}
+              </div>
+            )}
 
             <div>
               <label className={labelCls}>Place Name</label>

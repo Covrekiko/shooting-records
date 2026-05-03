@@ -73,6 +73,14 @@
       },
       "description": "Photo URLs"
     },
+    "shared_area_id": {
+      "type": "string",
+      "description": "Accepted shared Area ID for copied shared POIs"
+    },
+    "area_share_id": {
+      "type": "string",
+      "description": "AreaShare ID for copied shared POIs"
+    },
     "created_at": {
       "type": "string",
       "format": "date-time"

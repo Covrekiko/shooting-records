@@ -37,6 +37,7 @@ import AdminUsers from './pages/admin/Users';
 import ReloadingManagement from './pages/ReloadingManagement';
 import DeerStalkingMap from './pages/DeerStalkingMap';
 import DeerStalkingLogs from './pages/DeerStalkingLogs';
+import AreaShareAccept from './pages/AreaShareAccept';
 import Users from './pages/Users';
 import SunriseSunsetTracker from './pages/SunriseSunsetTracker';
 import AmmoSummary from './pages/AmmoSummary';
@@ -151,6 +152,7 @@ const AuthenticatedApp = () => {
             <Route path="/users" element={<Users />} />
             <Route path="/deer-stalking" element={<ModuleGate module="stalk_map"><DeerStalkingMap /></ModuleGate>} />
             <Route path="/deer-stalking-logs" element={<ModuleGate module="stalk_map"><DeerStalkingLogs /></ModuleGate>} />
+            <Route path="/area-share" element={<ModuleGate module="stalk_map"><AreaShareAccept /></ModuleGate>} />
             <Route path="/sunrise-sunset" element={<SunriseSunsetTracker />} />
             <Route path="/ammo-summary" element={<AmmoSummary />} />
             <Route path="/reloading" element={<ModuleGate module="reloading"><ReloadingManagement /></ModuleGate>} />

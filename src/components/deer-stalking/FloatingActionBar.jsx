@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, MapPin, X, LogOut, PenSquare, LayoutGrid } from 'lucide-react';
+import { Plus, MapPin, X, LogOut, PenSquare, LayoutGrid, Share2 } from 'lucide-react';
 
 export default function FloatingActionBar({
   onPOI,
@@ -9,6 +9,7 @@ export default function FloatingActionBar({
   activeOuting,
   onEndOuting,
   onCreateArea,
+  onShareArea,
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -63,6 +64,13 @@ export default function FloatingActionBar({
           >
             <LayoutGrid className="w-4 h-4 flex-shrink-0" />
             Create Area
+          </button>
+          <button
+            onClick={() => handleAction(onShareArea)}
+            className="flex items-center gap-2 px-3 py-2 bg-white/20 dark:bg-slate-700/30 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-medium hover:bg-white/30 dark:hover:bg-slate-700/40 active:scale-95 transition-all whitespace-nowrap shadow-sm border border-white/40 dark:border-slate-600/40 backdrop-blur-md"
+          >
+            <Share2 className="w-4 h-4 flex-shrink-0" />
+            Share Area
           </button>
         </div>
       )}

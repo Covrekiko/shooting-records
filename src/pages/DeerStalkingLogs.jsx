@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import { base44 } from '@/api/base44Client';
-import { MapPin, Clock, Navigation2 } from 'lucide-react';
+import { MapPin, Clock, Navigation2, Users } from 'lucide-react';
 import { DESIGN } from '@/lib/designConstants';
 
 export default function DeerStalkingLogs() {
   const [outings, setOutings] = useState([]);
   const [markers, setMarkers] = useState([]);
   const [harvests, setHarvests] = useState([]);
+  const [areaShares, setAreaShares] = useState([]);
+  const [clientLogs, setClientLogs] = useState([]);
+  const [selectedClient, setSelectedClient] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('outings');
 
@@ -16,14 +19,19 @@ export default function DeerStalkingLogs() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [outingsData, markersData, harvestsData] = await Promise.all([
+      const currentUser = await base44.auth.me();
+      const [outingsData, markersData, harvestsData, sharesData, logsData] = await Promise.all([
         base44.entities.DeerOuting.list('-created_date'),
         base44.entities.MapMarker.list('-created_at'),
         base44.entities.Harvest.list('-created_date'),
+        base44.entities.AreaShare.filter({ owner_email: currentUser.email }),
+        base44.entities.SharedClientOutingLog.filter({ owner_email: currentUser.email }),
       ]);
       setOutings(outingsData || []);
       setMarkers(markersData || []);
       setHarvests(harvestsData || []);
+      setAreaShares(sharesData || []);
+      setClientLogs(logsData || []);
     } catch (err) {
       console.error('Error loading logs:', err);
     } finally {
@@ -46,10 +54,14 @@ export default function DeerStalkingLogs() {
     return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
   };
 
+  const clientNames = Array.from(new Set([...(areaShares || []).map(s => s.invitee_name), ...(clientLogs || []).map(l => l.client_name)].filter(Boolean)));
+  const visibleClientLogs = selectedClient ? clientLogs.filter(log => log.client_name === selectedClient) : [];
+
   const tabs = [
     { id: 'outings', label: 'Outings', count: outings.length },
     { id: 'markers', label: 'Points of Interest', count: markers.length },
     { id: 'harvests', label: 'Harvest Records', count: harvests.length },
+    { id: 'clients', label: 'Client Logs', count: clientNames.length },
   ];
 
   if (loading) {
@@ -178,6 +190,53 @@ export default function DeerStalkingLogs() {
                   )}
                 </div>
               ))
+            )}
+          </div>
+        )}
+
+        {/* Client Logs Tab */}
+        {activeTab === 'clients' && (
+          <div className="space-y-2.5">
+            {!selectedClient ? (
+              clientNames.length === 0 ? <EmptyState message="No client logs yet" /> : clientNames.map((name) => {
+                const activeLog = clientLogs.find(log => log.client_name === name && log.status === 'active');
+                return (
+                  <button key={name} onClick={() => setSelectedClient(name)} className={`${DESIGN.CARD} p-4 w-full text-left`}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Users className="w-4 h-4 text-primary flex-shrink-0" />
+                        <div className="min-w-0"><p className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{name}</p><p className="text-xs text-slate-400 dark:text-slate-500">{clientLogs.filter(log => log.client_name === name).length} shared outings</p></div>
+                      </div>
+                      {activeLog && <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">Active</span>}
+                    </div>
+                  </button>
+                );
+              })
+            ) : (
+              <>
+                <button onClick={() => setSelectedClient(null)} className="text-xs font-bold text-primary mb-2">← Back to clients</button>
+                {visibleClientLogs.length === 0 ? <EmptyState message="No shared outings for this client yet" /> : visibleClientLogs.map(log => (
+                  <div key={log.id} className={`${DESIGN.CARD} p-4`}>
+                    {log.status === 'active' && (
+                      <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 mb-3">
+                        <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-widest">Active Client Outing</p>
+                        <p className="text-sm font-bold text-slate-900 mt-1">{log.client_name}</p>
+                        <p className="text-xs text-slate-600">Area: {log.area_name}</p>
+                        <p className="text-xs text-slate-600">Live tracking: {log.live_tracking_enabled ? 'Available' : 'Not enabled'}</p>
+                      </div>
+                    )}
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="min-w-0"><h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">{log.area_name}</h3><p className="text-xs text-slate-400 dark:text-slate-500">{formatDate(log.check_in_time)} · {formatTime(log.check_in_time)}</p></div>
+                      <span className="text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-lg capitalize">{log.status}</span>
+                    </div>
+                    {log.gps_track?.length > 0 && <p className="text-xs text-slate-500 flex items-center gap-1"><Navigation2 className="w-3 h-3" /> {log.gps_track.length} GPS points</p>}
+                    {log.checkout_data?.rounds_fired > 0 && <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">Rounds: {log.checkout_data.rounds_fired}</p>}
+                    {log.checkout_data?.species_list?.length > 0 && <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Harvest: {log.checkout_data.species_list.map(s => `${s.species} (${s.count})`).join(', ')}</p>}
+                    {log.notes && <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">{log.notes}</p>}
+                    {log.photos?.length > 0 && <div className="grid grid-cols-4 gap-2 mt-3">{log.photos.map((photo, idx) => <img key={idx} src={photo} alt="" className="w-full h-16 object-cover rounded-lg" />)}</div>}
+                  </div>
+                ))}
+              </>
             )}
           </div>
         )}

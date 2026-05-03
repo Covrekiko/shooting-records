@@ -19,6 +19,7 @@ import FloatingMapSearch from '@/components/deer-stalking/FloatingMapSearch';
 import LegalShootingHoursWidget from '@/components/deer-stalking/LegalShootingHoursWidget';
 import { useAutoCheckin } from '@/hooks/useAutoCheckin';
 import AutoCheckinBanner from '@/components/AutoCheckinBanner';
+import ShareAreaModal from '@/components/deer-stalking/ShareAreaModal';
 
 const mapContainerStyle = {
   width: '100%',
@@ -97,6 +98,7 @@ export default function DeerStalkingMap() {
   const [showHarvest, setShowHarvest] = useState(false);
   const [showOuting, setShowOuting] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showShareArea, setShowShareArea] = useState(false);
   const [focusedHarvestId, setFocusedHarvestId] = useState(null);
   const [waitingForPin, setWaitingForPin] = useState(null);
   const [rifles, setRifles] = useState([]);
@@ -164,7 +166,9 @@ export default function DeerStalkingMap() {
         base44.entities.Harvest.filter({ created_by: currentUser.email }),
         base44.entities.Area.filter({ created_by: currentUser.email }),
       ]);
-      setMarkers(markersData || []);
+      const acceptedShareIds = (areasData || []).filter(area => area.shared_area).map(area => area.area_share_id);
+      const visibleMarkers = (markersData || []).filter(marker => !marker.area_share_id || acceptedShareIds.includes(marker.area_share_id));
+      setMarkers(visibleMarkers);
       setHarvests(harvestsData || []);
       setSavedAreas(areasData || []);
     } catch (err) {
@@ -727,6 +731,7 @@ export default function DeerStalkingMap() {
           activeOuting={activeOuting}
           onEndOuting={handleEndOuting}
           onCreateArea={handleStartAreaCreation}
+          onShareArea={() => setShowShareArea(true)}
         />
       </div>
 
@@ -745,6 +750,10 @@ export default function DeerStalkingMap() {
 
       {showCheckout && activeOuting && (
         <UnifiedCheckoutModal activeOuting={activeOuting} rifles={rifles} ammunition={ammunition} onSubmit={handleCheckoutSubmit} onClose={() => setShowCheckout(false)} />
+      )}
+
+      {showShareArea && (
+        <ShareAreaModal areas={savedAreas.filter(area => !area.shared_area)} markers={markers} onClose={() => setShowShareArea(false)} />
       )}
 
       {showAreaDrawer && createPortal(

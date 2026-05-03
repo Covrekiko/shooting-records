@@ -57,6 +57,30 @@
     "session_record_id": {
       "type": "string",
       "description": "Linked SessionRecord ID after outing completion"
+    },
+    "shared_area": {
+      "type": "boolean",
+      "default": false
+    },
+    "area_share_id": {
+      "type": "string"
+    },
+    "shared_owner_email": {
+      "type": "string"
+    },
+    "shared_owner_name": {
+      "type": "string"
+    },
+    "share_outing_with_owner": {
+      "type": "boolean",
+      "default": false
+    },
+    "share_live_location": {
+      "type": "boolean",
+      "default": false
+    },
+    "shared_client_log_id": {
+      "type": "string"
     }
   },
   "required": [
