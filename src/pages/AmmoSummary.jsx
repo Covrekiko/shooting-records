@@ -73,6 +73,11 @@ export default function AmmoSummary() {
       });
       
       await loadData();
+      setRifles(prev => prev.map(r => r.id === rifleId ? {
+        ...r,
+        rounds_at_last_cleaning: rifle.total_rounds_fired || 0,
+        last_cleaning_date: today,
+      } : r));
     } catch (error) {
       console.error('Error marking rifle cleaned:', error);
     }
