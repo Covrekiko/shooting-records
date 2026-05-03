@@ -100,7 +100,7 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
         </div>
 
         <div>
-          <label className={lbl}>Lot Number (optional)</label>
+          <label className={lbl}>Lot / Batch Number (optional)</label>
           <input type="text" value={formData.lot_number} onChange={(e) => set('lot_number', e.target.value)}
             className={inp} placeholder="e.g., LOT-12345" />
         </div>

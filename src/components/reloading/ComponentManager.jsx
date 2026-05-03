@@ -674,7 +674,7 @@ export default function ComponentManager() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Lot Number (optional)</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Lot / Batch Number (optional)</label>
               <input
                 type="text"
                 value={formData.lot_number}
