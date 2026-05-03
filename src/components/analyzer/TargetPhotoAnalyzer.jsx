@@ -550,7 +550,8 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
 
           {/* Scale setup */}
           <div className="bg-card border border-border rounded-2xl p-4 mb-3">
-            <p className="font-semibold text-sm mb-2">Scale Reference</p>
+            <p className="font-semibold text-sm mb-1">Scale Reference</p>
+            <p className="text-xs text-muted-foreground mb-3">Enter a known grid/reference size, then tap two matching points on the photo to calibrate measurements.</p>
             <div className="flex gap-2 mb-2 items-center">
               <input
                 value={scaleInput}
@@ -700,9 +701,9 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           {/* Mode selection - below image */}
           <div className="grid grid-cols-3 gap-2 mb-3">
             {[
-              { id: 'centre', icon: '⊕', label: 'Centre', color: 'bg-blue-500 text-white', title: 'Mark centre of target' },
-              { id: 'aim', icon: '✚', label: 'Aim Point', color: 'bg-green-500 text-white', title: 'Mark point of aim' },
-              { id: 'bullets', icon: '🎯', label: 'Bullet Holes', color: 'bg-red-500 text-white', title: 'Mark bullet holes' },
+              { id: 'centre', icon: '⊕', label: 'Target Centre', color: 'bg-blue-500 text-white', title: 'Mark the centre of the target for point-of-impact reference' },
+              { id: 'aim', icon: '✚', label: 'Point of Aim', color: 'bg-green-500 text-white', title: 'Mark where you aimed' },
+              { id: 'bullets', icon: '🎯', label: 'Bullet Holes', color: 'bg-red-500 text-white', title: 'Mark each bullet hole' },
             ].map(m => (
               <button key={m.id} type="button" onClick={() => setMode(mode === m.id ? '' : m.id)}
                 className={`py-3 rounded-xl font-semibold text-sm flex flex-col items-center gap-1.5 transition-all ${mode === m.id ? m.color : 'bg-secondary hover:bg-secondary/80'}`}>

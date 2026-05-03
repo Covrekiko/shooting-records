@@ -114,6 +114,11 @@ export default function BallisticCalculator({ session, onBack }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [sightHeight, setSightHeight] = useState('5');
   const [scopeClickValue, setScopeClickValue] = useState('0.25_MOA');
+  const [bcModel, setBcModel] = useState('G1');
+  const [temperature, setTemperature] = useState('');
+  const [pressure, setPressure] = useState('');
+  const [humidity, setHumidity] = useState('');
+  const [altitude, setAltitude] = useState('');
 
   // Load profiles from entity
   const loadProfiles = async () => {
@@ -250,9 +255,16 @@ export default function BallisticCalculator({ session, onBack }) {
             </div>
 
             <div className="space-y-2">
-              <label className={lbl}>Ballistic Coefficient (G1)</label>
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <label className={`${lbl} mb-0`}>Ballistic Coefficient</label>
+                <select value={bcModel} onChange={e => setBcModel(e.target.value)} className="px-2 py-1 border border-border rounded-lg bg-background text-xs font-semibold">
+                  <option value="G1">G1</option>
+                  <option value="G7">G7 reference</option>
+                </select>
+              </div>
               <input type="number" step="0.001" value={bcInput} onChange={e => setBcInput(e.target.value)}
                 placeholder="e.g. 0.475" className={inp} />
+              <p className="text-[11px] text-muted-foreground mt-1">The current solver uses the existing simplified G1-style reference model; G7 is stored here as a reference label only.</p>
             </div>
 
             <div>
@@ -364,6 +376,17 @@ export default function BallisticCalculator({ session, onBack }) {
 
         {tab !== 'profiles' && (
           <>
+            <div>
+              <label className={lbl}>Ballistic Reference Details <span className="normal-case font-normal text-muted-foreground">(optional notes only)</span></label>
+              <div className="grid grid-cols-2 gap-2">
+                <input value={temperature} onChange={e => setTemperature(e.target.value)} placeholder="Temp e.g. 12°C" className={inp} />
+                <input value={pressure} onChange={e => setPressure(e.target.value)} placeholder="Pressure e.g. 1013 hPa" className={inp} />
+                <input value={humidity} onChange={e => setHumidity(e.target.value)} placeholder="Humidity %" className={inp} />
+                <input value={altitude} onChange={e => setAltitude(e.target.value)} placeholder="Altitude e.g. 120m" className={inp} />
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1">These reference details do not change the calculation yet. Confirm all DOPE with live firing.</p>
+            </div>
+
             <div>
               <label className={lbl}>Scope click value</label>
               <select value={scopeClickValue} onChange={e => setScopeClickValue(e.target.value)} className={inp}>

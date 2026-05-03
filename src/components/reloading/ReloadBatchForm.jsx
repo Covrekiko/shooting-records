@@ -33,6 +33,10 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
     used_brass_id: '',
     override_brass_limit: false,
     bullet_id: '',
+    primer_lot: '',
+    powder_lot: '',
+    brass_lot: '',
+    bullet_lot: '',
     notes: '',
   });
 
@@ -236,10 +240,10 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
         total_cost: costBreakdown.totalCost,
         cost_per_round: costBreakdown.costPerCartridge,
         components: [
-          { type: 'primer', component_id: formData.primer_id, name: primer.name, quantity_used: cartridgesLoaded, cost: costBreakdown.primerCost },
-          { type: 'powder', component_id: formData.powder_id, name: powder.name, quantity_used: powderUsed, unit: powder.unit, cost: costBreakdown.powderCost },
-          { type: 'brass', component_id: brassLookupId, name: brass.name, quantity_used: cartridgesLoaded, cost: costBreakdown.brassCost, is_used_brass: formData.brass_is_used },
-          { type: 'bullet', component_id: formData.bullet_id, name: bullet.name, quantity_used: cartridgesLoaded, cost: costBreakdown.bulletCost },
+          { type: 'primer', component_id: formData.primer_id, name: primer.name, quantity_used: cartridgesLoaded, cost: costBreakdown.primerCost, lot_number: formData.primer_lot || primer.lot_number || '' },
+          { type: 'powder', component_id: formData.powder_id, name: powder.name, quantity_used: powderUsed, unit: powder.unit, cost: costBreakdown.powderCost, lot_number: formData.powder_lot || powder.lot_number || '' },
+          { type: 'brass', component_id: brassLookupId, name: brass.name, quantity_used: cartridgesLoaded, cost: costBreakdown.brassCost, is_used_brass: formData.brass_is_used, lot_number: formData.brass_lot || brass.lot_number || '' },
+          { type: 'bullet', component_id: formData.bullet_id, name: bullet.name, quantity_used: cartridgesLoaded, cost: costBreakdown.bulletCost, lot_number: formData.bullet_lot || bullet.lot_number || '' },
         ],
         notes: formData.notes,
       };
@@ -480,6 +484,9 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
          {validationError}
        </div>
       )}
+      <div className="rounded-lg border border-amber-200 bg-amber-50 text-amber-900 p-3 text-xs leading-relaxed">
+        This app does not provide official load data. Always verify loads with published loading manuals and start safely.
+      </div>
       <form id="reload-batch-form" onSubmit={handleSubmit} className="space-y-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
@@ -722,6 +729,19 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           {stockWarnings.bullet && (
              <p className="text-xs font-semibold mt-2.5 text-destructive">{stockWarnings.bullet}</p>
            )}
+        </div>
+
+        <div className="rounded-lg p-4 space-y-3 bg-muted/50 border border-border">
+          <div>
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Optional Lot Details</p>
+            <p className="text-xs text-muted-foreground mt-1">For your records only. This does not change stock deduction.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input value={formData.primer_lot} onChange={(e) => setFormData({ ...formData, primer_lot: e.target.value })} placeholder="Primer lot" className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg text-sm outline-none" />
+            <input value={formData.powder_lot} onChange={(e) => setFormData({ ...formData, powder_lot: e.target.value })} placeholder="Powder lot" className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg text-sm outline-none" />
+            <input value={formData.brass_lot} onChange={(e) => setFormData({ ...formData, brass_lot: e.target.value })} placeholder="Brass lot" className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg text-sm outline-none" />
+            <input value={formData.bullet_lot} onChange={(e) => setFormData({ ...formData, bullet_lot: e.target.value })} placeholder="Bullet lot" className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg text-sm outline-none" />
+          </div>
         </div>
 
         <div>

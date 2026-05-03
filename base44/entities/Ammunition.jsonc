@@ -37,6 +37,14 @@
       "type": "integer",
       "default": 50
     },
+    "lot_number": {
+      "type": "string",
+      "description": "Optional factory lot or batch number"
+    },
+    "supplier": {
+      "type": "string",
+      "description": "Optional shop or supplier name"
+    },
     "notes": {
       "type": "string"
     },

@@ -27,6 +27,8 @@ export default function AmmunitionInventory() {
     cost_per_unit: 0,
     date_purchased: new Date().toISOString().split('T')[0],
     low_stock_threshold: 50,
+    lot_number: '',
+    supplier: '',
     notes: '',
   });
 
@@ -231,6 +233,25 @@ export default function AmmunitionInventory() {
                   />
                 </div>
               </div>
+              <div className="rounded-xl border border-border bg-secondary/30 p-3">
+                <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Extra Inventory Details <span className="normal-case font-normal">(optional)</span></p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    value={formData.lot_number || ''}
+                    onChange={(e) => setFormData({ ...formData, lot_number: e.target.value })}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
+                    placeholder="Lot / batch number"
+                  />
+                  <input
+                    type="text"
+                    value={formData.supplier || ''}
+                    onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
+                    placeholder="Supplier / shop"
+                  />
+                </div>
+              </div>
               <div>
                 <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Notes</label>
                 <textarea
@@ -307,6 +328,11 @@ export default function AmmunitionInventory() {
                       {item.date_purchased && (
                         <p>
                           <span className="font-medium">{item.brand === 'Reloaded' ? 'Reloaded' : 'Purchased'}:</span> {format(new Date(item.date_purchased), 'MMM d, yyyy')}
+                        </p>
+                      )}
+                      {(item.lot_number || item.supplier) && (
+                        <p>
+                          <span className="font-medium">Extra:</span> {[item.lot_number && `Lot ${item.lot_number}`, item.supplier].filter(Boolean).join(' · ')}
                         </p>
                       )}
                       {item.notes && (

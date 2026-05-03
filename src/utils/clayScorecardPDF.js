@@ -79,26 +79,26 @@ export function exportScorecardPDF(session, stands, stats, shotgun, ammo, shotsM
       } else {
         shots.forEach(shot => {
           checkPage(5);
-          const isHit = shot.result === 'hit';
+          const isHit = shot.result === 'dead' || shot.result === 'hit';
           const isNb = shot.result === 'no_bird';
           doc.setFontSize(8); doc.setFont('helvetica', 'normal');
           if (isHit) doc.setTextColor(0, 140, 60);
           else if (isNb) doc.setTextColor(180, 120, 0);
           else doc.setTextColor(180, 40, 40);
-          const label = isHit ? 'Hit' : isNb ? 'No Bird' : 'Miss';
+          const label = isHit ? 'Dead / Hit' : isNb ? 'No Bird' : 'Lost / Miss';
           const methodLabel = shot.input_method === 'voice' ? ' — Voice' : ' — Manual';
           doc.text(`Shot ${shot.shot_number}: ${label}${methodLabel}`, 20, y); y += 5;
         });
         checkPage(8);
         doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 30, 30);
-        doc.text(`Hits: ${stand.hits || 0}  Misses: ${stand.misses || 0}  No Birds: ${stand.no_birds || 0}`, 20, y); y += 5;
+        doc.text(`Dead / Hits: ${stand.hits || 0}  Lost / Misses: ${stand.misses || 0}  No Birds: ${stand.no_birds || 0}`, 20, y); y += 5;
         doc.text(`Score: ${stand.hits || 0}/${valid} · Hit rate: ${stand.hit_percentage || 0}%`, 20, y); y += 6;
       }
     } else {
       doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(50, 50, 50);
       doc.text(`${stand.shots_used || valid} shots used`, 20, y); y += 5;
-      doc.setTextColor(0, 140, 60); doc.text(`Hits: ${stand.hits || 0}`, 20, y);
-      doc.setTextColor(180, 40, 40); doc.text(`Misses: ${stand.misses || 0}`, 55, y);
+      doc.setTextColor(0, 140, 60); doc.text(`Dead / Hits: ${stand.hits || 0}`, 20, y);
+      doc.setTextColor(180, 40, 40); doc.text(`Lost / Misses: ${stand.misses || 0}`, 65, y);
       doc.setTextColor(180, 120, 0); doc.text(`No Birds: ${stand.no_birds || 0}`, 95, y);
       doc.setTextColor(30, 30, 30); y += 5;
       doc.setFont('helvetica', 'bold');
