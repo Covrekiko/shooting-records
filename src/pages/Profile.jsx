@@ -154,6 +154,13 @@ export default function Profile() {
                 <FileText className="w-4 h-4" />
                 Privacy Policy
               </Link>
+              <a
+                href="#delete-account"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Account
+              </a>
               <button
                 onClick={handleLogout}
                 disabled={loading}
@@ -442,9 +449,9 @@ function DeleteAccountSection() {
   };
 
   return (
-    <div className="mt-10 border border-destructive/30 rounded-xl p-5 bg-destructive/5">
+    <div id="delete-account" className="mt-10 border border-destructive/30 rounded-xl p-5 bg-destructive/5">
       <h3 className="text-sm font-semibold text-destructive uppercase tracking-wide mb-2 flex items-center gap-2">
-        <Trash2 className="w-4 h-4" /> Account Management
+        <Trash2 className="w-4 h-4" /> DELETE ACCOUNT
       </h3>
       <p className="text-sm text-muted-foreground mb-4">
         Permanently delete your account and personal data from this app.
@@ -477,7 +484,7 @@ function DeleteAccountSection() {
               disabled={confirmText !== 'DELETE' || deleting}
               className="flex-1 h-11 rounded-xl font-semibold text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors disabled:opacity-50"
             >
-              {deleting ? 'Deleting...' : 'Permanently Delete Account'}
+              {deleting ? 'Deleting...' : 'Permanently delete my account'}
             </button>
           </>
         )}
@@ -487,7 +494,7 @@ function DeleteAccountSection() {
             <p className="font-semibold text-destructive">This action is permanent.</p>
             <p>Your profile and personal data will be deleted.</p>
             <p>Your local offline data on this device will be cleared.</p>
-            <p>This cannot be undone.</p>
+            <p>This action cannot be undone.</p>
           </div>
           <div>
             <label className="block text-sm font-medium mb-2">Type DELETE to confirm</label>
