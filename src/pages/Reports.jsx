@@ -15,6 +15,7 @@ import {
 import { generateFormalReport } from '@/utils/formalReportPDF';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
+import ProfileBackLink from '@/components/ProfileBackLink';
 
 export default function Reports() {
   const [records, setRecords] = useState([]);
@@ -193,6 +194,7 @@ export default function Reports() {
       <Navigation />
       <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       <main className="max-w-7xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
+        <ProfileBackLink />
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Reports & Analytics</h1>
           <p className="text-muted-foreground">View detailed analytics and generate PDF reports of your shooting activities</p>

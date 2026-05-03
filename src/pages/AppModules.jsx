@@ -4,6 +4,7 @@ import { ALL_MODULES, useModules } from '@/context/ModulesContext';
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import ModuleIcon from '@/components/ModuleIcon';
+import ProfileBackLink from '@/components/ProfileBackLink';
 
 export default function AppModules() {
   const { enabledModules, saveModules } = useModules();
@@ -45,6 +46,7 @@ export default function AppModules() {
     <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
       <main className="max-w-lg mx-auto px-4 pt-4 pb-12 mobile-page-padding">
+        <ProfileBackLink />
         <div className="mb-6">
           <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100">App Modules</h1>
           <p className="text-sm text-muted-foreground mt-1">

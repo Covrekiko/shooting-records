@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 const sections = [
   {
@@ -101,11 +101,14 @@ const sections = [
 ];
 
 export default function PrivacyPolicy() {
+  const location = useLocation();
+  const fromProfile = location.state?.from === 'profile';
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <main className="max-w-3xl mx-auto px-4 py-10 md:py-14">
-        <Link to="/" className="inline-flex text-sm font-medium text-primary hover:underline mb-8">
-          ← Back to Shooting Records
+        <Link to={fromProfile ? '/profile' : '/'} className="inline-flex text-sm font-medium text-primary hover:underline mb-8">
+          ← {fromProfile ? 'Back to Profile' : 'Back to Shooting Records'}
         </Link>
 
         <div className="bg-card border border-border rounded-2xl shadow-sm p-6 md:p-8">

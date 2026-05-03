@@ -20,6 +20,7 @@ import { useEffect, useRef } from 'react';
 import ProfileSetup from './pages/ProfileSetup';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import ProfileSettings from './pages/ProfileSettings';
 import TargetShooting from './pages/TargetShooting';
 import ClayShooting from './pages/ClayShooting';
 import DeerManagement from './pages/DeerManagement';
@@ -44,6 +45,7 @@ import AmmoSummary from './pages/AmmoSummary';
 import LoadDevelopment from './pages/LoadDevelopment';
 import ScopeClickCard from './pages/ScopeClickCard';
 import AppModules from './pages/AppModules';
+import AppTheme from './pages/AppTheme';
 import BulletReferenceDB from './pages/settings/BulletReferenceDB';
 import ScopeReferenceDB from './pages/settings/ScopeReferenceDB';
 import ReferenceDatabase from './pages/settings/ReferenceDatabase';
@@ -194,8 +196,8 @@ const AuthenticatedApp = () => {
             <Route path="/clay-shooting" element={<ModuleGate module="clay_shooting"><ClayShooting /></ModuleGate>} />
             <Route path="/deer-management" element={<ModuleGate module="deer_management"><DeerManagement /></ModuleGate>} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/profile/settings" element={<Profile />} />
-            <Route path="/profile/theme" element={<Profile />} />
+            <Route path="/profile/settings" element={<ProfileSettings />} />
+            <Route path="/profile/theme" element={<AppTheme />} />
             <Route path="/profile/modules" element={<AppModules />} />
             <Route path="/records" element={<Records />} />
             <Route path="/goals" element={<Goals />} />

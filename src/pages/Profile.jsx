@@ -64,6 +64,7 @@ export default function Profile() {
               </Link>
               <Link
                 to="/profile/settings"
+                state={{ from: 'profile' }}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/profile/settings')
                     ? 'bg-primary/10 text-primary'
@@ -75,6 +76,7 @@ export default function Profile() {
               </Link>
               <Link
                 to="/records"
+                state={{ from: 'profile' }}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/profile/records')
                     ? 'bg-primary/10 text-primary'
@@ -86,6 +88,7 @@ export default function Profile() {
               </Link>
               <Link
                 to="/reports"
+                state={{ from: 'profile' }}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/reports')
                     ? 'bg-primary/10 text-primary'
@@ -97,6 +100,7 @@ export default function Profile() {
               </Link>
               <Link
                 to="/ammo-summary"
+                state={{ from: 'profile' }}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/ammo-summary')
                     ? 'bg-primary/10 text-primary'
@@ -108,6 +112,7 @@ export default function Profile() {
               </Link>
               <Link
                 to="/deer-stalking-logs"
+                state={{ from: 'profile' }}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/deer-stalking-logs')
                     ? 'bg-primary/10 text-primary'
@@ -119,6 +124,7 @@ export default function Profile() {
               </Link>
               <Link
                 to="/profile/modules"
+                state={{ from: 'profile' }}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/profile/modules')
                     ? 'bg-primary/10 text-primary'
@@ -130,6 +136,7 @@ export default function Profile() {
               </Link>
               <Link
                 to="/profile/theme"
+                state={{ from: 'profile' }}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   isActive('/profile/theme')
                     ? 'bg-primary/10 text-primary'
@@ -141,6 +148,7 @@ export default function Profile() {
               </Link>
               <Link
                 to="/privacy-policy"
+                state={{ from: 'profile' }}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-foreground hover:bg-secondary"
               >
                 <FileText className="w-4 h-4" />
@@ -204,7 +212,7 @@ function Field({ label, error, required, children }) {
   );
 }
 
-function SettingsPanel() {
+export function SettingsPanel() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {

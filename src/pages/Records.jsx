@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { exportRecordsToPdf, getRecordsPdfBlob } from '@/utils/recordsPdfExport';
 import { DESIGN } from '@/lib/designConstants';
 import RecordDetailModal from '@/components/RecordDetailModal';
+import ProfileBackLink from '@/components/ProfileBackLink';
 
 export default function Records() {
   const [allRecords, setAllRecords] = useState([]);
@@ -317,6 +318,7 @@ export default function Records() {
       <Navigation />
       <PullToRefreshIndicator pulling={pulling} refreshing={refreshing} progress={progress} offline={!navigator.onLine} />
       <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
+        <ProfileBackLink />
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4 gap-3">
             <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Records</h1>

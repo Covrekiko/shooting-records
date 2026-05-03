@@ -6,6 +6,7 @@ import { DESIGN } from '@/lib/designConstants';
 import LiveClientMapModal from '@/components/deer-stalking/LiveClientMapModal';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
+import ProfileBackLink from '@/components/ProfileBackLink';
 
 export default function DeerStalkingLogs() {
   const [outings, setOutings] = useState([]);
@@ -86,6 +87,7 @@ export default function DeerStalkingLogs() {
       <Navigation />
       <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
+        <ProfileBackLink />
 
         {/* Header */}
         <div className="mb-4 hidden md:block">
