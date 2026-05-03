@@ -105,124 +105,21 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
   const handleDelete = async (recordId) => {
      if (!confirm('Delete this record? Ammunition and firearm counts will be restored.')) return;
     try {
-      const isOnline = navigator.onLine;
-      if (!isOnline) {
+      if (!navigator.onLine) {
         alert('You must be online to delete records and restore ammunition. Please connect to the internet and try again.');
         return;
       }
-
       if (!recordId) {
-        console.error('Record ID is missing or invalid');
         alert('Error: Record ID is missing. Cannot delete.');
         return;
       }
 
-      // Load fresh record from Base44 before any changes
-      let freshRecord;
-      try {
-        freshRecord = await base44.entities.SessionRecord.get(recordId);
-        if (!freshRecord) {
-          console.error('Record no longer exists in database');
-          alert('Error: Record no longer exists in database.');
-          return;
-        }
-      } catch (err) {
-        console.error('Error loading record from database:', err);
-        alert('Error loading record from database: ' + err.message);
-        return;
-      }
-
-      // Check if already deleted
-      if (freshRecord.isDeleted === true || freshRecord.status === 'deleted') {
-        console.warn('Record already marked as deleted, removing from UI');
-        setRecords(records.filter((r) => r.id !== recordId));
-        return;
-      }
-
-      // Prevent double refund (idempotency check)
-       let refundResult = null;
-       if (freshRecord.ammoRefunded === true) {
-         console.warn('Record already refunded, skipping refund');
-       } else {
-         // Refund ammunition using fresh record
-         const { refundAmmoForRecord } = await import('@/lib/ammoUtils');
-         refundResult = await refundAmmoForRecord(freshRecord, freshRecord.category);
-         if (!refundResult.success) {
-           console.error('Ammunition refund failed:', refundResult.error);
-           alert('Ammunition refund failed. Record was not deleted.');
-           return;
-         }
-       }
-
-       const { reverseArmoryCountersForRecord } = await import('@/lib/ammoUtils');
-       const armoryResult = await reverseArmoryCountersForRecord(freshRecord, freshRecord.category);
-       if (!armoryResult.success) {
-         alert('Armory counter update failed. Record was not deleted.');
-         return;
-       }
-
-       // Soft delete the record (mark as deleted, do not hard delete)
-      
-      try {
-        const now = new Date().toISOString();
-        await base44.entities.SessionRecord.update(freshRecord.id, {
-          isDeleted: true,
-          deletedAt: now,
-          status: 'deleted',
-          ammoRefunded: true,
-          ammoRefundedAt: now,
-          armoryCountersReversed: true,
-          countersReversedAt: now,
-        });
-        
-      } catch (updateErr) {
-        console.error('Error deleting record:', updateErr);
-
-        // Rollback ammo refund if soft delete fails
-        if (refundResult?.success && freshRecord.ammoRefunded !== true) {
-          console.warn('Delete failed, rolling back ammo refund');
-          try {
-            const { decrementAmmoStock } = await import('@/lib/ammoUtils');
-            // Re-decrement the stock to undo the refund
-            if (freshRecord.category === 'target_shooting' && freshRecord.rifles_used) {
-              const ammoTotals = {};
-              for (const rifle of freshRecord.rifles_used) {
-                if (rifle.ammunition_id && parseInt(rifle.rounds_fired) > 0) {
-                  ammoTotals[rifle.ammunition_id] = (ammoTotals[rifle.ammunition_id] || 0) + parseInt(rifle.rounds_fired);
-                }
-              }
-              for (const [ammoId, totalRounds] of Object.entries(ammoTotals)) {
-                await decrementAmmoStock(ammoId, totalRounds, 'target_shooting', recordId);
-              }
-            } else if (freshRecord.category === 'clay_shooting' && freshRecord.ammunition_id) {
-              await decrementAmmoStock(freshRecord.ammunition_id, parseInt(freshRecord.rounds_fired), 'clay_shooting', recordId);
-            } else if (freshRecord.category === 'deer_management' && freshRecord.ammunition_id) {
-              await decrementAmmoStock(freshRecord.ammunition_id, parseInt(freshRecord.total_count), 'deer_management', recordId);
-            }
-            
-          } catch (rollbackErr) {
-            console.error('Rollback failed:', rollbackErr);
-            alert('⚠️ Delete failed and rollback encountered an error. Contact support.');
-            return;
-          }
-        }
-
-        alert('Error deleting record: ' + updateErr.message);
-        return;
-      }
-
-      // Delete succeeded — update local state
+      await base44.functions.invoke('deleteSessionRecordWithRefund', { sessionId: recordId });
       setRecords(records.filter((r) => r.id !== recordId));
-
-      if (refundResult?.warnings?.length > 0) {
-       alert(refundResult.warnings.join('\n'));
-      }
-
-      // Notify parent to refresh analytics + dashboard
       if (onRecordDeleted) onRecordDeleted();
     } catch (error) {
       console.error('Error deleting record:', error);
-      alert('Error deleting record: ' + error.message);
+      alert('Error deleting record: ' + (error?.response?.data?.error || error.message));
     }
   };
 

@@ -150,69 +150,9 @@ async function restoreComponents({ session, ammo, roundsRemaining, restoreRatio,
 }
 
 export async function deleteReloadBatchWithRestore({ ammunitionId = null, reloadSessionId = null } = {}) {
-  const user = await base44.auth.me();
-  if (!user) throw new Error('You must be signed in to delete reload batches.');
-
-  const restored = {
-    success: false,
-    warnings: [],
-    components: [],
-    rounds_remaining_restored: 0,
-    ammunition_archived: false,
-    session_marked_deleted: false,
-  };
-
-  const ammo = await findLinkedAmmo({ ammunitionId, userEmail: user.email }).catch(() => null);
-  const session = await findLinkedSession({ ammo, reloadSessionId, userEmail: user.email });
-
-  if (ammunitionId && ammo && !session) {
-    throw new Error('Linked reload session could not be found. Ammunition was not deleted.');
-  }
-  if (reloadSessionId && !session) {
-    throw new Error('Reloading session could not be found.');
-  }
-
-  if (session && isDeletedSession(session)) {
-    if (ammo) await archiveOrDeleteAmmo(ammo, session, restored);
-    return { ...restored, success: true, skipped: true, warnings: ['Reloading session was already deleted/restored.'] };
-  }
-
-  const matchedAmmo = ammo || await findLinkedAmmo({ session, userEmail: user.email }).catch(() => null);
-  const roundsRemaining = Math.max(0, num(matchedAmmo?.quantity_in_stock));
-  const roundsProduced = Math.max(1, num(session?.rounds_loaded));
-  const restoreRatio = Math.min(1, roundsRemaining / roundsProduced);
-
-  if (roundsRemaining > 0) {
-    await restoreComponents({ session, ammo: matchedAmmo, roundsRemaining, restoreRatio, userEmail: user.email, restored });
-  }
-
-  if (matchedAmmo) {
-    await archiveOrDeleteAmmo(matchedAmmo, session, restored);
-  } else {
-    restored.warnings.push('Linked reloaded ammunition could not be found.');
-  }
-
-  if (session?.id) {
-    await base44.entities.ReloadingSession.update(session.id, {
-      isDeleted: true,
-      is_deleted: true,
-      archived: true,
-      status: 'deleted',
-      reload_session_deleted: true,
-      components_restored: true,
-      restored_after_batch_delete: true,
-      deletedAt: new Date().toISOString(),
-      linked_ammunition_id: matchedAmmo?.id || '',
-      rounds_remaining_restored: roundsRemaining,
-    });
-    restored.session_marked_deleted = true;
-  }
-
-  return {
-    ...restored,
-    success: true,
-    reloadSessionId: session?.id || null,
-    ammunitionId: matchedAmmo?.id || null,
-    rounds_remaining_restored: roundsRemaining,
-  };
+  const response = await base44.functions.invoke('deleteReloadedAmmunitionWithSessionCleanup', {
+    ammunitionId,
+    reloadSessionId,
+  });
+  return response.data;
 }

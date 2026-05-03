@@ -40,6 +40,7 @@ export async function decrementAmmoStock(ammunitionId, quantity, sessionType = n
     });
   } catch (error) {
     console.error('Error decrementing ammo stock:', error);
+    throw new Error('Permission denied while restoring stock. Please contact support.');
   }
 }
 
@@ -96,6 +97,7 @@ export async function restoreAmmoStock(ammunitionId, quantity, sessionId = null,
     }
   } catch (error) {
     console.error('Error restoring ammo stock:', error);
+    throw new Error('Permission denied while restoring stock. Please contact support.');
   }
 }
 

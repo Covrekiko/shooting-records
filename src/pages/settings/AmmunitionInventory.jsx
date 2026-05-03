@@ -67,7 +67,9 @@ export default function AmmunitionInventory() {
       if (editingId) {
         await base44.entities.Ammunition.update(editingId, { ...formData, caliber: normalizeCaliber(formData.caliber) });
       } else {
-        await base44.entities.Ammunition.create({ ...formData, caliber: normalizeCaliber(formData.caliber) });
+        await base44.functions.invoke('createAmmunitionForUser', {
+          ammunition: { ...formData, caliber: normalizeCaliber(formData.caliber) },
+        });
       }
       resetForm();
       loadAmmo();

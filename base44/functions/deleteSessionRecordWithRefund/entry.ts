@@ -249,9 +249,15 @@ Deno.serve(async (req) => {
     }
 
     // Verify ownership
-    if (record.created_by !== user.email) {
+    if (user.role !== 'admin' && record.created_by !== user.email) {
       return Response.json({ error: 'Forbidden: not your record' }, { status: 403 });
     }
+
+    if (record.isDeleted === true || record.status === 'deleted' || record.ammoRefunded === true) {
+      return Response.json({ success: true, skipped: true, message: 'Record was already deleted or refunded.' }, { status: 200 });
+    }
+
+    const ownerEmail = record.created_by;
 
     const refundSummary = {
       category: record.category,
@@ -307,6 +313,9 @@ Deno.serve(async (req) => {
           console.warn(`[DELETE REFUND] Ammunition ${ammo.ammo_id} not found, skipping`);
           continue;
         }
+        if (user.role !== 'admin' && ammoEntry.created_by !== user.email) {
+          return Response.json({ error: 'Forbidden: ammunition does not belong to you' }, { status: 403 });
+        }
 
         const reusedWarning = ammoEntry.source_type === 'reload_batch'
           ? await getReusedBrassStockRestoreWarning(base44, ammoEntry, sessionId, user.email)
@@ -351,7 +360,7 @@ Deno.serve(async (req) => {
     // STEP 4: Delete AmmoSpending entries for this record
     try {
       const spending = await base44.asServiceRole.entities.AmmoSpending.filter({
-        created_by: user.email,
+        created_by: ownerEmail,
       });
       const matchingSpending = spending.filter(s => s.session_id === sessionId);
       for (const spend of matchingSpending) {
@@ -370,9 +379,13 @@ Deno.serve(async (req) => {
           try {
             const rifleEntry = await base44.asServiceRole.entities.Rifle.get(rifle.rifle_id);
             if (rifleEntry) {
+              if (user.role !== 'admin' && rifleEntry.created_by !== user.email) {
+                return Response.json({ error: 'Forbidden: rifle does not belong to you' }, { status: 403 });
+              }
               const newTotal = Math.max(0, (rifleEntry.total_rounds_fired || 0) - parseInt(rifle.rounds_fired));
               await base44.asServiceRole.entities.Rifle.update(rifle.rifle_id, {
                 total_rounds_fired: newTotal,
+                rounds_at_last_cleaning: Math.min(rifleEntry.rounds_at_last_cleaning || 0, newTotal),
               });
               refundSummary.firearm_reversal = `Rifle: ${newTotal} rounds`;
               console.log(`[DELETE REFUND] Rifle ${rifle.rifle_id}: total_rounds reversed to ${newTotal}`);
@@ -386,9 +399,13 @@ Deno.serve(async (req) => {
       try {
         const shotgunEntry = await base44.asServiceRole.entities.Shotgun.get(record.shotgun_id);
         if (shotgunEntry) {
+          if (user.role !== 'admin' && shotgunEntry.created_by !== user.email) {
+            return Response.json({ error: 'Forbidden: shotgun does not belong to you' }, { status: 403 });
+          }
           const newTotal = Math.max(0, (shotgunEntry.total_cartridges_fired || 0) - parseInt(record.rounds_fired));
           await base44.asServiceRole.entities.Shotgun.update(record.shotgun_id, {
             total_cartridges_fired: newTotal,
+            cartridges_at_last_cleaning: Math.min(shotgunEntry.cartridges_at_last_cleaning || 0, newTotal),
           });
           refundSummary.firearm_reversal = `Shotgun: ${newTotal} cartridges`;
           console.log(`[DELETE REFUND] Shotgun ${record.shotgun_id}: total_cartridges_fired reversed to ${newTotal}`);
@@ -402,9 +419,13 @@ Deno.serve(async (req) => {
         if (deerRounds > 0) {
           const rifleEntry = await base44.asServiceRole.entities.Rifle.get(record.rifle_id);
           if (rifleEntry) {
+            if (user.role !== 'admin' && rifleEntry.created_by !== user.email) {
+              return Response.json({ error: 'Forbidden: rifle does not belong to you' }, { status: 403 });
+            }
             const newTotal = Math.max(0, (rifleEntry.total_rounds_fired || 0) - deerRounds);
             await base44.asServiceRole.entities.Rifle.update(record.rifle_id, {
               total_rounds_fired: newTotal,
+              rounds_at_last_cleaning: Math.min(rifleEntry.rounds_at_last_cleaning || 0, newTotal),
             });
             refundSummary.firearm_reversal = `Rifle: ${newTotal} rounds`;
             console.log(`[DELETE REFUND] Rifle ${record.rifle_id}: total_rounds reversed by ${deerRounds} to ${newTotal}`);
@@ -417,9 +438,18 @@ Deno.serve(async (req) => {
       }
     }
 
-    // STEP 6: Delete SessionRecord
-    console.log(`[DELETE REFUND] Deleting SessionRecord ${sessionId}`);
-    await base44.asServiceRole.entities.SessionRecord.delete(sessionId);
+    // STEP 6: Soft-delete SessionRecord after restore succeeds
+    console.log(`[DELETE REFUND] Soft-deleting SessionRecord ${sessionId}`);
+    const now = new Date().toISOString();
+    await base44.asServiceRole.entities.SessionRecord.update(sessionId, {
+      isDeleted: true,
+      deletedAt: now,
+      status: 'deleted',
+      ammoRefunded: true,
+      ammoRefundedAt: now,
+      armoryCountersReversed: true,
+      countersReversedAt: now,
+    });
 
     // STEP 7: Return success
     refundSummary.success = true;

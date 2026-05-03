@@ -55,7 +55,10 @@ export default function Ammunition() {
   const handleAddAmmunition = async (e) => {
     if (e?.preventDefault) e.preventDefault();
     try {
-      const newAmmo = await base44.entities.Ammunition.create({ ...formData, caliber: normalizeCaliber(formData.caliber) });
+      const response = await base44.functions.invoke('createAmmunitionForUser', {
+        ammunition: { ...formData, caliber: normalizeCaliber(formData.caliber) },
+      });
+      const newAmmo = response.data.ammunition;
       setAmmunition([...ammunition, newAmmo]);
       setFormData({ brand: '', caliber: '', bullet_type: '', grain: '', quantity_in_stock: '', cost_per_unit: '', date_purchased: '', notes: '' });
       setShowForm(false);
