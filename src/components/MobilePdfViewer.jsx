@@ -11,6 +11,7 @@ export default function MobilePdfViewer({ pdfUrl, onClose }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [scale, setScale] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [pageWidth, setPageWidth] = useState(() => Math.min(window.innerWidth - 32, 780));
   const containerRef = useRef(null);
   const touchStartScale = useRef(null);
@@ -74,13 +75,14 @@ export default function MobilePdfViewer({ pdfUrl, onClose }) {
 
   useEffect(() => {
     setLoading(true);
+    setLoadError(false);
     setScale(1);
   }, [pdfUrl]);
 
   useEffect(() => {
     const updateWidth = () => {
       const available = containerRef.current?.clientWidth || window.innerWidth;
-      setPageWidth(Math.max(280, Math.min(available - 24, 780)));
+      setPageWidth(Math.max(260, Math.min(available - 24, 780)));
     };
     updateWidth();
     window.addEventListener('resize', updateWidth);
@@ -88,8 +90,8 @@ export default function MobilePdfViewer({ pdfUrl, onClose }) {
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center p-0 z-50">
-      <div className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-4xl h-[92dvh] sm:h-[90vh] max-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom))] flex flex-col shadow-2xl border border-slate-200/70 dark:border-slate-700 overflow-hidden">
+    <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center p-0 z-[60000]" style={{ paddingTop: 'var(--safe-top)' }}>
+      <div className="bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-2xl w-full sm:max-w-4xl flex flex-col shadow-2xl border border-slate-200/70 dark:border-slate-700 overflow-hidden" style={{ height: 'calc(100dvh - var(--safe-top) - var(--safe-bottom) - 8px)' }}>
         {/* Header */}
         <div className="flex-shrink-0 flex items-center justify-between p-4 border-b border-slate-200/70 dark:border-slate-700 bg-white dark:bg-slate-800">
           <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">PDF Preview</h2>
@@ -104,11 +106,11 @@ export default function MobilePdfViewer({ pdfUrl, onClose }) {
         {/* PDF Container */}
         <div
           ref={containerRef}
-          className="flex-1 min-h-0 overflow-auto overflow-x-hidden bg-slate-50 dark:bg-slate-900 flex items-start justify-center"
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden bg-slate-50 dark:bg-slate-900 flex items-start justify-center"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pinch-zoom' }}
+          style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-y pinch-zoom', paddingBottom: 'calc(var(--safe-bottom) + 16px)' }}
         >
           <div className="w-full flex justify-center px-3 py-3">
             {loading && (
@@ -116,10 +118,15 @@ export default function MobilePdfViewer({ pdfUrl, onClose }) {
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
               </div>
             )}
-            <Document
+            {loadError && (
+              <div className="text-center text-sm text-slate-600 dark:text-slate-300 py-10 px-4">
+                PDF preview failed. Please try downloading the PDF.
+              </div>
+            )}
+            {!loadError && <Document
               file={pdfUrl}
               onLoadSuccess={onDocumentLoadSuccess}
-              onLoadError={(err) => { console.error('PDF load error:', err); setLoading(false); }}
+              onLoadError={(err) => { console.error('PDF load error:', err); setLoading(false); setLoadError(true); }}
               loading={<div className="text-center py-8">Loading PDF...</div>}
             >
               <Page
@@ -129,12 +136,12 @@ export default function MobilePdfViewer({ pdfUrl, onClose }) {
                 renderAnnotationLayer={true}
                 width={pageWidth}
               />
-            </Document>
+            </Document>}
           </div>
         </div>
 
         {/* Footer Controls */}
-        <div className="flex-shrink-0 p-3 border-t border-slate-200/70 dark:border-slate-700 bg-white dark:bg-slate-800 space-y-2" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+        <div className="flex-shrink-0 p-3 border-t border-slate-200/70 dark:border-slate-700 bg-white dark:bg-slate-800 space-y-2" style={{ paddingBottom: 'calc(var(--safe-bottom) + 0.75rem)' }}>
           {/* Page Navigation */}
           <div className="flex items-center justify-between gap-3">
             <button

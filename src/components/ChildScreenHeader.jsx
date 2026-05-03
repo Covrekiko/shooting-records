@@ -5,7 +5,7 @@ export default function ChildScreenHeader({ title }) {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
+    <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm mobile-safe-top">
       <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
         <button
           onClick={() => navigate(-1)}

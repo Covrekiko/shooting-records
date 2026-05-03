@@ -287,25 +287,15 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
       const batchNotes = `reload_batch:${createdSession.id} | Batch ${formData.batch_number}${bulletLabel ? ` | ${bulletLabel}` : ''}`;
 
       // Check if an entry for this exact batch already exists (idempotency guard)
-      const existingBatchAmmo = await base44.entities.Ammunition.filter({ created_by: user.email });
-      const batchEntry = existingBatchAmmo.find(a => a.notes && a.notes.includes(`reload_batch:${createdSession.id}`));
-
       console.log(`[RELOAD DEBUG] batch created = ${formData.batch_number}`);
       console.log(`[RELOAD DEBUG] caliber = ${formData.caliber}`);
       console.log(`[RELOAD DEBUG] quantity produced = ${cartridgesLoaded}`);
-      console.log(`[RELOAD DEBUG] global ammo stock item created = ${batchEntry ? 'existing (duplicate guard)' : 'new'}`);
+      console.log(`[RELOAD DEBUG] global ammo stock item creation routed through backend function`);
 
-      if (batchEntry) {
-        // Duplicate submit guard — top up
-        await base44.entities.Ammunition.update(batchEntry.id, {
-          quantity_in_stock: (batchEntry.quantity_in_stock || 0) + cartridgesLoaded,
-          cost_per_unit: costBreakdown.costPerCartridge,
-        });
-        console.log(`[RELOAD DEBUG] ammoStockItemId = ${batchEntry.id}`);
-        console.log(`[RELOAD DEBUG] stock quantity added = ${cartridgesLoaded} (topped up)`);
-      } else {
-        // New entry for this batch — with stable linking fields (FIX 4)
-        const newAmmo = await base44.entities.Ammunition.create({
+      const ammoResponse = await base44.functions.invoke('createReloadBatchAmmunition', {
+        reloadSessionId: createdSession.id,
+        quantityToAdd: cartridgesLoaded,
+        ammunitionData: {
           brand: batchBrand,
           caliber: formData.caliber,
           bullet_type: batchBulletType,
@@ -316,7 +306,6 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           date_purchased: formData.date,
           low_stock_threshold: 10,
           notes: batchNotes,
-          // FIX 4: Stable fields for reliable linking
           ammo_type: 'reloaded',
           source_type: 'reload_batch',
           source_id: createdSession.id,
@@ -327,21 +316,23 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           brass_use_type: brassUseType,
           brass_new_quantity_used: brassNewQuantityUsed,
           brass_used_quantity_used: brassUsedQuantityUsed,
-          });
-        await logBrassMovement({
-          brassId: brassLookupId,
-          reloadBatchId: createdSession.id,
-          ammunitionId: newAmmo.id,
-          quantity: cartridgesLoaded,
-          movementType: 'used_in_reload_batch',
-          previousState: previousBrassState,
-          newState: newBrassState,
-          notes: `Batch ${formData.batch_number}`,
-        });
-        console.log(`[RELOAD DEBUG] ammoStockItemId = ${newAmmo.id}`);
-        console.log(`[RELOAD DEBUG] stock quantity added = ${cartridgesLoaded}`);
-        console.log(`[RELOAD DEBUG] appears in ammo selector query = true (brand=Reloaded, caliber=${formData.caliber})`);
-      }
+        },
+      });
+
+      const newAmmo = ammoResponse.data?.ammunition;
+      await logBrassMovement({
+        brassId: brassLookupId,
+        reloadBatchId: createdSession.id,
+        ammunitionId: newAmmo?.id,
+        quantity: cartridgesLoaded,
+        movementType: 'used_in_reload_batch',
+        previousState: previousBrassState,
+        newState: newBrassState,
+        notes: `Batch ${formData.batch_number}`,
+      });
+      console.log(`[RELOAD DEBUG] ammoStockItemId = ${newAmmo?.id || 'created via function'}`);
+      console.log(`[RELOAD DEBUG] stock quantity added = ${cartridgesLoaded}`);
+      console.log(`[RELOAD DEBUG] appears in ammo selector query = true (brand=Reloaded, caliber=${formData.caliber})`);
 
       onSubmit();
     } catch (error) {
@@ -715,7 +706,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                 <option value="">— Select new brass —</option>
                 {caliberFilteredBrass.filter(b => getBrassState(b).available_to_reload > 0).map(b => {
                   const state = getBrassState(b);
-                  return <option key={b.id} value={b.id}>{b.name}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''}{b.caliber ? ` (${b.caliber})` : ''} — {state.available_new_unloaded} new + {state.available_used_recovered} recovered available (£{b.cost_per_unit.toFixed(4)}/new case)</option>;
+                  return <option key={b.id} value={b.id}>{[b.name, b.lot_number && `Lot ${b.lot_number}`, b.caliber].filter(Boolean).join(' — ')} — {state.available_new_unloaded} new + {state.available_used_recovered} used</option>;
                 })}
               </select>
               <button
@@ -751,7 +742,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
                 const state = getBrassState(b);
                 return (
                 <option key={b.id} value={b.id}>
-                  {b.name}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''}{b.caliber ? ` (${b.caliber})` : ''}{b.batch_number ? ` #${b.batch_number}` : ''} — Used / recovered available: {state.available_used_recovered}, reloaded {state.reload_cycle_count}x (£0 brass cost)
+                  {[b.name, b.lot_number && `Lot ${b.lot_number}`, b.caliber, b.batch_number && `#${b.batch_number}`].filter(Boolean).join(' — ')} — {state.available_used_recovered} used, {state.reload_cycle_count}x
                 </option>
                 );
               })}
@@ -807,7 +798,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2.5 block">Bullet</label>
           <select value={formData.bullet_id ?? ''} onChange={(e) => setFormData({ ...formData, bullet_id: e.target.value })} className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none" required>
             <option value="">Select bullet</option>
-            {caliberFilteredBullets.map(b => <option key={b.id} value={b.id}>{b.name}{b.weight ? ` ${b.weight}${b.weight_unit || 'gr'}` : ''}{b.lot_number ? ` (Lot: ${b.lot_number})` : ''} - {b.quantity_remaining} in stock (£{b.cost_per_unit.toFixed(4)}/ea)</option>)}
+            {caliberFilteredBullets.map(b => <option key={b.id} value={b.id}>{[b.name, b.weight && `${b.weight}${b.weight_unit || 'gr'}`, b.lot_number && `Lot ${b.lot_number}`].filter(Boolean).join(' — ')} — {b.quantity_remaining} in stock</option>) }
           </select>
           {stockWarnings.bullet && (
              <p className="text-xs font-semibold mt-2.5 text-destructive">{stockWarnings.bullet}</p>
