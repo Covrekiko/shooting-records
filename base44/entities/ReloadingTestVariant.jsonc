@@ -23,6 +23,10 @@
     "powder_charge_grains": {
       "type": "number"
     },
+    "powder_lot_number": {
+      "type": "string",
+      "description": "Powder lot or batch number used for this variant"
+    },
     "bullet_brand": {
       "type": "string"
     },
@@ -31,6 +35,10 @@
     },
     "bullet_quantity_used": {
       "type": "integer"
+    },
+    "bullet_lot_number": {
+      "type": "string",
+      "description": "Bullet lot or batch number used for this variant"
     },
     "brass_brand": {
       "type": "string"
@@ -41,6 +49,10 @@
     "brass_quantity_used": {
       "type": "integer"
     },
+    "brass_lot_number": {
+      "type": "string",
+      "description": "Brass lot or batch number used for this variant"
+    },
     "primer_brand": {
       "type": "string"
     },
@@ -49,6 +61,10 @@
     },
     "primer_quantity_used": {
       "type": "integer"
+    },
+    "primer_lot_number": {
+      "type": "string",
+      "description": "Primer lot or batch number used for this variant"
     },
     "seating_depth": {
       "type": "string"
@@ -91,5 +107,47 @@
   "required": [
     "test_id",
     "label"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
 }

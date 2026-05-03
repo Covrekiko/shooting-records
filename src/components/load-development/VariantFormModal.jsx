@@ -12,18 +12,22 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
     powder_name: '',
     powder_component_id: '',
     powder_charge_grains: '',
+    powder_lot_number: '',
     bullet_brand: test.bullet_brand || '',
     bullet_name: '',
     bullet_grains: '',
     bullet_component_id: '',
     bullet_entry_mode: '',
     bullet_quantity_used: '',
+    bullet_lot_number: '',
     brass_brand: test.brass_brand || '',
     brass_component_id: '',
     brass_quantity_used: '',
+    brass_lot_number: '',
     primer_brand: test.primer_brand || '',
     primer_component_id: '',
     primer_quantity_used: '',
+    primer_lot_number: '',
     seating_depth: '',
     coal_oal: '',
     cbto: '',
@@ -60,20 +64,32 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
     const comp = components[type].find(c => c.id === id);
     set(`${type}_component_id`, id);
     if (comp) {
-      if (type === 'powder') set('powder_name', comp.name);
-      if (type === 'bullet') set('bullet_brand', [comp.brand, comp.name].filter(Boolean).join(' ') || comp.name);
-      if (type === 'brass') set('brass_brand', comp.brand || comp.name);
-      if (type === 'primer') set('primer_brand', comp.brand || comp.name);
+      if (type === 'powder') {
+        set('powder_name', comp.name);
+        set('powder_lot_number', comp.lot_number || comp.batch_number || '');
+      }
+      if (type === 'bullet') {
+        set('bullet_brand', [comp.brand, comp.name].filter(Boolean).join(' ') || comp.name);
+        set('bullet_lot_number', comp.lot_number || comp.batch_number || '');
+      }
+      if (type === 'brass') {
+        set('brass_brand', comp.brand || comp.name);
+        set('brass_lot_number', comp.lot_number || comp.batch_number || '');
+      }
+      if (type === 'primer') {
+        set('primer_brand', comp.brand || comp.name);
+        set('primer_lot_number', comp.lot_number || comp.batch_number || '');
+      }
     }
   };
 
   const handleBulletSelect = (value) => {
     if (!value) {
-      setForm(f => ({ ...f, bullet_entry_mode: '', bullet_component_id: '' }));
+      setForm(f => ({ ...f, bullet_entry_mode: '', bullet_component_id: '', bullet_lot_number: '' }));
       return;
     }
     if (value === 'manual') {
-      setForm(f => ({ ...f, bullet_entry_mode: 'manual', bullet_component_id: '' }));
+      setForm(f => ({ ...f, bullet_entry_mode: 'manual', bullet_component_id: '', bullet_lot_number: '' }));
       return;
     }
     const comp = components.bullet.find(c => c.id === value);
@@ -82,6 +98,7 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
       bullet_entry_mode: 'stock',
       bullet_component_id: value,
       bullet_brand: comp ? [comp.brand, comp.name].filter(Boolean).join(' ') || comp.name : f.bullet_brand,
+      bullet_lot_number: comp ? (comp.lot_number || comp.batch_number || '') : f.bullet_lot_number,
     }));
   };
 
@@ -105,17 +122,21 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
         powder_name: form.powder_name,
         powder_component_id: form.powder_component_id,
         powder_charge_grains: parseFloat(form.powder_charge_grains) || 0,
+        powder_lot_number: form.powder_lot_number,
         bullet_brand: form.bullet_entry_mode === 'manual'
           ? [form.bullet_brand, form.bullet_name, form.bullet_grains ? `${form.bullet_grains}gr` : ''].filter(Boolean).join(' ')
           : form.bullet_brand,
         bullet_component_id: form.bullet_component_id,
         bullet_quantity_used: parseInt(form.round_count) || 0,
+        bullet_lot_number: form.bullet_lot_number,
         brass_brand: form.brass_brand,
         brass_component_id: form.brass_component_id,
         brass_quantity_used: parseInt(form.round_count) || 0,
+        brass_lot_number: form.brass_lot_number,
         primer_brand: form.primer_brand,
         primer_component_id: form.primer_component_id,
         primer_quantity_used: parseInt(form.primer_quantity_used) || 0,
+        primer_lot_number: form.primer_lot_number,
         seating_depth: form.seating_depth,
         coal_oal: form.coal_oal,
         cbto: form.cbto,
@@ -248,6 +269,11 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
             <input value={form.powder_charge_grains ?? ''} onChange={e => set('powder_charge_grains', e.target.value)} type="number" step="0.1" placeholder="41.0"
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
           </div>
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Powder Lot / Batch Number</label>
+            <input value={form.powder_lot_number ?? ''} onChange={e => set('powder_lot_number', e.target.value)} placeholder="Optional tracking number"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </div>
         </div>
 
         {/* Bullet */}
@@ -284,6 +310,11 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
               </div>
             </div>
           )}
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Bullet Lot / Batch Number</label>
+            <input value={form.bullet_lot_number ?? ''} onChange={e => set('bullet_lot_number', e.target.value)} placeholder="Optional tracking number"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </div>
         </div>
 
         {/* Primer */}
@@ -310,6 +341,11 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
             <input value={form.primer_quantity_used ?? ''} onChange={e => set('primer_quantity_used', e.target.value)} type="number" placeholder="20"
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
           </div>
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Primer Lot / Batch Number</label>
+            <input value={form.primer_lot_number ?? ''} onChange={e => set('primer_lot_number', e.target.value)} placeholder="Optional tracking number"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </div>
         </div>
 
         {/* Brass */}
@@ -328,6 +364,11 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
           <div>
             <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Brass Brand</label>
             <input value={form.brass_brand ?? ''} onChange={e => set('brass_brand', e.target.value)} placeholder="e.g. Lapua"
+              className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold text-muted-foreground uppercase mb-1">Brass Lot / Batch Number</label>
+            <input value={form.brass_lot_number ?? ''} onChange={e => set('brass_lot_number', e.target.value)} placeholder="Optional tracking number"
               className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none" />
           </div>
         </div>
