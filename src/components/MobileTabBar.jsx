@@ -1,19 +1,21 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Shield, BookOpen, User, RefreshCw, WifiOff, CloudUpload } from 'lucide-react';
+import { Home, Shield, BookOpen, User, RefreshCw, WifiOff, CloudUpload, Map } from 'lucide-react';
 import { useTabHistory, getTabForPath, TAB_DEFAULT } from '../context/TabHistoryContext';
 import { useOffline } from '@/context/OfflineContext';
+import { useOuting } from '@/context/OutingContext';
+import { useModules } from '@/context/ModulesContext';
 
 const TABS = [
   { key: 'home',    label: 'Home',    icon: Home },
   { key: 'armory',  label: 'Armory',  icon: Shield },
+  { key: 'field',   label: 'Map',     icon: Map, module: 'stalk_map' },
   { key: 'records', label: 'Records', icon: BookOpen },
   { key: 'profile', label: 'Profile', icon: User },
 ];
 
 const VISIBLE_TAB_MAP = {
   sessions: 'home',
-  field: 'home',
 };
 
 function getVisibleTab(pathname) {
@@ -26,15 +28,14 @@ export default function MobileTabBar() {
   const navigate = useNavigate();
   const { setLastPath, getLastPath } = useTabHistory();
   const { isOnline, isSyncing, hasPending, syncFailed, pendingCount, manualSync } = useOffline();
+  const { activeOuting } = useOuting();
+  const { isEnabled } = useModules();
 
   // Track path changes into tab history
   useEffect(() => {
     const tab = getTabForPath(location.pathname);
     if (tab) setLastPath(tab, location.pathname);
   }, [location.pathname, setLastPath]);
-
-  // Hide on full-screen pages like the stalking map
-  if (location.pathname === '/deer-stalking') return null;
 
   const activeTab = getVisibleTab(location.pathname);
 
@@ -75,24 +76,26 @@ export default function MobileTabBar() {
         );
       })()}
       <div className="flex items-stretch">
-        {TABS.map(({ key, label, icon: Icon }) => {
+        {TABS.filter(tab => !tab.module || isEnabled(tab.module)).map(({ key, label, icon: Icon }) => {
           const isActive = key === activeTab;
+          const isActiveOutingTab = key === 'field' && Boolean(activeOuting);
           return (
             <button
               key={key}
               onClick={() => handleTabPress(key)}
               aria-current={isActive ? 'page' : undefined}
               className={`flex-1 min-h-[56px] flex flex-col items-center justify-center pt-2 pb-1.5 gap-0.5 transition-colors active:scale-90 transform-gpu select-none ${
-                isActive ? 'text-primary' : 'text-muted-foreground'
+                isActive ? 'text-primary' : isActiveOutingTab ? 'text-emerald-600' : 'text-muted-foreground'
               }`}
             >
-              <div className={`flex items-center justify-center w-7 h-7 rounded-xl transition-all ${
-                isActive ? 'bg-primary/10' : ''
+              <div className={`relative flex items-center justify-center w-7 h-7 rounded-xl transition-all ${
+                isActive ? 'bg-primary/10' : isActiveOutingTab ? 'bg-emerald-500/10' : ''
               }`}>
                 <Icon style={{ width: isActive ? 20 : 18, height: isActive ? 20 : 18 }} />
+                {isActiveOutingTab && <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />}
               </div>
               <span className={`text-xs font-semibold tracking-tight leading-tight ${
-                isActive ? 'text-primary' : 'text-muted-foreground'
+                isActive ? 'text-primary' : isActiveOutingTab ? 'text-emerald-600' : 'text-muted-foreground'
               }`}>
                 {label}
               </span>

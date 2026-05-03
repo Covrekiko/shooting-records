@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import React from 'react';
 import {
-  Target, Crosshair, Map, BookOpen,
+  Target, Crosshair, BookOpen,
   BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck, MessageCircle,
 } from 'lucide-react';
 import {
@@ -338,9 +338,6 @@ export default function Dashboard() {
 
         {/* ── Active Session Banner ── */}
         {activeOuting && isEnabled('stalk_map') && <ActiveSessionBanner outing={activeOuting} />}
-
-        {/* ── Primary Actions ── */}
-        {isEnabled('stalk_map') && <PrimaryCard to="/deer-stalking" icon={<Map />} label="Stalking Map" sub="Areas & outings" />}
 
         {/* ── Secondary Grid ── */}
         <SecondaryGrid user={user} />
