@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight, Trash2, Zap, Layers, Database, Palette } from 'lucide-react';
+import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight, Trash2, Zap, Layers, Database, Palette, Bell } from 'lucide-react';
 import AutoCheckinSettingToggle from '@/components/AutoCheckinSettingToggle';
 import ThemeSelector from '@/components/ThemeSelector';
 import { base44 } from '@/api/base44Client';
@@ -10,6 +10,7 @@ import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { clearLocalAccountData } from '@/lib/accountDataCleanup';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
+import AppPermissionsPanel from '@/components/AppPermissionsPanel';
 
 export default function Profile() {
   const location = useLocation();
@@ -135,6 +136,18 @@ export default function Profile() {
                 App Modules
               </Link>
               <Link
+                to="/profile/settings#app-permissions"
+                state={{ from: 'profile' }}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                  location.hash === '#app-permissions'
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-foreground hover:bg-secondary'
+                }`}
+              >
+                <Bell className="w-4 h-4" />
+                App Permissions
+              </Link>
+              <Link
                 to="/profile/theme"
                 state={{ from: 'profile' }}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
@@ -240,6 +253,7 @@ export function SettingsPanel() {
         <SettingCard title="Deer Locations" description="Manage deer hunting locations" link="/settings/locations" />
         <SettingCard title="Ammunition" description="Manage ammunition" link="/settings/ammunition" />
         <SettingCard title="Ammunition Inventory" description="Track stock levels & costs" link="/settings/ammunition-inventory" />
+        <SettingCard title="App Permissions" description="Manage location and notification permissions" link="/profile/settings#app-permissions" />
       </div>
 
       {user?.role === 'admin' && (
@@ -253,8 +267,12 @@ export function SettingsPanel() {
         </div>
       )}
 
-      <div>
+      <div className="space-y-4">
         <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3">App Settings</h3>
+        <div id="app-permissions">
+          <h4 className="text-base font-semibold text-foreground mb-2">App Permissions</h4>
+          <AppPermissionsPanel userEmail={user?.email} />
+        </div>
         <AutoCheckinSettingToggle />
       </div>
 

@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useOffline } from '@/context/OfflineContext';
 import { getTabForPath, TAB_DEFAULT } from '@/context/TabHistoryContext';
 import { useModules } from '@/context/ModulesContext';
+import AppPermissionsPrompt from '@/components/AppPermissionsPrompt';
 
 const PAGE_TITLES = {
   '/target-shooting': 'Target Shooting',
@@ -113,6 +114,8 @@ export default function Navigation() {
 
   return (
     <>
+      <AppPermissionsPrompt user={user} />
+
       {/* ── DESKTOP NAV ─────────────────────────────────────────────── */}
       <div className="hidden md:block sticky top-0 z-[30] bg-background">
         <div className="max-w-7xl mx-auto px-4 pt-3 pb-2">
