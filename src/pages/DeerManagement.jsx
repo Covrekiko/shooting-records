@@ -12,6 +12,8 @@ import { motion } from 'framer-motion';
 import { DESIGN } from '@/lib/designConstants';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
+import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
+import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 
 let liveGpsTrack = [];
 
@@ -24,6 +26,7 @@ export default function DeerManagement() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(true);
   const [gpsTrack, setGpsTrack] = useState([]);
+  const { Guide: DeerOutingGuide, showGuideThen: showDeerOutingGuideThen } = useFirstTimeGuide(FIRST_TIME_GUIDES.deerOutingCreate);
 
   const [checkinData, setCheckinData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -205,7 +208,7 @@ export default function DeerManagement() {
               <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No Active Outing</p>
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Start an outing to enable GPS tracking</p>
             </div>
-            <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
+            <motion.button whileTap={{ scale: 0.97 }} onClick={() => showDeerOutingGuideThen(() => setShowCheckin(true))}
               className={`${DESIGN.BUTTON_PRIMARY} flex items-center gap-2 w-full justify-center`}>
               <Plus className="w-4 h-4" />
               Start Outing
@@ -240,6 +243,7 @@ export default function DeerManagement() {
           <RecordsSection category="deer_management" title="Outing Records" emptyMessage="No deer management outings recorded yet" />
         </div>
 
+        <DeerOutingGuide />
         {showCheckin && (
           <CheckinModal
             data={checkinData}

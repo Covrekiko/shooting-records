@@ -6,11 +6,14 @@ import { format } from 'date-fns';
 import { generateAmmunitionSummaryPDF } from '@/utils/pdfGenerators';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
+import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
+import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 
 export default function AmmoSummary() {
   const [rifles, setRifles] = useState([]);
   const [shotguns, setShotguns] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { Guide: CleaningGuide, showGuideThen: showCleaningGuideThen } = useFirstTimeGuide(FIRST_TIME_GUIDES.cleaningCreate);
 
   useEffect(() => {
   loadData();
@@ -129,6 +132,7 @@ export default function AmmoSummary() {
     <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
       <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
+      <CleaningGuide />
       <main className="max-w-2xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         <div className="mb-6 flex items-center justify-between gap-4">
           <div>
@@ -167,7 +171,7 @@ export default function AmmoSummary() {
                         </p>
                       </div>
                       <button
-                        onClick={() => handleMarkCleaned(rifle.id)}
+                        onClick={() => showCleaningGuideThen(() => handleMarkCleaned(rifle.id))}
                         className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs rounded-lg font-semibold transition-colors"
                       >
                         Mark Clean
@@ -281,7 +285,7 @@ export default function AmmoSummary() {
                          </div>
                        )}
                        <button
-                         onClick={() => handleMarkCleaned(rifle.id)}
+                         onClick={() => showCleaningGuideThen(() => handleMarkCleaned(rifle.id))}
                          className="w-full px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
                        >
                          <Droplet className="w-4 h-4" />
@@ -396,7 +400,7 @@ export default function AmmoSummary() {
                         </div>
                       )}
                       <button
-                        onClick={() => handleShotgunMarkCleaned(shotgun.id)}
+                        onClick={() => showCleaningGuideThen(() => handleShotgunMarkCleaned(shotgun.id))}
                         className="w-full px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
                       >
                         <Droplet className="w-4 h-4" />

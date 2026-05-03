@@ -5,6 +5,8 @@ import { Plus, Trash2, Edit2, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import AmmoSpendingBreakdown from '@/components/AmmoSpendingBreakdown';
 import GlobalModal, { ModalCancelButton, ModalSaveButton } from '@/components/ui/GlobalModal';
+import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
+import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 
 export default function AmmunitionInventory() {
   const [ammo, setAmmo] = useState([]);
@@ -14,6 +16,7 @@ export default function AmmunitionInventory() {
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [deletingItem, setDeletingItem] = useState(null);
+  const { Guide: AmmoGuide, showGuideThen: showAmmoGuideThen } = useFirstTimeGuide(FIRST_TIME_GUIDES.ammoCreate);
   const [formData, setFormData] = useState({
     brand: '',
     caliber: '',
@@ -124,7 +127,7 @@ export default function AmmunitionInventory() {
             <p className="text-muted-foreground">Track and manage your ammunition stock</p>
           </div>
           <button
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => showForm ? setShowForm(false) : showAmmoGuideThen(() => setShowForm(true))}
             className="px-6 py-3 bg-primary text-primary-foreground rounded-2xl hover:opacity-90 flex items-center gap-2 font-semibold whitespace-nowrap"
           >
             <Plus className="w-5 h-5" />
@@ -133,6 +136,7 @@ export default function AmmunitionInventory() {
           </button>
         </div>
 
+        <AmmoGuide />
         {showForm && (
           <div className="bg-card border border-border rounded-xl p-4 mb-6">
             <h2 className="text-lg font-bold mb-4">{editingId ? 'Edit' : 'Add'} Ammunition</h2>

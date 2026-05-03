@@ -2,6 +2,8 @@ import { useState } from 'react';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import PhotoUpload from '@/components/PhotoUpload';
 import { DESIGN } from '@/lib/designConstants';
+import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
+import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 
 const POI_TYPES = [
   { value: 'deer_sighting', label: '🦌 Deer Sighting', title: 'Deer Sighting' },
@@ -34,13 +36,21 @@ const emptyData = {
 export default function POIModal({ location, onClose, onSubmit }) {
   const [type, setType] = useState('');
   const [data, setData] = useState(emptyData);
+  const { Guide: HighSeatGuide, showGuideThen: showHighSeatGuideThen } = useFirstTimeGuide(FIRST_TIME_GUIDES.highSeatCreate);
 
   const selectedType = POI_TYPES.find(opt => opt.value === type);
   const update = (field, value) => setData(prev => ({ ...prev, [field]: value }));
 
   const handleSelectType = (value) => {
-    setType(value);
-    setData(emptyData);
+    const selectType = () => {
+      setType(value);
+      setData(emptyData);
+    };
+    if (value === 'high_seat') {
+      showHighSeatGuideThen(selectType);
+      return;
+    }
+    selectType();
   };
 
   const handleSubmit = () => {
@@ -127,7 +137,9 @@ export default function POIModal({ location, onClose, onSubmit }) {
   };
 
   return (
-    <GlobalModal
+    <>
+      <HighSeatGuide />
+      <GlobalModal
       open={true}
       onClose={onClose}
       title={selectedType ? `Add ${selectedType.title}` : 'Add Point of Interest'}
@@ -157,6 +169,7 @@ export default function POIModal({ location, onClose, onSubmit }) {
           {renderFields()}
         </div>
       )}
-    </GlobalModal>
+      </GlobalModal>
+    </>
   );
 }

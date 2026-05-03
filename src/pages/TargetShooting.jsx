@@ -23,6 +23,8 @@ import { useAutoCheckin } from '@/hooks/useAutoCheckin';
 import AutoCheckinBanner from '@/components/AutoCheckinBanner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
+import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
+import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 
 export default function TargetShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -52,6 +54,7 @@ export default function TargetShooting() {
   const [viewingTrack, setViewingTrack] = useState(null);
   const [showTargetAnalysis, setShowTargetAnalysis] = useState(false);
   const [showBallisticCalc, setShowBallisticCalc] = useState(false);
+  const { Guide: TargetSessionGuide, showGuideThen: showTargetSessionGuideThen } = useFirstTimeGuide(FIRST_TIME_GUIDES.targetSessionCreate);
   const [autoCheckinMatch, setAutoCheckinMatch] = useState(null);
   const [autoCheckinEnabled, setAutoCheckinEnabled] = useState(false);
 
@@ -329,7 +332,7 @@ export default function TargetShooting() {
       <Navigation />
       <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       {nearbyClub && (
-        <CheckinBanner location={nearbyClub.name} distance={nearbyClub.distance} onDismiss={() => setNearbyClub(null)} onCheckin={() => setShowCheckin(true)} />
+        <CheckinBanner location={nearbyClub.name} distance={nearbyClub.distance} onDismiss={() => setNearbyClub(null)} onCheckin={() => showTargetSessionGuideThen(() => setShowCheckin(true))} />
       )}
       {autoCheckinMatch && (
         <AutoCheckinBanner
@@ -357,7 +360,7 @@ export default function TargetShooting() {
               <p className="text-sm font-semibold text-foreground">No Active Session</p>
               <p className="text-xs text-muted-foreground mt-0.5">Start a session to begin tracking</p>
             </div>
-            <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
+            <motion.button whileTap={{ scale: 0.97 }} onClick={() => showTargetSessionGuideThen(() => setShowCheckin(true))}
               className="w-full px-4 py-2.5 bg-primary text-primary-foreground rounded-lg font-semibold hover:opacity-90 transition-opacity flex items-center gap-2 justify-center">
               <Plus className="w-4 h-4" />
               Start Session
@@ -448,6 +451,7 @@ export default function TargetShooting() {
         document.body
       )}
 
+      <TargetSessionGuide />
       {showCheckin && (
         <CheckinModal data={checkinData} clubs={clubs} onSubmit={handleCheckin} onChange={(f, v) => setCheckinData({ ...checkinData, [f]: v })} onClose={() => setShowCheckin(false)} />
       )}

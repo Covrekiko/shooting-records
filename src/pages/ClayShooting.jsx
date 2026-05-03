@@ -21,6 +21,8 @@ import { useAutoCheckin } from '@/hooks/useAutoCheckin';
 import AutoCheckinBanner from '@/components/AutoCheckinBanner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
+import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
+import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 
 export default function ClayShooting() {
   const [activeSession, setActiveSession] = useState(null);
@@ -35,6 +37,7 @@ export default function ClayShooting() {
   const [gpsTrack, setGpsTrack] = useState([]);
   const [viewingTrack, setViewingTrack] = useState(null);
   const [showScorecard, setShowScorecard] = useState(false);
+  const { Guide: ClaySessionGuide, showGuideThen: showClaySessionGuideThen } = useFirstTimeGuide(FIRST_TIME_GUIDES.claySessionCreate);
   const [autoCheckinMatch, setAutoCheckinMatch] = useState(null);
   const [autoCheckinEnabled, setAutoCheckinEnabled] = useState(false);
   const [stands, setStands] = useState([]);
@@ -338,7 +341,7 @@ export default function ClayShooting() {
       <Navigation />
       <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
       {nearbyClub && (
-        <CheckinBanner location={nearbyClub.name} distance={nearbyClub.distance} onDismiss={() => setNearbyClub(null)} onCheckin={() => setShowCheckin(true)} />
+        <CheckinBanner location={nearbyClub.name} distance={nearbyClub.distance} onDismiss={() => setNearbyClub(null)} onCheckin={() => showClaySessionGuideThen(() => setShowCheckin(true))} />
       )}
       {autoCheckinMatch && (
         <AutoCheckinBanner
@@ -366,7 +369,7 @@ export default function ClayShooting() {
               <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">No Active Session</p>
               <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Start a session to begin tracking</p>
             </div>
-            <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowCheckin(true)}
+            <motion.button whileTap={{ scale: 0.97 }} onClick={() => showClaySessionGuideThen(() => setShowCheckin(true))}
               className={`${DESIGN.BUTTON_PRIMARY} flex items-center gap-2 w-full justify-center`}>
               <Plus className="w-4 h-4" />
               Start Session
@@ -431,6 +434,7 @@ export default function ClayShooting() {
         )}
       </main>
 
+      <ClaySessionGuide />
       {showCheckin && (
         <CheckinModal data={checkinData} clubs={clubs} onSubmit={handleCheckin} onChange={(f, v) => setCheckinData({ ...checkinData, [f]: v })} onClose={() => setShowCheckin(false)} />
       )}

@@ -14,6 +14,8 @@ import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { generateReloadingBatchPDF } from '@/utils/pdfGenerators';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
+import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
+import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 
 export default function ReloadingManagement() {
   const navigate = useNavigate();
@@ -23,6 +25,7 @@ export default function ReloadingManagement() {
   const [editingSession, setEditingSession] = useState(null);
   const [activeTab, setActiveTab] = useState('history');
   const [showBatchForm, setShowBatchForm] = useState(false);
+  const { Guide: ReloadingBatchGuide, showGuideThen: showReloadingBatchGuideThen } = useFirstTimeGuide(FIRST_TIME_GUIDES.reloadingBatchCreate);
 
   useEffect(() => {
     loadSessions();
@@ -226,7 +229,7 @@ export default function ReloadingManagement() {
             <p className="text-muted-foreground">Track and manage your reloading sessions</p>
           </div>
           <button
-            onClick={() => setShowBatchForm(true)}
+            onClick={() => showReloadingBatchGuideThen(() => setShowBatchForm(true))}
             className="px-6 py-3 bg-primary text-primary-foreground rounded-2xl hover:opacity-90 flex items-center gap-2 font-semibold whitespace-nowrap"
           >
             <Plus className="w-5 h-5" />
@@ -378,6 +381,8 @@ export default function ReloadingManagement() {
 
         {/* Old Inventory Tab */}
         {activeTab === 'inventory' && <ReloadingInventoryWidget />}
+
+        <ReloadingBatchGuide />
 
         {/* Reload Batch Form Modal */}
         <GlobalModal

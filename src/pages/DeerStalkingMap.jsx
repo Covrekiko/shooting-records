@@ -20,6 +20,8 @@ import LegalShootingHoursWidget from '@/components/deer-stalking/LegalShootingHo
 import { useAutoCheckin } from '@/hooks/useAutoCheckin';
 import AutoCheckinBanner from '@/components/AutoCheckinBanner';
 import ShareAreaModal from '@/components/deer-stalking/ShareAreaModal';
+import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
+import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 
 const mapContainerStyle = {
   width: '100%',
@@ -99,6 +101,8 @@ export default function DeerStalkingMap() {
   const [showOuting, setShowOuting] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
   const [showShareArea, setShowShareArea] = useState(false);
+  const { Guide: StalkingAreaGuide, showGuideThen: showStalkingAreaGuideThen } = useFirstTimeGuide(FIRST_TIME_GUIDES.stalkingAreaCreate);
+  const { Guide: POIGuide, showGuideThen: showPOIGuideThen } = useFirstTimeGuide(FIRST_TIME_GUIDES.poiCreate);
   const [focusedHarvestId, setFocusedHarvestId] = useState(null);
   const [waitingForPin, setWaitingForPin] = useState(null);
   const [rifles, setRifles] = useState([]);
@@ -718,10 +722,10 @@ export default function DeerStalkingMap() {
       {/* ── FLOATING ACTION BAR - Bottom Right ── */}
       <div className="fixed bottom-8 right-5 z-[9999] pointer-events-auto">
         <FloatingActionBar
-          onPOI={() => {
+          onPOI={() => showPOIGuideThen(() => {
             setMapClick(null);
             setWaitingForPin('poi');
-          }}
+          })}
           onHarvest={() => {
             setMapClick(null);
             setWaitingForPin('harvest');
@@ -730,10 +734,13 @@ export default function DeerStalkingMap() {
           onRecenter={handleRecenter}
           activeOuting={activeOuting}
           onEndOuting={handleEndOuting}
-          onCreateArea={handleStartAreaCreation}
+          onCreateArea={() => showStalkingAreaGuideThen(handleStartAreaCreation)}
           onShareArea={() => setShowShareArea(true)}
         />
       </div>
+
+      <StalkingAreaGuide />
+      <POIGuide />
 
       {/* Modals — GlobalModal handles its own portal/overlay */}
       {showPOI && mapClick && (
