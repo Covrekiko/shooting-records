@@ -310,6 +310,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
           source_type: 'reload_batch',
           source_id: createdSession.id,
           reload_session_id: createdSession.id,
+          reload_batch_id: createdSession.id,
           batch_number: formData.batch_number,
           brass_component_id: brassLookupId,
           brass_reload_cycle_count: nextReloadCycle,

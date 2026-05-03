@@ -27,6 +27,15 @@ Deno.serve(async (req) => {
       const updated = await base44.asServiceRole.entities.Ammunition.update(existing.id, {
         quantity_in_stock: (existing.quantity_in_stock || 0) + (Number(quantityToAdd) || 0),
         cost_per_unit: ammunitionData.cost_per_unit || existing.cost_per_unit || 0,
+        source_id: reloadSessionId,
+        reload_session_id: reloadSessionId,
+        reload_batch_id: reloadSessionId,
+      });
+
+      await base44.asServiceRole.entities.ReloadingSession.update(reloadSessionId, {
+        ammunition_id: updated.id,
+        linked_ammunition_id: updated.id,
+        ammo_created_quantity: (updated.quantity_in_stock || 0),
       });
 
       return Response.json({ ammunition: updated, status: 'updated' });
@@ -40,6 +49,13 @@ Deno.serve(async (req) => {
       created_by: user.email,
       source_id: reloadSessionId,
       reload_session_id: reloadSessionId,
+      reload_batch_id: reloadSessionId,
+    });
+
+    await base44.asServiceRole.entities.ReloadingSession.update(reloadSessionId, {
+      ammunition_id: created.id,
+      linked_ammunition_id: created.id,
+      ammo_created_quantity: Number(ammunitionData.quantity_in_stock) || Number(quantityToAdd) || 0,
     });
 
     return Response.json({ ammunition: created, status: 'created' });

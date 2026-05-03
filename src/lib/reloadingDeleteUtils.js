@@ -50,11 +50,26 @@ async function findReloadSessionForAmmo(ammo, user) {
 }
 
 async function findLinkedAmmoForSession(session, user) {
+  if (session?.ammunition_id || session?.linked_ammunition_id) {
+    const direct = await getAmmoById(session.ammunition_id || session.linked_ammunition_id);
+    if (direct) return direct;
+  }
+
   const ammoList = await base44.entities.Ammunition.filter({ created_by: user.email });
-  return ammoList.find((ammo) => ammo.source_id === session.id || ammo.reload_session_id === session.id || ammo.reload_batch_id === session.id)
+  return ammoList.find((ammo) => ammo.id === session.ammunition_id || ammo.id === session.linked_ammunition_id)
+    || ammoList.find((ammo) => ammo.source_id === session.id || ammo.reload_session_id === session.id || ammo.reload_batch_id === session.id)
     || ammoList.find((ammo) => ammo.notes?.includes?.(`reload_batch:${session.id}`))
     || ammoList.find((ammo) => ammo.brand === 'Reloaded' && ammo.caliber === session.caliber && ammo.notes?.includes?.(session.batch_number))
     || null;
+}
+
+async function getAmmoById(id) {
+  if (!id) return null;
+  try {
+    return await base44.entities.Ammunition.get(id);
+  } catch {
+    return null;
+  }
 }
 
 async function hasAmmunitionReferences(ammunitionId, user) {
@@ -74,6 +89,35 @@ async function hasAmmunitionReferences(ammunitionId, user) {
   ));
 
   return spendingReference || recordReference;
+}
+
+async function getReloadSessionUsageEvidence(session, ammunitionId, user) {
+  const [spending, records, brassLogs] = await Promise.all([
+    base44.entities.AmmoSpending.filter({ created_by: user.email }),
+    base44.entities.SessionRecord.filter({ created_by: user.email }),
+    base44.entities.BrassMovementLog.filter({ created_by: user.email, reload_batch_id: session.id }),
+  ]);
+
+  const firedFromBrassLogs = brassLogs
+    .filter((log) => log.movement_type === 'fired_from_loaded_ammo')
+    .reduce((sum, log) => sum + num(log.quantity), 0);
+
+  const spendingUsed = ammunitionId
+    ? spending.filter((entry) => entry.ammunition_id === ammunitionId || entry.ammo_id === ammunitionId).reduce((sum, entry) => sum + num(entry.quantity_used), 0)
+    : 0;
+
+  const recordReferences = ammunitionId ? records.filter((record) => (
+    record.ammunition_id === ammunitionId ||
+    record.ammo_id === ammunitionId ||
+    record.ammunitionId === ammunitionId ||
+    record.rifles_used?.some?.((rifle) => rifle.ammunition_id === ammunitionId || rifle.ammo_id === ammunitionId)
+  )).length : 0;
+
+  return {
+    hasEvidence: firedFromBrassLogs > 0 || spendingUsed > 0 || recordReferences > 0,
+    firedQuantity: firedFromBrassLogs || spendingUsed,
+    recordReferences,
+  };
 }
 
 async function alreadyRestored(sessionId, session) {
@@ -120,8 +164,12 @@ async function restoreComponentsForSession(session, remainingUnfired) {
     if (normalizedType === 'brass') {
       const previousState = getBrassState(component);
       const qty = Math.min(remainingUnfired, num(comp.quantity_used), previousState.currently_loaded);
-      const brassNewQuantity = Math.min(qty, num(comp.brass_new_quantity_used || (comp.brass_use_type === 'new' ? comp.quantity_used : 0)), previousState.currently_loaded_new);
-      const brassUsedQuantity = Math.min(qty - brassNewQuantity, num(comp.brass_used_quantity_used || (comp.brass_use_type === 'used' ? comp.quantity_used : 0)), previousState.currently_loaded_used);
+      const batchNewQuantity = num(comp.brass_new_quantity_used || (comp.brass_use_type === 'new' ? comp.quantity_used : 0));
+      const batchUsedQuantity = num(comp.brass_used_quantity_used || (comp.brass_use_type === 'used' ? comp.quantity_used : 0));
+      const batchTotalQuantity = Math.max(1, batchNewQuantity + batchUsedQuantity);
+      const preferredNewQuantity = Math.round(qty * (batchNewQuantity / batchTotalQuantity));
+      const brassNewQuantity = Math.min(qty, preferredNewQuantity, previousState.currently_loaded_new);
+      const brassUsedQuantity = Math.min(qty - brassNewQuantity, previousState.currently_loaded_used);
       const newState = {
         ...previousState,
         currently_loaded_new: Math.max(0, previousState.currently_loaded_new - brassNewQuantity),
@@ -180,10 +228,10 @@ async function removeOrArchiveAmmo(ammo, user, remainingUnfired, session) {
   return { ammo_action: 'deleted', ammo_referenced_by_records: false };
 }
 
-export async function deleteReloadBatchWithRestore({ reloadSessionId, ammunitionId }) {
+export async function deleteReloadBatchWithRestore({ reloadSessionId, ammunitionId, manualRemainingUnfired }) {
   const user = await getCurrentUser();
   let session = await getReloadSessionById(reloadSessionId);
-  let ammo = ammunitionId ? await base44.entities.Ammunition.get(ammunitionId) : null;
+  let ammo = await getAmmoById(ammunitionId);
 
   if (!session && ammo) session = await findReloadSessionForAmmo(ammo, user);
   if (!ammo && session) ammo = await findLinkedAmmoForSession(session, user);
@@ -199,13 +247,31 @@ export async function deleteReloadBatchWithRestore({ reloadSessionId, ammunition
   const originalRounds = Math.max(0, num(session.rounds_loaded));
   const warnings = [];
   let remainingUnfired = 0;
+  let restoredFromSnapshot = false;
+  let manualRestoreUsed = false;
 
   if (ammo) {
     remainingUnfired = Math.min(originalRounds || num(ammo.quantity_in_stock), Math.max(0, num(ammo.quantity_in_stock)));
+  } else if (manualRemainingUnfired !== undefined && manualRemainingUnfired !== null && manualRemainingUnfired !== '') {
+    remainingUnfired = Math.min(originalRounds, Math.max(0, num(manualRemainingUnfired)));
+    manualRestoreUsed = true;
   } else if (session.remaining_unfired_at_delete !== undefined) {
-    remainingUnfired = Math.max(0, num(session.remaining_unfired_at_delete));
+    remainingUnfired = Math.min(originalRounds, Math.max(0, num(session.remaining_unfired_at_delete)));
   } else {
-    warnings.push('Linked ammunition is missing, so remaining stock could not be calculated automatically.');
+    const usageEvidence = await getReloadSessionUsageEvidence(session, ammunitionId || session.ammunition_id || session.linked_ammunition_id, user);
+    if (usageEvidence.hasEvidence) {
+      return {
+        success: false,
+        requires_manual_remaining: true,
+        reload_session_id: session.id,
+        original_rounds_loaded: originalRounds,
+        fired_evidence_quantity: usageEvidence.firedQuantity,
+        warnings: ['Linked ammunition is missing, so remaining stock could not be calculated automatically. You can cancel, or enter the remaining unfired rounds to restore manually.'],
+      };
+    }
+    remainingUnfired = originalRounds;
+    restoredFromSnapshot = true;
+    warnings.push('Linked ammunition was missing. Full unused batch was restored from reload session snapshot.');
   }
 
   const alreadyDone = await alreadyRestored(session.id, session);
@@ -222,9 +288,12 @@ export async function deleteReloadBatchWithRestore({ reloadSessionId, ammunition
     reload_session_deleted: true,
     components_restored: alreadyDone ? session.components_restored === true : true,
     remaining_unfired_at_delete: remainingUnfired,
-    linked_ammunition_id: ammo?.id || session.linked_ammunition_id || '',
+    linked_ammunition_id: ammo?.id || session.linked_ammunition_id || session.ammunition_id || '',
+    ammunition_id: ammo?.id || session.ammunition_id || '',
     ammunition_deleted: ammoResult.ammo_action === 'deleted',
     ammunition_archived: ammoResult.ammo_action === 'archived',
+    restored_from_session_snapshot: restoredFromSnapshot,
+    manual_remaining_restore_used: manualRestoreUsed,
   });
 
   return {
@@ -233,6 +302,8 @@ export async function deleteReloadBatchWithRestore({ reloadSessionId, ammunition
     ammunition_id: ammo?.id || null,
     original_rounds_loaded: originalRounds,
     remaining_unfired: remainingUnfired,
+    restored_from_session_snapshot: restoredFromSnapshot,
+    manual_remaining_restore_used: manualRestoreUsed,
     already_restored: alreadyDone,
     ...componentResult,
     ...ammoResult,

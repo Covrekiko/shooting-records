@@ -26,6 +26,9 @@ export default function ReloadingManagement() {
   const [editingSession, setEditingSession] = useState(null);
   const [activeTab, setActiveTab] = useState('history');
   const [showBatchForm, setShowBatchForm] = useState(false);
+  const [manualRestoreSession, setManualRestoreSession] = useState(null);
+  const [manualRemainingRounds, setManualRemainingRounds] = useState('0');
+  const [manualRestoreWarning, setManualRestoreWarning] = useState('');
   const { Guide: ReloadingBatchGuide, showGuideThen: showReloadingBatchGuideThen } = useFirstTimeGuide(FIRST_TIME_GUIDES.reloadingBatchCreate);
 
   useEffect(() => {
@@ -51,6 +54,34 @@ export default function ReloadingManagement() {
     if (!confirm('Delete this reloading session? Component stock will be restored.')) return;
     try {
       const result = await deleteReloadBatchWithRestore({ reloadSessionId: id });
+      if (result.requires_manual_remaining) {
+        const session = sessions.find((item) => item.id === id);
+        setManualRestoreSession(session || { id, rounds_loaded: result.original_rounds_loaded || 0 });
+        setManualRemainingRounds('0');
+        setManualRestoreWarning(result.warnings?.join('\n') || 'Linked ammunition is missing. Enter remaining unfired rounds to restore manually.');
+        return;
+      }
+      if (result.warnings?.length > 0) {
+        alert(result.warnings.join('\n'));
+      }
+      await loadSessions();
+    } catch (error) {
+      console.error('Error deleting session:', error);
+      alert('Error deleting session: ' + error.message);
+    }
+  };
+
+  const handleManualRestoreDelete = async () => {
+    if (!manualRestoreSession?.id) return;
+    const maxRounds = Number(manualRestoreSession.rounds_loaded || 0);
+    const remaining = Math.min(maxRounds, Math.max(0, Number(manualRemainingRounds || 0)));
+    try {
+      const result = await deleteReloadBatchWithRestore({
+        reloadSessionId: manualRestoreSession.id,
+        manualRemainingUnfired: remaining,
+      });
+      setManualRestoreSession(null);
+      setManualRestoreWarning('');
       if (result.warnings?.length > 0) {
         alert(result.warnings.join('\n'));
       }
@@ -81,7 +112,7 @@ export default function ReloadingManagement() {
           const user = await base44.auth.me();
           // Create a per-batch ammo entry tagged with reload_batch:<id> for reliable reversal
           const batchNotes = `reload_batch:${createdSession.id} | Batch ${data.batch_number}`;
-          await base44.entities.Ammunition.create({
+          const createdAmmo = await base44.entities.Ammunition.create({
             brand: 'Reloaded',
             caliber: data.caliber,
             bullet_type: 'Custom',
@@ -93,8 +124,14 @@ export default function ReloadingManagement() {
             ammo_type: 'reloaded',
             source_type: 'reload_batch',
             reload_session_id: createdSession.id,
+            reload_batch_id: createdSession.id,
             source_id: createdSession.id,
             notes: batchNotes,
+          });
+          await base44.entities.ReloadingSession.update(createdSession.id, {
+            ammunition_id: createdAmmo.id,
+            linked_ammunition_id: createdAmmo.id,
+            ammo_created_quantity: data.rounds_loaded,
           });
         }
       }
@@ -303,6 +340,51 @@ export default function ReloadingManagement() {
             }}
             onClose={() => setShowBatchForm(false)}
           />
+        </GlobalModal>
+
+        <GlobalModal
+          open={!!manualRestoreSession}
+          onClose={() => setManualRestoreSession(null)}
+          title="Restore reload batch manually"
+          footer={(
+            <>
+              <button
+                type="button"
+                onClick={() => setManualRestoreSession(null)}
+                className="flex-1 h-11 rounded-xl font-semibold text-sm bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleManualRestoreDelete}
+                className="flex-1 h-11 rounded-xl font-semibold text-sm bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors"
+              >
+                Restore & Delete
+              </button>
+            </>
+          )}
+          maxWidth="max-w-md"
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground whitespace-pre-line">{manualRestoreWarning}</p>
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 block">
+                Remaining unfired rounds
+              </label>
+              <input
+                type="number"
+                min="0"
+                max={manualRestoreSession?.rounds_loaded || 0}
+                value={manualRemainingRounds}
+                onChange={(e) => setManualRemainingRounds(e.target.value)}
+                className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-lg text-sm"
+              />
+              <p className="text-xs text-muted-foreground mt-2">
+                Maximum: {manualRestoreSession?.rounds_loaded || 0} rounds. Use 0 if none remain.
+              </p>
+            </div>
+          </div>
         </GlobalModal>
 
         {/* Old Session Form Modal */}
