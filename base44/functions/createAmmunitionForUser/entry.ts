@@ -17,8 +17,8 @@ const integerFields = new Set([
 ]);
 const numberFields = new Set(['cost_per_unit', 'unit_cost', 'total_cost']);
 
-function cleanPayload(input = {}, userEmail) {
-  const output = { created_by: userEmail };
+function cleanPayload(input = {}) {
+  const output = {};
 
   for (const field of allowedFields) {
     if (!(field in input)) continue;
@@ -66,8 +66,8 @@ Deno.serve(async (req) => {
     }
 
     const { ammunition } = await req.json();
-    const payload = cleanPayload(ammunition, user.email);
-    const created = await base44.asServiceRole.entities.Ammunition.create(payload);
+    const payload = cleanPayload(ammunition);
+    const created = await base44.entities.Ammunition.create(payload);
 
     return Response.json({ success: true, ammunition: created });
   } catch (error) {
