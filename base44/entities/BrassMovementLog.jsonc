@@ -33,7 +33,9 @@
         "retired",
         "restored_after_record_delete",
         "restored_after_batch_delete",
-        "manual_fired_brass"
+        "manual_fired_brass",
+        "stock_restore_skipped_brass_already_reused",
+        "brass_inventory_invariant_clamped"
       ]
     },
     "previous_state": {

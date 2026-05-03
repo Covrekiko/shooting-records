@@ -1,5 +1,5 @@
 import { base44 } from '@/api/base44Client';
-import { moveLoadedAmmoToFiredBrass, restoreFiredBrassToLoadedForRecord } from '@/lib/brassLifecycle';
+import { moveLoadedAmmoToFiredBrass, restoreFiredBrassToLoadedForRecord, getReusedBrassStockRestoreWarning, logSkippedAmmoStockRestore } from '@/lib/brassLifecycle';
 
 /**
  * Decrement ammunition stock and log the spending.
@@ -54,6 +54,19 @@ export async function restoreAmmoStock(ammunitionId, quantity, sessionId = null,
   try {
     const ammo = await base44.entities.Ammunition.get(ammunitionId);
     const stockBefore = ammo.quantity_in_stock || 0;
+    const reusedWarning = ammo.source_type === 'reload_batch'
+      ? await getReusedBrassStockRestoreWarning(ammo, sessionId)
+      : null;
+
+    if (reusedWarning) {
+      console.warn('Ammo stock restore skipped: fired brass was already recovered and reused in a later reload batch.');
+      await logSkippedAmmoStockRestore({ ammo, recordId: sessionId, quantity, warning: reusedWarning });
+      return {
+        skipped: true,
+        warning: 'Ammo stock was not restored because the fired brass from this record was already recovered and reused in a later reload batch.'
+      };
+    }
+
     const newQuantity = stockBefore + quantity;
     console.log(`[AMMO DEBUG] action: AMMO_REFUNDED sourceId: ${sessionId} outingId: ${outingId} ammoId: ${ammunitionId} quantityChange: +${quantity} stockBefore: ${stockBefore} stockAfter: ${newQuantity}`);
     await base44.entities.Ammunition.update(ammunitionId, { quantity_in_stock: newQuantity });
@@ -94,6 +107,7 @@ export async function refundAmmoForRecord(record, recordType) {
   if (!record || !record.id) return { success: true, refunded: 0 };
 
   let totalRefunded = 0;
+  const warnings = [];
 
   try {
     if (recordType === 'target_shooting' && record.rifles_used?.length > 0) {
@@ -102,8 +116,13 @@ export async function refundAmmoForRecord(record, recordType) {
         if (rifleStat.ammunition_id && rifleStat.rounds_fired) {
           const roundsFired = parseInt(rifleStat.rounds_fired) || 0;
           if (roundsFired > 0) {
-            await restoreAmmoStock(rifleStat.ammunition_id, roundsFired, record.id);
-            totalRefunded += roundsFired;
+            const result = await restoreAmmoStock(rifleStat.ammunition_id, roundsFired, record.id);
+            if (result?.skipped) {
+              console.warn(result.warning);
+              warnings.push(result.warning);
+            } else {
+              totalRefunded += roundsFired;
+            }
           }
         }
       }
@@ -113,8 +132,13 @@ export async function refundAmmoForRecord(record, recordType) {
       if (record.ammunition_id && record.rounds_fired) {
         const roundsFired = parseInt(record.rounds_fired) || 0;
         if (roundsFired > 0) {
-          await restoreAmmoStock(record.ammunition_id, roundsFired, record.id, record.outing_id);
-          totalRefunded = roundsFired;
+          const result = await restoreAmmoStock(record.ammunition_id, roundsFired, record.id, record.outing_id);
+          if (result?.skipped) {
+            console.warn(result.warning);
+            warnings.push(result.warning);
+          } else {
+            totalRefunded = roundsFired;
+          }
         }
       }
     } else if (recordType === 'clay_shooting') {
@@ -122,13 +146,18 @@ export async function refundAmmoForRecord(record, recordType) {
       if (record.ammunition_id && record.rounds_fired) {
         const roundsFired = parseInt(record.rounds_fired) || 0;
         if (roundsFired > 0) {
-          await restoreAmmoStock(record.ammunition_id, roundsFired, record.id);
-          totalRefunded = roundsFired;
+          const result = await restoreAmmoStock(record.ammunition_id, roundsFired, record.id);
+          if (result?.skipped) {
+            console.warn(result.warning);
+            warnings.push(result.warning);
+          } else {
+            totalRefunded = roundsFired;
+          }
         }
       }
     }
 
-    return { success: true, refunded: totalRefunded };
+    return { success: true, refunded: totalRefunded, warnings };
   } catch (error) {
     console.error(`[AMMO REFUND ERROR] recordType: ${recordType} recordId: ${record.id} error: ${error.message}`);
     return { success: false, error: error.message, refunded: 0 };

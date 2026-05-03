@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { RotateCcw, Edit2, Plus, AlertTriangle, CheckCircle2, Crosshair, Wrench, Archive } from 'lucide-react';
 import { annealBrass, getBrassState, recoverFiredBrass, retireBrass, logBrassMovement, stateUpdate } from '@/lib/brassLifecycle';
@@ -8,8 +8,22 @@ export default function BrassLifecycleManager({ brass, onUpdated }) {
   const [maxReloads, setMaxReloads] = useState(brass.reload_limit ?? brass.max_reloads ?? '');
   const [quantity, setQuantity] = useState('');
   const [saving, setSaving] = useState(false);
+  const [movementLogs, setMovementLogs] = useState([]);
 
   const state = getBrassState(brass);
+
+  useEffect(() => {
+    let mounted = true;
+    base44.entities.BrassMovementLog.filter({ brass_id: brass.id })
+      .then((logs) => {
+        if (!mounted) return;
+        setMovementLogs((logs || [])
+          .sort((a, b) => new Date(b.movement_date || b.created_date) - new Date(a.movement_date || a.created_date))
+          .slice(0, 10));
+      })
+      .catch(() => { if (mounted) setMovementLogs([]); });
+    return () => { mounted = false; };
+  }, [brass.id]);
   const atLimit = state.reload_limit > 0 && state.reload_cycle_count >= state.reload_limit;
   const nearLimit = state.reload_limit > 0 && state.reload_cycle_count >= state.reload_limit - 1 && !atLimit;
 
@@ -117,6 +131,34 @@ export default function BrassLifecycleManager({ brass, onUpdated }) {
         <ActionInput action="retire" onConfirm={handleRetire} />
         {editing !== 'retire' && (
           <button onClick={() => { setQuantity(''); setEditing('retire'); }} className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-border rounded hover:bg-secondary text-destructive"><Archive className="w-3 h-3" /> Retire brass</button>
+        )}
+      </div>
+
+      <div className="pt-2 border-t border-border">
+        <p className="text-xs font-bold text-muted-foreground uppercase mb-2">Movement History</p>
+        {movementLogs.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No movements recorded yet</p>
+        ) : (
+          <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+            {movementLogs.map((log) => (
+              <div key={log.id} className="rounded-lg border border-border bg-background/60 px-2.5 py-2 text-xs">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-foreground break-words">{log.movement_type}</p>
+                    <p className="text-muted-foreground">
+                      Qty {log.quantity || 0}
+                      {log.reload_batch_id ? ` • Batch ${log.reload_batch_id.slice(0, 8)}` : ''}
+                      {log.record_id ? ` • Record ${log.record_id.slice(0, 8)}` : ''}
+                    </p>
+                    {log.notes && <p className="text-muted-foreground mt-0.5 break-words">{log.notes}</p>}
+                  </div>
+                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                    {log.movement_date ? new Date(log.movement_date).toLocaleString() : ''}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>

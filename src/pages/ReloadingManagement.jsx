@@ -16,7 +16,7 @@ import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
-import { getBrassState, logBrassMovement, stateUpdate } from '@/lib/brassLifecycle';
+import { getBrassState, logBrassMovement, stateUpdate, exceedsBrassTotal } from '@/lib/brassLifecycle';
 
 export default function ReloadingManagement() {
   const navigate = useNavigate();
@@ -72,23 +72,14 @@ export default function ReloadingManagement() {
       console.log(`[RELOAD DELETE DEBUG] roundsProduced = ${session?.rounds_loaded || 0}`);
       console.log(`[RELOAD DELETE DEBUG] ammoInventoryBefore = ${matchedAmmo?.quantity_in_stock ?? 'N/A'}`);
 
-      // ── STEP 2: Check if any rounds were used in session records ─────
-      let roundsUsed = 0;
-      if (matchedAmmo) {
-        const spendingLogs = await base44.entities.AmmoSpending.filter({ ammunition_id: matchedAmmo.id });
-        roundsUsed = spendingLogs.reduce((sum, s) => sum + (s.quantity_used || 0), 0);
-      }
+      // ── STEP 2: Restore only unfired loaded rounds still in this batch ─
       const roundsRemaining = Math.max(0, (matchedAmmo?.quantity_in_stock || 0));
-      console.log(`[RELOAD DELETE DEBUG] roundsUsedInRecords = ${roundsUsed}`);
+      const roundsProduced = Math.max(1, Number(session?.rounds_loaded || 1));
+      const restoreRatio = Math.min(1, roundsRemaining / roundsProduced);
       console.log(`[RELOAD DELETE DEBUG] roundsRemaining = ${roundsRemaining}`);
+      console.log(`[RELOAD DELETE DEBUG] restoreRatio = ${restoreRatio}`);
 
-      // ── STEP 3: Block if rounds were used in records ─────────────────
-      if (roundsUsed > 0) {
-        alert(`Cannot delete this batch — ${roundsUsed} round(s) have already been used in shooting records. The batch is kept for historical accuracy. No further action needed.`);
-        return;
-      }
-
-      // ── STEP 4: Delete the linked ammo stock item entirely ───────────
+      // ── STEP 3: Delete the linked ammo stock item entirely ───────────
       if (matchedAmmo) {
         await base44.entities.Ammunition.delete(matchedAmmo.id);
         console.log(`[RELOAD DELETE DEBUG] removingFromInventory = true (deleted ammo id ${matchedAmmo.id})`);
@@ -120,30 +111,45 @@ export default function ReloadingManagement() {
             if (component) {
               let updateFields;
               if (normalizedType === 'powder') {
-                const usedInGrams = parseFloat(comp.quantity_used || 0) * (unitConversions[comp.unit] || 1);
+                const restoreAmount = (parseFloat(comp.quantity_used || 0) * restoreRatio);
+                const usedInGrams = restoreAmount * (unitConversions[comp.unit] || 1);
                 const newRemaining = component.quantity_remaining + usedInGrams / (unitConversions[component.unit] || 1);
                 updateFields = { quantity_remaining: newRemaining };
               } else if (normalizedType === 'brass') {
                 const previousState = getBrassState(component);
-                const qty = Number(comp.quantity_used || 0);
-                const newState = {
+                const qty = Math.min(roundsRemaining, Number(comp.quantity_used || 0), previousState.currently_loaded);
+                let newState = {
                   ...previousState,
                   currently_loaded: Math.max(0, previousState.currently_loaded - qty),
                   available_to_reload: previousState.available_to_reload + qty,
-                  reload_cycle_count: Math.max(0, previousState.reload_cycle_count - 1),
+                  reload_cycle_count: Math.max(0, previousState.reload_cycle_count - (qty > 0 ? 1 : 0)),
                 };
+                const wouldExceed = exceedsBrassTotal(newState);
                 updateFields = stateUpdate(newState);
+                const savedState = { ...newState, ...getBrassState(updateFields) };
+                if (wouldExceed) {
+                  await logBrassMovement({
+                    brassId: component.id,
+                    reloadBatchId: id,
+                    quantity: qty,
+                    movementType: 'brass_inventory_invariant_clamped',
+                    previousState,
+                    newState: savedState,
+                    notes: `Brass invariant clamp while deleting reload batch ${session?.batch_number || id}`,
+                  });
+                }
                 await logBrassMovement({
                   brassId: component.id,
                   reloadBatchId: id,
                   quantity: qty,
                   movementType: 'restored_after_batch_delete',
                   previousState,
-                  newState,
+                  newState: savedState,
                   notes: `Deleted reload batch ${session?.batch_number || id}`,
                 });
               } else {
-                const newRemaining = component.quantity_remaining + Number(comp.quantity_used || 0);
+                const restoreAmount = Number(comp.quantity_used || 0) * restoreRatio;
+                const newRemaining = component.quantity_remaining + restoreAmount;
                 updateFields = { quantity_remaining: newRemaining };
               }
               await base44.entities.ReloadingComponent.update(component.id, updateFields);
