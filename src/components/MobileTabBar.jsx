@@ -37,6 +37,8 @@ export default function MobileTabBar() {
     if (tab) setLastPath(tab, location.pathname);
   }, [location.pathname, setLastPath]);
 
+  if (location.pathname === '/deer-stalking') return null;
+
   const activeTab = getVisibleTab(location.pathname);
 
   const handleTabPress = (tabKey) => {
