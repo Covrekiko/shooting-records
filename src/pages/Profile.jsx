@@ -25,7 +25,7 @@ export default function Profile() {
     loadProfile();
   }, [loadProfile]);
 
-  const pullToRefresh = usePullToRefresh(loadProfile, { disabled: document.body.classList.contains('modal-open') });
+  const pullToRefresh = usePullToRefresh(loadProfile, { disabled: typeof document !== 'undefined' && document.body.classList.contains('modal-open') });
 
   const isActive = (path) => location.pathname === path;
 
