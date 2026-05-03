@@ -1,14 +1,15 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Shield, BookOpen, User, RefreshCw, WifiOff, CloudUpload } from 'lucide-react';
+import { Home, Shield, BookOpen, User, RefreshCw, WifiOff, CloudUpload, Map } from 'lucide-react';
 import { useTabHistory, getTabForPath, TAB_DEFAULT } from '../context/TabHistoryContext';
 import { useOffline } from '@/context/OfflineContext';
 
 const TABS = [
-  { key: 'home',    label: 'Home',    icon: Home },
-  { key: 'armory',  label: 'Armory',  icon: Shield },
-  { key: 'records', label: 'Records', icon: BookOpen },
-  { key: 'profile', label: 'Profile', icon: User },
+  { key: 'home',    label: 'Home',         icon: Home },
+  { key: 'field',   label: 'Stalking Map', icon: Map },
+  { key: 'armory',  label: 'Armory',       icon: Shield },
+  { key: 'records', label: 'Records',      icon: BookOpen },
+  { key: 'profile', label: 'Profile',      icon: User },
 ];
 
 export default function MobileTabBar() {
