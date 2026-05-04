@@ -131,12 +131,12 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
           <p className="text-xs text-muted-foreground">Quantity: {entry.count}</p>
         </div>
         <input
-          type="number"
-          inputMode="numeric"
-          min="1"
-          value={entry.count}
-          onChange={e => updateEntry(entry.species, 'count', e.target.value)}
-          className="w-20 h-10 px-3 border border-border bg-card text-foreground rounded-xl text-sm outline-none focus:border-primary"
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        value={entry.count}
+        onChange={e => updateEntry(entry.species, 'count', e.target.value.replace(/\D/g, ''))}
+        className="w-20 h-10 px-3 border border-border bg-card text-foreground rounded-xl text-sm outline-none focus:border-primary"
         />
         <button
           type="button"
@@ -323,11 +323,11 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                 <div>
                   <label className={labelCls}>Rounds Fired</label>
                   <input
-                    type="number"
+                    type="text"
                     inputMode="numeric"
-                    min="0"
+                    pattern="[0-9]*"
                     value={formData.rounds_fired}
-                    onChange={e => set('rounds_fired', e.target.value)}
+                    onChange={e => set('rounds_fired', e.target.value.replace(/\D/g, ''))}
                     placeholder={String(totalCount || 0)}
                     className={inputCls}
                   />
