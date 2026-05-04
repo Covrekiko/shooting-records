@@ -239,6 +239,7 @@ const ChartsSection = React.memo(function ChartsSection({ chartData }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function Dashboard() {
+  const isEnabled = () => true;
   const { user: authUser, refreshUser } = useAuth();
   const [user, setUser] = useState(authUser || null);
   const [stats, setStats] = useState(null);
