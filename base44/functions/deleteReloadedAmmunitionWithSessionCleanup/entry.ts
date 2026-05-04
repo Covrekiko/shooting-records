@@ -233,34 +233,29 @@ Deno.serve(async (req) => {
 
     if (matchedAmmo?.id) {
       const referenced = await hasHistoricalReferences(base44, matchedAmmo.id, user);
-      await base44.asServiceRole.entities.Ammunition.update(matchedAmmo.id, {
-        archived: true,
-        is_deleted: true,
-        status: 'deleted',
-        deletedAt: new Date().toISOString(),
-        reload_session_deleted: true,
-        linked_reload_session_id: session?.id || matchedAmmo.reload_session_id || matchedAmmo.source_id || '',
-        ...(referenced ? {} : { quantity_in_stock: 0 }),
-      });
-      restored.ammunition_archived = true;
+      if (referenced) {
+        await base44.asServiceRole.entities.Ammunition.update(matchedAmmo.id, {
+          archived: true,
+          is_deleted: true,
+          status: 'deleted',
+          deletedAt: new Date().toISOString(),
+          reload_session_deleted: true,
+          quantity_in_stock: 0,
+          linked_reload_session_id: session?.id || matchedAmmo.reload_session_id || matchedAmmo.source_id || '',
+        });
+        restored.ammunition_archived = true;
+      } else {
+        await base44.asServiceRole.entities.Ammunition.delete(matchedAmmo.id);
+        restored.ammunition_deleted = true;
+      }
       restored.ammunition_had_record_references = referenced;
     } else {
       restored.warnings.push('Linked reloaded ammunition could not be found.');
     }
 
     if (session?.id) {
-      await base44.asServiceRole.entities.ReloadingSession.update(session.id, {
-        isDeleted: true,
-        is_deleted: true,
-        archived: true,
-        status: 'deleted',
-        reload_session_deleted: true,
-        components_restored: true,
-        restored_after_batch_delete: true,
-        deletedAt: new Date().toISOString(),
-        linked_ammunition_id: matchedAmmo?.id || '',
-        rounds_remaining_restored: roundsRemaining,
-      });
+      await base44.asServiceRole.entities.ReloadingSession.delete(session.id);
+      restored.session_deleted = true;
       restored.session_marked_deleted = true;
     }
 
