@@ -27,11 +27,11 @@ export default function AmmunitionInventory() {
     caliber: '',
     bullet_type: '',
     grain: '',
-    quantity_in_stock: 0,
+    quantity_in_stock: '0',
     units: 'rounds',
-    cost_per_unit: 0,
+    cost_per_unit: '0',
     date_purchased: new Date().toISOString().split('T')[0],
-    low_stock_threshold: 50,
+    low_stock_threshold: '50',
     lot_number: '',
     supplier: '',
     notes: '',
@@ -61,6 +61,26 @@ export default function AmmunitionInventory() {
     }
   };
 
+  const toNumber = (value, fallback = 0) => {
+    if (value === '' || value === null || value === undefined) return fallback;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
+  const toInteger = (value, fallback = 0) => {
+    if (value === '' || value === null || value === undefined) return fallback;
+    const n = parseInt(value, 10);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
+  const getPayload = () => ({
+    ...formData,
+    caliber: normalizeCaliber(formData.caliber),
+    quantity_in_stock: toInteger(formData.quantity_in_stock, 0),
+    cost_per_unit: toNumber(formData.cost_per_unit, 0),
+    low_stock_threshold: toInteger(formData.low_stock_threshold, 50),
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!navigator.onLine) {
@@ -72,11 +92,11 @@ export default function AmmunitionInventory() {
       if (editingId) {
         response = await base44.functions.invoke('updateAmmunitionForUser', {
           ammunitionId: editingId,
-          ammunition: { ...formData, caliber: normalizeCaliber(formData.caliber) },
+          ammunition: getPayload(),
         });
       } else {
         response = await base44.functions.invoke('createAmmunitionForUser', {
-          ammunition: { ...formData, caliber: normalizeCaliber(formData.caliber) },
+          ammunition: getPayload(),
         });
       }
 
@@ -124,7 +144,12 @@ export default function AmmunitionInventory() {
   };
 
   const handleEdit = (item) => {
-    setFormData(item);
+    setFormData({
+      ...item,
+      quantity_in_stock: item.quantity_in_stock != null ? String(item.quantity_in_stock) : '',
+      cost_per_unit: item.cost_per_unit != null ? String(item.cost_per_unit) : '',
+      low_stock_threshold: item.low_stock_threshold != null ? String(item.low_stock_threshold) : '50',
+    });
     setEditingId(item.id);
     setShowForm(true);
   };
@@ -135,11 +160,11 @@ export default function AmmunitionInventory() {
       caliber: '',
       bullet_type: '',
       grain: '',
-      quantity_in_stock: 0,
+      quantity_in_stock: '0',
       units: 'rounds',
-      cost_per_unit: 0,
+      cost_per_unit: '0',
       date_purchased: new Date().toISOString().split('T')[0],
-      low_stock_threshold: 50,
+      low_stock_threshold: '50',
       lot_number: '',
       supplier: '',
       notes: '',
@@ -232,11 +257,11 @@ export default function AmmunitionInventory() {
                 <div>
                   <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Quantity in Stock</label>
                   <input
-                    type="number"
-                    value={formData.quantity_in_stock}
-                    onChange={(e) => setFormData({ ...formData, quantity_in_stock: parseInt(e.target.value) || 0 })}
+                    type="text"
+                    inputMode="numeric"
+                    value={formData.quantity_in_stock ?? ''}
+                    onChange={(e) => setFormData({ ...formData, quantity_in_stock: e.target.value })}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
-                    min="0"
                   />
                 </div>
                 <div>
@@ -253,11 +278,11 @@ export default function AmmunitionInventory() {
                 <div>
                   <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Cost Per Unit</label>
                   <input
-                    type="number"
-                    value={formData.cost_per_unit}
-                    onChange={(e) => setFormData({ ...formData, cost_per_unit: parseFloat(e.target.value) || 0 })}
+                    type="text"
+                    inputMode="decimal"
+                    value={formData.cost_per_unit ?? ''}
+                    onChange={(e) => setFormData({ ...formData, cost_per_unit: e.target.value })}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
-                    step="0.01"
                   />
                 </div>
                 <div>
@@ -272,11 +297,11 @@ export default function AmmunitionInventory() {
                 <div>
                   <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Low Stock Threshold</label>
                   <input
-                    type="number"
-                    value={formData.low_stock_threshold}
-                    onChange={(e) => setFormData({ ...formData, low_stock_threshold: parseInt(e.target.value) || 50 })}
+                    type="text"
+                    inputMode="numeric"
+                    value={formData.low_stock_threshold ?? ''}
+                    onChange={(e) => setFormData({ ...formData, low_stock_threshold: e.target.value })}
                     className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
-                    min="0"
                   />
                 </div>
               </div>
