@@ -58,28 +58,10 @@ export default function AmmoSummary() {
       return;
     }
     try {
-      const rifle = rifles.find(r => r.id === rifleId);
-      if (!rifle) return;
-      
-      const today = format(new Date(), 'yyyy-MM-dd');
-      const roundsSincePrevious = (rifle.total_rounds_fired || 0) - (rifle.rounds_at_last_cleaning || 0);
-      
-      // Update rifle baseline
-      await base44.entities.Rifle.update(rifleId, {
-        rounds_at_last_cleaning: rifle.total_rounds_fired || 0,
-        last_cleaning_date: today,
-      });
-      
-      // Create cleaning history entry
-      await base44.entities.CleaningHistory.create({
-        firearm_id: rifleId,
+      await base44.functions.invoke('markFirearmCleanedForUser', {
         firearm_type: 'rifle',
-        firearm_name: rifle.name,
-        cleaning_date: today,
-        total_rounds_at_cleaning: rifle.total_rounds_fired || 0,
-        rounds_since_previous_cleaning: roundsSincePrevious,
+        firearm_id: rifleId,
       });
-      
       await loadData();
     } catch (error) {
       console.error('Error marking rifle cleaned:', error);
@@ -92,28 +74,10 @@ export default function AmmoSummary() {
       return;
     }
     try {
-      const shotgun = shotguns.find(s => s.id === shotgunId);
-      if (!shotgun) return;
-      
-      const today = format(new Date(), 'yyyy-MM-dd');
-      const cartridgesSincePrevious = (shotgun.total_cartridges_fired || 0) - (shotgun.cartridges_at_last_cleaning || 0);
-      
-      // Update shotgun baseline
-      await base44.entities.Shotgun.update(shotgunId, {
-        cartridges_at_last_cleaning: shotgun.total_cartridges_fired || 0,
-        last_cleaning_date: today,
-      });
-      
-      // Create cleaning history entry
-      await base44.entities.CleaningHistory.create({
-        firearm_id: shotgunId,
+      await base44.functions.invoke('markFirearmCleanedForUser', {
         firearm_type: 'shotgun',
-        firearm_name: shotgun.name,
-        cleaning_date: today,
-        total_rounds_at_cleaning: shotgun.total_cartridges_fired || 0,
-        rounds_since_previous_cleaning: cartridgesSincePrevious,
+        firearm_id: shotgunId,
       });
-      
       await loadData();
     } catch (error) {
       console.error('Error marking shotgun cleaned:', error);
