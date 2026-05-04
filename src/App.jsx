@@ -8,9 +8,8 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { OutingProvider } from '@/context/OutingContext';
 import { OfflineProvider } from '@/context/OfflineContext';
-import { ModulesProvider, useModules } from '@/context/ModulesContext';
+import { ModulesProvider } from '@/context/ModulesContext';
 import { ThemeProvider } from '@/context/ThemeContext';
-import ModuleOnboarding from '@/components/ModuleOnboarding';
 import ModuleGate from '@/components/ModuleGate';
 import OfflineStatusBar from '@/components/OfflineStatusBar';
 import ErrorBoundary from '@/components/ErrorBoundary';
@@ -100,7 +99,7 @@ function AnimatedRoutes({ children }) {
 const AuthenticatedApp = () => {
   const location = useLocation();
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin, user, refreshUser } = useAuth();
-  const { enabledModules, loading: modulesLoading, saveModules } = useModules();
+  const modulesLoading = false;
   const loginRedirectedRef = useRef(false);
   const authRedirectStorageKey = `shooting_records_auth_redirect:${location.pathname}`;
 
@@ -178,11 +177,6 @@ const AuthenticatedApp = () => {
       redirectGuardFired: loginRedirectedRef.current,
     });
     return <ProfileSetup onComplete={refreshUser} />;
-  }
-
-  // Show module onboarding if modules have never been configured
-  if (user && enabledModules === undefined) {
-    return <ModuleOnboarding onComplete={saveModules} />;
   }
 
   // Render the main app

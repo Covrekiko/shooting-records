@@ -9,7 +9,6 @@ import { base44 } from '@/api/base44Client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOffline } from '@/context/OfflineContext';
 import { getTabForPath, TAB_DEFAULT } from '@/context/TabHistoryContext';
-import { useModules } from '@/context/ModulesContext';
 import AppPermissionsPrompt from '@/components/AppPermissionsPrompt';
 
 const PAGE_TITLES = {
@@ -89,7 +88,6 @@ export default function Navigation() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isOnline, hasPending, isSyncing } = useOffline();
-  const { isEnabled } = useModules();
 
   useEffect(() => {
     let isMounted = true;

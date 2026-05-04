@@ -4,7 +4,6 @@ import { Home, Shield, BookOpen, User, RefreshCw, WifiOff, CloudUpload, Map } fr
 import { useTabHistory, getTabForPath, TAB_DEFAULT } from '../context/TabHistoryContext';
 import { useOffline } from '@/context/OfflineContext';
 import { useOuting } from '@/context/OutingContext';
-import { useModules } from '@/context/ModulesContext';
 import { useAuth } from '@/lib/AuthContext';
 
 const TABS = [
@@ -30,7 +29,6 @@ export default function MobileTabBar() {
   const { setLastPath, getLastPath } = useTabHistory();
   const { isOnline, isSyncing, hasPending, syncFailed, pendingCount, manualSync } = useOffline();
   const { activeOuting } = useOuting();
-  const { isEnabled } = useModules();
   const { isAuthenticated, isLoadingAuth, user } = useAuth();
 
   // Track path changes into tab history
@@ -88,7 +86,7 @@ export default function MobileTabBar() {
         );
       })()}
       <div className="flex items-stretch">
-        {TABS.filter(tab => !tab.module || isEnabled(tab.module)).map(({ key, label, icon: Icon }) => {
+        {TABS.map(({ key, label, icon: Icon }) => {
           const isActive = key === activeTab;
           const isActiveOutingTab = key === 'field' && Boolean(activeOuting);
           return (
