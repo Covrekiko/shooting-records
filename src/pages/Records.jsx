@@ -13,8 +13,8 @@ import { format } from 'date-fns';
 import { exportRecordsToPdf, getRecordsPdfBlob } from '@/utils/recordsPdfExport';
 import { DESIGN } from '@/lib/designConstants';
 import RecordDetailModal from '@/components/RecordDetailModal';
+import RecordCard from '@/components/RecordCard';
 import ProfileBackLink from '@/components/ProfileBackLink';
-import { isPendingOfflineRecord } from '@/lib/offlineFieldSessions';
 
 export default function Records() {
   const [allRecords, setAllRecords] = useState([]);
@@ -307,7 +307,7 @@ export default function Records() {
         ) : (
           <div className="space-y-3">
             {filteredRecords.map((record) => (
-              <RecordCard key={record.id} record={record} onDelete={() => handleDelete(record)} user={user} onView={setViewingRecord} recordUser={users[record.created_by]} onViewTrack={setViewingTrack} onViewPhoto={setViewingPhoto} rifles={rifles} shotguns={shotguns} clubs={clubs} locations={deerLocations} onEdit={() => setManualRecordModal({ isNew: false, record })} />
+              <RecordCard key={record.id} record={record} onDelete={handleDelete} onView={setViewingRecord} onViewTrack={setViewingTrack} onViewPhoto={setViewingPhoto} rifles={rifles} shotguns={shotguns} clubs={clubs} locations={deerLocations} onEdit={() => setManualRecordModal({ isNew: false, record })} />
             ))}
           </div>
         )}
@@ -342,116 +342,6 @@ export default function Records() {
     </div>
   );
 }
-
-function RecordCard({ record, onDelete, user, onView, recordUser, onViewTrack, onViewPhoto, rifles, shotguns, clubs, locations, onEdit }) {
-  const [showPhotoMenu, setShowPhotoMenu] = useState(false);
-
-  const getRecordTitle = () => {
-    if (record.recordType === 'target') {
-      const totalRounds = record.rifles_used?.reduce((sum, r) => sum + (parseInt(r.rounds_fired) || 0), 0) || 0;
-      return `Target Shooting - ${totalRounds} rounds`;
-    }
-    if (record.recordType === 'clay') return `Clay Shooting - ${record.rounds_fired || 0} rounds`;
-    if (record.recordType === 'deer') {
-      if (!record.total_count) return 'Deer Management - No shots fired';
-      const speciesList = record.species_list?.map(s => `${s.species}(${s.count})`).join(', ') || 'Unknown';
-      return `Deer Management: ${speciesList} - ${record.total_count} shots fired`;
-    }
-  };
-
-
-
-  // Resolve club/range/location name
-  const resolveLocationName = () => {
-    if (record.club_name) return record.club_name;
-    if (record.club_id && clubs[record.club_id]) return clubs[record.club_id].name;
-    if (record.location_name) return record.location_name;
-    if (record.range_name) return record.range_name;
-    if (record.place_name) return record.place_name;
-    if (record.venue_name) return record.venue_name;
-    if (record.location_id && locations[record.location_id]) return locations[record.location_id].name;
-    return 'Location not recorded';
-  };
-
-  return (
-    <div className="bg-white dark:bg-slate-800 border border-slate-200/70 dark:border-slate-700 rounded-2xl p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-lg break-words" style={{ overflowWrap: 'anywhere' }}>{getRecordTitle()}</h3>
-            {isPendingOfflineRecord(record) && (
-              <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wide">Pending sync</span>
-            )}
-          </div>
-          <p className="text-sm text-muted-foreground mb-2">{record.date} • {getBadgeLabel(record.recordType)}</p>
-          <p className="text-sm text-muted-foreground">{resolveLocationName()}</p>
-        </div>
-        <div className="flex gap-2 flex-shrink-0">
-          <div className="flex gap-2">
-            {record.photos && record.photos.length > 0 && (
-              <div className="relative inline-block">
-                <button
-                  className="px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center gap-1"
-                  title="View photo"
-                  onClick={record.photos.length === 1 ? () => onViewPhoto(record.photos[0]) : () => setShowPhotoMenu(!showPhotoMenu)}
-                >
-                  <Image className="w-4 h-4" />
-                  {record.photos.length > 1 && <ChevronDown className="w-3 h-3" />}
-                </button>
-                {record.photos.length > 1 && showPhotoMenu && (
-                  <div className="absolute left-0 top-full mt-1 bg-card border border-border rounded shadow-lg z-10">
-                    {record.photos.map((photo, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => {
-                          onViewPhoto(photo);
-                          setShowPhotoMenu(false);
-                        }}
-                        className="block w-full text-left px-3 py-2 text-sm hover:bg-secondary transition-colors whitespace-nowrap first:rounded-t last:rounded-b"
-                      >
-                        Photo {idx + 1}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-            <button
-              onClick={() => onView(record)}
-              className="px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center gap-1"
-              title="View full report"
-            >
-              <Eye className="w-4 h-4" />
-            </button>
-            {record.gps_track && record.gps_track.length > 0 && (
-              <button
-                onClick={() => onViewTrack(record.gps_track)}
-                className="px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center gap-1"
-              >
-                <Map className="w-4 h-4" />
-              </button>
-            )}
-            <button
-              onClick={onEdit}
-              className="px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center gap-1"
-              title="Edit record"
-            >
-              <Edit className="w-4 h-4" />
-            </button>
-            <button
-               onClick={onDelete}
-               className="px-3 py-1 text-sm bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground rounded transition-colors flex items-center gap-1"
-             >
-               <Trash2 className="w-4 h-4" />
-             </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
 
 function PhotoModal({ photo, onClose }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -584,12 +474,6 @@ function PhotoModal({ photo, onClose }) {
     </div>
   );
   }
-
-function getBadgeLabel(type) {
-  if (type === 'target') return 'Target Shooting';
-  if (type === 'clay') return 'Clay Shooting';
-  if (type === 'deer') return 'Deer Management';
-}
 
 function PdfPreviewModal({ records, userInfo, rifles, clubs, shotguns, locations, selectedCategory, onClose }) {
    const [pdfUrl, setPdfUrl] = useState(null);
