@@ -261,44 +261,32 @@ export default function Dashboard() {
       }
       setUser(currentUser);
       
-      if (currentUser.role === 'admin') {
-        const [users, allRecordsRaw] = await Promise.all([
-          base44.entities.User.list(),
-          getRepository('SessionRecord').filter({ created_by: currentUser.email, status: 'completed' }),
-        ]);
-        const allRecords = allRecordsRaw.filter((r) => r.isDeleted !== true && r.status !== 'deleted');
-        const targetRecords = allRecords.filter((r) => r.category === 'target_shooting');
-        const clayRecords = allRecords.filter((r) => r.category === 'clay_shooting');
-        const deerRecords = allRecords.filter((r) => r.category === 'deer_management');
-        setStats({ totalUsers: users.length, totalRecords: allRecords.length, targetRecords: targetRecords.length, clayRecords: clayRecords.length, deerRecords: deerRecords.length });
-      } else {
-        const [allRecordsRaw, rifles, shotguns, clubs, locations] = await Promise.all([
-          getRepository('SessionRecord').filter({ created_by: currentUser.email, status: 'completed' }),
-          getRepository('Rifle').filter({ created_by: currentUser.email }),
-          getRepository('Shotgun').filter({ created_by: currentUser.email }),
-          getRepository('Club').filter({ created_by: currentUser.email }),
-          getRepository('Area').filter({ created_by: currentUser.email }),
-        ]);
-        const allRecords = allRecordsRaw.filter((r) => r.isDeleted !== true && r.status !== 'deleted');
-        const targetShoots = allRecords.filter((r) => r.category === 'target_shooting');
-        const clayShoots = allRecords.filter((r) => r.category === 'clay_shooting');
-        const deerMgmt = allRecords.filter((r) => r.category === 'deer_management');
-        const totalRounds = targetShoots.reduce((sum, s) => {
-          if (Array.isArray(s.rifles_used) && s.rifles_used.length > 0) {
-            return sum + s.rifles_used.reduce((rSum, r) => rSum + (parseInt(r.rounds_fired) || 0), 0);
-          }
-          return sum + (parseInt(s.rounds_fired) || 0);
-        }, 0);
-        const totalShotgunRounds = clayShoots.reduce((sum, s) => sum + (s.rounds_fired || 0), 0);
-        setStats({ targetSessions: targetShoots.length, claySessions: clayShoots.length, deerOutings: deerMgmt.length, totalRifleRounds: totalRounds, totalShotgunRounds });
-        setChartData({
-          monthly: getMonthlyData(targetShoots, clayShoots, deerMgmt),
-          firearm: getFirearmData(targetShoots, clayShoots, rifles, shotguns),
-          location: getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations),
-          roundsPerMonth: getRoundsPerMonth(targetShoots, clayShoots),
-          deerSuccessRate: getDeerSuccessRate(deerMgmt),
-        });
-      }
+      const [allRecordsRaw, rifles, shotguns, clubs, locations] = await Promise.all([
+        getRepository('SessionRecord').filter({ created_by: currentUser.email, status: 'completed' }),
+        getRepository('Rifle').filter({ created_by: currentUser.email }),
+        getRepository('Shotgun').filter({ created_by: currentUser.email }),
+        getRepository('Club').filter({ created_by: currentUser.email }),
+        getRepository('Area').filter({ created_by: currentUser.email }),
+      ]);
+      const allRecords = allRecordsRaw.filter((r) => r.isDeleted !== true && r.status !== 'deleted');
+      const targetShoots = allRecords.filter((r) => r.category === 'target_shooting');
+      const clayShoots = allRecords.filter((r) => r.category === 'clay_shooting');
+      const deerMgmt = allRecords.filter((r) => r.category === 'deer_management');
+      const totalRounds = targetShoots.reduce((sum, s) => {
+        if (Array.isArray(s.rifles_used) && s.rifles_used.length > 0) {
+          return sum + s.rifles_used.reduce((rSum, r) => rSum + (parseInt(r.rounds_fired) || 0), 0);
+        }
+        return sum + (parseInt(s.rounds_fired) || 0);
+      }, 0);
+      const totalShotgunRounds = clayShoots.reduce((sum, s) => sum + (s.rounds_fired || 0), 0);
+      setStats({ targetSessions: targetShoots.length, claySessions: clayShoots.length, deerOutings: deerMgmt.length, totalRifleRounds: totalRounds, totalShotgunRounds });
+      setChartData({
+        monthly: getMonthlyData(targetShoots, clayShoots, deerMgmt),
+        firearm: getFirearmData(targetShoots, clayShoots, rifles, shotguns),
+        location: getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations),
+        roundsPerMonth: getRoundsPerMonth(targetShoots, clayShoots),
+        deerSuccessRate: getDeerSuccessRate(deerMgmt),
+      });
     } catch (err) {
       console.error('Dashboard load error:', err);
     } finally {

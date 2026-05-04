@@ -30,7 +30,7 @@ export function ModulesProvider({ children }) {
         if (user?.enabledModules && Array.isArray(user.enabledModules)) {
           setEnabledModules(user.enabledModules);
         } else {
-          setEnabledModules(undefined);
+          setEnabledModules(ALL_MODULES.map(m => m.key));
         }
       } catch (err) {
         console.error('[ModulesContext] Load failed:', err.status === 429 ? '429 rate limit' : err.message);
