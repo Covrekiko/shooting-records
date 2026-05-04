@@ -29,6 +29,7 @@ export default function AmmunitionInventory() {
     grain: '',
     quantity_in_stock: '0',
     units: 'rounds',
+    rounds_per_box: '20',
     cost_per_unit: '0',
     date_purchased: new Date().toISOString().split('T')[0],
     low_stock_threshold: '50',
@@ -73,13 +74,21 @@ export default function AmmunitionInventory() {
     return Number.isFinite(n) ? n : fallback;
   };
 
-  const getPayload = () => ({
-    ...formData,
-    caliber: normalizeCaliber(formData.caliber),
-    quantity_in_stock: toInteger(formData.quantity_in_stock, 0),
-    cost_per_unit: toNumber(formData.cost_per_unit, 0),
-    low_stock_threshold: toInteger(formData.low_stock_threshold, 50),
-  });
+  const getPayload = () => {
+    const quantity = toInteger(formData.quantity_in_stock, 0);
+    const cost = toNumber(formData.cost_per_unit, 0);
+    const roundsPerBox = Math.max(1, toInteger(formData.rounds_per_box, 20));
+    const isBoxes = formData.units === 'boxes';
+
+    return {
+      ...formData,
+      caliber: normalizeCaliber(formData.caliber),
+      quantity_in_stock: isBoxes ? quantity * roundsPerBox : quantity,
+      units: 'rounds',
+      cost_per_unit: isBoxes ? cost / roundsPerBox : cost,
+      low_stock_threshold: toInteger(formData.low_stock_threshold, 50),
+    };
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -147,6 +156,8 @@ export default function AmmunitionInventory() {
     setFormData({
       ...item,
       quantity_in_stock: item.quantity_in_stock != null ? String(item.quantity_in_stock) : '',
+      units: 'rounds',
+      rounds_per_box: '20',
       cost_per_unit: item.cost_per_unit != null ? String(item.cost_per_unit) : '',
       low_stock_threshold: item.low_stock_threshold != null ? String(item.low_stock_threshold) : '50',
     });
@@ -255,7 +266,7 @@ export default function AmmunitionInventory() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Quantity in Stock</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">{formData.units === 'boxes' ? 'Boxes' : 'Quantity in Stock'}</label>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -275,8 +286,20 @@ export default function AmmunitionInventory() {
                     <option value="boxes">Boxes</option>
                   </select>
                 </div>
+                {formData.units === 'boxes' && (
+                  <div>
+                    <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Rounds Per Box</label>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={formData.rounds_per_box ?? ''}
+                      onChange={(e) => setFormData({ ...formData, rounds_per_box: e.target.value })}
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
+                    />
+                  </div>
+                )}
                 <div>
-                  <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">Cost Per Unit</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase mb-2 block">{formData.units === 'boxes' ? 'Cost Per Box' : 'Cost Per Unit'}</label>
                   <input
                     type="text"
                     inputMode="decimal"
@@ -385,7 +408,7 @@ export default function AmmunitionInventory() {
                     </p>
                     <div className="mt-3 space-y-1 text-xs">
                       <p>
-                        <span className="font-medium">Stock:</span> {item.quantity_in_stock} {item.units}
+                        <span className="font-medium">Stock:</span> {item.quantity_in_stock} rounds
                         {isLowStock(item.quantity_in_stock, item.low_stock_threshold) && (
                           <span className="ml-2 inline-flex items-center gap-1 text-destructive">
                             <AlertCircle className="w-3 h-3" /> Low
@@ -394,7 +417,7 @@ export default function AmmunitionInventory() {
                       </p>
                       {item.cost_per_unit > 0 && (
                         <p>
-                          <span className="font-medium">Cost:</span> £{item.cost_per_unit.toFixed(2)}/{item.units === 'rounds' ? 'rd' : 'box'} (£{(item.quantity_in_stock * item.cost_per_unit).toFixed(2)} total)
+                          <span className="font-medium">Cost:</span> £{item.cost_per_unit.toFixed(2)}/rd (£{(item.quantity_in_stock * item.cost_per_unit).toFixed(2)} total)
                         </p>
                       )}
                       {item.date_purchased && (

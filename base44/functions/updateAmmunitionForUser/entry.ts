@@ -49,6 +49,15 @@ function cleanPayload(input = {}) {
   }
   if ('units' in output && !output.units) output.units = 'rounds';
 
+  if (String(input.units || '').toLowerCase() === 'boxes') {
+    const boxes = parseInt(input.quantity_in_stock, 10) || 0;
+    const roundsPerBox = Math.max(1, parseInt(input.rounds_per_box, 10) || 20);
+    const boxPrice = Number(input.cost_per_unit) || 0;
+    output.quantity_in_stock = boxes * roundsPerBox;
+    output.cost_per_unit = boxPrice / roundsPerBox;
+    output.units = 'rounds';
+  }
+
   return output;
 }
 

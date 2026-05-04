@@ -72,6 +72,19 @@ function cleanPayload(input = {}) {
   output.caliber = normalizeCaliber(output.caliber);
   if (!output.brand) throw new Error('Ammunition brand is required.');
   if (!output.units) output.units = 'rounds';
+
+  if (String(input.units || '').toLowerCase() === 'boxes') {
+    const boxes = parseInt(input.quantity_in_stock, 10) || 0;
+    const roundsPerBox = Math.max(1, parseInt(input.rounds_per_box, 10) || 20);
+    const boxPrice = Number(input.cost_per_unit) || 0;
+    output.quantity_in_stock = boxes * roundsPerBox;
+    output.quantity_total = boxes * roundsPerBox;
+    output.quantity_remaining = boxes * roundsPerBox;
+    output.cost_per_unit = boxPrice / roundsPerBox;
+    output.total_cost = boxes * boxPrice;
+    output.units = 'rounds';
+  }
+
   if (!output.ammo_type) output.ammo_type = 'factory';
   if (!output.source_type && output.ammo_type === 'factory') output.source_type = 'purchased';
 
