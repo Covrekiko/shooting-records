@@ -1,15 +1,24 @@
 import { base44 } from '@/api/base44Client';
 import { getRepository } from '@/lib/offlineSupport';
 
+const flattenAmmunition = (ammo) => ({
+  ...ammo,
+  ...(ammo?.data || {}),
+  id: ammo?.id,
+  created_by: ammo?.created_by,
+  created_date: ammo?.created_date,
+  updated_date: ammo?.updated_date,
+});
+
 export async function loadOwnedAmmunitionWithReloads(currentUser) {
   if (navigator.onLine) {
     try {
       const response = await base44.functions.invoke('listAmmunitionForUser', {});
-      return response.data.ammunition || [];
+      return (response.data.ammunition || []).map(flattenAmmunition);
     } catch (error) {
       console.warn('[ownedAmmunition] listAmmunitionForUser unavailable, using direct user-scoped fallback:', error.message);
       const ammunition = await base44.entities.Ammunition.filter({ created_by: currentUser.email });
-      return ammunition.filter((ammo) => ammo.archived !== true && ammo.is_deleted !== true && ammo.status !== 'deleted' && ammo.reload_session_deleted !== true);
+      return ammunition.map(flattenAmmunition).filter((ammo) => ammo.archived !== true && ammo.is_deleted !== true && ammo.status !== 'deleted' && ammo.reload_session_deleted !== true);
     }
   }
 
