@@ -2,19 +2,16 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { AlertCircle, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { loadOwnedAmmunitionWithReloads } from '@/lib/ownedAmmunition';
 
 export default function AmmoStockWidget() {
   const [ammo, setAmmo] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadAmmo();
-  }, []);
-
   const loadAmmo = async () => {
     try {
       const currentUser = await base44.auth.me();
-      const ammoList = await base44.entities.Ammunition.filter({ created_by: currentUser.email });
+      const ammoList = await loadOwnedAmmunitionWithReloads(currentUser);
       setAmmo(ammoList);
     } catch (error) {
       if (error) setLoading(false);
@@ -22,6 +19,19 @@ export default function AmmoStockWidget() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadAmmo();
+
+    const handleFocus = () => loadAmmo();
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
+  }, []);
 
   const lowStockItems = ammo.filter((item) => item.quantity_in_stock < item.low_stock_threshold);
   const totalValue = ammo.reduce((sum, item) => sum + (item.quantity_in_stock * (item.cost_per_unit || 0)), 0);
