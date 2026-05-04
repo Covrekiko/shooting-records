@@ -1,5 +1,6 @@
 import { base44 } from '@/api/base44Client';
 import { moveLoadedAmmoToFiredBrass, restoreFiredBrassToLoadedForRecord, getReusedBrassStockRestoreWarning, logSkippedAmmoStockRestore } from '@/lib/brassLifecycle';
+import { loadOwnedAmmunitionWithReloads } from '@/lib/ownedAmmunition';
 
 /**
  * Decrement ammunition stock and log the spending.
@@ -10,13 +11,20 @@ export async function decrementAmmoStock(ammunitionId, quantity, sessionType = n
   if (!ammunitionId || !quantity || quantity <= 0) return;
 
   try {
-    const ammo = await base44.entities.Ammunition.get(ammunitionId);
+    const currentUser = await base44.auth.me();
+    const ownedAmmo = await loadOwnedAmmunitionWithReloads(currentUser);
+    const ammo = ownedAmmo.find((item) => item.id === ammunitionId);
+    if (!ammo) throw new Error('Ammunition not found in your inventory.');
+
     const stockBefore = ammo.quantity_in_stock || 0;
     const newQuantity = Math.max(0, stockBefore - quantity);
 
     console.log(`[AMMO DEBUG] action: AMMO_USED sourceType: ${sessionType} sourceId: ${sessionId} outingId: ${outingId} ammoId: ${ammunitionId} quantityChange: -${quantity} stockBefore: ${stockBefore} stockAfter: ${newQuantity}`);
 
-    await base44.entities.Ammunition.update(ammunitionId, { quantity_in_stock: newQuantity });
+    await base44.functions.invoke('updateAmmunitionForUser', {
+      ammunitionId,
+      ammunition: { quantity_in_stock: newQuantity },
+    });
     await moveLoadedAmmoToFiredBrass(ammo, quantity, sessionId, sessionType);
 
     // Log spending — store both IDs for Deer (to handle both SessionRecord.id and DeerOuting.id cleanup paths)
