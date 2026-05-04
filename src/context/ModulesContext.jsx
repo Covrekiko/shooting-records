@@ -58,6 +58,10 @@ export function ModulesProvider({ children }) {
 
 export function useModules() {
   const ctx = useContext(ModulesContext);
-  if (!ctx) throw new Error('useModules must be used within ModulesProvider');
-  return ctx;
+  return ctx || {
+    enabledModules: ALL_MODULES.map(m => m.key),
+    loading: false,
+    isEnabled: () => true,
+    saveModules: async () => {},
+  };
 }
