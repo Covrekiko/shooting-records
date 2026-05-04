@@ -249,7 +249,7 @@ Deno.serve(async (req) => {
     }
 
     // Verify ownership
-    if (user.role !== 'admin' && record.created_by !== user.email) {
+    if (record.created_by !== user.email) {
       return Response.json({ error: 'Forbidden: not your record' }, { status: 403 });
     }
 
@@ -313,7 +313,7 @@ Deno.serve(async (req) => {
           console.warn(`[DELETE REFUND] Ammunition ${ammo.ammo_id} not found, skipping`);
           continue;
         }
-        if (user.role !== 'admin' && ammoEntry.created_by !== user.email) {
+        if (ammoEntry.created_by !== user.email) {
           return Response.json({ error: 'Forbidden: ammunition does not belong to you' }, { status: 403 });
         }
 
@@ -384,7 +384,7 @@ Deno.serve(async (req) => {
           try {
             const rifleEntry = await base44.asServiceRole.entities.Rifle.get(rifle.rifle_id);
             if (rifleEntry) {
-              if (user.role !== 'admin' && rifleEntry.created_by !== user.email) {
+              if (rifleEntry.created_by !== user.email) {
                 return Response.json({ error: 'Forbidden: rifle does not belong to you' }, { status: 403 });
               }
               const newTotal = Math.max(0, (rifleEntry.total_rounds_fired || 0) - parseInt(rifle.rounds_fired));
@@ -404,7 +404,7 @@ Deno.serve(async (req) => {
       try {
         const shotgunEntry = await base44.asServiceRole.entities.Shotgun.get(record.shotgun_id);
         if (shotgunEntry) {
-          if (user.role !== 'admin' && shotgunEntry.created_by !== user.email) {
+          if (shotgunEntry.created_by !== user.email) {
             return Response.json({ error: 'Forbidden: shotgun does not belong to you' }, { status: 403 });
           }
           const newTotal = Math.max(0, (shotgunEntry.total_cartridges_fired || 0) - parseInt(record.rounds_fired));

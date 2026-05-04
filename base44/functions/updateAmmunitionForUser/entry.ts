@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Ammunition not found' }, { status: 404 });
     }
 
-    if (user.role !== 'admin' && existing.created_by !== user.email) {
+    if (existing.created_by !== user.email) {
       return Response.json({ error: 'Forbidden: ammunition does not belong to you' }, { status: 403 });
     }
 

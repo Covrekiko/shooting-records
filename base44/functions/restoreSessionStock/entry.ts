@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     if (!session) {
       return Response.json({ error: 'Record not found' }, { status: 404 });
     }
-    if (user.role !== 'admin' && session.created_by !== user.email) {
+    if (session.created_by !== user.email) {
       return Response.json({ error: 'Forbidden: not your record' }, { status: 403 });
     }
     console.log(`[AMMO DELETE DEBUG] record type: ${session.category}`);
@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
       try {
         const ammo = await base44.asServiceRole.entities.Ammunition.get(ammunitionId);
         if (!ammo) return false;
-        if (user.role !== 'admin' && ammo.created_by !== user.email) {
+        if (ammo.created_by !== user.email) {
           throw new Error('Forbidden: ammunition does not belong to you');
         }
         const stockBefore = ammo.quantity_in_stock || 0;
@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
       try {
         const rifle = await base44.asServiceRole.entities.Rifle.get(rifleId);
         if (!rifle) return;
-        if (user.role !== 'admin' && rifle.created_by !== user.email) {
+        if (rifle.created_by !== user.email) {
           throw new Error('Forbidden: rifle does not belong to you');
         }
         const newTotal = Math.max(0, (rifle.total_rounds_fired || 0) - qty);
@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
       try {
         const shotgun = await base44.asServiceRole.entities.Shotgun.get(shotgunId);
         if (!shotgun) return;
-        if (user.role !== 'admin' && shotgun.created_by !== user.email) {
+        if (shotgun.created_by !== user.email) {
           throw new Error('Forbidden: shotgun does not belong to you');
         }
         const newTotal = Math.max(0, (shotgun.total_cartridges_fired || 0) - qty);

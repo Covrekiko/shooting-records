@@ -122,7 +122,7 @@ function stateUpdate(state) {
 
 function assertOwned(record, user) {
   if (!record) throw new Error('Record not found.');
-  if (user.role !== 'admin' && record.created_by !== user.email) {
+  if (record.created_by !== user.email) {
     throw new Error('Forbidden: this record does not belong to you.');
   }
 }
