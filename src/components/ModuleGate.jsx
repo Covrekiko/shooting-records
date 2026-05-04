@@ -1,13 +1,7 @@
-import { useModules } from '@/context/ModulesContext';
-
 /**
- * Wraps a page and blocks it if the required module is not enabled.
- * Usage: <ModuleGate module="reloading"><ReloadingManagement /></ModuleGate>
+ * Core app pages are never module-blocked.
+ * Admin/user access is handled separately by admin-only pages.
  */
-export default function ModuleGate({ module: moduleKey, children }) {
-  const { isEnabled, loading } = useModules();
-
-  if (loading) return null;
-
+export default function ModuleGate({ children }) {
   return children;
 }

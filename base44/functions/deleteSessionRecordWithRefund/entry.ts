@@ -424,7 +424,7 @@ Deno.serve(async (req) => {
         if (deerRounds > 0) {
           const rifleEntry = await base44.asServiceRole.entities.Rifle.get(record.rifle_id);
           if (rifleEntry) {
-            if (user.role !== 'admin' && rifleEntry.created_by !== user.email) {
+            if (rifleEntry.created_by !== user.email) {
               return Response.json({ error: 'Forbidden: rifle does not belong to you' }, { status: 403 });
             }
             const newTotal = Math.max(0, (rifleEntry.total_rounds_fired || 0) - deerRounds);

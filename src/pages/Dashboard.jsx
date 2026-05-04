@@ -23,7 +23,6 @@ import { DeerSuccessRateChart } from '@/components/DeerSuccessRateChart';
 import AmmoStockWidget from '@/components/AmmoStockWidget';
 import ReloadingWidget from '@/components/widgets/ReloadingWidget';
 import { getRepository } from '@/lib/offlineSupport';
-import { useModules } from '@/context/ModulesContext';
 
 // ── data helpers (unchanged logic) ──────────────────────────────────────────
 function getMonthlyData(targetShoots, clayShoots, deerMgmt) {
@@ -184,18 +183,16 @@ const PrimaryCard = React.memo(function PrimaryCard({ to, icon, label, sub }) {
 });
 
 const SecondaryGrid = React.memo(function SecondaryGrid({ user }) {
-  const { isEnabled } = useModules();
-  const allItems = [
-    { to: '/target-shooting', icon: <Crosshair className="w-5 h-5" />, label: 'Target', module: 'target_shooting' },
-    { to: '/clay-shooting', icon: <Target className="w-5 h-5" />, label: 'Clay', module: 'clay_shooting' },
-    { to: '/deer-management', icon: <span className="text-lg">🦌</span>, label: 'Deer', module: 'deer_management' },
-    { to: '/reloading', icon: <RefreshCw className="w-5 h-5" />, label: 'Reloading', module: 'reloading' },
-    { to: '/load-development', icon: <FlaskConical className="w-5 h-5" />, label: 'Load Dev', module: 'reloading' },
+  const items = [
+    { to: '/target-shooting', icon: <Crosshair className="w-5 h-5" />, label: 'Target' },
+    { to: '/clay-shooting', icon: <Target className="w-5 h-5" />, label: 'Clay' },
+    { to: '/deer-management', icon: <span className="text-lg">🦌</span>, label: 'Deer' },
+    { to: '/reloading', icon: <RefreshCw className="w-5 h-5" />, label: 'Reloading' },
+    { to: '/load-development', icon: <FlaskConical className="w-5 h-5" />, label: 'Load Dev' },
     { to: '/settings/rifles', icon: <span className="text-lg">🔧</span>, label: 'Equipment' },
     { to: '/reports', icon: <BarChart3 className="w-5 h-5" />, label: 'Reports' },
     ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck className="w-5 h-5" />, label: 'Admin' }] : []),
   ];
-  const items = allItems.filter(item => !item.module || isEnabled(item.module));
 
   return (
     <div className="grid grid-cols-4 gap-2">
@@ -248,7 +245,6 @@ export default function Dashboard() {
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const { activeOuting } = useOuting();
-  const { isEnabled } = useModules();
 
   const today = format(new Date(), 'EEE, d MMM');
 
@@ -325,14 +321,14 @@ export default function Dashboard() {
 
 
         {/* ── Active Session Banner ── */}
-        {activeOuting && isEnabled('stalk_map') && <ActiveSessionBanner outing={activeOuting} />}
+        {activeOuting && <ActiveSessionBanner outing={activeOuting} />}
 
         {/* ── Secondary Grid ── */}
         <SecondaryGrid user={user} />
 
         {/* ── Widgets ── */}
          <AmmoStockWidget />
-         {isEnabled('reloading') && <ReloadingWidget />}
+         <ReloadingWidget />
 
          {/* ── Beta Tester Feedback (if beta tester or admin) ── */}
          {(user?.role === 'beta_tester' || user?.role === 'admin') && (
