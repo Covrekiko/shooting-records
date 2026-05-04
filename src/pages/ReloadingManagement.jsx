@@ -283,7 +283,6 @@ export default function ReloadingManagement() {
           onClose={() => setShowBatchForm(false)}
           title="New Reload Batch"
           footer={null}
-          maxWidth="max-w-2xl"
         >
           <ReloadBatchForm
             onSubmit={() => {
