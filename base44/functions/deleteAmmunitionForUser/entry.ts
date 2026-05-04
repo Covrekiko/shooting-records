@@ -22,9 +22,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Missing ammunitionId' }, { status: 400 });
     }
 
-    const existing = await base44.asServiceRole.entities.Ammunition.get(ammunitionId);
-    if (!existing) {
-      return Response.json({ error: 'Ammunition not found' }, { status: 404 });
+    let existing = null;
+    try {
+      existing = await base44.asServiceRole.entities.Ammunition.get(ammunitionId);
+    } catch (error) {
+      if (String(error.message || '').toLowerCase().includes('not found')) {
+        return Response.json({ success: true, deleted: true, missing: true, ammunitionId });
+      }
+      throw error;
     }
 
     if (existing.created_by !== user.email) {
