@@ -23,6 +23,8 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   });
   const [selectedDeer, setSelectedDeer] = useState('');
   const [selectedPest, setSelectedPest] = useState('');
+  const [deerQuantity, setDeerQuantity] = useState('1');
+  const [pestQuantity, setPestQuantity] = useState('1');
   const [photos, setPhotos] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [showPhotoOptions, setShowPhotoOptions] = useState(false);
@@ -51,7 +53,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
 
   const updateEntry = (species, field, value) => {
     set('species_list', formData.species_list.map(s =>
-      s.species === species ? { ...s, [field]: value } : s
+      s.species === species ? { ...s, [field]: value, ...(field === 'count' ? { quantity: normalizeQuantity(value) } : {}) } : s
     ));
   };
 
@@ -59,12 +61,23 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
     set('species_list', formData.species_list.filter(s => s.species !== species));
   };
 
-  const addSpecies = (species, setter) => {
-    if (!species) return;
-    if (!formData.species_list.find(s => s.species === species)) {
-      set('species_list', [...formData.species_list, { species, count: '1', note: '' }]);
-    }
-    setter('');
+  const normalizeQuantity = (value) => Math.max(1, parseInt(value, 10) || 1);
+
+  const addSpecies = (species, quantityValue, speciesSetter, quantitySetter) => {
+    const cleanSpecies = String(species || '').trim();
+    const quantity = normalizeQuantity(quantityValue);
+    if (!cleanSpecies || quantity <= 0) return;
+
+    setFormData(prev => {
+      if (prev.species_list.find(s => s.species === cleanSpecies)) return prev;
+      return {
+        ...prev,
+        species_list: [...prev.species_list, { species: cleanSpecies, count: String(quantity), quantity, note: '' }],
+      };
+    });
+
+    speciesSetter('');
+    quantitySetter('1');
   };
 
   const totalCount = formData.species_list.reduce((sum, s) => sum + (parseInt(s.count) || 0), 0);
@@ -238,11 +251,11 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                     <option key={p} value={p}>{p}</option>
                   ))}
                 </select>
-                <input type="number" inputMode="numeric" min="1" value="1" readOnly className={inputCls} />
+                <input type="number" inputMode="numeric" min="1" value={deerQuantity} onChange={e => setDeerQuantity(e.target.value)} className={inputCls} />
                 <button
                   type="button"
-                  disabled={!selectedDeer}
-                  onClick={() => addSpecies(selectedDeer, setSelectedDeer)}
+                  disabled={!selectedDeer || normalizeQuantity(deerQuantity) <= 0}
+                  onClick={() => addSpecies(selectedDeer, deerQuantity, setSelectedDeer, setDeerQuantity)}
                   className="h-11 rounded-xl bg-green-800 text-white text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2 hover:bg-green-900 transition-colors"
                 ><Plus className="w-4 h-4" /> Add</button>
               </div>
@@ -272,11 +285,11 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                     <option key={p} value={p}>{p}</option>
                   ))}
                 </select>
-                <input type="number" inputMode="numeric" min="1" value="1" readOnly className={inputCls} />
+                <input type="number" inputMode="numeric" min="1" value={pestQuantity} onChange={e => setPestQuantity(e.target.value)} className={inputCls} />
                 <button
                   type="button"
-                  disabled={!selectedPest}
-                  onClick={() => addSpecies(selectedPest, setSelectedPest)}
+                  disabled={!selectedPest || normalizeQuantity(pestQuantity) <= 0}
+                  onClick={() => addSpecies(selectedPest, pestQuantity, setSelectedPest, setPestQuantity)}
                   className="h-11 rounded-xl bg-gradient-to-r from-orange-500 to-primary text-white text-sm font-bold disabled:opacity-40 flex items-center justify-center gap-2 hover:opacity-90 transition-colors"
                 ><Plus className="w-4 h-4" /> Add</button>
               </div>

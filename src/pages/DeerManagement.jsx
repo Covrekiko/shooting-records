@@ -114,6 +114,13 @@ export default function DeerManagement() {
     }
   };
 
+  const openCheckout = async () => {
+    const currentUser = await base44.auth.me();
+    const ammoList = await loadOwnedAmmunitionWithReloads(currentUser);
+    setAmmunition(ammoList);
+    setShowCheckout(true);
+  };
+
   const handleCheckout = async (checkoutData) => {
     if (!activeOuting) { alert('No active outing to check out from'); return; }
     try {
@@ -248,7 +255,7 @@ export default function DeerManagement() {
                   </p>
                 </div>
               </div>
-              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowCheckout(true)}
+              <motion.button whileTap={{ scale: 0.95 }} onClick={openCheckout}
                 className={DESIGN.BUTTON_PRIMARY}>
                 Check Out
               </motion.button>
