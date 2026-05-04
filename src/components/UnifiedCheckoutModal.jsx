@@ -69,14 +69,24 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
     if (!cleanSpecies || quantity <= 0) return;
 
     setFormData(prev => {
-      if (prev.species_list.find(s => s.species === cleanSpecies)) return prev;
+      const existing = prev.species_list.find(s => s.species === cleanSpecies);
+      if (existing) {
+        return {
+          ...prev,
+          species_list: prev.species_list.map(s => {
+            if (s.species !== cleanSpecies) return s;
+            const nextQuantity = normalizeQuantity(s.count) + quantity;
+            return { ...s, count: String(nextQuantity), quantity: nextQuantity };
+          }),
+        };
+      }
+
       return {
         ...prev,
         species_list: [...prev.species_list, { species: cleanSpecies, count: String(quantity), quantity, note: '' }],
       };
     });
 
-    speciesSetter('');
     quantitySetter('1');
   };
 
@@ -247,11 +257,11 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
               <div className="grid grid-cols-1 sm:grid-cols-[1fr_9rem_10rem] gap-3">
                 <select value={selectedDeer} onChange={e => setSelectedDeer(e.target.value)} className={inputCls}>
                   <option value="">Select species…</option>
-                  {DEER_SPECIES.filter(p => !formData.species_list.find(s => s.species === p)).map(p => (
+                  {DEER_SPECIES.map(p => (
                     <option key={p} value={p}>{p}</option>
                   ))}
                 </select>
-                <input type="number" inputMode="numeric" min="1" value={deerQuantity} onChange={e => setDeerQuantity(e.target.value)} className={inputCls} />
+                <input type="text" inputMode="numeric" pattern="[0-9]*" value={deerQuantity} onChange={e => setDeerQuantity(e.target.value.replace(/\D/g, ''))} className={inputCls} />
                 <button
                   type="button"
                   disabled={!selectedDeer || normalizeQuantity(deerQuantity) <= 0}
@@ -281,11 +291,11 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
               <div className="grid grid-cols-1 sm:grid-cols-[1fr_9rem_10rem] gap-3">
                 <select value={selectedPest} onChange={e => setSelectedPest(e.target.value)} className={inputCls}>
                   <option value="">Select species…</option>
-                  {PEST_SPECIES.filter(p => !formData.species_list.find(s => s.species === p)).map(p => (
+                  {PEST_SPECIES.map(p => (
                     <option key={p} value={p}>{p}</option>
                   ))}
                 </select>
-                <input type="number" inputMode="numeric" min="1" value={pestQuantity} onChange={e => setPestQuantity(e.target.value)} className={inputCls} />
+                <input type="text" inputMode="numeric" pattern="[0-9]*" value={pestQuantity} onChange={e => setPestQuantity(e.target.value.replace(/\D/g, ''))} className={inputCls} />
                 <button
                   type="button"
                   disabled={!selectedPest || normalizeQuantity(pestQuantity) <= 0}
