@@ -4,20 +4,16 @@ function isVisibleAmmunition(ammo, reloadSessions, userEmail) {
   if (!ammo) return false;
   if (ammo.archived === true || ammo.is_deleted === true || ammo.status === 'deleted' || ammo.reload_session_deleted === true) return false;
 
-  const sessions = reloadSessions || [];
-  const linkedSessions = sessions.filter((session) => {
-    const ids = [ammo.reload_session_id, ammo.source_id, ammo.reload_batch_id].filter(Boolean);
-    return ids.includes(session.id) || ammo.notes?.includes(`reload_batch:${session.id}`) || (ammo.batch_number && session.batch_number && ammo.batch_number === session.batch_number);
-  });
-  const linkedToDeletedSession = linkedSessions.some((session) => session.isDeleted === true || session.is_deleted === true || session.archived === true || session.status === 'deleted' || session.reload_session_deleted === true);
-  if (linkedToDeletedSession) return false;
-
   const createdByUser = ammo.created_by === userEmail;
+  if (createdByUser) return true;
+
+  const reloadSessionIds = new Set((reloadSessions || []).map((session) => session.id));
+  const linkedReloadSession = reloadSessionIds.has(ammo.reload_session_id) || reloadSessionIds.has(ammo.source_id) || reloadSessionIds.has(ammo.reload_batch_id);
+  const linkedReloadNotes = (reloadSessions || []).some((session) => ammo.notes?.includes(`reload_batch:${session.id}`));
   const isReloaded = ammo.ammo_type === 'reloaded' || ammo.type === 'reloaded' || ammo.source === 'reloaded' || ammo.source_type === 'reload_batch';
   const hasStock = (ammo.quantity_in_stock || 0) > 0;
 
-  if (createdByUser) return true;
-  return isReloaded && hasStock && linkedSessions.length > 0;
+  return isReloaded && hasStock && (linkedReloadSession || linkedReloadNotes);
 }
 
 Deno.serve(async (req) => {
