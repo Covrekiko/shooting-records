@@ -48,7 +48,6 @@ const NAV_SECTIONS = [
       { path: '/deer-management', label: 'Deer Management', icon: Layers, module: 'deer_management' },
       { path: '/scope-click-card', label: 'Scope Click Cards', icon: ScanLine, module: 'target_shooting' },
       { path: '/target-analyzer', label: 'Target Analyzer', icon: BarChart3, module: 'target_shooting' },
-      { path: '/load-comparison', label: 'Load Comparison', icon: BarChart3, module: 'reloading' },
     ],
   },
   {
@@ -65,6 +64,7 @@ const NAV_SECTIONS = [
       { path: '/ammo-summary', label: 'Armory', icon: Shield },
       { path: '/reloading', label: 'Reloading', icon: RefreshCw, module: 'reloading' },
       { path: '/load-development', label: 'Load Development', icon: FlaskConical, module: 'reloading' },
+      { path: '/load-comparison', label: 'Load Comparison', icon: BarChart3, module: 'reloading' },
     ],
   },
   {
