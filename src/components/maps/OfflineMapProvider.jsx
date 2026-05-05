@@ -3,7 +3,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Protocol, PMTiles } from 'pmtiles';
 import { getActiveOfflineMapPackage } from '@/lib/offlineMapStore';
-import { OFFLINE_MAP_CONFIG } from '@/lib/offlineMapConfig';
+import { OFFLINE_MAP_CONFIG, OFFLINE_MAP_NOT_CONFIGURED_MESSAGE } from '@/lib/offlineMapConfig';
 
 let protocolRegistered = false;
 const protocol = new Protocol();
@@ -196,7 +196,7 @@ export default function OfflineMapProvider({
       <div ref={containerRef} className="absolute inset-0" />
       {!mapPackage && (
         <div className="absolute left-1/2 -translate-x-1/2 z-10 px-3 py-2 rounded-xl bg-card/90 border border-border shadow-lg text-xs font-semibold text-foreground map-overlay-top-center">
-          Offline map package URL not configured. Add a legal PMTiles package URL to enable offline map download.
+          {OFFLINE_MAP_NOT_CONFIGURED_MESSAGE}
         </div>
       )}
     </div>

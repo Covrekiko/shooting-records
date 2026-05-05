@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Download, HardDrive, Trash2, Map, RefreshCw } from 'lucide-react';
 import { getRepository } from '@/lib/offlineSupport';
-import { OFFLINE_MAP_CONFIG, hasConfiguredOfflineMapPackage } from '@/lib/offlineMapConfig';
+import { OFFLINE_MAP_CONFIG, OFFLINE_MAP_NOT_CONFIGURED_MESSAGE, hasConfiguredOfflineMapPackage } from '@/lib/offlineMapConfig';
 import { deleteOfflineMapPackage, downloadOfflineMapPackage, estimateOfflineMapPackage, getOfflineMapStorageSummary } from '@/lib/offlineMapStore';
 
 export default function OfflineMapManager() {
   const [areas, setAreas] = useState([]);
   const [selectedAreaId, setSelectedAreaId] = useState('uk_overview');
-  const [sourceUrl, setSourceUrl] = useState(OFFLINE_MAP_CONFIG.packageUrl);
+  const sourceUrl = OFFLINE_MAP_CONFIG.packageUrl;
   const [packages, setPackages] = useState([]);
   const [storageLabel, setStorageLabel] = useState('0 B');
   const [estimate, setEstimate] = useState(null);
   const [progress, setProgress] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
 
   const load = async () => {
     const [areaList, summary] = await Promise.all([
@@ -31,29 +32,45 @@ export default function OfflineMapManager() {
   const selectedArea = areas.find((area) => area.id === selectedAreaId);
 
   const handleEstimate = async () => {
-    if (!sourceUrl.trim()) return;
+    if (!sourceUrl) return;
     setBusy(true);
-    const result = await estimateOfflineMapPackage(sourceUrl.trim());
-    setEstimate(result);
+    setError('');
+    try {
+      const result = await estimateOfflineMapPackage(sourceUrl);
+      setEstimate(result);
+    } catch (err) {
+      setError(err?.message || 'Could not estimate offline map package size.');
+    }
     setBusy(false);
   };
 
   const handleDownload = async () => {
-    if (!sourceUrl.trim()) return;
+    if (!sourceUrl) return;
     setBusy(true);
+    setError('');
     setProgress(0);
-    const type = selectedAreaId === 'uk_overview' ? 'uk_overview' : 'area';
-    await downloadOfflineMapPackage({
-      name: selectedAreaId === 'uk_overview' ? 'UK overview offline map' : selectedArea?.name,
-      sourceUrl: sourceUrl.trim(),
-      type,
-      area: selectedArea,
-      onProgress: setProgress,
-    });
-    setProgress(null);
-    setEstimate(null);
+    const type = selectedAreaId === 'uk_overview' ? 'configured_pmtiles' : 'area';
+    try {
+      await downloadOfflineMapPackage({
+        name: OFFLINE_MAP_CONFIG.packageName,
+        sourceUrl,
+        type,
+        area: selectedArea,
+        zoomOverride: {
+          minzoom: OFFLINE_MAP_CONFIG.minZoom,
+          maxzoom: OFFLINE_MAP_CONFIG.maxZoom,
+          label: `${OFFLINE_MAP_CONFIG.minZoom}–${OFFLINE_MAP_CONFIG.maxZoom}`,
+        },
+        regionName: OFFLINE_MAP_CONFIG.regionName,
+        onProgress: setProgress,
+      });
+      setProgress(null);
+      setEstimate(null);
+      await load();
+    } catch (err) {
+      setError(err?.message || 'Offline map download failed. Check the PMTiles URL and CORS settings.');
+    }
     setBusy(false);
-    await load();
   };
 
   const handleDelete = async (id) => {
@@ -72,7 +89,7 @@ export default function OfflineMapManager() {
           <p className="text-sm text-muted-foreground mt-1">Download legal PMTiles map packages for offline stalking map use.</p>
           {!hasConfiguredOfflineMapPackage() && (
             <p className="text-sm text-amber-700 dark:text-amber-300 mt-2 font-medium">
-              Offline map package URL not configured. Add a legal PMTiles package URL to enable offline map download.
+              {OFFLINE_MAP_NOT_CONFIGURED_MESSAGE}
             </p>
           )}
         </div>
@@ -92,23 +109,19 @@ export default function OfflineMapManager() {
         </select>
       </div>
 
-      <div className="grid gap-3">
-        <label className="text-sm font-medium">Legal PMTiles package URL</label>
-        <input
-          type="url"
-          value={sourceUrl}
-          onChange={(e) => setSourceUrl(e.target.value)}
-          placeholder="https://your-tiles.example/area.pmtiles"
-          className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm"
-        />
-        <p className="text-xs text-muted-foreground">Use your own licensed PMTiles/MapLibre vector package. The app does not cache Google Maps or bulk-download public OSM tiles.</p>
+      <div className="rounded-xl bg-secondary/50 p-3 text-sm text-muted-foreground space-y-1">
+        <p>URL configured: <span className="font-semibold text-foreground">{hasConfiguredOfflineMapPackage() ? 'Yes' : 'No'}</span></p>
+        <p>Package name: <span className="font-semibold text-foreground">{OFFLINE_MAP_CONFIG.packageName}</span></p>
+        <p>Region: <span className="font-semibold text-foreground">{OFFLINE_MAP_CONFIG.regionName}</span></p>
+        <p>Zoom range: <span className="font-semibold text-foreground">{OFFLINE_MAP_CONFIG.minZoom}–{OFFLINE_MAP_CONFIG.maxZoom}</span></p>
+        <p className="text-xs">Use your own licensed PMTiles/MapLibre vector package. The app does not cache Google Maps or bulk-download public OSM tiles.</p>
       </div>
 
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
           onClick={handleEstimate}
-          disabled={busy || !sourceUrl.trim()}
+          disabled={busy || !sourceUrl}
           className="px-4 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold disabled:opacity-50 flex items-center gap-2"
         >
           <HardDrive className="w-4 h-4" /> Estimate size
@@ -116,7 +129,7 @@ export default function OfflineMapManager() {
         <button
           type="button"
           onClick={handleDownload}
-          disabled={busy || !sourceUrl.trim()}
+          disabled={busy || !sourceUrl}
           className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50 flex items-center gap-2"
         >
           {busy ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
@@ -129,6 +142,7 @@ export default function OfflineMapManager() {
       )}
       {estimate && <p className="text-sm text-muted-foreground">Estimated download: <span className="font-semibold text-foreground">{estimate.label}</span></p>}
       {progress !== null && <div className="h-2 rounded-full bg-secondary overflow-hidden"><div className="h-full bg-primary" style={{ width: `${progress}%` }} /></div>}
+      {error && <p className="text-sm text-destructive font-medium">{error}</p>}
 
       <div className="rounded-xl bg-secondary/50 p-3 text-sm text-muted-foreground space-y-1">
         <p>Configured region: <span className="font-semibold text-foreground">{OFFLINE_MAP_CONFIG.regionName}</span></p>

@@ -82,9 +82,9 @@ export async function estimateOfflineMapPackage(sourceUrl) {
   return { bytes: size, label: formatBytes(size) };
 }
 
-export async function downloadOfflineMapPackage({ name, sourceUrl, type = 'custom', area, center, radiusKm, onProgress }) {
+export async function downloadOfflineMapPackage({ name, sourceUrl, type = 'custom', area, center, radiusKm, zoomOverride, regionName, onProgress }) {
   const bounds = type === 'radius' ? getBoundsFromRadius(center, radiusKm || 5) : getBoundsFromArea(area);
-  const zoom = chooseZoomStrategy(type, bounds);
+  const zoom = zoomOverride || chooseZoomStrategy(type, bounds);
   const id = makeId();
 
   await offlineDB.put(STORE, {
@@ -92,6 +92,7 @@ export async function downloadOfflineMapPackage({ name, sourceUrl, type = 'custo
     name: name || area?.name || 'Offline map',
     sourceUrl,
     type,
+    regionName,
     bounds,
     zoom,
     status: 'downloading',
@@ -138,6 +139,7 @@ export async function downloadOfflineMapPackage({ name, sourceUrl, type = 'custo
     name: name || area?.name || 'Offline map',
     sourceUrl,
     type,
+    regionName,
     bounds,
     zoom,
     blob,
