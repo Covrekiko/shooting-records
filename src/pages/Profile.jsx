@@ -234,7 +234,9 @@ function Field({ label, error, required, children }) {
 }
 
 export function SettingsPanel() {
+  const location = useLocation();
   const [user, setUser] = useState(null);
+  const showOnlyAppPermissions = location.hash === '#app-permissions';
 
   useEffect(() => {
     base44.auth.me().then(setUser).catch(() => {});
@@ -243,10 +245,13 @@ export function SettingsPanel() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold mb-4">Equipment & Areas</h2>
-        <p className="text-muted-foreground">Manage your firearms and locations</p>
+        <h2 className="text-2xl font-bold mb-4">{showOnlyAppPermissions ? 'App Permissions' : 'Equipment & Areas'}</h2>
+        <p className="text-muted-foreground">
+          {showOnlyAppPermissions ? 'Manage location and notification permissions' : 'Manage your firearms and locations'}
+        </p>
       </div>
 
+      {!showOnlyAppPermissions && (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <SettingCard title="Rifles" description="Manage your rifle collection" link="/settings/rifles" />
         <SettingCard title="Shotguns" description="Manage your shotgun collection" link="/settings/shotguns" />
@@ -256,8 +261,9 @@ export function SettingsPanel() {
         <SettingCard title="Ammunition Inventory" description="Track stock levels & costs" link="/settings/ammunition-inventory" />
         <SettingCard title="App Permissions" description="Manage location and notification permissions" link="/profile/settings#app-permissions" />
       </div>
+      )}
 
-      {user?.role === 'admin' && (
+      {!showOnlyAppPermissions && user?.role === 'admin' && (
         <div>
           <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3">Reference Databases</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -269,16 +275,16 @@ export function SettingsPanel() {
       )}
 
       <div className="space-y-4">
-        <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3">App Settings</h3>
+        {!showOnlyAppPermissions && <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-3">App Settings</h3>}
         <div id="app-permissions">
           <h4 className="text-base font-semibold text-foreground mb-2">App Permissions</h4>
           <AppPermissionsPanel userEmail={user?.email} />
         </div>
-        <AutoCheckinSettingToggle />
-        <OfflineMapManager />
+        {!showOnlyAppPermissions && <AutoCheckinSettingToggle />}
+        {!showOnlyAppPermissions && <OfflineMapManager />}
       </div>
 
-      <DeleteAccountSection />
+      {!showOnlyAppPermissions && <DeleteAccountSection />}
     </div>
   );
 }
