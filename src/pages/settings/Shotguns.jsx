@@ -28,6 +28,7 @@ export default function Shotguns() {
     barrel_length: '',
     serial_number: '',
     total_cartridges_fired: 0,
+    cleaning_reminder_threshold: 100,
     notes: '',
   };
 
@@ -59,6 +60,7 @@ export default function Shotguns() {
       const dataToSave = {
         ...formData,
         total_cartridges_fired: parseInt(formData.total_cartridges_fired) || 0,
+        cleaning_reminder_threshold: parseInt(formData.cleaning_reminder_threshold) || 100,
       };
 
       if (editingId) {
@@ -161,6 +163,7 @@ export default function Shotguns() {
               <div><label className={lbl}>Barrel Length</label><input type="text" placeholder="e.g. 28in" value={formData.barrel_length} onChange={(e) => setFormData({ ...formData, barrel_length: e.target.value })} className={inp} /></div>
               <div><label className={lbl}>Serial Number</label><input type="text" value={formData.serial_number} onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })} className={inp} /></div>
               <div><label className={lbl}>Current shots fired</label><input type="number" min="0" value={formData.total_cartridges_fired ?? 0} onChange={(e) => setFormData({ ...formData, total_cartridges_fired: e.target.value })} className={inp} /></div>
+              <div><label className={lbl}>Cleaning reminder</label><select value={formData.cleaning_reminder_threshold ?? 100} onChange={(e) => setFormData({ ...formData, cleaning_reminder_threshold: e.target.value })} className={inp}><option value="50">Every 50 cartridges</option><option value="100">Every 100 cartridges</option><option value="150">Every 150 cartridges</option><option value="200">Every 200 cartridges</option></select></div>
             </div>
             <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows="2" /></div>
           </div>
@@ -172,6 +175,7 @@ export default function Shotguns() {
               <h3 className="font-semibold text-lg">{shotgun.name}</h3>
               <p className="text-sm text-muted-foreground">{shotgun.make} {shotgun.model}</p>
               <p className="text-sm text-muted-foreground">{shotgun.gauge}{shotgun.barrel_length && ` · ${shotgun.barrel_length}`}</p>
+              <p className="text-sm text-muted-foreground">Cleaning reminder: every {shotgun.cleaning_reminder_threshold || 100} cartridges</p>
               <div className="flex gap-2 mt-4 mb-4">
                 <button
                   onClick={() => startEdit(shotgun)}
