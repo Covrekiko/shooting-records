@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { firearm_type, firearm_id } = await req.json();
+    const { firearm_type, firearm_id, cleaning_date, maintenance_items = [], notes = '' } = await req.json();
 
     if (!['rifle', 'shotgun'].includes(firearm_type)) {
       return Response.json({ error: 'firearm_type must be rifle or shotgun' }, { status: 400 });
@@ -47,7 +47,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: firearm does not belong to you' }, { status: 403 });
     }
 
-    const today = getTodayInLondon();
+    const today = cleaning_date || getTodayInLondon();
+    const maintenanceSummary = Array.isArray(maintenance_items) && maintenance_items.length > 0
+      ? maintenance_items.join(', ')
+      : 'General cleaning';
     const totalAtCleaning = firearm_type === 'rifle'
       ? (firearm.total_rounds_fired || 0)
       : (firearm.total_cartridges_fired || 0);
@@ -73,8 +76,11 @@ Deno.serve(async (req) => {
       firearm_type,
       firearm_name: firearm.name || '',
       cleaning_date: today,
+      maintenance_items: Array.isArray(maintenance_items) ? maintenance_items : [],
+      maintenance_summary: maintenanceSummary,
       total_rounds_at_cleaning: totalAtCleaning,
       rounds_since_previous_cleaning: roundsSincePrevious,
+      notes,
     });
 
     return Response.json({

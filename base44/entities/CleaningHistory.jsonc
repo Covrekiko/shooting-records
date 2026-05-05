@@ -21,7 +21,18 @@
     "cleaning_date": {
       "type": "string",
       "format": "date",
-      "description": "Date of cleaning"
+      "description": "Date of cleaning or maintenance"
+    },
+    "maintenance_items": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Specific maintenance performed"
+    },
+    "maintenance_summary": {
+      "type": "string",
+      "description": "Readable summary of maintenance performed"
     },
     "total_rounds_at_cleaning": {
       "type": "integer",

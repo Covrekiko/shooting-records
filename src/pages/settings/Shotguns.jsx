@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import ChildScreenHeader from '@/components/ChildScreenHeader';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
+import CleaningLogPanel from '@/components/armory/CleaningLogPanel';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
@@ -13,6 +14,7 @@ const lbl = 'block text-xs font-bold text-muted-foreground uppercase tracking-wi
 
 export default function Shotguns() {
   const [shotguns, setShotguns] = useState([]);
+  const [cleaningHistory, setCleaningHistory] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -38,8 +40,12 @@ export default function Shotguns() {
   const loadShotguns = async () => {
     try {
       const currentUser = await base44.auth.me();
-      const shotgunsList = await base44.entities.Shotgun.filter({ created_by: currentUser.email });
+      const [shotgunsList, historyList] = await Promise.all([
+        base44.entities.Shotgun.filter({ created_by: currentUser.email }),
+        base44.entities.CleaningHistory.filter({ created_by: currentUser.email, firearm_type: 'shotgun' }, '-cleaning_date'),
+      ]);
       setShotguns(shotgunsList);
+      setCleaningHistory(historyList || []);
     } catch (error) {
       console.error('Error loading shotguns:', error);
     } finally {
@@ -78,6 +84,15 @@ export default function Shotguns() {
     } catch (error) {
       console.error('Error deleting shotgun:', error);
     }
+  };
+
+  const handleSaveCleaning = async (shotgun, logData) => {
+    await base44.functions.invoke('markFirearmCleanedForUser', {
+      firearm_type: 'shotgun',
+      firearm_id: shotgun.id,
+      ...logData,
+    });
+    await loadShotguns();
   };
 
   const startEdit = (shotgun) => {
@@ -157,7 +172,7 @@ export default function Shotguns() {
               <h3 className="font-semibold text-lg">{shotgun.name}</h3>
               <p className="text-sm text-muted-foreground">{shotgun.make} {shotgun.model}</p>
               <p className="text-sm text-muted-foreground">{shotgun.gauge}{shotgun.barrel_length && ` · ${shotgun.barrel_length}`}</p>
-              <div className="flex gap-2 mt-4">
+              <div className="flex gap-2 mt-4 mb-4">
                 <button
                   onClick={() => startEdit(shotgun)}
                   className="flex-1 px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center justify-center gap-1"
@@ -171,6 +186,12 @@ export default function Shotguns() {
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
+              <CleaningLogPanel
+                firearm={shotgun}
+                firearmType="shotgun"
+                history={cleaningHistory.filter((entry) => entry.firearm_id === shotgun.id)}
+                onSave={handleSaveCleaning}
+              />
             </div>
           ))}
         </div>

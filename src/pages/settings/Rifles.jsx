@@ -3,6 +3,8 @@ import { base44 } from '@/api/base44Client';
 import ChildScreenHeader from '@/components/ChildScreenHeader';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
+import CleaningLogPanel from '@/components/armory/CleaningLogPanel';
+import CleaningStatusBadge from '@/components/armory/CleaningStatusBadge';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
@@ -15,6 +17,7 @@ const lbl = 'block text-xs font-bold text-muted-foreground uppercase tracking-wi
 
 export default function Rifles() {
   const [rifles, setRifles] = useState([]);
+  const [cleaningHistory, setCleaningHistory] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -39,8 +42,12 @@ export default function Rifles() {
   const loadRifles = async () => {
     try {
       const currentUser = await base44.auth.me();
-      const riflesList = await base44.entities.Rifle.filter({ created_by: currentUser.email });
+      const [riflesList, historyList] = await Promise.all([
+        base44.entities.Rifle.filter({ created_by: currentUser.email }),
+        base44.entities.CleaningHistory.filter({ created_by: currentUser.email, firearm_type: 'rifle' }, '-cleaning_date'),
+      ]);
       setRifles(riflesList);
+      setCleaningHistory(historyList || []);
     } catch (error) {
       console.error('Error loading rifles:', error);
     } finally {
@@ -80,6 +87,15 @@ export default function Rifles() {
     } catch (error) {
       console.error('Error deleting rifle:', error);
     }
+  };
+
+  const handleSaveCleaning = async (rifle, logData) => {
+    await base44.functions.invoke('markFirearmCleanedForUser', {
+      firearm_type: 'rifle',
+      firearm_id: rifle.id,
+      ...logData,
+    });
+    await loadRifles();
   };
 
   const startEdit = (rifle) => {
@@ -155,11 +171,14 @@ export default function Rifles() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {rifles.map((rifle) => (
             <div key={rifle.id} className="bg-card border border-border rounded-lg p-4">
-              <h3 className="font-semibold text-lg">{rifle.name}</h3>
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="font-semibold text-lg">{rifle.name}</h3>
+                <CleaningStatusBadge lastCleaningDate={rifle.last_cleaning_date} />
+              </div>
               <p className="text-sm text-muted-foreground">{rifle.make} {rifle.model}</p>
               <p className="text-sm text-muted-foreground">{rifle.caliber}</p>
               {rifle.serial_number && <p className="text-sm text-muted-foreground font-mono">S/N: {rifle.serial_number}</p>}
-              <div className="flex gap-2 mt-4">
+              <div className="flex gap-2 mt-4 mb-4">
                 <button
                   onClick={() => startEdit(rifle)}
                   className="flex-1 px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center justify-center gap-1"
@@ -173,6 +192,12 @@ export default function Rifles() {
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
+              <CleaningLogPanel
+                firearm={rifle}
+                firearmType="rifle"
+                history={cleaningHistory.filter((entry) => entry.firearm_id === rifle.id)}
+                onSave={handleSaveCleaning}
+              />
             </div>
           ))}
         </div>
