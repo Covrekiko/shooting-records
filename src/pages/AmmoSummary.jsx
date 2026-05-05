@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { AlertCircle, CheckCircle2, Crosshair, Download, Droplet } from 'lucide-react';
+import CleaningActionButton from '@/components/armory/CleaningActionButton';
 import { format } from 'date-fns';
 import { generateAmmunitionSummaryPDF } from '@/utils/pdfGenerators';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
@@ -52,7 +53,7 @@ export default function AmmoSummary() {
     }
   };
 
-  const handleMarkCleaned = async (rifleId) => {
+  const handleMarkCleaned = async (rifleId, logData = {}) => {
     if (!navigator.onLine) {
       alert('This action requires internet connection to protect stock accuracy.');
       return;
@@ -61,6 +62,7 @@ export default function AmmoSummary() {
       await base44.functions.invoke('markFirearmCleanedForUser', {
         firearm_type: 'rifle',
         firearm_id: rifleId,
+        ...logData,
       });
       await loadData();
     } catch (error) {
@@ -68,7 +70,7 @@ export default function AmmoSummary() {
     }
   };
 
-  const handleShotgunMarkCleaned = async (shotgunId) => {
+  const handleShotgunMarkCleaned = async (shotgunId, logData = {}) => {
     if (!navigator.onLine) {
       alert('This action requires internet connection to protect stock accuracy.');
       return;
@@ -77,6 +79,7 @@ export default function AmmoSummary() {
       await base44.functions.invoke('markFirearmCleanedForUser', {
         firearm_type: 'shotgun',
         firearm_id: shotgunId,
+        ...logData,
       });
       await loadData();
     } catch (error) {
@@ -149,12 +152,14 @@ export default function AmmoSummary() {
                           {(rifle.total_rounds_fired || 0) - (rifle.rounds_at_last_cleaning || 0)} / {rifle.cleaning_reminder_threshold} rounds
                         </p>
                       </div>
-                      <button
-                        onClick={() => showCleaningGuideThen(() => handleMarkCleaned(rifle.id))}
+                      <CleaningActionButton
+                        onBeforeOpen={showCleaningGuideThen}
+                        onSave={(logData) => handleMarkCleaned(rifle.id, logData)}
+                        modalTitle={`Record maintenance for ${rifle.name}`}
                         className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs rounded-lg font-semibold transition-colors"
                       >
                         Mark Clean
-                      </button>
+                      </CleaningActionButton>
                     </div>
                   ))}
                 </div>
@@ -263,13 +268,15 @@ export default function AmmoSummary() {
                            </div>
                          </div>
                        )}
-                       <button
-                         onClick={() => showCleaningGuideThen(() => handleMarkCleaned(rifle.id))}
+                       <CleaningActionButton
+                         onBeforeOpen={showCleaningGuideThen}
+                         onSave={(logData) => handleMarkCleaned(rifle.id, logData)}
+                         modalTitle={`Record maintenance for ${rifle.name}`}
                          className="w-full px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
                        >
                          <Droplet className="w-4 h-4" />
                          Mark as Cleaned
-                       </button>
+                       </CleaningActionButton>
                      </div>
                   </div>
                 );
@@ -378,13 +385,15 @@ export default function AmmoSummary() {
                           </div>
                         </div>
                       )}
-                      <button
-                        onClick={() => showCleaningGuideThen(() => handleShotgunMarkCleaned(shotgun.id))}
+                      <CleaningActionButton
+                        onBeforeOpen={showCleaningGuideThen}
+                        onSave={(logData) => handleShotgunMarkCleaned(shotgun.id, logData)}
+                        modalTitle={`Record maintenance for ${shotgun.name}`}
                         className="w-full px-3 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
                       >
                         <Droplet className="w-4 h-4" />
                         Mark as Cleaned
-                      </button>
+                      </CleaningActionButton>
                     </div>
                   </div>
                 );
