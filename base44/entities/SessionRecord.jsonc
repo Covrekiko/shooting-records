@@ -57,6 +57,51 @@
       },
       "description": "GPS track points"
     },
+    "weather_metadata": {
+      "type": "object",
+      "properties": {
+        "temperature_c": {
+          "type": "number"
+        },
+        "wind_speed_kmh": {
+          "type": "number"
+        },
+        "wind_direction_degrees": {
+          "type": "number"
+        },
+        "visibility_m": {
+          "type": "number"
+        },
+        "weather_code": {
+          "type": "number"
+        },
+        "latitude": {
+          "type": "number"
+        },
+        "longitude": {
+          "type": "number"
+        },
+        "source": {
+          "type": "string"
+        },
+        "captured_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "captured",
+            "location_unavailable",
+            "failed"
+          ]
+        },
+        "error": {
+          "type": "string"
+        }
+      },
+      "description": "Weather automatically captured when the record was saved"
+    },
     "location_id": {
       "type": "string",
       "description": "Associated location/club/area ID"
