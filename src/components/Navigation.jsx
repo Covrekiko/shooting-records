@@ -62,7 +62,6 @@ const NAV_SECTIONS = [
     label: 'Armory',
     items: [
       { path: '/ammo-summary', label: 'Armory', icon: Shield },
-      { path: '/qr-scanner', label: 'QR Scanner', icon: QrCode },
       { path: '/reloading', label: 'Reloading', icon: RefreshCw, module: 'reloading' },
       { path: '/load-development', label: 'Load Development', icon: FlaskConical, module: 'reloading' },
       { path: '/load-comparison', label: 'Load Comparison', icon: BarChart3, module: 'reloading' },
@@ -83,7 +82,6 @@ const DESKTOP_ITEMS = [
   { path: '/deer-management', label: 'Deer', icon: Layers, module: 'deer_management' },
   { path: '/deer-stalking', label: 'Map', icon: Map, module: 'stalk_map' },
   { path: '/ammo-summary', label: 'Armory', icon: Shield },
-  { path: '/qr-scanner', label: 'QR', icon: QrCode },
   { path: '/records', label: 'Records', icon: BookOpen },
   { path: '/reloading', label: 'Reloading', icon: RefreshCw, module: 'reloading' },
   { path: '/load-comparison', label: 'Compare', icon: BarChart3, module: 'reloading' },

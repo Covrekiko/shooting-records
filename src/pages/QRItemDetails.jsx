@@ -41,6 +41,7 @@ export default function QRItemDetails() {
       rifle: 'Rifle',
       shotgun: 'Shotgun',
       ammunition: 'Ammunition',
+      reload_batch: 'ReloadingSession',
     };
     const entityName = entityMap[type];
     if (!entityName) {
@@ -70,11 +71,16 @@ export default function QRItemDetails() {
       setReloadSession(sessions?.[0] || null);
     }
 
+    if (type === 'reload_batch') {
+      setReloadSession(found);
+    }
+
     setLoading(false);
   };
 
-  const title = item?.name || item?.brand || 'QR Item';
+  const title = item?.name || item?.brand || item?.batch_number || 'QR Item';
   const isFirearm = type === 'rifle' || type === 'shotgun';
+  const isReloadBatch = type === 'reload_batch';
   const totalCount = type === 'rifle' ? item?.total_rounds_fired : item?.total_cartridges_fired;
   const lastCleanCount = type === 'rifle' ? item?.rounds_at_last_cleaning : item?.cartridges_at_last_cleaning;
   const sinceClean = Math.max(0, (totalCount || 0) - (lastCleanCount || 0));
@@ -103,6 +109,7 @@ export default function QRItemDetails() {
                   <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">{type}</p>
                   <h1 className="text-2xl font-bold">{title}</h1>
                   {type === 'ammunition' && <p className="text-sm text-muted-foreground">{item.caliber} {item.bullet_type} {item.grain && `${item.grain}gr`}</p>}
+                  {isReloadBatch && <p className="text-sm text-muted-foreground">{item.caliber} · {item.rounds_loaded || 0} rounds</p>}
                   {isFirearm && <p className="text-sm text-muted-foreground">{item.make} {item.model}</p>}
                 </div>
               </div>
@@ -117,6 +124,18 @@ export default function QRItemDetails() {
                   <Field label="Total fired" value={`${totalCount || 0} ${type === 'rifle' ? 'rounds' : 'cartridges'}`} />
                   <Field label="Cleaning reminder" value={`Every ${threshold} ${type === 'rifle' ? 'rounds' : 'cartridges'}`} />
                   <Field label="Last cleaned" value={item.last_cleaning_date ? format(new Date(item.last_cleaning_date), 'MMM d, yyyy') : 'Not recorded'} />
+                  <Field label="Notes" value={item.notes} />
+                </>
+              ) : isReloadBatch ? (
+                <>
+                  <Field label="Batch number" value={item.batch_number} />
+                  <Field label="Caliber" value={item.caliber} />
+                  <Field label="Reloaded date" value={item.date ? format(new Date(item.date), 'MMM d, yyyy') : ''} />
+                  <Field label="Rounds loaded" value={item.rounds_loaded} />
+                  <Field label="Cost per round" value={item.cost_per_round ? `£${Number(item.cost_per_round).toFixed(2)}` : ''} />
+                  <Field label="Total cost" value={item.total_cost ? `£${Number(item.total_cost).toFixed(2)}` : ''} />
+                  <Field label="Brass use" value={item.brass_use_type} />
+                  <Field label="Brass cycle" value={item.brass_reload_cycle_count} />
                   <Field label="Notes" value={item.notes} />
                 </>
               ) : (
@@ -156,7 +175,7 @@ export default function QRItemDetails() {
               </div>
             )}
 
-            {type === 'ammunition' && reloadSession && (
+            {(type === 'ammunition' || type === 'reload_batch') && reloadSession && (
               <div className={card}>
                 <h2 className="font-bold flex items-center gap-2 mb-3"><Target className="w-4 h-4 text-primary" /> Reloading specifications</h2>
                 <Field label="Batch number" value={reloadSession.batch_number} />
@@ -168,9 +187,13 @@ export default function QRItemDetails() {
                     <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">Components</p>
                     <div className="space-y-2">
                       {reloadSession.components.map((component, index) => (
-                        <div key={index} className="rounded-xl bg-secondary/40 p-3 text-sm">
+                        <div key={index} className="rounded-xl bg-secondary/40 p-3 text-sm space-y-1">
                           <p className="font-semibold capitalize">{component.type}</p>
                           <p className="text-muted-foreground text-xs">{[component.brand, component.name, component.quantity_used && `${component.quantity_used} ${component.unit || ''}`].filter(Boolean).join(' · ')}</p>
+                          <p className="text-muted-foreground text-xs">{[component.lot_number && `Lot ${component.lot_number}`, component.cost_per_unit && `£${Number(component.cost_per_unit).toFixed(4)}/unit`, component.total_cost && `£${Number(component.total_cost).toFixed(2)} total`].filter(Boolean).join(' · ')}</p>
+                          {(component.brass_use_type || component.brass_reload_cycle_count || component.brass_new_quantity_used || component.brass_used_quantity_used) && (
+                            <p className="text-muted-foreground text-xs">{[component.brass_use_type && `Brass: ${component.brass_use_type}`, component.brass_reload_cycle_count && `Cycle ${component.brass_reload_cycle_count}`, component.brass_new_quantity_used && `${component.brass_new_quantity_used} new`, component.brass_used_quantity_used && `${component.brass_used_quantity_used} used`].filter(Boolean).join(' · ')}</p>
+                          )}
                         </div>
                       ))}
                     </div>

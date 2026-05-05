@@ -17,6 +17,7 @@ import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 import { deleteReloadBatchWithRestore } from '@/lib/reloadingDeleteUtils';
+import QRLabelButton from '@/components/qr/QRLabelButton';
 
 export default function ReloadingManagement() {
   const navigate = useNavigate();
@@ -239,6 +240,7 @@ export default function ReloadingManagement() {
                       </div>
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
+                      <QRLabelButton itemType="reload_batch" itemId={session.id} title={session.batch_number} subtitle={`${session.caliber} · ${session.rounds_loaded || 0} rounds · ${session.date ? format(new Date(session.date), 'MMM d, yyyy') : ''}`} />
                       <button
                         onClick={() => handleViewBatchPDF(session)}
                         className="p-2 hover:bg-primary/10 text-primary rounded transition-colors"

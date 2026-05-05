@@ -259,6 +259,7 @@ export function SettingsPanel() {
         <SettingCard title="Deer Locations" description="Manage deer hunting locations" link="/settings/locations" />
         <SettingCard title="Ammunition" description="Manage ammunition" link="/settings/ammunition" />
         <SettingCard title="Ammunition Inventory" description="Track stock levels & costs" link="/settings/ammunition-inventory" />
+        <SettingCard title="QR Scanner" description="Scan firearm, ammunition, and reload batch labels" link="/qr-scanner" />
         <SettingCard title="App Permissions" description="Manage location and notification permissions" link="/profile/settings#app-permissions" />
       </div>
       )}
