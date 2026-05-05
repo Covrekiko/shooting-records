@@ -1,0 +1,137 @@
+{
+  "name": "MaintenanceAlert",
+  "type": "object",
+  "properties": {
+    "firearm_id": {
+      "type": "string",
+      "description": "ID of the rifle or shotgun that triggered the alert"
+    },
+    "firearm_type": {
+      "type": "string",
+      "enum": [
+        "rifle",
+        "shotgun"
+      ],
+      "description": "Type of firearm"
+    },
+    "firearm_name": {
+      "type": "string",
+      "description": "Name of the firearm"
+    },
+    "alert_type": {
+      "type": "string",
+      "enum": [
+        "maintenance_due",
+        "deep_cleaning_due"
+      ],
+      "default": "maintenance_due",
+      "description": "Severity/type of maintenance alert"
+    },
+    "threshold_count": {
+      "type": "integer",
+      "description": "Configured maintenance threshold"
+    },
+    "current_since_cleaning": {
+      "type": "integer",
+      "description": "Rounds/cartridges fired since last cleaning"
+    },
+    "trigger_total_count": {
+      "type": "integer",
+      "description": "Total lifetime rounds/cartridges when the alert was created"
+    },
+    "session_record_id": {
+      "type": "string",
+      "description": "SessionRecord that triggered this alert"
+    },
+    "message": {
+      "type": "string",
+      "description": "Alert text shown to the user"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "dismissed",
+        "completed"
+      ],
+      "default": "active"
+    },
+    "notified_email": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether an email notification was sent"
+    },
+    "notified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the alert was created/sent"
+    }
+  },
+  "required": [
+    "firearm_id",
+    "firearm_type",
+    "firearm_name",
+    "alert_type",
+    "threshold_count",
+    "current_since_cleaning",
+    "trigger_total_count",
+    "message",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "normal_user"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "beta_tester"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "read": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "created_by": "{{user.email}}",
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

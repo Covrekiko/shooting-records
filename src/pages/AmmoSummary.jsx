@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { AlertCircle, CheckCircle2, Crosshair, Download, Droplet } from 'lucide-react';
+import { AlertCircle, Bell, CheckCircle2, Crosshair, Download, Droplet, X } from 'lucide-react';
 import CleaningActionButton from '@/components/armory/CleaningActionButton';
 import { format } from 'date-fns';
 import { generateAmmunitionSummaryPDF } from '@/utils/pdfGenerators';
@@ -16,6 +16,7 @@ export default function AmmoSummary() {
   const { user } = useAuth();
   const [rifles, setRifles] = useState([]);
   const [shotguns, setShotguns] = useState([]);
+  const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const { Guide: CleaningGuide, showGuideThen: showCleaningGuideThen } = useFirstTimeGuide(FIRST_TIME_GUIDES.cleaningCreate);
 
@@ -40,12 +41,14 @@ export default function AmmoSummary() {
   const loadData = async () => {
     if (!user?.email) return;
     try {
-      const [riflesList, shotgunsList] = await Promise.all([
+      const [riflesList, shotgunsList, alertList] = await Promise.all([
         base44.entities.Rifle.filter({ created_by: user.email }),
         base44.entities.Shotgun.filter({ created_by: user.email }),
+        base44.entities.MaintenanceAlert.filter({ created_by: user.email, status: 'active' }, '-notified_at'),
       ]);
       setRifles(riflesList);
       setShotguns(shotgunsList);
+      setAlerts(alertList || []);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -85,6 +88,11 @@ export default function AmmoSummary() {
     } catch (error) {
       console.error('Error marking shotgun cleaned:', error);
     }
+  };
+
+  const dismissAlert = async (alertId) => {
+    await base44.entities.MaintenanceAlert.update(alertId, { status: 'dismissed' });
+    setAlerts((current) => current.filter((alert) => alert.id !== alertId));
   };
 
   const riflesNeedingCleaning = rifles.filter(
@@ -131,6 +139,34 @@ export default function AmmoSummary() {
         </div>
 
         <div className="space-y-6">
+          {/* Maintenance Notifications */}
+          {alerts.length > 0 && (
+            <div className="bg-card border border-border rounded-2xl shadow-sm p-4">
+              <h2 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                <Bell className="w-5 h-5 text-primary" /> Maintenance notifications
+              </h2>
+              <div className="space-y-2">
+                {alerts.map((alert) => (
+                  <div key={alert.id} className="flex items-start gap-3 rounded-xl bg-primary/5 border border-primary/15 p-3">
+                    <AlertCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-foreground">{alert.firearm_name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{alert.message}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => dismissAlert(alert.id)}
+                      className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground"
+                      aria-label="Dismiss notification"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Cleaning Alerts */}
         {riflesNeedingCleaning.length > 0 && (
           <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-4">

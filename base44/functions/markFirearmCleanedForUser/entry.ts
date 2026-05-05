@@ -83,6 +83,17 @@ Deno.serve(async (req) => {
       notes,
     });
 
+    const activeAlerts = await base44.asServiceRole.entities.MaintenanceAlert.filter({
+      created_by: user.email,
+      firearm_id,
+      firearm_type,
+      status: 'active',
+    });
+
+    await Promise.all(
+      activeAlerts.map((alert) => base44.asServiceRole.entities.MaintenanceAlert.update(alert.id, { status: 'completed' }))
+    );
+
     return Response.json({
       success: true,
       firearm: updatedFirearm,
