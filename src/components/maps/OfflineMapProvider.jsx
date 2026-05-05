@@ -3,6 +3,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { Protocol, PMTiles } from 'pmtiles';
 import { getActiveOfflineMapPackage } from '@/lib/offlineMapStore';
+import { OFFLINE_MAP_CONFIG } from '@/lib/offlineMapConfig';
 
 let protocolRegistered = false;
 const protocol = new Protocol();
@@ -32,13 +33,15 @@ function toFeatureCollection(features) {
 }
 
 function makeStyle(pmtilesUrl) {
-  if (!pmtilesUrl) {
-    return {
-      version: 8,
-      sources: {},
-      layers: [{ id: 'offline-background', type: 'background', paint: { 'background-color': '#e2e8f0' } }],
-    };
-  }
+  const baseStyle = {
+    version: 8,
+    sources: {},
+    layers: [{ id: 'background', type: 'background', paint: { 'background-color': '#e2e8f0' } }],
+  };
+
+  if (!pmtilesUrl) return baseStyle;
+
+  const { land, water, roads, places } = OFFLINE_MAP_CONFIG.vectorLayers;
 
   return {
     version: 8,
@@ -50,10 +53,10 @@ function makeStyle(pmtilesUrl) {
     },
     layers: [
       { id: 'background', type: 'background', paint: { 'background-color': '#e2e8f0' } },
-      { id: 'land', type: 'fill', source: 'offline', 'source-layer': 'land', paint: { 'fill-color': '#e5e7eb' } },
-      { id: 'water', type: 'fill', source: 'offline', 'source-layer': 'water', paint: { 'fill-color': '#bfdbfe' } },
-      { id: 'roads', type: 'line', source: 'offline', 'source-layer': 'roads', paint: { 'line-color': '#ffffff', 'line-width': 1.2 } },
-      { id: 'places', type: 'symbol', source: 'offline', 'source-layer': 'places', layout: { 'text-field': ['get', 'name'], 'text-size': 11 }, paint: { 'text-color': '#334155', 'text-halo-color': '#ffffff', 'text-halo-width': 1 } },
+      { id: 'land', type: 'fill', source: 'offline', 'source-layer': land, paint: { 'fill-color': '#e5e7eb' } },
+      { id: 'water', type: 'fill', source: 'offline', 'source-layer': water, paint: { 'fill-color': '#bfdbfe' } },
+      { id: 'roads', type: 'line', source: 'offline', 'source-layer': roads, paint: { 'line-color': '#ffffff', 'line-width': 1.2 } },
+      { id: 'places', type: 'symbol', source: 'offline', 'source-layer': places, layout: { 'text-field': ['get', 'name'], 'text-size': 11 }, paint: { 'text-color': '#334155', 'text-halo-color': '#ffffff', 'text-halo-width': 1 } },
     ],
   };
 }
@@ -145,6 +148,10 @@ export default function OfflineMapProvider({
       onMapClick({ lat: event.lngLat.lat, lng: event.lngLat.lng });
     });
 
+    map.on('error', (event) => {
+      console.warn('[offline-map] MapLibre offline map warning:', event?.error?.message || event?.message || event);
+    });
+
     map.on('load', () => {
       map.addSource('areas-overlay', { type: 'geojson', data: toFeatureCollection(overlayData.areaFeatures) });
       map.addLayer({ id: 'areas-fill', type: 'fill', source: 'areas-overlay', paint: { 'fill-color': ['case', ['get', 'selected'], '#f59e0b', '#2563eb'], 'fill-opacity': 0.14 } });
@@ -189,7 +196,7 @@ export default function OfflineMapProvider({
       <div ref={containerRef} className="absolute inset-0" />
       {!mapPackage && (
         <div className="absolute left-1/2 -translate-x-1/2 z-10 px-3 py-2 rounded-xl bg-card/90 border border-border shadow-lg text-xs font-semibold text-foreground map-overlay-top-center">
-          Offline vector overlays loaded. Download a PMTiles map package for full offline basemap.
+          Offline map package URL not configured. Add a legal PMTiles package URL to enable offline map download.
         </div>
       )}
     </div>

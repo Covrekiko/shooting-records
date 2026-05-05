@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Download, HardDrive, Trash2, Map, RefreshCw } from 'lucide-react';
 import { getRepository } from '@/lib/offlineSupport';
+import { OFFLINE_MAP_CONFIG, hasConfiguredOfflineMapPackage } from '@/lib/offlineMapConfig';
 import { deleteOfflineMapPackage, downloadOfflineMapPackage, estimateOfflineMapPackage, getOfflineMapStorageSummary } from '@/lib/offlineMapStore';
 
 export default function OfflineMapManager() {
   const [areas, setAreas] = useState([]);
   const [selectedAreaId, setSelectedAreaId] = useState('uk_overview');
-  const [sourceUrl, setSourceUrl] = useState('');
+  const [sourceUrl, setSourceUrl] = useState(OFFLINE_MAP_CONFIG.packageUrl);
   const [packages, setPackages] = useState([]);
   const [storageLabel, setStorageLabel] = useState('0 B');
   const [estimate, setEstimate] = useState(null);
@@ -69,6 +70,11 @@ export default function OfflineMapManager() {
         <div>
           <h3 className="font-semibold text-foreground">Offline Maps</h3>
           <p className="text-sm text-muted-foreground mt-1">Download legal PMTiles map packages for offline stalking map use.</p>
+          {!hasConfiguredOfflineMapPackage() && (
+            <p className="text-sm text-amber-700 dark:text-amber-300 mt-2 font-medium">
+              Offline map package URL not configured. Add a legal PMTiles package URL to enable offline map download.
+            </p>
+          )}
         </div>
       </div>
 
@@ -118,11 +124,16 @@ export default function OfflineMapManager() {
         </button>
       </div>
 
+      {OFFLINE_MAP_CONFIG.sizeEstimate && !estimate && (
+        <p className="text-sm text-muted-foreground">Configured estimate: <span className="font-semibold text-foreground">{OFFLINE_MAP_CONFIG.sizeEstimate}</span></p>
+      )}
       {estimate && <p className="text-sm text-muted-foreground">Estimated download: <span className="font-semibold text-foreground">{estimate.label}</span></p>}
       {progress !== null && <div className="h-2 rounded-full bg-secondary overflow-hidden"><div className="h-full bg-primary" style={{ width: `${progress}%` }} /></div>}
 
-      <div className="rounded-xl bg-secondary/50 p-3 text-sm text-muted-foreground">
-        Storage used by offline maps: <span className="font-semibold text-foreground">{storageLabel}</span>
+      <div className="rounded-xl bg-secondary/50 p-3 text-sm text-muted-foreground space-y-1">
+        <p>Configured region: <span className="font-semibold text-foreground">{OFFLINE_MAP_CONFIG.regionName}</span></p>
+        <p>Zoom range: <span className="font-semibold text-foreground">{OFFLINE_MAP_CONFIG.minZoom}–{OFFLINE_MAP_CONFIG.maxZoom}</span></p>
+        <p>Storage used by offline maps: <span className="font-semibold text-foreground">{storageLabel}</span></p>
       </div>
 
       <div className="space-y-2">
