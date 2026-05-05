@@ -45,6 +45,7 @@ const NAV_SECTIONS = [
       { path: '/clay-shooting', label: 'Clay Shooting', icon: Target, module: 'clay_shooting' },
       { path: '/deer-management', label: 'Deer Management', icon: Layers, module: 'deer_management' },
       { path: '/scope-click-card', label: 'Scope Click Cards', icon: ScanLine, module: 'target_shooting' },
+      { path: '/target-analyzer', label: 'Target Analyzer', icon: BarChart3, module: 'target_shooting' },
     ],
   },
   {

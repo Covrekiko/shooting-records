@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import Navigation from '@/components/Navigation';
-import { Target, Plus, History, BarChart3, FlaskConical, ScanLine, FileText, ChevronRight } from 'lucide-react';
+import { Target, Plus, History, BarChart3, FlaskConical, ScanLine, Images, LineChart, ChevronRight } from 'lucide-react';
 import SessionList from '@/components/analyzer/SessionList';
 import NewSessionForm from '@/components/analyzer/NewSessionForm';
 import RifleAccuracyHistory from '@/components/analyzer/RifleAccuracyHistory';
 import AmmoComparison from '@/components/analyzer/AmmoComparison';
 import SessionDetail from '@/components/analyzer/SessionDetail';
+import PhotoComparisonDashboard from '@/components/analyzer/PhotoComparisonDashboard';
+import TargetPerformanceDashboard from '@/components/analyzer/TargetPerformanceDashboard';
 
 const SCREENS = {
   MENU: 'menu',
@@ -13,6 +15,8 @@ const SCREENS = {
   SESSIONS: 'sessions',
   RIFLE_HISTORY: 'rifle_history',
   AMMO_COMPARISON: 'ammo_comparison',
+  PHOTO_COMPARISON: 'photo_comparison',
+  PERFORMANCE_DASHBOARD: 'performance_dashboard',
   SCOPE_CARDS: 'scope_cards',
   SESSION_DETAIL: 'session_detail',
 };
@@ -21,6 +25,8 @@ const MENU_ITEMS = [
   { id: SCREENS.NEW_SESSION, label: 'New Target Session', icon: Plus, color: 'bg-primary text-primary-foreground', desc: 'Log a new range session' },
   { id: SCREENS.SESSIONS, label: 'Previous Sessions', icon: History, color: 'bg-card border border-border', desc: 'View & manage your sessions' },
   { id: SCREENS.RIFLE_HISTORY, label: 'Rifle Accuracy History', icon: BarChart3, color: 'bg-card border border-border', desc: 'Per-rifle stats & best groups' },
+  { id: SCREENS.PERFORMANCE_DASHBOARD, label: 'Visual Analytics Dashboard', icon: LineChart, color: 'bg-card border border-border', desc: 'Trends, consistency & rounds per month' },
+  { id: SCREENS.PHOTO_COMPARISON, label: 'Photo Comparison', icon: Images, color: 'bg-card border border-border', desc: 'Side-by-side target photo tracking' },
   { id: SCREENS.AMMO_COMPARISON, label: 'Ammo Comparison', icon: FlaskConical, color: 'bg-card border border-border', desc: 'Compare loads for each rifle' },
   { id: 'scope_link', label: 'Scope Zero / Click Cards', icon: ScanLine, color: 'bg-card border border-border', desc: 'View & edit scope DOPE cards', link: '/scope-click-card' },
 ];
@@ -112,6 +118,24 @@ export default function TargetShootingAnalyzer() {
       <div className="min-h-screen bg-background">
         <Navigation />
         <AmmoComparison onBack={() => setScreen(SCREENS.MENU)} />
+      </div>
+    );
+  }
+
+  if (screen === SCREENS.PHOTO_COMPARISON) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <PhotoComparisonDashboard onBack={() => setScreen(SCREENS.MENU)} />
+      </div>
+    );
+  }
+
+  if (screen === SCREENS.PERFORMANCE_DASHBOARD) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        <TargetPerformanceDashboard onBack={() => setScreen(SCREENS.MENU)} />
       </div>
     );
   }

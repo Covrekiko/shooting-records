@@ -53,6 +53,7 @@ import BetaTesters from './pages/admin/BetaTesters';
 import BetaFeedbackAdmin from './pages/admin/BetaFeedbackAdmin';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Support from './pages/Support';
+import TargetShootingAnalyzer from './pages/TargetShootingAnalyzer';
 
 console.log('[ROUTE_DEBUG] App.jsx loaded - redirect debug version ACTIVE');
 
@@ -188,6 +189,7 @@ const AuthenticatedApp = () => {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/target-shooting" element={<ModuleGate module="target_shooting"><TargetShooting /></ModuleGate>} />
+            <Route path="/target-analyzer" element={<ModuleGate module="target_shooting"><TargetShootingAnalyzer /></ModuleGate>} />
             <Route path="/clay-shooting" element={<ModuleGate module="clay_shooting"><ClayShooting /></ModuleGate>} />
             <Route path="/deer-management" element={<ModuleGate module="deer_management"><DeerManagement /></ModuleGate>} />
             <Route path="/profile" element={<Profile />} />
