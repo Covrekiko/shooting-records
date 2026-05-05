@@ -178,7 +178,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
       </GoogleMap>
 
       {/* ── TOP RIGHT: Satellite + Locate ── */}
-      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2">
+      <div className="fixed z-[9999] flex flex-col gap-2 map-overlay-top-right">
         <button
           onClick={() => setUseSatellite(!useSatellite)}
           title={useSatellite ? 'Map view' : 'Satellite view'}
@@ -200,7 +200,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
       </div>
 
       {/* ── TOP CENTER: Instruction pill ── */}
-      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9998] pointer-events-none">
+      <div className="fixed left-1/2 -translate-x-1/2 z-[9998] pointer-events-none map-overlay-top-center">
         <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 dark:bg-slate-800 text-white rounded-xl shadow-md text-sm font-medium whitespace-nowrap">
           {isClosed
             ? <><span className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />Boundary closed • Save Area</>

@@ -82,7 +82,7 @@ export default function OfflineFieldMap({
 
   return (
     <div className="absolute inset-0 bg-slate-100 dark:bg-slate-950 overflow-hidden">
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 px-3 py-2 rounded-xl bg-card/90 border border-border shadow-lg text-xs font-semibold text-foreground flex items-center gap-2">
+      <div className="absolute left-1/2 -translate-x-1/2 z-10 px-3 py-2 rounded-xl bg-card/90 border border-border shadow-lg text-xs font-semibold text-foreground flex items-center gap-2 map-overlay-top-center">
         <Layers className="w-4 h-4 text-primary" />
         Offline field map. Some map imagery may be limited.
       </div>

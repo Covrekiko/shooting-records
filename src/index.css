@@ -147,6 +147,37 @@
   padding-top: var(--safe-top);
 }
 
+/* Safe-area-aware map overlay positions */
+.map-overlay-top-left {
+  top: calc(var(--safe-top) + 20px);
+  left: max(14px, env(safe-area-inset-left, 0px) + 14px);
+}
+
+.map-overlay-top-right {
+  top: calc(var(--safe-top) + 20px);
+  right: max(14px, env(safe-area-inset-right, 0px) + 14px);
+}
+
+.map-overlay-top-center {
+  top: calc(var(--safe-top) + 20px);
+}
+
+@media (min-width: 768px) {
+  .map-overlay-top-left {
+    top: 1rem;
+    left: 1rem;
+  }
+
+  .map-overlay-top-right {
+    top: 1rem;
+    right: 1rem;
+  }
+
+  .map-overlay-top-center {
+    top: 5rem;
+  }
+}
+
 /* Mobile fixed header spacing */
 .mobile-fixed-topbar,
 .mobile-child-fixed-header {

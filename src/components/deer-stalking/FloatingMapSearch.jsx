@@ -98,7 +98,7 @@ export default function FloatingMapSearch({ onSearch, onError, isGrouped = false
   };
 
   return (
-    <div className={isGrouped ? "relative" : "fixed top-20 left-1/2 -translate-x-1/2 z-[9999] pointer-events-auto px-4 sm:px-0"}>
+    <div className={isGrouped ? "relative" : "fixed left-1/2 -translate-x-1/2 z-[9999] pointer-events-auto px-4 sm:px-0 map-overlay-top-center"}>
       {!isOpen ? (
         /* Closed: Icon Button */
         <button

@@ -688,7 +688,7 @@ export default function DeerStalkingMap() {
       </div>
 
       {(useOfflineFallbackMap || pendingCount > 0) && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9999] pointer-events-auto">
+        <div className="fixed left-1/2 -translate-x-1/2 z-[9999] pointer-events-auto map-overlay-top-center">
           <div className="px-3 py-2 rounded-xl bg-card/90 border border-border shadow-lg text-xs font-semibold text-foreground">
             {useOfflineFallbackMap ? 'Offline fallback mode' : 'Online map'}{pendingCount > 0 ? ` • ${pendingCount} pending sync` : ''}
           </div>
@@ -696,7 +696,7 @@ export default function DeerStalkingMap() {
       )}
 
       {/* ── TOP LEFT: Legal Hours + Area Selector ── */}
-      <div className="fixed top-4 left-4 z-[9999] pointer-events-auto space-y-2 max-w-[200px]">
+      <div className="fixed z-[9999] pointer-events-auto space-y-3 max-w-[200px] map-overlay-top-left">
         <LegalShootingHoursWidget />
         <AreaSelector
           savedAreas={savedAreas}
@@ -707,7 +707,7 @@ export default function DeerStalkingMap() {
       </div>
 
       {/* ── TOP RIGHT: Home + Satellite + Locate + Search ── */}
-      <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-auto items-end">
+      <div className="fixed z-[9999] flex flex-col gap-2 pointer-events-auto items-end map-overlay-top-right">
         {/* Home */}
         <Link
           to="/"
@@ -770,7 +770,7 @@ export default function DeerStalkingMap() {
 
       {/* ── ERROR TOAST ── */}
       {error && showError && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9998] pointer-events-auto">
+        <div className="fixed left-1/2 -translate-x-1/2 z-[9998] pointer-events-auto map-overlay-top-center">
           <div className="flex items-center gap-2 px-4 py-2.5 bg-red-500/30 dark:bg-red-600/30 text-red-700 dark:text-red-300 rounded-2xl shadow-lg border border-red-400/40 dark:border-red-500/40 text-sm max-w-xs backdrop-blur-md">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span className="truncate">{error}</span>
