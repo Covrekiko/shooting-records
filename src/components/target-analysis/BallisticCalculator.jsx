@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { ArrowLeft, Wind, Target, ChevronDown, ChevronUp, Plus, Trash2, Save } from 'lucide-react';
 import BulletReferencePicker from '@/components/reference/BulletReferencePicker';
 import { base44 } from '@/api/base44Client';
+import { formatAmmunitionLabel } from '@/utils/ammoLabels';
 
 // ─── Physics ──────────────────────────────────────────────────────────────────
 // G1 drag model — simplified point-mass trajectory
@@ -80,6 +81,20 @@ const BC_PRESETS = {
 
 const DISTANCES_DEFAULT = [25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300];
 
+function parseRangeList(value) {
+  const ranges = String(value || '')
+    .split(',')
+    .map(v => parseInt(v.trim(), 10))
+    .filter(v => Number.isFinite(v) && v > 0);
+  return ranges.length ? Array.from(new Set(ranges)).sort((a, b) => a - b) : DISTANCES_DEFAULT;
+}
+
+function parseAmmoGrains(ammo) {
+  const raw = ammo?.grain || ammo?.bullet_weight_grains || ammo?.weight;
+  const parsed = parseFloat(String(raw || '').replace(/[^0-9.]/g, ''));
+  return Number.isFinite(parsed) ? parsed : '';
+}
+
 const inp = 'w-full px-3 py-2.5 border border-border rounded-xl bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30';
 const lbl = 'block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1';
 
@@ -93,13 +108,19 @@ const yardsToMeters = (y) => y / 1.09361;
 const cmToInches = (cm) => cm / 2.54;
 const inchesToCm = (inches) => inches * 2.54;
 
-export default function BallisticCalculator({ session, onBack }) {
-  const caliber = session?.caliber || '';
-  const bulletWeight = parseFloat(session?.bullet_weight) || null;
+export default function BallisticCalculator({ session, onBack, rifles = [], ammunition = [] }) {
+  const firstSessionRifle = Array.isArray(session?.rifles_used) ? session.rifles_used[0] : null;
+  const caliber = firstSessionRifle?.caliber || session?.caliber || '';
+  const bulletWeight = parseFloat(firstSessionRifle?.grain || session?.bullet_weight) || null;
 
   const [tab, setTab] = useState('input'); // 'input', 'profiles', 'table', 'reticle', 'turret', 'shots'
   const [profiles, setProfiles] = useState([]);
   const [selectedProfile, setSelectedProfile] = useState(null);
+  const [selectedRifleId, setSelectedRifleId] = useState(firstSessionRifle?.rifle_id || session?.rifle_id || '');
+  const [selectedAmmoId, setSelectedAmmoId] = useState(firstSessionRifle?.ammunition_id || session?.ammunition_id || '');
+  const [profileName, setProfileName] = useState('');
+  const [rangesInput, setRangesInput] = useState(DISTANCES_DEFAULT.join(', '));
+  const [saveStatus, setSaveStatus] = useState('');
   
   // Manual input state
   const [bcInput, setBcInput] = useState('');
@@ -133,6 +154,77 @@ export default function BallisticCalculator({ session, onBack }) {
   useEffect(() => {
     loadProfiles();
   }, []);
+
+  const selectedRifle = rifles.find(r => r.id === selectedRifleId);
+  const selectedAmmo = ammunition.find(a => a.id === selectedAmmoId);
+
+  const applyStoredRifle = (rifleId) => {
+    setSelectedRifleId(rifleId);
+    const rifle = rifles.find(r => r.id === rifleId);
+    if (rifle?.caliber && !profileName) setProfileName(`${rifle.name} ballistic profile`);
+    if (selectedAmmoId) {
+      const ammo = ammunition.find(a => a.id === selectedAmmoId);
+      if (rifle?.caliber && ammo?.caliber && !ammo.caliber.toLowerCase().includes(rifle.caliber.toLowerCase())) {
+        setSelectedAmmoId('');
+      }
+    }
+  };
+
+  const applyStoredAmmo = (ammoId) => {
+    setSelectedAmmoId(ammoId);
+    const ammo = ammunition.find(a => a.id === ammoId);
+    if (!ammo) return;
+    if (ammo.caliber && !selectedRifle?.caliber) {
+      // Caliber is saved into the profile from ammo when no rifle caliber is available.
+    }
+    const grains = parseAmmoGrains(ammo);
+    if (grains) handleMassGrChange(String(grains));
+    if (!profileName) setProfileName(`${formatAmmunitionLabel(ammo)} profile`);
+  };
+
+  const saveProfile = async () => {
+    if (!selectedRifleId || !bc || !mvFps || !massGr) {
+      setSaveStatus('Select a rifle and enter BC, muzzle velocity, and bullet weight first.');
+      return;
+    }
+
+    const payload = {
+      profile_name: profileName || `${selectedRifle?.name || 'Rifle'} · ${selectedAmmo ? formatAmmunitionLabel(selectedAmmo) : 'Ballistic profile'}`,
+      rifle_id: selectedRifleId,
+      rifle_name: selectedRifle?.name || '',
+      session_record_ids: session?.id ? [session.id] : [],
+      ammunition_type: selectedAmmo?.ammo_type === 'reloaded' || selectedAmmo?.source_type === 'reload_batch' ? 'hand_load' : 'factory',
+      ammunition_id: selectedAmmoId || '',
+      brand: selectedAmmo?.brand || '',
+      caliber: selectedRifle?.caliber || selectedAmmo?.caliber || caliber,
+      bullet_name: selectedAmmo ? formatAmmunitionLabel(selectedAmmo) : '',
+      bullet_weight_grains: massGr,
+      bullet_weight_grams: grainsToGrams(massGr),
+      muzzle_velocity_fps: mvFps,
+      muzzle_velocity_ms: mvMs,
+      ballistic_coefficient_g1: bc,
+      bc_type: bcModel,
+      custom_ranges_meters: parseRangeList(rangesInput),
+      computed_table: rows,
+      zero_distance_meters: zero,
+      zero_distance_yards: parseInt(zeroDistanceYards) || metersToYards(zero),
+      sight_height_cm: parseFloat(sightHeight) || 5,
+      sight_height_inches: cmToInches(parseFloat(sightHeight) || 5),
+      scope_click_value: scopeClickValue,
+      environmental_temperature: parseFloat(temperature) || null,
+      environmental_pressure: parseFloat(pressure) || null,
+      environmental_humidity: parseFloat(humidity) || null,
+      environmental_altitude: parseFloat(altitude) || null,
+      wind_speed: parseFloat(windSpeed) || 0,
+      wind_direction: parseFloat(windAngle) || 0,
+      active: true,
+    };
+
+    const saved = await base44.entities.BallisticProfile.create(payload);
+    setSelectedProfile(saved);
+    setSaveStatus('Profile saved and linked to this shooting record.');
+    await loadProfiles();
+  };
 
   // Auto-sync unit conversion
   const handleMvFpsChange = (val) => {
@@ -183,7 +275,7 @@ export default function BallisticCalculator({ session, onBack }) {
     if (!bc || !mvMs || !massGr) return [];
     const massKg = grToKg(massGr);
 
-    const allDist = Array.from(new Set([...DISTANCES_DEFAULT, zero])).sort((a, b) => a - b);
+    const allDist = Array.from(new Set([...parseRangeList(rangesInput), zero])).sort((a, b) => a - b);
     const raw = simulate({ muzzleVelocityMs: mvMs, bulletMassKg: massKg, bcG1: bc, windSpeedMs: windMs, windAngleDeg: parseFloat(windAngle) || 90, distances: allDist });
 
     // Find zero row to offset drop
@@ -196,7 +288,7 @@ export default function BallisticCalculator({ session, onBack }) {
       driftCm: Math.round(r.driftCm * 10) / 10,
       isZero: r.distance === zero,
     }));
-  }, [bc, mvMs, massGr, windMs, windAngle, zero]);
+  }, [bc, mvMs, massGr, windMs, windAngle, zero, rangesInput]);
 
   const canCalculate = bc && mvMs && massGr;
 
@@ -241,7 +333,24 @@ export default function BallisticCalculator({ session, onBack }) {
       {tab === 'input' && (
         <>
           <div className="bg-card border border-border rounded-2xl p-4 mb-4 space-y-3">
-            <p className="font-semibold text-sm">Ammunition</p>
+            <p className="font-semibold text-sm">Stored Rifle & Ammunition</p>
+            <div>
+              <label className={lbl}>Rifle</label>
+              <select value={selectedRifleId} onChange={e => applyStoredRifle(e.target.value)} className={inp}>
+                <option value="">Select saved rifle</option>
+                {rifles.map(r => <option key={r.id} value={r.id}>{r.name} · {r.caliber}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={lbl}>Ammunition</label>
+              <select value={selectedAmmoId} onChange={e => applyStoredAmmo(e.target.value)} className={inp}>
+                <option value="">Select saved ammunition</option>
+                {ammunition
+                  .filter(a => !selectedRifle?.caliber || !a.caliber || a.caliber.toLowerCase().includes(selectedRifle.caliber.toLowerCase()) || selectedRifle.caliber.toLowerCase().includes(a.caliber.toLowerCase()))
+                  .map(a => <option key={a.id} value={a.id}>{formatAmmunitionLabel(a)}</option>)}
+              </select>
+              <p className="text-[11px] text-muted-foreground mt-1">Stored rifle caliber and ammunition grain are used where available.</p>
+            </div>
             <div>
               <label className={lbl}>From bullet database <span className="normal-case font-normal text-muted-foreground">(optional)</span></label>
               <BulletReferencePicker
@@ -327,6 +436,10 @@ export default function BallisticCalculator({ session, onBack }) {
                     handleZeroMetersChange(String(p.zero_distance_meters || '100'));
                     setSightHeight(String(p.sight_height_cm || '5'));
                     setScopeClickValue(p.scope_click_value || '0.25_MOA');
+                    setSelectedRifleId(p.rifle_id || '');
+                    setSelectedAmmoId(p.ammunition_id || '');
+                    setProfileName(p.profile_name || '');
+                    setRangesInput((p.custom_ranges_meters || DISTANCES_DEFAULT).join(', '));
                   }}
                   className={`p-3 rounded-lg border cursor-pointer transition-all ${
                     selectedProfile?.id === p.id
@@ -351,6 +464,12 @@ export default function BallisticCalculator({ session, onBack }) {
       {/* CONDITIONS & RANGES (for all tabs) */}
       <div className="bg-card border border-border rounded-2xl p-4 mb-4 space-y-3">
         <p className="font-semibold text-sm">Zero & Range</p>
+        <div>
+          <label className={lbl}>User-defined ranges (meters)</label>
+          <input value={rangesInput} onChange={e => setRangesInput(e.target.value)} placeholder="25, 50, 100, 150, 200" className={inp} />
+          <p className="text-[11px] text-muted-foreground mt-1">Separate ranges with commas. These ranges drive the drop and wind drift table.</p>
+        </div>
+
         <div className="grid grid-cols-2 gap-2">
           <div>
             <label className={lbl}>Zero distance</label>
@@ -421,6 +540,24 @@ export default function BallisticCalculator({ session, onBack }) {
             </div>
           </>
         )}
+      </div>
+
+      <div className="bg-card border border-border rounded-2xl p-4 mb-4 space-y-3">
+        <p className="font-semibold text-sm">Save Profile</p>
+        <div>
+          <label className={lbl}>Profile name</label>
+          <input value={profileName} onChange={e => setProfileName(e.target.value)} placeholder="e.g. .308 Win hunting load" className={inp} />
+        </div>
+        <button
+          type="button"
+          onClick={saveProfile}
+          disabled={!canCalculate || !selectedRifleId}
+          className="w-full px-4 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        >
+          <Save className="w-4 h-4" />
+          Save ballistic profile{session?.id ? ' to this record' : ''}
+        </button>
+        {saveStatus && <p className="text-xs text-muted-foreground">{saveStatus}</p>}
       </div>
 
       {/* TABLE TAB */}

@@ -4,7 +4,7 @@
   "properties": {
     "profile_name": {
       "type": "string",
-      "description": "Profile name (e.g., '6.5CM Factory - 140gr ABLR')"
+      "description": "Profile name"
     },
     "rifle_id": {
       "type": "string",
@@ -16,11 +16,18 @@
     },
     "scope_id": {
       "type": "string",
-      "description": "Linked scope profile ID"
+      "description": "Optional linked scope profile ID"
     },
     "scope_name": {
       "type": "string",
       "description": "Cached scope name"
+    },
+    "session_record_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Shooting records this profile is associated with"
     },
     "ammunition_type": {
       "type": "string",
@@ -32,11 +39,11 @@
     },
     "ammunition_id": {
       "type": "string",
-      "description": "Linked Ammunition entity ID (factory only)"
+      "description": "Linked Ammunition entity ID"
     },
     "hand_load_id": {
       "type": "string",
-      "description": "Linked ReloadingSession ID (hand load only)"
+      "description": "Linked ReloadingSession ID"
     },
     "brand": {
       "type": "string",
@@ -44,7 +51,7 @@
     },
     "caliber": {
       "type": "string",
-      "description": "Caliber (e.g., 6.5 Creedmoor)"
+      "description": "Caliber"
     },
     "bullet_name": {
       "type": "string",
@@ -56,7 +63,7 @@
     },
     "bullet_weight_grains": {
       "type": "number",
-      "description": "Bullet weight in grains (auto-converted)"
+      "description": "Bullet weight in grains"
     },
     "muzzle_velocity_ms": {
       "type": "number",
@@ -64,7 +71,7 @@
     },
     "muzzle_velocity_fps": {
       "type": "number",
-      "description": "Muzzle velocity in fps (auto-converted)"
+      "description": "Muzzle velocity in fps"
     },
     "ballistic_coefficient_g1": {
       "type": "number",
@@ -83,13 +90,47 @@
       "default": "G1",
       "description": "Which BC model to use"
     },
+    "custom_ranges_meters": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "description": "User-defined calculation ranges in meters"
+    },
+    "computed_table": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "distance": {
+            "type": "number"
+          },
+          "dropCm": {
+            "type": "number"
+          },
+          "driftCm": {
+            "type": "number"
+          },
+          "velocityMs": {
+            "type": "number"
+          },
+          "timeOfFlightS": {
+            "type": "number"
+          },
+          "isZero": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Last computed drop and drift table"
+    },
     "zero_distance_meters": {
       "type": "number",
       "description": "Zero distance in meters"
     },
     "zero_distance_yards": {
       "type": "number",
-      "description": "Zero distance in yards (auto-converted)"
+      "description": "Zero distance in yards"
     },
     "sight_height_cm": {
       "type": "number",
@@ -111,7 +152,7 @@
     },
     "scope_click_value_custom": {
       "type": "string",
-      "description": "Custom click value if selected (e.g., 1/8 MOA)"
+      "description": "Custom click value if selected"
     },
     "unit_system": {
       "type": "string",
@@ -120,19 +161,19 @@
         "imperial"
       ],
       "default": "metric",
-      "description": "Primary unit system (metres/cm vs yards/inches)"
+      "description": "Primary unit system"
     },
     "environmental_temperature": {
       "type": "number",
-      "description": "Reference temperature (Celsius)"
+      "description": "Reference temperature Celsius"
     },
     "environmental_pressure": {
       "type": "number",
-      "description": "Barometric pressure (mb or inHg)"
+      "description": "Barometric pressure"
     },
     "environmental_altitude": {
       "type": "number",
-      "description": "Altitude in meters or feet"
+      "description": "Altitude"
     },
     "environmental_humidity": {
       "type": "number",
@@ -140,11 +181,11 @@
     },
     "wind_speed": {
       "type": "number",
-      "description": "Reference wind speed (m/s or mph)"
+      "description": "Reference wind speed mph"
     },
     "wind_direction": {
       "type": "number",
-      "description": "Wind direction in degrees (0-360)"
+      "description": "Wind direction in degrees"
     },
     "notes": {
       "type": "string",
@@ -178,7 +219,6 @@
   "required": [
     "profile_name",
     "rifle_id",
-    "scope_id",
     "ammunition_type",
     "caliber",
     "ballistic_coefficient_g1",

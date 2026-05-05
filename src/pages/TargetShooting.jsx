@@ -466,7 +466,9 @@ export default function TargetShooting() {
         <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto">
           <div className="max-w-2xl mx-auto px-4 pt-4 pb-8">
             <BallisticCalculator
-              session={null}
+              session={activeSession}
+              rifles={rifles}
+              ammunition={ammunition}
               onBack={() => setShowBallisticCalc(false)}
             />
           </div>
