@@ -12,6 +12,7 @@ import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 import CaliberTypeahead from '@/components/CaliberTypeahead';
 import { normalizeCaliber } from '@/utils/caliberCatalog';
+import QRLabelButton from '@/components/qr/QRLabelButton';
 
 export default function AmmunitionInventory() {
   const [ammo, setAmmo] = useState([]);
@@ -438,6 +439,7 @@ export default function AmmunitionInventory() {
                     </div>
                   </div>
                   <div className="flex gap-2 flex-shrink-0">
+                    <QRLabelButton itemType="ammunition" itemId={item.id} title={formatAmmunitionLabel(item)} subtitle={[item.lot_number && `Lot ${item.lot_number}`, `${item.quantity_in_stock || 0} rounds`].filter(Boolean).join(' · ')} />
                     <button
                       onClick={() => handleEdit(item)}
                       className="p-2 hover:bg-primary hover:text-primary-foreground rounded transition-colors"

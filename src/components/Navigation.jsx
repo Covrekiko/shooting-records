@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Menu, X, Settings, Target, Crosshair, Map,
   BookOpen, User, ArrowLeft, BarChart3,
-  Shield, Layers, RefreshCw, Sun, FlaskConical, ScanLine,
+  Shield, Layers, RefreshCw, Sun, FlaskConical, ScanLine, QrCode,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
@@ -31,6 +31,7 @@ const PAGE_TITLES = {
   '/settings/locations': 'Locations',
   '/settings/ammunition': 'Ammunition',
   '/settings/ammunition-inventory': 'Ammo Inventory',
+  '/qr-scanner': 'QR Scanner',
   '/ammo-summary': 'Armory',
   '/sunrise-sunset': 'Shooting Hours',
   '/users': 'Users',
@@ -60,6 +61,7 @@ const NAV_SECTIONS = [
     label: 'Armory',
     items: [
       { path: '/ammo-summary', label: 'Armory', icon: Shield },
+      { path: '/qr-scanner', label: 'QR Scanner', icon: QrCode },
       { path: '/reloading', label: 'Reloading', icon: RefreshCw, module: 'reloading' },
       { path: '/load-development', label: 'Load Development', icon: FlaskConical, module: 'reloading' },
     ],
@@ -79,6 +81,7 @@ const DESKTOP_ITEMS = [
   { path: '/deer-management', label: 'Deer', icon: Layers, module: 'deer_management' },
   { path: '/deer-stalking', label: 'Map', icon: Map, module: 'stalk_map' },
   { path: '/ammo-summary', label: 'Armory', icon: Shield },
+  { path: '/qr-scanner', label: 'QR', icon: QrCode },
   { path: '/records', label: 'Records', icon: BookOpen },
   { path: '/reloading', label: 'Reloading', icon: RefreshCw, module: 'reloading' },
 ];

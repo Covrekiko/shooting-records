@@ -4,6 +4,7 @@ import ChildScreenHeader from '@/components/ChildScreenHeader';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import CleaningLogPanel from '@/components/armory/CleaningLogPanel';
+import QRLabelButton from '@/components/qr/QRLabelButton';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
@@ -177,6 +178,7 @@ export default function Shotguns() {
               <p className="text-sm text-muted-foreground">{shotgun.gauge}{shotgun.barrel_length && ` · ${shotgun.barrel_length}`}</p>
               <p className="text-sm text-muted-foreground">Cleaning reminder: every {shotgun.cleaning_reminder_threshold || 100} cartridges</p>
               <div className="flex gap-2 mt-4 mb-4">
+                <QRLabelButton itemType="shotgun" itemId={shotgun.id} title={shotgun.name} subtitle={`${shotgun.make} ${shotgun.model} · ${shotgun.gauge}`} />
                 <button
                   onClick={() => startEdit(shotgun)}
                   className="flex-1 px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center justify-center gap-1"

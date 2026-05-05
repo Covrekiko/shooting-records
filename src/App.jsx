@@ -54,6 +54,8 @@ import BetaFeedbackAdmin from './pages/admin/BetaFeedbackAdmin';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Support from './pages/Support';
 import TargetShootingAnalyzer from './pages/TargetShootingAnalyzer';
+import QRScanner from './pages/QRScanner';
+import QRItemDetails from './pages/QRItemDetails';
 
 console.log('[ROUTE_DEBUG] App.jsx loaded - redirect debug version ACTIVE');
 
@@ -218,6 +220,8 @@ const AuthenticatedApp = () => {
             <Route path="/settings/bullet-reference" element={<BulletReferenceDB />} />
             <Route path="/settings/scope-reference" element={<ScopeReferenceDB />} />
             <Route path="/settings/reference-database" element={<ReferenceDatabase />} />
+            <Route path="/qr-scanner" element={<QRScanner />} />
+            <Route path="/qr-item" element={<QRItemDetails />} />
             <Route path="/beta-feedback" element={<BetaFeedback />} />
             <Route path="/admin/beta-testers" element={<BetaTesters />} />
             <Route path="/admin/beta-feedback" element={<BetaFeedbackAdmin />} />

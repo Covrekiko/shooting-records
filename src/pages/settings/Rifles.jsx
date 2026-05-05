@@ -5,6 +5,7 @@ import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import CleaningLogPanel from '@/components/armory/CleaningLogPanel';
 import CleaningStatusBadge from '@/components/armory/CleaningStatusBadge';
+import QRLabelButton from '@/components/qr/QRLabelButton';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
@@ -183,6 +184,7 @@ export default function Rifles() {
               <p className="text-sm text-muted-foreground">Cleaning reminder: every {rifle.cleaning_reminder_threshold || 100} rounds</p>
               {rifle.serial_number && <p className="text-sm text-muted-foreground font-mono">S/N: {rifle.serial_number}</p>}
               <div className="flex gap-2 mt-4 mb-4">
+                <QRLabelButton itemType="rifle" itemId={rifle.id} title={rifle.name} subtitle={`${rifle.make} ${rifle.model} · ${rifle.caliber}`} />
                 <button
                   onClick={() => startEdit(rifle)}
                   className="flex-1 px-3 py-1 text-sm bg-secondary hover:bg-primary hover:text-primary-foreground rounded transition-colors flex items-center justify-center gap-1"
