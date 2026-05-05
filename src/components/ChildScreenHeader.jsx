@@ -5,8 +5,9 @@ export default function ChildScreenHeader({ title }) {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm safe-area-top">
-      <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
+    <>
+      <header className="fixed top-0 left-0 right-0 z-[9000] bg-card border-b border-border shadow-sm safe-area-top mobile-child-fixed-header">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center gap-3">
         <button
           onClick={() => navigate(-1)}
           className="p-2 -ml-2 rounded-lg hover:bg-secondary transition-colors"
@@ -15,7 +16,9 @@ export default function ChildScreenHeader({ title }) {
           <ArrowLeft className="w-5 h-5" />
         </button>
         {title && <h1 className="text-lg font-semibold truncate">{title}</h1>}
-      </div>
-    </header>
+        </div>
+      </header>
+      <div className="mobile-child-fixed-header-spacer" aria-hidden="true" />
+    </>
   );
 }

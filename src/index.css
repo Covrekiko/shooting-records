@@ -147,6 +147,22 @@
   padding-top: var(--safe-top);
 }
 
+/* Mobile fixed header spacing */
+.mobile-fixed-topbar,
+.mobile-child-fixed-header {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+}
+
+.mobile-fixed-topbar-spacer {
+  height: calc(var(--safe-top) + 70px);
+}
+
+.mobile-child-fixed-header-spacer {
+  height: calc(var(--safe-top) + 57px);
+}
+
 /* Mobile page content — clears the bottom tab bar */
 .mobile-page-padding {
   padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
