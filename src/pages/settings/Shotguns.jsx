@@ -163,7 +163,7 @@ export default function Shotguns() {
               <div><label className={lbl}>Barrel Length</label><input type="text" placeholder="e.g. 28in" value={formData.barrel_length} onChange={(e) => setFormData({ ...formData, barrel_length: e.target.value })} className={inp} /></div>
               <div><label className={lbl}>Serial Number</label><input type="text" value={formData.serial_number} onChange={(e) => setFormData({ ...formData, serial_number: e.target.value })} className={inp} /></div>
               <div><label className={lbl}>Current shots fired</label><input type="number" min="0" value={formData.total_cartridges_fired ?? 0} onChange={(e) => setFormData({ ...formData, total_cartridges_fired: e.target.value })} className={inp} /></div>
-              <div><label className={lbl}>Cleaning reminder</label><select value={formData.cleaning_reminder_threshold ?? 100} onChange={(e) => setFormData({ ...formData, cleaning_reminder_threshold: e.target.value })} className={inp}><option value="50">Every 50 cartridges</option><option value="100">Every 100 cartridges</option><option value="150">Every 150 cartridges</option><option value="200">Every 200 cartridges</option></select></div>
+              <div><label className={lbl}>Cleaning reminder</label><input type="number" min="1" value={formData.cleaning_reminder_threshold ?? 100} onChange={(e) => setFormData({ ...formData, cleaning_reminder_threshold: e.target.value })} className={inp} placeholder="e.g. 75" /></div>
             </div>
             <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows="2" /></div>
           </div>

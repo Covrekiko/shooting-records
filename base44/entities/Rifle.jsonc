@@ -32,13 +32,8 @@
     },
     "cleaning_reminder_threshold": {
       "type": "integer",
-      "enum": [
-        50,
-        100,
-        150,
-        200
-      ],
-      "description": "Rounds threshold for cleaning reminder"
+      "default": 100,
+      "description": "User-defined rounds threshold for cleaning reminder"
     },
     "last_cleaning_date": {
       "type": "string",
