@@ -227,6 +227,11 @@ body.modal-open {
   overflow: hidden;
 }
 
+/* Ensure preview transition overlays never block app interactions */
+[data-testid="transition-overlay"] {
+  pointer-events: none;
+}
+
 /* Z-index layer system */
 .z-base { z-index: 0; }
 .z-page { z-index: 1; }
