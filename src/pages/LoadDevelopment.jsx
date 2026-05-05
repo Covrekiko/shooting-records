@@ -131,14 +131,20 @@ export default function LoadDevelopment() {
             </div>
             <p className="text-muted-foreground text-sm">Test and compare load variants with full inventory tracking</p>
           </div>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="px-4 py-2.5 bg-primary text-primary-foreground rounded-xl hover:opacity-90 flex items-center gap-2 font-semibold text-sm"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">New Test</span>
-            <span className="sm:hidden">New</span>
-          </button>
+          <div className="flex gap-2">
+            <Link to="/load-comparison" className="px-4 py-2.5 bg-secondary text-secondary-foreground rounded-xl hover:bg-secondary/80 flex items-center gap-2 font-semibold text-sm">
+              <Search className="w-4 h-4" />
+              <span className="hidden sm:inline">Compare</span>
+            </Link>
+            <button
+              onClick={() => setShowCreate(true)}
+              className="px-4 py-2.5 bg-primary text-primary-foreground rounded-xl hover:opacity-90 flex items-center gap-2 font-semibold text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">New Test</span>
+              <span className="sm:hidden">New</span>
+            </button>
+          </div>
         </div>
 
         {/* Stats */}

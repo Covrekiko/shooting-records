@@ -42,6 +42,7 @@ import Users from './pages/Users';
 import SunriseSunsetTracker from './pages/SunriseSunsetTracker';
 import AmmoSummary from './pages/AmmoSummary';
 import LoadDevelopment from './pages/LoadDevelopment';
+import LoadComparison from './pages/LoadComparison';
 import ScopeClickCard from './pages/ScopeClickCard';
 import AppModules from './pages/AppModules';
 import AppTheme from './pages/AppTheme';
@@ -216,6 +217,7 @@ const AuthenticatedApp = () => {
             <Route path="/ammo-summary" element={<AmmoSummary />} />
             <Route path="/reloading" element={<ModuleGate module="reloading"><ReloadingManagement /></ModuleGate>} />
             <Route path="/load-development" element={<ModuleGate module="reloading"><LoadDevelopment /></ModuleGate>} />
+            <Route path="/load-comparison" element={<ModuleGate module="reloading"><LoadComparison /></ModuleGate>} />
             <Route path="/scope-click-card" element={<ModuleGate module="target_shooting"><ScopeClickCard /></ModuleGate>} />
             <Route path="/settings/bullet-reference" element={<BulletReferenceDB />} />
             <Route path="/settings/scope-reference" element={<ScopeReferenceDB />} />

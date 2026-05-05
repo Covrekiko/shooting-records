@@ -20,6 +20,7 @@ const PAGE_TITLES = {
   '/records': 'Records',
   '/reloading': 'Reloading',
   '/load-development': 'Load Development',
+  '/load-comparison': 'Load Comparison',
   '/scope-click-card': 'Scope Click Cards',
   '/reports': 'Reports',
   '/goals': 'Goals',
@@ -64,6 +65,7 @@ const NAV_SECTIONS = [
       { path: '/qr-scanner', label: 'QR Scanner', icon: QrCode },
       { path: '/reloading', label: 'Reloading', icon: RefreshCw, module: 'reloading' },
       { path: '/load-development', label: 'Load Development', icon: FlaskConical, module: 'reloading' },
+      { path: '/load-comparison', label: 'Load Comparison', icon: BarChart3, module: 'reloading' },
     ],
   },
   {
@@ -84,6 +86,7 @@ const DESKTOP_ITEMS = [
   { path: '/qr-scanner', label: 'QR', icon: QrCode },
   { path: '/records', label: 'Records', icon: BookOpen },
   { path: '/reloading', label: 'Reloading', icon: RefreshCw, module: 'reloading' },
+  { path: '/load-comparison', label: 'Compare', icon: BarChart3, module: 'reloading' },
 ];
 
 export default function Navigation() {
