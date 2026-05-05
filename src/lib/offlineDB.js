@@ -4,7 +4,7 @@
  */
 
 const DB_NAME = 'ShootingRecordsOfflineDB';
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 
 const STORES = [
   'user_profile',
@@ -25,6 +25,10 @@ const STORES = [
   'cleaning_history',
   'ammo_spending',
   'sync_queue',
+  'offline_map_packages',
+  'queued_photos',
+  'queued_pdfs',
+  'conflicts',
   'meta',
 ];
 

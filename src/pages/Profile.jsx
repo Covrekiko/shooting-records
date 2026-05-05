@@ -11,6 +11,7 @@ import { clearLocalAccountData } from '@/lib/accountDataCleanup';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 import AppPermissionsPanel from '@/components/AppPermissionsPanel';
+import OfflineMapManager from '@/components/maps/OfflineMapManager';
 
 export default function Profile() {
   const location = useLocation();
@@ -274,6 +275,7 @@ export function SettingsPanel() {
           <AppPermissionsPanel userEmail={user?.email} />
         </div>
         <AutoCheckinSettingToggle />
+        <OfflineMapManager />
       </div>
 
       <DeleteAccountSection />

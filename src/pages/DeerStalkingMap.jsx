@@ -21,6 +21,7 @@ import { useAutoCheckin } from '@/hooks/useAutoCheckin';
 import AutoCheckinBanner from '@/components/AutoCheckinBanner';
 import ShareAreaModal from '@/components/deer-stalking/ShareAreaModal';
 import OfflineFieldMap from '@/components/deer-stalking/OfflineFieldMap';
+import OfflineMapProvider from '@/components/maps/OfflineMapProvider';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 import { getRepository } from '@/lib/offlineSupport';
@@ -497,7 +498,7 @@ export default function DeerStalkingMap() {
       `}</style>
       <div className={`absolute inset-0 z-0 ${showPOI || showHarvest || showOuting || showCheckout ? 'pointer-events-none' : ''}`}>
         {useOfflineFallbackMap ? (
-          <OfflineFieldMap
+          <OfflineMapProvider
             areas={savedAreas}
             markers={markers}
             harvests={harvests}
