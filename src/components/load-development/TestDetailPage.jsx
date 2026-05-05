@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import VariantFormModal from './VariantFormModal';
 import ResultFormModal from './ResultFormModal';
 import { generateLoadTestPDF } from '@/utils/loadTestPDF';
+import QRLabelButton from '@/components/qr/QRLabelButton';
 
 const STATUS_COLORS = {
   Draft: 'bg-slate-100 text-slate-600',
@@ -296,6 +297,7 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
                           )}
                         </div>
                         <div className="flex gap-1 flex-shrink-0">
+                          <QRLabelButton itemType="load_variant" itemId={v.id} title={v.label || `Variant ${idx + 1}`} subtitle={`${test.name} · ${v.powder_name || test.powder_name || 'Load'}${v.powder_charge_grains ? ` · ${v.powder_charge_grains}gr` : ''}`} />
                           <button onClick={() => toggleVariant(v.id)}
                             className={`p-1.5 rounded-lg transition-colors ${isExpanded ? 'bg-primary/10 text-primary' : 'hover:bg-secondary text-muted-foreground'}`} title={isExpanded ? 'Collapse' : 'View Details'}>
                             {isExpanded ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}

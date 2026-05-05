@@ -21,6 +21,8 @@ export default function QRItemDetails() {
   const [item, setItem] = useState(null);
   const [history, setHistory] = useState([]);
   const [reloadSession, setReloadSession] = useState(null);
+  const [loadTest, setLoadTest] = useState(null);
+  const [loadResult, setLoadResult] = useState(null);
   const [error, setError] = useState('');
   const params = new URLSearchParams(window.location.search);
   const type = params.get('type');
@@ -42,6 +44,7 @@ export default function QRItemDetails() {
       shotgun: 'Shotgun',
       ammunition: 'Ammunition',
       reload_batch: 'ReloadingSession',
+      load_variant: 'ReloadingTestVariant',
     };
     const entityName = entityMap[type];
     if (!entityName) {
@@ -75,12 +78,22 @@ export default function QRItemDetails() {
       setReloadSession(found);
     }
 
+    if (type === 'load_variant') {
+      const [tests, results] = await Promise.all([
+        found.test_id ? base44.entities.ReloadingTest.filter({ id: found.test_id }) : Promise.resolve([]),
+        base44.entities.ReloadingTestResult.filter({ variant_id: found.id }),
+      ]);
+      setLoadTest(tests?.[0] || null);
+      setLoadResult(results?.[0] || null);
+    }
+
     setLoading(false);
   };
 
-  const title = item?.name || item?.brand || item?.batch_number || 'QR Item';
+  const title = item?.name || item?.brand || item?.batch_number || item?.label || 'QR Item';
   const isFirearm = type === 'rifle' || type === 'shotgun';
   const isReloadBatch = type === 'reload_batch';
+  const isLoadVariant = type === 'load_variant';
   const totalCount = type === 'rifle' ? item?.total_rounds_fired : item?.total_cartridges_fired;
   const lastCleanCount = type === 'rifle' ? item?.rounds_at_last_cleaning : item?.cartridges_at_last_cleaning;
   const sinceClean = Math.max(0, (totalCount || 0) - (lastCleanCount || 0));
@@ -110,6 +123,7 @@ export default function QRItemDetails() {
                   <h1 className="text-2xl font-bold">{title}</h1>
                   {type === 'ammunition' && <p className="text-sm text-muted-foreground">{item.caliber} {item.bullet_type} {item.grain && `${item.grain}gr`}</p>}
                   {isReloadBatch && <p className="text-sm text-muted-foreground">{item.caliber} · {item.rounds_loaded || 0} rounds</p>}
+                  {isLoadVariant && <p className="text-sm text-muted-foreground">{loadTest?.name || 'Load development'} · {item.powder_charge_grains ? `${item.powder_charge_grains}gr` : ''}</p>}
                   {isFirearm && <p className="text-sm text-muted-foreground">{item.make} {item.model}</p>}
                 </div>
               </div>
@@ -136,6 +150,28 @@ export default function QRItemDetails() {
                   <Field label="Total cost" value={item.total_cost ? `£${Number(item.total_cost).toFixed(2)}` : ''} />
                   <Field label="Brass use" value={item.brass_use_type} />
                   <Field label="Brass cycle" value={item.brass_reload_cycle_count} />
+                  <Field label="Notes" value={item.notes} />
+                </>
+              ) : isLoadVariant ? (
+                <>
+                  <Field label="Test" value={loadTest?.name} />
+                  <Field label="Caliber" value={loadTest?.caliber} />
+                  <Field label="Rifle" value={loadTest?.rifle_name} />
+                  <Field label="Variant" value={item.label} />
+                  <Field label="Powder" value={item.powder_name || loadTest?.powder_name} />
+                  <Field label="Powder charge" value={item.powder_charge_grains ? `${item.powder_charge_grains} gr` : ''} />
+                  <Field label="Bullet" value={[item.bullet_brand || loadTest?.bullet_brand, loadTest?.bullet_model, loadTest?.bullet_weight].filter(Boolean).join(' ')} />
+                  <Field label="Primer" value={[item.primer_brand || loadTest?.primer_brand, loadTest?.primer_model].filter(Boolean).join(' ')} />
+                  <Field label="Case / brass" value={item.brass_brand || loadTest?.brass_brand} />
+                  <Field label="Round count" value={item.round_count} />
+                  <Field label="OAL / COAL" value={item.coal_oal} />
+                  <Field label="CBTO" value={item.cbto} />
+                  <Field label="Seating depth" value={item.seating_depth} />
+                  <Field label="Bullet jump" value={item.bullet_jump} />
+                  <Field label="Neck tension" value={item.neck_tension} />
+                  <Field label="Case trim" value={item.case_trim_length} />
+                  <Field label="Annealed" value={item.annealed ? 'Yes' : ''} />
+                  <Field label="Case prep notes" value={item.case_prep_notes} />
                   <Field label="Notes" value={item.notes} />
                 </>
               ) : (
@@ -172,6 +208,21 @@ export default function QRItemDetails() {
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {isLoadVariant && loadResult?.tested && (
+              <div className={card}>
+                <h2 className="font-bold flex items-center gap-2 mb-3"><Target className="w-4 h-4 text-primary" /> Test result</h2>
+                <Field label="Tested date" value={loadResult.test_date ? format(new Date(loadResult.test_date), 'MMM d, yyyy') : ''} />
+                <Field label="Average velocity" value={loadResult.avg_velocity ? `${loadResult.avg_velocity} fps` : ''} />
+                <Field label="ES" value={loadResult.es} />
+                <Field label="SD" value={loadResult.sd} />
+                <Field label="Group size" value={loadResult.group_size_moa ? `${loadResult.group_size_moa} MOA` : ''} />
+                <Field label="Distance" value={loadResult.distance_yards ? `${loadResult.distance_yards} yd` : ''} />
+                <Field label="Pressure signs" value={loadResult.pressure_signs_notes} />
+                <Field label="Accuracy notes" value={loadResult.accuracy_notes} />
+                <Field label="Final comments" value={loadResult.final_comments} />
               </div>
             )}
 
