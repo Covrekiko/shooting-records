@@ -4,6 +4,24 @@ import { trackingService } from '@/lib/trackingService';
 import { offlineDB } from '@/lib/offlineDB';
 import { getRepository } from '@/lib/offlineSupport';
 import { queueFieldCheckoutEffects } from '@/lib/offlineFieldSessions';
+import { useAuth } from '@/lib/AuthContext';
+
+const sdkDiagLogged = new Set();
+
+const sdkDebugLogOnce = (key, message, details = {}) => {
+  try {
+    if (window.localStorage.getItem('SR_SDK_DEBUG') !== 'true' || sdkDiagLogged.has(key)) return;
+    sdkDiagLogged.add(key);
+    console.warn(message, {
+      ...details,
+      route: window.location.pathname,
+      online: navigator.onLine,
+      timestamp: new Date().toISOString(),
+    });
+  } catch {}
+};
+
+const isLikelyNetworkError = (error) => !error?.status || error.status === 0 || /network error/i.test(error?.message || '');
 
 const defaultOutingContext = {
   activeOuting: null,
@@ -20,16 +38,17 @@ const OutingContext = createContext(defaultOutingContext);
 export function OutingProvider({ children }) {
   const [activeOuting, setActiveOuting] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { user, isLoadingAuth, isLoadingPublicSettings } = useAuth();
 
-  // Load active outing on mount
+  // Load active outing only after auth has settled
   useEffect(() => {
-    loadActiveOuting();
-  }, []);
+    if (isLoadingAuth || isLoadingPublicSettings) return;
+    loadActiveOuting(user);
+  }, [user, isLoadingAuth, isLoadingPublicSettings]);
 
-  const loadActiveOuting = async () => {
+  const loadActiveOuting = async (currentUser = user) => {
     try {
-      const isAuthenticated = await base44.auth.isAuthenticated();
-      if (!isAuthenticated) {
+      if (!currentUser?.email) {
         // Try offline fallback
         const cached = await offlineDB.getById('meta', 'active_outing').catch(() => null);
         if (cached?.value) setActiveOuting(cached.value);
@@ -37,12 +56,18 @@ export function OutingProvider({ children }) {
         return;
       }
       
-      const currentUser = await base44.auth.me();
       const outings = await base44.entities.DeerOuting.filter({
         created_by: currentUser.email,
         active: true,
-      }).catch(async () => {
+      }).catch(async (error) => {
         // Offline: check local cache
+        if (isLikelyNetworkError(error)) {
+          sdkDebugLogOnce('outing.filter.network', '[SDK_DIAG] OutingContext.loadActiveOuting failed', {
+            call: 'base44.entities.DeerOuting.filter',
+            userReady: Boolean(currentUser?.email),
+            error: error?.message || 'Network Error',
+          });
+        }
         const cached = await offlineDB.getById('meta', 'active_outing').catch(() => null);
         return cached?.value ? [cached.value] : [];
       });
@@ -83,7 +108,17 @@ export function OutingProvider({ children }) {
         setActiveOuting(null);
       }
     } catch (error) {
-      console.error('Error loading active outing:', error);
+      if (isLikelyNetworkError(error)) {
+        sdkDebugLogOnce('outing.load.network', '[SDK_DIAG] OutingContext.loadActiveOuting failed', {
+          call: 'loadActiveOuting',
+          userReady: Boolean(currentUser?.email),
+          error: error?.message || 'Network Error',
+        });
+        const cached = await offlineDB.getById('meta', 'active_outing').catch(() => null);
+        if (cached?.value) setActiveOuting(cached.value);
+      } else {
+        console.error('Error loading active outing:', error);
+      }
     } finally {
       setLoading(false);
     }

@@ -9,6 +9,22 @@ import { offlineDB, ENTITY_STORE_MAP } from '@/lib/offlineDB';
 const AuthContext = createContext();
 const AUTH_RETRY_COOLDOWN_MS = 60000;
 let lastAuthFailureAt = 0;
+const sdkDiagLogged = new Set();
+
+const sdkDebugLogOnce = (key, message, details = {}) => {
+  try {
+    if (window.localStorage.getItem('SR_SDK_DEBUG') !== 'true' || sdkDiagLogged.has(key)) return;
+    sdkDiagLogged.add(key);
+    console.warn(message, {
+      ...details,
+      route: window.location.pathname,
+      online: navigator.onLine,
+      timestamp: new Date().toISOString(),
+    });
+  } catch {}
+};
+
+const isLikelyNetworkError = (error) => !error?.status || error.status === 0 || /network error/i.test(error?.message || '');
 
 const routeDebugLog = (...args) => {
   try {
@@ -132,7 +148,15 @@ export const AuthProvider = ({ children }) => {
       cacheUserProfile(currentUser).catch(() => {});
       preCacheUserData(currentUser.email).catch(() => {});
     } catch (error) {
-      console.error('User auth check failed:', error);
+      const isNetworkError = isLikelyNetworkError(error);
+      if (isNetworkError) {
+        sdkDebugLogOnce('auth.me.network', '[SDK_DIAG] AuthContext.auth.me failed', {
+          call: 'base44.auth.me',
+          error: error?.message || 'Network Error',
+        });
+      } else {
+        console.error('User auth check failed:', error);
+      }
       lastAuthFailureAt = Date.now();
 
       // Rate-limit cooldown: don't retry on 429
@@ -153,7 +177,6 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Try to restore from local cache if network error (not auth error)
-      const isNetworkError = !error.status || error.status === 0;
       if (isNetworkError) {
         const cached = await getCachedUserProfile().catch(() => null);
         if (cached) {
@@ -163,6 +186,11 @@ export const AuthProvider = ({ children }) => {
           setIsLoadingAuth(false);
           return;
         }
+        setIsLoadingAuth(false);
+        setIsAuthenticated(false);
+        setUser(null);
+        setAuthError({ type: 'network_unavailable', message: 'Network connection unavailable. Please check your connection and try again.' });
+        return;
       }
 
       setIsLoadingAuth(false);
