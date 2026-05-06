@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '../lib/AuthContext';
 import { AlertCircle, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { loadOwnedAmmunitionWithReloads } from '@/lib/ownedAmmunition';

@@ -5,7 +5,7 @@ import {
   Shield, Layers, RefreshCw, Sun, FlaskConical, ScanLine, QrCode,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '../lib/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOffline } from '@/context/OfflineContext';
 import { getTabForPath, TAB_DEFAULT } from '@/context/TabHistoryContext';

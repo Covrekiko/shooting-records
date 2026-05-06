@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '../lib/AuthContext';
 import Navigation from '@/components/Navigation';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 import { useOuting } from '@/context/OutingContext';

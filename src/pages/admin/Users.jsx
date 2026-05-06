@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '../../lib/AuthContext';
 import Navigation from '@/components/Navigation';
 import { Link } from 'react-router-dom';
 import { UserPlus, MoreVertical, Ban, Pause, MessageCircle, Users, Zap, Search } from 'lucide-react';
