@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Menu, X, Settings, Target, Crosshair, Map,
   BookOpen, User, ArrowLeft, BarChart3,
-  Shield, Layers, RefreshCw, Sun, FlaskConical, ScanLine, QrCode, ChevronDown,
+  Shield, Layers, RefreshCw, Sun, FlaskConical, ScanLine, QrCode,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
@@ -10,12 +10,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useOffline } from '@/context/OfflineContext';
 import { getTabForPath, TAB_DEFAULT } from '@/context/TabHistoryContext';
 import AppPermissionsPrompt from '@/components/AppPermissionsPrompt';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 const PAGE_TITLES = {
   '/target-shooting': 'Target Shooting',
@@ -82,20 +76,15 @@ const NAV_SECTIONS = [
   },
 ];
 
-const TARGET_DESKTOP_ITEMS = [
-  { path: '/target-shooting', label: 'Target Shooting', icon: Crosshair, module: 'target_shooting' },
-  { path: '/target-analyzer', label: 'Target Analyzer', icon: BarChart3, module: 'target_shooting' },
-  { path: '/scope-click-card', label: 'Scope Click Cards', icon: ScanLine, module: 'target_shooting' },
-  { path: '/load-comparison', label: 'Compare', icon: BarChart3, module: 'reloading' },
-];
-
 const DESKTOP_ITEMS = [
+  { path: '/target-shooting', label: 'Target', icon: Crosshair, module: 'target_shooting' },
   { path: '/clay-shooting', label: 'Clay', icon: Target, module: 'clay_shooting' },
   { path: '/deer-management', label: 'Deer', icon: Layers, module: 'deer_management' },
   { path: '/deer-stalking', label: 'Map', icon: Map, module: 'stalk_map' },
   { path: '/ammo-summary', label: 'Armory', icon: Shield },
   { path: '/records', label: 'Records', icon: BookOpen },
   { path: '/reloading', label: 'Reloading', icon: RefreshCw, module: 'reloading' },
+  { path: '/load-comparison', label: 'Compare', icon: BarChart3, module: 'reloading' },
 ];
 
 export default function Navigation() {
@@ -146,35 +135,6 @@ export default function Navigation() {
               />
             </Link>
             <div className="flex gap-0.5 items-center">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 select-none ${
-                      TARGET_DESKTOP_ITEMS.some((item) => isActive(item.path))
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
-                    }`}
-                  >
-                    <Crosshair className="w-3.5 h-3.5" />
-                    Target
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-52">
-                  {TARGET_DESKTOP_ITEMS.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <DropdownMenuItem key={item.path} asChild>
-                        <Link to={item.path} className="flex items-center gap-2 cursor-pointer">
-                          <Icon className="w-4 h-4" />
-                          {item.label}
-                        </Link>
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </DropdownMenuContent>
-              </DropdownMenu>
               {DESKTOP_ITEMS.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path);

@@ -1,4 +1,4 @@
-import React from 'react';
+import { createElement, useCallback, useRef, useState } from 'react';
 import FirstTimeGuideModal from '@/components/FirstTimeGuideModal';
 
 const GUIDE_PREFIX = 'shootingRecords.guides.';
@@ -16,10 +16,10 @@ function markGuideSeen(key) {
 }
 
 export function useFirstTimeGuide(config) {
-  const [open, setOpen] = React.useState(false);
-  const pendingActionRef = React.useRef(null);
+  const [open, setOpen] = useState(false);
+  const pendingActionRef = useRef(null);
 
-  const showGuideThen = React.useCallback((action) => {
+  const showGuideThen = useCallback((action) => {
     if (hasSeenGuide(config.key)) {
       action?.();
       return;
@@ -28,7 +28,7 @@ export function useFirstTimeGuide(config) {
     setOpen(true);
   }, [config.key]);
 
-  const continueGuide = React.useCallback(() => {
+  const continueGuide = useCallback(() => {
     markGuideSeen(config.key);
     setOpen(false);
     const action = pendingActionRef.current;
@@ -36,7 +36,7 @@ export function useFirstTimeGuide(config) {
     action?.();
   }, [config.key]);
 
-  const Guide = React.useCallback(() => React.createElement(FirstTimeGuideModal, {
+  const Guide = useCallback(() => createElement(FirstTimeGuideModal, {
     open,
     title: config.title,
     description: config.description,
