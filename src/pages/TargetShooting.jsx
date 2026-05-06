@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { compressImage } from '@/lib/imageUtils';
 import { base44 } from '@/api/base44Client';
@@ -21,7 +21,6 @@ import { motion } from 'framer-motion';
 import { DESIGN } from '@/lib/designConstants';
 import TargetAnalysisPanel from '@/components/target-analysis/TargetAnalysisPanel';
 import TargetAnalysisSummary from '@/components/target-analysis/TargetAnalysisSummary';
-import { useAutoCheckin } from '@/hooks/useAutoCheckin';
 import AutoCheckinBanner from '@/components/AutoCheckinBanner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
@@ -62,6 +61,8 @@ export default function TargetShooting() {
   const [pendingTargetSessionAction, setPendingTargetSessionAction] = useState(null);
   const [autoCheckinMatch, setAutoCheckinMatch] = useState(null);
   const [autoCheckinEnabled, setAutoCheckinEnabled] = useState(false);
+  const autoCheckinDwellRef = useRef({});
+  const autoCheckinFiredRef = useRef(new Set());
 
   const [checkinData, setCheckinData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -74,13 +75,42 @@ export default function TargetShooting() {
     base44.auth.me().then(u => setAutoCheckinEnabled(u?.autoCheckinEnabled === true));
   }, []);
 
-  useAutoCheckin({
-    enabled: autoCheckinEnabled,
-    clubs: clubs.filter(c => c.type === 'Target Shooting' || c.type === 'Both'),
-    areas: [],
-    hasActiveSession: !!activeSession,
-    onAutoCheckin: (match) => setAutoCheckinMatch(match),
-  });
+  useEffect(() => {
+    if (!autoCheckinEnabled || activeSession || !location) return;
+
+    const now = Date.now();
+    const targetClubs = clubs.filter(c => c.type === 'Target Shooting' || c.type === 'Both');
+    const matchedKeys = new Set();
+
+    targetClubs.forEach((club) => {
+      const match = club.location?.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/);
+      if (!match) return;
+
+      const distance = calculateDistance(
+        location.latitude,
+        location.longitude,
+        parseFloat(match[1]),
+        parseFloat(match[2])
+      );
+      const key = `club_${club.id}`;
+
+      if (distance <= 0.3) {
+        matchedKeys.add(key);
+        if (!autoCheckinDwellRef.current[key]) autoCheckinDwellRef.current[key] = now;
+        if (now - autoCheckinDwellRef.current[key] >= 10 * 60 * 1000 && !autoCheckinFiredRef.current.has(key)) {
+          autoCheckinFiredRef.current.add(key);
+          setAutoCheckinMatch({ type: 'club', id: club.id, name: club.name, clubType: club.type });
+        }
+      }
+    });
+
+    Object.keys(autoCheckinDwellRef.current).forEach((key) => {
+      if (!matchedKeys.has(key)) {
+        delete autoCheckinDwellRef.current[key];
+        autoCheckinFiredRef.current.delete(key);
+      }
+    });
+  }, [autoCheckinEnabled, activeSession, location, clubs]);
 
   const showTargetSessionGuideThen = useCallback((action) => {
     const key = 'shootingRecords.guides.targetSessionCreate';
