@@ -5,7 +5,7 @@ import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-route
 import { AnimatePresence, motion } from 'framer-motion';
 import { lazy, Suspense, useEffect, useRef } from 'react';
 import PageNotFound from './lib/PageNotFound';
-import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { AuthProvider, useAuth } from './lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { OutingProvider } from '@/context/OutingContext';
 import { OfflineProvider } from '@/context/OfflineContext';

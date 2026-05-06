@@ -4,7 +4,7 @@ import { trackingService } from '@/lib/trackingService';
 import { offlineDB } from '@/lib/offlineDB';
 import { getRepository } from '@/lib/offlineSupport';
 import { queueFieldCheckoutEffects } from '@/lib/offlineFieldSessions';
-import { useAuth } from '@/lib/AuthContext';
+import { useAuth } from '../lib/AuthContext';
 
 const sdkDiagLogged = new Set();
 
