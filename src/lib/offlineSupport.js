@@ -26,7 +26,10 @@ export async function preCacheUserData(userEmail) {
       { name: 'Shotgun', method: () => base44.entities.Shotgun.filter({ created_by: userEmail }) },
       { name: 'Club', method: () => base44.entities.Club.filter({ created_by: userEmail }) },
       { name: 'Area', method: () => base44.entities.Area.filter({ created_by: userEmail }) },
-      { name: 'Ammunition', method: () => base44.entities.Ammunition.filter({ created_by: userEmail }) },
+      { name: 'Ammunition', method: async () => {
+        const response = await base44.functions.invoke('listAmmunitionForUser', {});
+        return response.data.ammunition || [];
+      } },
       { name: 'MapMarker', method: () => base44.entities.MapMarker.list() },
       { name: 'Harvest', method: () => base44.entities.Harvest.list() },
       { name: 'ReloadingComponent', method: () => base44.entities.ReloadingComponent.filter({ created_by: userEmail }) },

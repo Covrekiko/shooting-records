@@ -8,14 +8,16 @@ export default function AmmoStockWidget() {
   const { user } = useAuth();
   const [ammo, setAmmo] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   const loadAmmo = async () => {
     if (!user) return;
     try {
       const ammoList = await loadOwnedAmmunitionWithReloads(user);
       setAmmo(ammoList);
+      setLoadError(false);
     } catch (error) {
-      if (error) setLoading(false);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -59,7 +61,9 @@ export default function AmmoStockWidget() {
         </Link>
       </div>
 
-      {ammo.length === 0 ? (
+      {loadError ? (
+        <p className="text-sm text-muted-foreground">Ammo stock unavailable, retrying</p>
+      ) : ammo.length === 0 ? (
         <p className="text-sm text-muted-foreground">No ammunition tracked</p>
       ) : (
         <div className="space-y-3">
