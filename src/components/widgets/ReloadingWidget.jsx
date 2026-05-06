@@ -1,18 +1,37 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { AlertCircle } from 'lucide-react';
+import { getRepository } from '@/lib/offlineSupport';
+
+const sdkDiagLogged = new Set();
+
+const sdkDebugLogOnce = (key, details = {}) => {
+  try {
+    if (window.localStorage.getItem('SR_SDK_DEBUG') !== 'true' || sdkDiagLogged.has(key)) return;
+    sdkDiagLogged.add(key);
+    console.warn('[SDK_DIAG] ReloadingWidget data load failed', {
+      component: 'components/widgets/ReloadingWidget',
+      route: window.location.pathname,
+      online: navigator.onLine,
+      timestamp: new Date().toISOString(),
+      ...details,
+    });
+  } catch {}
+};
+
+const EMPTY_STATS = {
+  totalRounds: 0,
+  monthlyCost: 0,
+  avgCostPerRound: 0,
+  mostUsedCaliber: '-',
+  lowStockItems: 0,
+};
 
 export default function ReloadingWidget() {
   const { user } = useAuth();
-  const [stats, setStats] = useState({
-    totalRounds: 0,
-    monthlyCost: 0,
-    avgCostPerRound: 0,
-    mostUsedCaliber: '-',
-    lowStockItems: 0,
-  });
+  const [stats, setStats] = useState(EMPTY_STATS);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     if (user?.email) loadStats();
@@ -24,8 +43,8 @@ export default function ReloadingWidget() {
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
       const [sessions, inventory] = await Promise.all([
-        base44.entities.ReloadingSession.filter({ created_by: user.email }),
-        base44.entities.ReloadingInventory.filter({ created_by: user.email }),
+        getRepository('ReloadingSession').filter({ created_by: user.email }),
+        getRepository('ReloadingInventory').filter({ created_by: user.email }),
       ]);
 
       const totalRounds = sessions.reduce((sum, s) => sum + (s.rounds_loaded || 0), 0);
@@ -48,8 +67,15 @@ export default function ReloadingWidget() {
         mostUsedCaliber: mostUsed,
         lowStockItems: lowStock,
       });
+      setLoadError(false);
     } catch (error) {
-      console.error('Error loading reloading stats:', error);
+      sdkDebugLogOnce('reloadingWidget.loadStats', {
+        call: 'getRepository(ReloadingSession/ReloadingInventory).filter',
+        error: error?.message || 'Network Error',
+        status: error?.status || error?.response?.status || null,
+      });
+      setStats(EMPTY_STATS);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -70,6 +96,10 @@ export default function ReloadingWidget() {
         </div>
         <span />
       </div>
+
+      {loadError && (
+        <p className="text-sm text-muted-foreground mb-3">Reloading stats unavailable, showing safe defaults</p>
+      )}
 
       <div className="space-y-3">
         <div className="flex items-center justify-between pb-3 border-b border-slate-200/60 dark:border-slate-700">
