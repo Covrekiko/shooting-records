@@ -302,6 +302,9 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     setSetScaleMode(false);
     setScaleDragPoint(null);
     setCalibrationStep('confirmed');
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+    lastPan.current = { x: 0, y: 0 };
     clearGestureState();
   };
 
