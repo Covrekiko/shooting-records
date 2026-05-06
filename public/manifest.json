@@ -1,18 +1,22 @@
 {
   "name": "Shooting Records",
   "short_name": "Shooting Records",
-  "description": "Track shooting sessions, equipment, ammunition, and field outings.",
+  "description": "A secure, professional mobile-first toolkit for firearm enthusiasts to track shooting sessions, manage equipment, and generate official PDF compliance reports.",
+  "icons": [
+    {
+      "src": "https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/42d94d74f_a_clean_studio_like_app_icon_logo_design_on_a_w.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://media.base44.com/images/public/69dcbc84d3696033c82a02c3/42d94d74f_a_clean_studio_like_app_icon_logo_design_on_a_w.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#fafafa",
   "theme_color": "#f97316",
-  "icons": [
-    {
-      "src": "https://base44.com/logo_v2.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+  "background_color": "#ffffff"
 }
