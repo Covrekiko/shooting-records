@@ -715,12 +715,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
 
       {photo && analysisMode === 'manual' && (
         <>
-          {/* Group name */}
-          <div className={`mb-3 ${mobileCalibrationActive ? 'md:block hidden' : ''}`}>
-            <label className={lbl}>Group Name</label>
-            <input value={groupName} onChange={e => setGroupName(e.target.value)} className={inp} />
-          </div>
-
           <MobileScaleCalibrationSheet
             visible={isMobile && analysisMode === 'manual'}
             step={calibrationStep}
@@ -739,6 +733,12 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             pixelDistance={getPixelDistance(scalePoints)}
             scalePx={scalePx}
           />
+
+          {/* Group name */}
+          <div className={`mb-3 ${mobileCalibrationActive ? 'md:block hidden' : ''}`}>
+            <label className={lbl}>Group Name</label>
+            <input value={groupName} onChange={e => setGroupName(e.target.value)} className={inp} />
+          </div>
 
           {/* Scale setup */}
           <div className="hidden md:block bg-card border border-border rounded-2xl p-4 mb-3">
