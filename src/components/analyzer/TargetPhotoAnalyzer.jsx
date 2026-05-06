@@ -3,6 +3,7 @@ import { ArrowLeft, Save, Loader2, Trash2, Plus, RotateCcw } from 'lucide-react'
 import { base44 } from '@/api/base44Client';
 import AIPhotoComparison from './AIPhotoComparison';
 import { mmToMoa, mmToMrad, calcGroupSizePixels, convertGroupSize } from '@/lib/groupSizeCalculations';
+import MobileScaleCalibrationSheet from './MobileScaleCalibrationSheet';
 
 // FEATURE FLAG: AI Target Photo Analysis is currently disabled because detection accuracy needs further work.
 // Manual marking remains the active production workflow. Keep AIPhotoComparison code for future AI improvements.
@@ -30,7 +31,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const [scaleInput, setScaleInput] = useState('1');
   const [scaleUnit, setScaleUnit] = useState(editGroup?.scale_unit || 'cm'); // mm, cm, in
   const [scalePx, setScalePx] = useState(editGroup?.scale_mm_per_px || null);
-  const [calibPoints, setCalibPoints] = useState([]); // last two tapped calibration points (pixel coords)
+  const [calibPoints, setCalibPoints] = useState(editGroup?.scale_calibration_points || []); // last two calibration points (natural image pixel coords)
   const [groupName, setGroupName] = useState(editGroup?.group_name || `Group ${nextGroupNumber}`);
   const [notes, setNotes] = useState(editGroup?.notes || '');
   const [confirmedZero, setConfirmedZero] = useState(editGroup?.confirmed || editGroup?.confirmed_zero || false);
@@ -48,6 +49,10 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const [setScaleMode, setSetScaleMode] = useState(false);
   const [scalePoints, setScalePoints] = useState([]);
   const [scaleDragPoint, setScaleDragPoint] = useState(null); // Live cursor position while drawing line
+  const [calibrationStep, setCalibrationStep] = useState(editGroup?.scale_mm_per_px ? 'confirmed' : 'setup');
+  const [isMobile, setIsMobile] = useState(false);
+  const activePointers = useRef(new Map());
+  const pointerGesture = useRef({ startPan: { x: 0, y: 0 }, startZoom: 1, startDistance: 0, startCenter: null });
   const canvasRef = useRef(null);
   const imgRef = useRef(null);
   const [imgSize, setImgSize] = useState(null);
@@ -61,6 +66,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   const lastPinchDist = useRef(null);
   const didPan = useRef(false);
   const containerRef = useRef(null);
+  const mobileCalibrationActive = isMobile && ['placingPointA', 'pointASet', 'placingPointB', 'pointBSet'].includes(calibrationStep);
   
   // Scale state - stored separately to persist independently
   const scaleStateRef = useRef({
@@ -71,6 +77,14 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
       parseFloat(scaleInput),
     scaleUnitVal: editGroup?.scale_unit || 'cm'
   });
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
 
   useEffect(() => {
     if (!scalePx || marks.length < 2) {
@@ -195,6 +209,13 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
       scaleValue: parseFloat(scaleInput) || 1,
       scaleUnitVal: scaleUnit
     };
+    setCalibPoints([]);
+    setScalePoints([]);
+    setScaleDragPoint(null);
+    setCalibrationStep('setup');
+    activePointers.current.clear();
+    panStart.current = null;
+    lastPinchDist.current = null;
   }, [photo]);
 
   const clampPan = useCallback((px, py, z, containerEl, imgEl) => {
@@ -214,34 +235,184 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     };
   }, []);
 
-  const getRelativeCoords = (e) => {
-    // Get coords in natural image pixel space, accounting for zoom/pan
+  const getCoordsFromClient = (clientX, clientY) => {
     const container = containerRef.current;
     const img = imgRef.current;
     if (!container || !img) return { x: 0, y: 0 };
     const cRect = container.getBoundingClientRect();
-    const touch = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
-    const clientX = touch ? touch.clientX : e.clientX;
-    const clientY = touch ? touch.clientY : e.clientY;
-    // Position relative to container centre (since transform-origin is center)
     const relX = clientX - cRect.left - cRect.width / 2;
     const relY = clientY - cRect.top - cRect.height / 2;
-    // Undo zoom and pan
     const imgX = (relX - pan.x) / zoom + cRect.width / 2;
     const imgY = (relY - pan.y) / zoom + cRect.height / 2;
-    // Convert to natural image coords
-    const displayedImgWidth = cRect.width; // img is w-full
+    const displayedImgWidth = cRect.width;
     const naturalAspect = (img.naturalHeight || 1) / (img.naturalWidth || 1);
     const displayedImgHeight = displayedImgWidth * naturalAspect;
-    const scaleX = img.naturalWidth / displayedImgWidth;
-    const scaleY = img.naturalHeight / displayedImgHeight;
     return {
-      x: imgX * scaleX,
-      y: imgY * scaleY,
+      x: imgX * (img.naturalWidth / displayedImgWidth),
+      y: imgY * (img.naturalHeight / displayedImgHeight),
     };
   };
 
+  const getRelativeCoords = (e) => {
+    const touch = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
+    return getCoordsFromClient(touch ? touch.clientX : e.clientX, touch ? touch.clientY : e.clientY);
+  };
+
+  const getCenterCrosshairCoords = () => {
+    const container = containerRef.current;
+    if (!container) return { x: 0, y: 0 };
+    const cRect = container.getBoundingClientRect();
+    return getCoordsFromClient(cRect.left + cRect.width / 2, cRect.top + cRect.height / 2);
+  };
+
+  const clearGestureState = () => {
+    activePointers.current.clear();
+    panStart.current = null;
+    lastPinchDist.current = null;
+    didPan.current = false;
+    pointerGesture.current = { startPan: { x: 0, y: 0 }, startZoom: zoom, startDistance: 0, startCenter: null };
+  };
+
+  const getPointerDistance = (points) => {
+    const [a, b] = points;
+    if (!a || !b) return 0;
+    return Math.sqrt(Math.pow(b.x - a.x, 2) + Math.pow(b.y - a.y, 2));
+  };
+
+  const getPixelDistance = (points = scalePoints) => {
+    if (points.length !== 2) return null;
+    return Math.sqrt(Math.pow(points[1].x - points[0].x, 2) + Math.pow(points[1].y - points[0].y, 2));
+  };
+
+  const confirmCalibrationPoints = (points = scalePoints) => {
+    const pixelDist = getPixelDistance(points);
+    if (!pixelDist) return;
+    const realWorldMm = convertToMm(scaleInput, scaleUnit);
+    if (!realWorldMm || isNaN(realWorldMm) || realWorldMm <= 0) {
+      alert('Invalid scale value. Please enter a positive number.');
+      return;
+    }
+    const mmPerPx = realWorldMm / pixelDist;
+    scaleStateRef.current.calibPoints = points;
+    scaleStateRef.current.scalePx = mmPerPx;
+    scaleStateRef.current.scaleValue = parseFloat(scaleInput);
+    scaleStateRef.current.scaleUnitVal = scaleUnit;
+    setScalePx(mmPerPx);
+    setCalibPoints(points);
+    setSetScaleMode(false);
+    setScaleDragPoint(null);
+    setCalibrationStep('confirmed');
+    clearGestureState();
+  };
+
+  const startMobileCalibration = () => {
+    const realWorldMm = convertToMm(scaleInput, scaleUnit);
+    if (!realWorldMm || isNaN(realWorldMm) || realWorldMm <= 0) {
+      alert('Enter a valid reference size first.');
+      return;
+    }
+    setMode('');
+    setSetScaleMode(false);
+    setScalePoints([]);
+    setScaleDragPoint(null);
+    setCalibrationStep('placingPointA');
+    clearGestureState();
+  };
+
+  const placeMobilePointA = () => {
+    const point = getCenterCrosshairCoords();
+    setScalePoints([point]);
+    setCalibPoints([point]);
+    setCalibrationStep('pointASet');
+    clearGestureState();
+  };
+
+  const placeMobilePointB = () => {
+    const point = getCenterCrosshairCoords();
+    const points = [scalePoints[0] || calibPoints[0], point].filter(Boolean);
+    if (points.length !== 2) return;
+    setScalePoints(points);
+    setCalibPoints(points);
+    setCalibrationStep('pointBSet');
+    clearGestureState();
+  };
+
+  const undoMobileCalibrationPoint = () => {
+    const next = scalePoints.slice(0, -1);
+    setScalePoints(next);
+    setCalibPoints(next);
+    setScaleDragPoint(null);
+    setCalibrationStep(next.length ? 'pointASet' : 'placingPointA');
+    clearGestureState();
+  };
+
+  const resetMobileCalibration = () => {
+    setScalePx(null);
+    setScalePoints([]);
+    setCalibPoints([]);
+    setScaleDragPoint(null);
+    setSetScaleMode(false);
+    setCalibrationStep('setup');
+    scaleStateRef.current.calibPoints = [];
+    scaleStateRef.current.scalePx = null;
+    clearGestureState();
+  };
+
+  const handleMobilePointerDown = (e) => {
+    if (!mobileCalibrationActive) return;
+    e.preventDefault();
+    e.currentTarget.setPointerCapture?.(e.pointerId);
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const points = Array.from(activePointers.current.values());
+    if (points.length === 1) {
+      pointerGesture.current = { ...pointerGesture.current, startPan: { ...pan }, startCenter: points[0] };
+    } else if (points.length === 2) {
+      pointerGesture.current = {
+        startPan: { ...pan },
+        startZoom: zoom,
+        startDistance: getPointerDistance(points),
+        startCenter: { x: (points[0].x + points[1].x) / 2, y: (points[0].y + points[1].y) / 2 },
+      };
+    }
+  };
+
+  const handleMobilePointerMove = (e) => {
+    if (!mobileCalibrationActive || !activePointers.current.has(e.pointerId)) return;
+    e.preventDefault();
+    activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const points = Array.from(activePointers.current.values());
+    if (points.length === 1 && pointerGesture.current.startCenter) {
+      const dx = points[0].x - pointerGesture.current.startCenter.x;
+      const dy = points[0].y - pointerGesture.current.startCenter.y;
+      setPan(clampPan(pointerGesture.current.startPan.x + dx, pointerGesture.current.startPan.y + dy, zoom, containerRef.current, imgRef.current));
+    } else if (points.length >= 2) {
+      const dist = getPointerDistance(points);
+      const startDist = pointerGesture.current.startDistance || dist;
+      const nextZoom = Math.min(6, Math.max(1, pointerGesture.current.startZoom * (dist / startDist)));
+      const center = { x: (points[0].x + points[1].x) / 2, y: (points[0].y + points[1].y) / 2 };
+      const startCenter = pointerGesture.current.startCenter || center;
+      const dx = center.x - startCenter.x;
+      const dy = center.y - startCenter.y;
+      setZoom(nextZoom);
+      setPan(clampPan(pointerGesture.current.startPan.x + dx, pointerGesture.current.startPan.y + dy, nextZoom, containerRef.current, imgRef.current));
+    }
+  };
+
+  const handleMobilePointerEnd = (e) => {
+    if (!mobileCalibrationActive) return;
+    activePointers.current.delete(e.pointerId);
+    e.currentTarget.releasePointerCapture?.(e.pointerId);
+    const remaining = Array.from(activePointers.current.values());
+    if (remaining.length === 1) {
+      pointerGesture.current = { ...pointerGesture.current, startPan: { ...pan }, startCenter: remaining[0] };
+    } else if (remaining.length === 0) {
+      panStart.current = null;
+      lastPinchDist.current = null;
+    }
+  };
+
   const handleContainerTouchStart = (e) => {
+    if (mobileCalibrationActive) return;
     if (e.touches.length === 2) {
       // Two-finger: zoom/pan start
       const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -262,6 +433,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   };
 
   const handleContainerTouchMove = (e) => {
+    if (mobileCalibrationActive) return;
     e.preventDefault();
     // If in scale mode with first point, track cursor for line preview
     if (setScaleMode && scalePoints.length === 1) {
@@ -307,6 +479,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   };
 
   const handleContainerTouchEnd = (e) => {
+    if (mobileCalibrationActive) return;
     lastPinchDist.current = null;
     panStart.current = null;
     // Mark only if it was a one-finger tap (no zoom/pan in progress) and not in scale mode
@@ -549,7 +722,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           </div>
 
           {/* Scale setup */}
-          <div className="bg-card border border-border rounded-2xl p-4 mb-3">
+          <div className="hidden md:block bg-card border border-border rounded-2xl p-4 mb-3">
             <p className="font-semibold text-sm mb-1">Scale Reference</p>
             <p className="text-xs text-muted-foreground mb-3">Enter a known grid/reference size, then tap two matching points on the photo to calibrate measurements.</p>
             <div className="flex gap-2 mb-2 items-center">
@@ -586,11 +759,28 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             </button>
           </div>
 
-          {/* Interactive Image — pinch to zoom, hold+drag to pan, tap to mark */}
+          {/* Mobile compact calibration setup */}
+          <div className="md:hidden bg-card border border-border rounded-2xl p-3 mb-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Scale Reference</p>
+                <p className="text-sm font-semibold">{scalePx ? `✓ ${scaleInput} ${scaleUnit} calibrated` : 'Set grid/reference size'}</p>
+              </div>
+              <button type="button" onClick={startMobileCalibration} className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold">
+                {scalePx ? 'Recalibrate' : 'Start'}
+              </button>
+            </div>
+          </div>
+
+          {/* Interactive Image — desktop keeps tap calibration; mobile uses centre crosshair calibration */}
           <div
             ref={containerRef}
             className="relative mb-1 rounded-2xl overflow-hidden border border-border bg-black select-none max-h-96 md:max-h-none"
-            style={{ touchAction: mode ? 'none' : 'auto', aspectRatio: 'auto' }}
+            style={{ touchAction: mobileCalibrationActive || mode ? 'none' : 'auto', aspectRatio: 'auto' }}
+            onPointerDown={handleMobilePointerDown}
+            onPointerMove={handleMobilePointerMove}
+            onPointerUp={handleMobilePointerEnd}
+            onPointerCancel={handleMobilePointerEnd}
             onTouchStart={handleContainerTouchStart}
             onTouchMove={handleContainerTouchMove}
             onTouchEnd={handleContainerTouchEnd}
@@ -603,9 +793,21 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               </div>
             )}
             {/* Gesture hints */}
-            {zoom > 1.05 && (
+            {zoom > 1.05 && !mobileCalibrationActive && (
               <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-10 bg-black/60 text-white text-[10px] px-2 py-1 rounded-lg pointer-events-none">
                 2 fingers to zoom & pan
+              </div>
+            )}
+            {mobileCalibrationActive && (
+              <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
+                <div className="relative w-16 h-16 rounded-full border border-white/70 bg-black/10 shadow-[0_0_0_9999px_rgba(0,0,0,0.08)]">
+                  <div className="absolute left-1/2 top-0 -translate-x-1/2 w-0.5 h-full bg-white shadow" />
+                  <div className="absolute top-1/2 left-0 -translate-y-1/2 h-0.5 w-full bg-white shadow" />
+                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-primary border border-white" />
+                </div>
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/65 text-white text-[11px] px-3 py-1.5 rounded-full">
+                  Move photo under crosshair
+                </div>
               </div>
             )}
             {/* Image + marks — both transform together so marks stay aligned */}
@@ -659,7 +861,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
                     </div>
                   );
                 })()}
-                {scalePoints.map((p, i) => {
+                {[...calibPoints, ...scalePoints.filter((p, i) => !calibPoints[i])].map((p, i) => {
                   const d = getDisplayCoords(p);
                   if (!d) return null;
                   return (
@@ -687,6 +889,25 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             </div>
           </div>
 
+          <MobileScaleCalibrationSheet
+            visible={isMobile && analysisMode === 'manual'}
+            step={calibrationStep}
+            scaleInput={scaleInput}
+            scaleUnit={scaleUnit}
+            onScaleInputChange={setScaleInput}
+            onScaleUnitChange={setScaleUnit}
+            onPreset={(unit) => { setScaleInput('1'); setScaleUnit(unit); setScaleRef(unit === 'cm' ? '1cm grid' : '1in grid'); }}
+            onStart={startMobileCalibration}
+            onPlaceA={placeMobilePointA}
+            onPlaceB={placeMobilePointB}
+            onConfirm={() => confirmCalibrationPoints(scalePoints)}
+            onUndo={undoMobileCalibrationPoint}
+            onReset={resetMobileCalibration}
+            pointCount={scalePoints.length || calibPoints.length}
+            pixelDistance={getPixelDistance(scalePoints)}
+            scalePx={scalePx}
+          />
+
           {/* Zoom reset button */}
           {zoom > 1.05 && (
             <div className="flex justify-center mb-2">
@@ -699,7 +920,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           )}
 
           {/* Mode selection - below image */}
-          <div className="grid grid-cols-3 gap-2 mb-3">
+          <div className={`grid grid-cols-3 gap-2 mb-3 ${mobileCalibrationActive ? 'md:grid hidden' : ''}`}>
             {[
               { id: 'centre', icon: '⊕', label: 'Target Centre', color: 'bg-blue-500 text-white', title: 'Mark the centre of the target for point-of-impact reference' },
               { id: 'aim', icon: '✚', label: 'Point of Aim', color: 'bg-green-500 text-white', title: 'Mark where you aimed' },
@@ -714,7 +935,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           </div>
 
           {/* Controls */}
-          <div className="flex gap-2 mb-3">
+          <div className={`flex gap-2 mb-3 ${mobileCalibrationActive ? 'md:flex hidden' : ''}`}>
             <button type="button" onClick={() => setMarks(prev => prev.slice(0, -1))}
               className="flex-1 py-2 bg-secondary rounded-xl text-sm font-semibold flex items-center justify-center gap-1">
               <RotateCcw className="w-3.5 h-3.5" /> Undo
@@ -734,7 +955,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             </label>
           </div>
 
-          <p className="text-xs text-muted-foreground text-center mb-3">
+          <p className={`text-xs text-muted-foreground text-center mb-3 ${mobileCalibrationActive ? 'md:block hidden' : ''}`}>
             {marks.length} bullet hole{marks.length !== 1 ? 's' : ''} marked
             {centrePoint ? ' · Centre set ⊕' : ''}
             {!scalePx ? ' · ⚠️ Set scale to calculate' : ` · Scale: ${scaleInput} ${scaleUnit} ref`}
@@ -856,7 +1077,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             </div>
           )}
           <button onClick={handleSave} disabled={saving || uploading}
-            className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold text-base flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60">
+           className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold text-base flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60 mb-[calc(env(safe-area-inset-bottom,0px)+8px)]">
             {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
             {saving ? 'Saving…' : 'Save Group'}
           </button>
