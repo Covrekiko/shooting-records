@@ -3,7 +3,6 @@ import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import Navigation from '@/components/Navigation';
-import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 import { useOuting } from '@/context/OutingContext';
 import { format } from 'date-fns';
@@ -298,7 +297,7 @@ export default function Dashboard() {
   // Memoize chart data to prevent re-calculation on every render
   const memoizedChartData = useMemo(() => chartData, [chartData]);
 
-  const pullToRefresh = usePullToRefresh(loadData);
+  const pullToRefresh = { pulling: false, progress: 0, refreshing: false };
 
   if (loading) {
     return (
