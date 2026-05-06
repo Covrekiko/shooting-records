@@ -45,8 +45,8 @@ export default function MobileScaleCalibrationSheet({
   const isConfirming = step === 'pointBSet';
 
   return (
-    <div className="md:hidden fixed inset-x-0 bottom-0 z-[70000] px-3 pointer-events-none" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
-      <div className="pointer-events-auto bg-card/95 backdrop-blur-xl border border-border shadow-2xl rounded-3xl p-3 max-h-[42vh] overflow-y-auto" style={{ touchAction: 'manipulation' }}>
+    <div className="md:hidden sticky top-0 z-30 mb-3 pointer-events-none">
+      <div className="pointer-events-auto bg-card border border-border shadow-sm rounded-2xl p-3" style={{ touchAction: 'manipulation' }}>
         <div className="flex items-start justify-between gap-3 mb-3">
           <div>
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Scale Reference</p>

@@ -384,7 +384,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     if (points.length === 1 && pointerGesture.current.startCenter) {
       const dx = points[0].x - pointerGesture.current.startCenter.x;
       const dy = points[0].y - pointerGesture.current.startCenter.y;
-      setPan(clampPan(pointerGesture.current.startPan.x + dx, pointerGesture.current.startPan.y + dy, zoom, containerRef.current, imgRef.current));
+      setPan({ x: pointerGesture.current.startPan.x + dx, y: pointerGesture.current.startPan.y + dy });
     } else if (points.length >= 2) {
       const dist = getPointerDistance(points);
       const startDist = pointerGesture.current.startDistance || dist;
@@ -394,7 +394,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
       const dx = center.x - startCenter.x;
       const dy = center.y - startCenter.y;
       setZoom(nextZoom);
-      setPan(clampPan(pointerGesture.current.startPan.x + dx, pointerGesture.current.startPan.y + dy, nextZoom, containerRef.current, imgRef.current));
+      setPan({ x: pointerGesture.current.startPan.x + dx, y: pointerGesture.current.startPan.y + dy });
     }
   };
 
@@ -715,6 +715,25 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
 
       {photo && analysisMode === 'manual' && (
         <>
+          <MobileScaleCalibrationSheet
+            visible={isMobile && analysisMode === 'manual'}
+            step={calibrationStep}
+            scaleInput={scaleInput}
+            scaleUnit={scaleUnit}
+            onScaleInputChange={setScaleInput}
+            onScaleUnitChange={setScaleUnit}
+            onPreset={(unit) => { setScaleInput('1'); setScaleUnit(unit); setScaleRef(unit === 'cm' ? '1cm grid' : '1in grid'); }}
+            onStart={startMobileCalibration}
+            onPlaceA={placeMobilePointA}
+            onPlaceB={placeMobilePointB}
+            onConfirm={() => confirmCalibrationPoints(scalePoints)}
+            onUndo={undoMobileCalibrationPoint}
+            onReset={resetMobileCalibration}
+            pointCount={scalePoints.length || calibPoints.length}
+            pixelDistance={getPixelDistance(scalePoints)}
+            scalePx={scalePx}
+          />
+
           {/* Group name */}
           <div className="mb-3">
             <label className={lbl}>Group Name</label>
@@ -759,19 +778,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             </button>
           </div>
 
-          {/* Mobile compact calibration setup */}
-          <div className="md:hidden bg-card border border-border rounded-2xl p-3 mb-3">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Scale Reference</p>
-                <p className="text-sm font-semibold">{scalePx ? `✓ ${scaleInput} ${scaleUnit} calibrated` : 'Set grid/reference size'}</p>
-              </div>
-              <button type="button" onClick={startMobileCalibration} className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold">
-                {scalePx ? 'Recalibrate' : 'Start'}
-              </button>
-            </div>
-          </div>
-
           {/* Interactive Image — desktop keeps tap calibration; mobile uses centre crosshair calibration */}
           <div
             ref={containerRef}
@@ -813,7 +819,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             {/* Image + marks — both transform together so marks stay aligned */}
             <div
               style={{
-                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+                transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
                 transformOrigin: 'center center',
                 willChange: 'transform',
               }}
@@ -888,25 +894,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
               })()}
             </div>
           </div>
-
-          <MobileScaleCalibrationSheet
-            visible={isMobile && analysisMode === 'manual'}
-            step={calibrationStep}
-            scaleInput={scaleInput}
-            scaleUnit={scaleUnit}
-            onScaleInputChange={setScaleInput}
-            onScaleUnitChange={setScaleUnit}
-            onPreset={(unit) => { setScaleInput('1'); setScaleUnit(unit); setScaleRef(unit === 'cm' ? '1cm grid' : '1in grid'); }}
-            onStart={startMobileCalibration}
-            onPlaceA={placeMobilePointA}
-            onPlaceB={placeMobilePointB}
-            onConfirm={() => confirmCalibrationPoints(scalePoints)}
-            onUndo={undoMobileCalibrationPoint}
-            onReset={resetMobileCalibration}
-            pointCount={scalePoints.length || calibPoints.length}
-            pixelDistance={getPixelDistance(scalePoints)}
-            scalePx={scalePx}
-          />
 
           {/* Zoom reset button */}
           {zoom > 1.05 && (
