@@ -25,7 +25,7 @@ import { useAutoCheckin } from '@/hooks/useAutoCheckin';
 import AutoCheckinBanner from '@/components/AutoCheckinBanner';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
-import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
+import FirstTimeGuideModal from '@/components/FirstTimeGuideModal';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 import { getRepository } from '@/lib/offlineSupport';
 import { queueFieldCheckoutEffects } from '@/lib/offlineFieldSessions';
@@ -58,7 +58,8 @@ export default function TargetShooting() {
   const [viewingTrack, setViewingTrack] = useState(null);
   const [showTargetAnalysis, setShowTargetAnalysis] = useState(false);
   const [showBallisticCalc, setShowBallisticCalc] = useState(false);
-  const { Guide: TargetSessionGuide, showGuideThen: showTargetSessionGuideThen } = useFirstTimeGuide(FIRST_TIME_GUIDES.targetSessionCreate);
+  const [targetSessionGuideOpen, setTargetSessionGuideOpen] = useState(false);
+  const [pendingTargetSessionAction, setPendingTargetSessionAction] = useState(null);
   const [autoCheckinMatch, setAutoCheckinMatch] = useState(null);
   const [autoCheckinEnabled, setAutoCheckinEnabled] = useState(false);
 
@@ -80,6 +81,23 @@ export default function TargetShooting() {
     hasActiveSession: !!activeSession,
     onAutoCheckin: (match) => setAutoCheckinMatch(match),
   });
+
+  const showTargetSessionGuideThen = useCallback((action) => {
+    const key = 'shootingRecords.guides.targetSessionCreate';
+    if (window.localStorage.getItem(key) === 'true') {
+      action?.();
+      return;
+    }
+    setPendingTargetSessionAction(() => action);
+    setTargetSessionGuideOpen(true);
+  }, []);
+
+  const handleTargetSessionGuideContinue = useCallback(() => {
+    window.localStorage.setItem('shootingRecords.guides.targetSessionCreate', 'true');
+    setTargetSessionGuideOpen(false);
+    pendingTargetSessionAction?.();
+    setPendingTargetSessionAction(null);
+  }, [pendingTargetSessionAction]);
 
   const handleAutoCheckinConfirm = async () => {
     if (!autoCheckinMatch || activeSession) return;
@@ -476,7 +494,13 @@ export default function TargetShooting() {
         document.body
       )}
 
-      <TargetSessionGuide />
+      <FirstTimeGuideModal
+        open={targetSessionGuideOpen}
+        title={FIRST_TIME_GUIDES.targetSessionCreate.title}
+        description={FIRST_TIME_GUIDES.targetSessionCreate.description}
+        steps={FIRST_TIME_GUIDES.targetSessionCreate.steps}
+        onContinue={handleTargetSessionGuideContinue}
+      />
       {showCheckin && (
         <CheckinModal data={checkinData} clubs={clubs} onSubmit={handleCheckin} onChange={(f, v) => setCheckinData({ ...checkinData, [f]: v })} onClose={() => setShowCheckin(false)} />
       )}
