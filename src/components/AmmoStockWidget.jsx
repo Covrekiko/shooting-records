@@ -1,33 +1,44 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '@/lib/AuthContext';
 import { AlertCircle, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { loadOwnedAmmunitionWithReloads } from '@/lib/ownedAmmunition';
+import { sdkDiagLogOnce } from '@/lib/sdkDiagnostics';
 
 export default function AmmoStockWidget() {
   const { user } = useAuth();
   const [ammo, setAmmo] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const loadingRef = useRef(false);
+  const lastLoadAtRef = useRef(0);
 
-  const loadAmmo = async () => {
-    if (!user) return;
+  const loadAmmo = async (force = false) => {
+    if (!user || loadingRef.current) return;
+    if (!force && Date.now() - lastLoadAtRef.current < 30000) return;
+    loadingRef.current = true;
+    lastLoadAtRef.current = Date.now();
     try {
       const ammoList = await loadOwnedAmmunitionWithReloads(user);
       setAmmo(ammoList);
       setLoadError(false);
     } catch (error) {
+      sdkDiagLogOnce('AmmoStockWidget.loadAmmo', 'AmmoStockWidget.loadOwnedAmmunitionWithReloads', 'components/AmmoStockWidget', error);
       setLoadError(true);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
 
   useEffect(() => {
     if (!user) return;
-    loadAmmo();
+    loadAmmo(true).catch((error) => sdkDiagLogOnce('AmmoStockWidget.initialLoad', 'AmmoStockWidget.loadAmmo', 'components/AmmoStockWidget', error));
 
-    const handleFocus = () => loadAmmo();
+    const handleFocus = () => {
+      if (document.visibilityState === 'hidden') return;
+      loadAmmo().catch((error) => sdkDiagLogOnce('AmmoStockWidget.focusLoad', 'AmmoStockWidget.loadAmmo', 'components/AmmoStockWidget', error));
+    };
     window.addEventListener('focus', handleFocus);
     document.addEventListener('visibilitychange', handleFocus);
 

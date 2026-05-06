@@ -5,6 +5,7 @@ import { getRecordsPdfBlob } from '@/utils/recordsPdfExport';
 import MobilePdfViewer from '@/components/MobilePdfViewer';
 import RecordCard from '@/components/RecordCard';
 import RecordDetailModal from '@/components/RecordDetailModal';
+import { sdkDiagLogOnce } from '@/lib/sdkDiagnostics';
 
 export default function RecordsSection({ category, title, emptyMessage = 'No records yet', onRecordDeleted, showTargetAnalysis = false }) {
    const [records, setRecords] = useState([]);
@@ -69,6 +70,7 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
          setClubs(clubsList.reduce((acc, c) => ({ ...acc, [c.id]: c }), {}));
          setLocations(locationsList.reduce((acc, l) => ({ ...acc, [l.id]: l }), {}));
        } catch (error) {
+         sdkDiagLogOnce('RecordsSection.loadRecords', 'RecordsSection.loadRecords', 'components/RecordsSection', error);
          console.error('Error loading records:', error);
        } finally {
          setLoading(false);

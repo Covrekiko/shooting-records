@@ -31,7 +31,7 @@ export function OfflineProvider({ children }) {
       setPendingCount(count);
     });
 
-    getPendingCount().then(setPendingCount);
+    getPendingCount().then(setPendingCount).catch(() => setPendingCount(0));
 
     return () => {
       unsubConn();

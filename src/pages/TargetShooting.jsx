@@ -72,7 +72,9 @@ export default function TargetShooting() {
   });
 
   useEffect(() => {
-    base44.auth.me().then(u => setAutoCheckinEnabled(u?.autoCheckinEnabled === true));
+    base44.auth.me()
+      .then(u => setAutoCheckinEnabled(u?.autoCheckinEnabled === true))
+      .catch(() => {});
   }, []);
 
   useEffect(() => {

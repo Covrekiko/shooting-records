@@ -84,7 +84,7 @@ connectivityManager.subscribe((online) => {
 setInterval(updatePendingCount, 15000);
 
 // Initial count
-updatePendingCount();
+updatePendingCount().catch(() => {});
 
 export const syncEngine = {
   subscribe: (cb) => {

@@ -57,7 +57,9 @@ export default function ClayShooting() {
   });
 
   useEffect(() => {
-    base44.auth.me().then(u => setAutoCheckinEnabled(u?.autoCheckinEnabled === true));
+    base44.auth.me()
+      .then(u => setAutoCheckinEnabled(u?.autoCheckinEnabled === true))
+      .catch(() => {});
   }, []);
 
   useAutoCheckin({
@@ -538,9 +540,11 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
 
   useEffect(() => {
     if (!sessionId) return;
-    base44.entities.ClayScorecard.filter({ clay_session_id: sessionId }).then(res => {
-      if (res[0]) setScorecardStats(res[0]);
-    });
+    base44.entities.ClayScorecard.filter({ clay_session_id: sessionId })
+      .then(res => {
+        if (res[0]) setScorecardStats(res[0]);
+      })
+      .catch(() => {});
   }, [sessionId]);
 
   const inputCls = DESIGN.INPUT;

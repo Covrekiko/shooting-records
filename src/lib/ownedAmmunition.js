@@ -2,6 +2,7 @@ import { base44 } from '@/api/base44Client';
 import { getRepository } from '@/lib/offlineSupport';
 import { offlineDB } from '@/lib/offlineDB';
 import { appParams } from '@/lib/app-params';
+import { sdkDiagLogOnce } from '@/lib/sdkDiagnostics';
 
 const sdkDiagLogged = new Set();
 
@@ -55,12 +56,7 @@ export async function loadOwnedAmmunitionWithReloads(currentUser) {
       await offlineDB.putMany('ammunition', ammunition).catch(() => {});
       return ammunition;
     } catch (error) {
-      sdkDebugLogOnce('listAmmunitionForUser.failed', '[SDK_DIAG] loadOwnedAmmunitionWithReloads failed', {
-        call: 'base44.functions.invoke(listAmmunitionForUser)',
-        component: 'lib/ownedAmmunition',
-        error: error?.message || 'Ammunition unavailable',
-        status: error?.status || error?.response?.status || null,
-      });
+      sdkDiagLogOnce('ownedAmmunition.listAmmunitionForUser', 'base44.functions.invoke(listAmmunitionForUser)', 'lib/ownedAmmunition', error);
     }
   }
 

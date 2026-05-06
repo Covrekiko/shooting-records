@@ -115,10 +115,14 @@ export default function DeerManagement() {
   };
 
   const openCheckout = async () => {
-    const currentUser = await base44.auth.me();
-    const ammoList = await loadOwnedAmmunitionWithReloads(currentUser);
-    setAmmunition(ammoList);
-    setShowCheckout(true);
+    try {
+      const currentUser = await base44.auth.me();
+      const ammoList = await loadOwnedAmmunitionWithReloads(currentUser);
+      setAmmunition(ammoList);
+      setShowCheckout(true);
+    } catch (error) {
+      alert('Ammunition data unavailable. Please try again.');
+    }
   };
 
   const handleCheckout = async (checkoutData) => {
