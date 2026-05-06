@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
@@ -19,9 +19,10 @@ import {
 } from '@/components/Charts';
 import { RoundsPerMonthChart } from '@/components/RoundsPerMonthChart';
 import { DeerSuccessRateChart } from '@/components/DeerSuccessRateChart';
-import AmmoStockWidget from '@/components/AmmoStockWidget';
-import ReloadingWidget from '@/components/widgets/ReloadingWidget';
 import { getRepository } from '@/lib/offlineSupport';
+
+const AmmoStockWidget = React.lazy(() => import('@/components/AmmoStockWidget'));
+const ReloadingWidget = React.lazy(() => import('@/components/widgets/ReloadingWidget'));
 
 // ── data helpers (unchanged logic) ──────────────────────────────────────────
 function getMonthlyData(targetShoots, clayShoots, deerMgmt) {
@@ -209,8 +210,20 @@ const SecondaryGrid = React.memo(function SecondaryGrid({ user }) {
   );
 });
 
-const ChartsSection = React.memo(function ChartsSection({ chartData }) {
+const ChartsSection = React.memo(function ChartsSection({ analyticsData }) {
   const [open, setOpen] = useState(false);
+  const chartData = useMemo(() => {
+    if (!open || !analyticsData) return null;
+    const { targetShoots, clayShoots, deerMgmt, rifles, shotguns, clubs, locations } = analyticsData;
+    return {
+      monthly: getMonthlyData(targetShoots, clayShoots, deerMgmt),
+      firearm: getFirearmData(targetShoots, clayShoots, rifles, shotguns),
+      location: getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations),
+      roundsPerMonth: getRoundsPerMonth(targetShoots, clayShoots),
+      deerSuccessRate: getDeerSuccessRate(deerMgmt),
+    };
+  }, [open, analyticsData]);
+
   return (
     <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
       <button
@@ -223,7 +236,7 @@ const ChartsSection = React.memo(function ChartsSection({ chartData }) {
         </span>
         <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${open ? 'rotate-90' : ''}`} />
       </button>
-      {open && (
+      {open && chartData && (
         <div className="px-4 pb-4 space-y-4 border-t border-border pt-4">
           <MonthlyActivityChart data={chartData.monthly} />
           <RoundsPerMonthChart data={chartData.roundsPerMonth} />
@@ -242,8 +255,9 @@ export default function Dashboard() {
   const { user: authUser, refreshUser } = useAuth();
   const [user, setUser] = useState(authUser || null);
   const [stats, setStats] = useState(null);
-  const [chartData, setChartData] = useState(null);
+  const [analyticsData, setAnalyticsData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [widgetsReady, setWidgetsReady] = useState(false);
   const { activeOuting } = useOuting();
 
   const today = format(new Date(), 'EEE, d MMM');
@@ -276,13 +290,7 @@ export default function Dashboard() {
       }, 0);
       const totalShotgunRounds = clayShoots.reduce((sum, s) => sum + (s.rounds_fired || 0), 0);
       setStats({ targetSessions: targetShoots.length, claySessions: clayShoots.length, deerOutings: deerMgmt.length, totalRifleRounds: totalRounds, totalShotgunRounds });
-      setChartData({
-        monthly: getMonthlyData(targetShoots, clayShoots, deerMgmt),
-        firearm: getFirearmData(targetShoots, clayShoots, rifles, shotguns),
-        location: getLocationData(targetShoots, clayShoots, deerMgmt, clubs, locations),
-        roundsPerMonth: getRoundsPerMonth(targetShoots, clayShoots),
-        deerSuccessRate: getDeerSuccessRate(deerMgmt),
-      });
+      setAnalyticsData({ targetShoots, clayShoots, deerMgmt, rifles, shotguns, clubs, locations });
     } catch (err) {
       console.error('Dashboard load error:', err);
     } finally {
@@ -294,8 +302,13 @@ export default function Dashboard() {
     loadData();
   }, [loadData]);
 
-  // Memoize chart data to prevent re-calculation on every render
-  const memoizedChartData = useMemo(() => chartData, [chartData]);
+  useEffect(() => {
+    if (loading) return;
+    const schedule = window.requestIdleCallback || ((callback) => window.setTimeout(callback, 150));
+    const cancel = window.cancelIdleCallback || window.clearTimeout;
+    const handle = schedule(() => setWidgetsReady(true));
+    return () => cancel(handle);
+  }, [loading]);
 
   const pullToRefresh = { pulling: false, progress: 0, refreshing: false };
 
@@ -327,10 +340,16 @@ export default function Dashboard() {
         <SecondaryGrid user={user} />
 
         {/* ── Widgets ── */}
-         <AmmoStockWidget />
-         <ReloadingWidget />
+         {widgetsReady ? (
+           <Suspense fallback={<div className="w-full h-32 bg-secondary/20 rounded-lg animate-pulse" />}>
+             <AmmoStockWidget />
+             <ReloadingWidget />
+           </Suspense>
+         ) : (
+           <div className="w-full h-32 bg-secondary/20 rounded-lg animate-pulse" />
+         )}
 
-         {/* ── Beta Tester Feedback (if beta tester or admin) ── */}
+          {/* ── Beta Tester Feedback (if beta tester or admin) ── */}
          {(user?.role === 'beta_tester' || user?.role === 'admin') && (
            <Link to="/beta-feedback" className="block">
              <div className="bg-primary/10 border border-primary/30 rounded-2xl p-4 hover:bg-primary/15 transition-colors">
@@ -351,7 +370,7 @@ export default function Dashboard() {
          )}
 
          {/* ── Analytics (collapsible) ── */}
-          {memoizedChartData && <ChartsSection chartData={memoizedChartData} />}
+          {analyticsData && <ChartsSection analyticsData={analyticsData} />}
 
       </main>
     </div>

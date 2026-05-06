@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { AlertCircle } from 'lucide-react';
 
 export default function ReloadingWidget() {
+  const { user } = useAuth();
   const [stats, setStats] = useState({
     totalRounds: 0,
     monthlyCost: 0,
@@ -13,12 +15,11 @@ export default function ReloadingWidget() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadStats();
-  }, []);
+    if (user?.email) loadStats();
+  }, [user?.email]);
 
   const loadStats = async () => {
     try {
-      const user = await base44.auth.me();
       const now = new Date();
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 

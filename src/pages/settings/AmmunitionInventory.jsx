@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/AuthContext';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { Plus, Trash2, Edit2, AlertCircle } from 'lucide-react';
@@ -18,7 +19,7 @@ export default function AmmunitionInventory() {
   const [ammo, setAmmo] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [deletingItem, setDeletingItem] = useState(null);
@@ -40,15 +41,13 @@ export default function AmmunitionInventory() {
   });
 
   useEffect(() => {
-    loadAmmo();
-  }, []);
+    if (user?.email) loadAmmo();
+  }, [user?.email]);
 
   const loadAmmo = async (attempt = 0) => {
     setError(null);
     try {
-      const currentUser = await base44.auth.me();
-      setUser(currentUser);
-      const ammoList = await loadOwnedAmmunitionWithReloads(currentUser);
+      const ammoList = await loadOwnedAmmunitionWithReloads(user);
       setAmmo(ammoList);
     } catch (err) {
       // If rate-limited, retry once after a short delay

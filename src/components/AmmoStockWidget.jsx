@@ -1,17 +1,18 @@
-import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useState, useEffect, useMemo } from 'react';
+import { useAuth } from '@/lib/AuthContext';
 import { AlertCircle, Package } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { loadOwnedAmmunitionWithReloads } from '@/lib/ownedAmmunition';
 
 export default function AmmoStockWidget() {
+  const { user } = useAuth();
   const [ammo, setAmmo] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const loadAmmo = async () => {
+    if (!user) return;
     try {
-      const currentUser = await base44.auth.me();
-      const ammoList = await loadOwnedAmmunitionWithReloads(currentUser);
+      const ammoList = await loadOwnedAmmunitionWithReloads(user);
       setAmmo(ammoList);
     } catch (error) {
       if (error) setLoading(false);
@@ -21,6 +22,7 @@ export default function AmmoStockWidget() {
   };
 
   useEffect(() => {
+    if (!user) return;
     loadAmmo();
 
     const handleFocus = () => loadAmmo();
@@ -31,10 +33,11 @@ export default function AmmoStockWidget() {
       window.removeEventListener('focus', handleFocus);
       document.removeEventListener('visibilitychange', handleFocus);
     };
-  }, []);
+  }, [user]);
 
-  const lowStockItems = ammo.filter((item) => item.quantity_in_stock < item.low_stock_threshold);
-  const totalValue = ammo.reduce((sum, item) => sum + (item.quantity_in_stock * (item.cost_per_unit || 0)), 0);
+  const lowStockItems = useMemo(() => ammo.filter((item) => item.quantity_in_stock < item.low_stock_threshold), [ammo]);
+  const totalValue = useMemo(() => ammo.reduce((sum, item) => sum + (item.quantity_in_stock * (item.cost_per_unit || 0)), 0), [ammo]);
+  const topStockItems = useMemo(() => [...ammo].sort((a, b) => b.quantity_in_stock - a.quantity_in_stock).slice(0, 3), [ammo]);
 
   if (loading) {
     return (
@@ -87,10 +90,7 @@ export default function AmmoStockWidget() {
             </div>
             <div className="pt-3 border-t border-slate-200/60 dark:border-slate-700">
               <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mb-2.5">Top 3 in Stock:</p>
-              {[...ammo]
-                .sort((a, b) => b.quantity_in_stock - a.quantity_in_stock)
-                .slice(0, 3)
-                .map((item) => (
+              {topStockItems.map((item) => (
                   <div key={item.id} className="flex justify-between text-xs mb-1">
                     <span>{item.brand} {item.caliber}</span>
                     <span className="font-medium">{item.quantity_in_stock}</span>

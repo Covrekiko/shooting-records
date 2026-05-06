@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { getRepository } from '@/lib/offlineSupport';
 import Navigation from '@/components/Navigation';
@@ -18,7 +18,6 @@ import ProfileBackLink from '@/components/ProfileBackLink';
 
 export default function Records() {
   const [allRecords, setAllRecords] = useState([]);
-  const [filteredRecords, setFilteredRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [viewingRecord, setViewingRecord] = useState(null);
@@ -50,8 +49,22 @@ export default function Records() {
     loadRecords();
   }, []);
 
-  useEffect(() => {
-    applyFilters();
+  const filteredRecords = useMemo(() => {
+    let filtered = allRecords;
+
+    if (filters.category !== 'all') {
+      filtered = filtered.filter((r) => r.recordType === filters.category);
+    }
+
+    if (filters.dateFrom) {
+      filtered = filtered.filter((r) => r.date >= filters.dateFrom);
+    }
+
+    if (filters.dateTo) {
+      filtered = filtered.filter((r) => r.date <= filters.dateTo);
+    }
+
+    return filtered;
   }, [filters, allRecords]);
 
   const loadRecords = async () => {
@@ -117,24 +130,6 @@ export default function Records() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const applyFilters = () => {
-    let filtered = allRecords;
-
-    if (filters.category !== 'all') {
-      filtered = filtered.filter((r) => r.recordType === filters.category);
-    }
-
-    if (filters.dateFrom) {
-      filtered = filtered.filter((r) => r.date >= filters.dateFrom);
-    }
-
-    if (filters.dateTo) {
-      filtered = filtered.filter((r) => r.date <= filters.dateTo);
-    }
-
-    setFilteredRecords(filtered);
   };
 
   const handleDelete = async (record) => {

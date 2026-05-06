@@ -5,7 +5,7 @@ import {
   Shield, Layers, RefreshCw, Sun, FlaskConical, ScanLine, QrCode,
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOffline } from '@/context/OfflineContext';
 import { getTabForPath, TAB_DEFAULT } from '@/context/TabHistoryContext';
@@ -87,16 +87,10 @@ const DESKTOP_ITEMS = [
 
 export default function Navigation() {
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { isOnline, hasPending, isSyncing } = useOffline();
-
-  useEffect(() => {
-    let isMounted = true;
-    base44.auth.me().then(u => { if (isMounted) setUser(u); }).catch(() => {});
-    return () => { isMounted = false; };
-  }, []);
 
   useEffect(() => { setOpen(false); }, [location.pathname]);
 

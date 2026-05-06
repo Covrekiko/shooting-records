@@ -3,7 +3,7 @@
  * Wrap the app with <OfflineProvider> to enable.
  */
 
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { connectivityManager } from '@/lib/connectivityManager';
 import { syncEngine, SYNC_STATE, triggerSync } from '@/lib/syncEngine';
 import { getPendingCount } from '@/lib/syncQueue';
@@ -45,7 +45,7 @@ export function OfflineProvider({ children }) {
     await triggerSync();
   }, [isOnline]);
 
-  const value = {
+  const value = useMemo(() => ({
     isOnline,
     syncState,
     pendingCount,
@@ -54,7 +54,7 @@ export function OfflineProvider({ children }) {
     isSyncing: syncState === SYNC_STATE.SYNCING,
     hasPending: pendingCount > 0,
     syncFailed: syncState === SYNC_STATE.FAILED,
-  };
+  }), [isOnline, syncState, pendingCount, lastSyncResult, manualSync]);
 
   return (
     <OfflineContext.Provider value={value}>

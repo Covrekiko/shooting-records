@@ -3,6 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -15,48 +16,47 @@ import OfflineStatusBar from '@/components/OfflineStatusBar';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { TabHistoryProvider } from '@/context/TabHistoryContext';
 import MobileTabBar from '@/components/MobileTabBar';
-import { useEffect, useRef } from 'react';
 import ProfileSetup from './pages/ProfileSetup';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
-import ProfileSettings from './pages/ProfileSettings';
-import TargetShooting from './pages/TargetShooting';
-import ClayShooting from './pages/ClayShooting';
-import DeerManagement from './pages/DeerManagement';
-import Records from './pages/Records';
-import Goals from './pages/Goals';
 
-import Rifles from './pages/settings/Rifles';
-import Shotguns from './pages/settings/Shotguns';
-import Clubs from './pages/settings/Clubs';
-import Locations from './pages/settings/Locations';
-import Ammunition from './pages/settings/Ammunition';
-import AmmunitionInventory from './pages/settings/AmmunitionInventory';
-import Reports from './pages/Reports';
-import AdminUsers from './pages/admin/Users';
-import ReloadingManagement from './pages/ReloadingManagement';
-import DeerStalkingMap from './pages/DeerStalkingMap';
-import DeerStalkingLogs from './pages/DeerStalkingLogs';
-import AreaShareAccept from './pages/AreaShareAccept';
-import Users from './pages/Users';
-import SunriseSunsetTracker from './pages/SunriseSunsetTracker';
-import AmmoSummary from './pages/AmmoSummary';
-import LoadDevelopment from './pages/LoadDevelopment';
-import LoadComparison from './pages/LoadComparison';
-import ScopeClickCard from './pages/ScopeClickCard';
-import AppModules from './pages/AppModules';
-import AppTheme from './pages/AppTheme';
-import BulletReferenceDB from './pages/settings/BulletReferenceDB';
-import ScopeReferenceDB from './pages/settings/ScopeReferenceDB';
-import ReferenceDatabase from './pages/settings/ReferenceDatabase';
-import BetaFeedback from './pages/BetaFeedback';
-import BetaTesters from './pages/admin/BetaTesters';
-import BetaFeedbackAdmin from './pages/admin/BetaFeedbackAdmin';
-import PrivacyPolicy from './pages/PrivacyPolicy';
-import Support from './pages/Support';
-import TargetShootingAnalyzer from './pages/TargetShootingAnalyzer';
-import QRScanner from './pages/QRScanner';
-import QRItemDetails from './pages/QRItemDetails';
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Profile = lazy(() => import('./pages/Profile'));
+const ProfileSettings = lazy(() => import('./pages/ProfileSettings'));
+const TargetShooting = lazy(() => import('./pages/TargetShooting'));
+const ClayShooting = lazy(() => import('./pages/ClayShooting'));
+const DeerManagement = lazy(() => import('./pages/DeerManagement'));
+const Records = lazy(() => import('./pages/Records'));
+const Goals = lazy(() => import('./pages/Goals'));
+const Rifles = lazy(() => import('./pages/settings/Rifles'));
+const Shotguns = lazy(() => import('./pages/settings/Shotguns'));
+const Clubs = lazy(() => import('./pages/settings/Clubs'));
+const Locations = lazy(() => import('./pages/settings/Locations'));
+const Ammunition = lazy(() => import('./pages/settings/Ammunition'));
+const AmmunitionInventory = lazy(() => import('./pages/settings/AmmunitionInventory'));
+const Reports = lazy(() => import('./pages/Reports'));
+const AdminUsers = lazy(() => import('./pages/admin/Users'));
+const ReloadingManagement = lazy(() => import('./pages/ReloadingManagement'));
+const DeerStalkingMap = lazy(() => import('./pages/DeerStalkingMap'));
+const DeerStalkingLogs = lazy(() => import('./pages/DeerStalkingLogs'));
+const AreaShareAccept = lazy(() => import('./pages/AreaShareAccept'));
+const Users = lazy(() => import('./pages/Users'));
+const SunriseSunsetTracker = lazy(() => import('./pages/SunriseSunsetTracker'));
+const AmmoSummary = lazy(() => import('./pages/AmmoSummary'));
+const LoadDevelopment = lazy(() => import('./pages/LoadDevelopment'));
+const LoadComparison = lazy(() => import('./pages/LoadComparison'));
+const ScopeClickCard = lazy(() => import('./pages/ScopeClickCard'));
+const AppModules = lazy(() => import('./pages/AppModules'));
+const AppTheme = lazy(() => import('./pages/AppTheme'));
+const BulletReferenceDB = lazy(() => import('./pages/settings/BulletReferenceDB'));
+const ScopeReferenceDB = lazy(() => import('./pages/settings/ScopeReferenceDB'));
+const ReferenceDatabase = lazy(() => import('./pages/settings/ReferenceDatabase'));
+const BetaFeedback = lazy(() => import('./pages/BetaFeedback'));
+const BetaTesters = lazy(() => import('./pages/admin/BetaTesters'));
+const BetaFeedbackAdmin = lazy(() => import('./pages/admin/BetaFeedbackAdmin'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const Support = lazy(() => import('./pages/Support'));
+const TargetShootingAnalyzer = lazy(() => import('./pages/TargetShootingAnalyzer'));
+const QRScanner = lazy(() => import('./pages/QRScanner'));
+const QRItemDetails = lazy(() => import('./pages/QRItemDetails'));
 
 const isRouteDebugEnabled = () => {
   try {
@@ -92,6 +92,14 @@ const pageVariants = {
   out: { opacity: 0 },
 };
 const pageTransition = { duration: 0.15, ease: 'easeInOut' };
+
+function PageLoadingFallback() {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-background">
+      <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+    </div>
+  );
+}
 
 function AnimatedRoutes({ children }) {
   const location = useLocation();
@@ -201,47 +209,49 @@ const AuthenticatedApp = () => {
       <ThemeSync />
       <AnimatedRoutes>
         <div>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/target-shooting" element={<ModuleGate module="target_shooting"><TargetShooting /></ModuleGate>} />
-            <Route path="/target-analyzer" element={<ModuleGate module="target_shooting"><TargetShootingAnalyzer /></ModuleGate>} />
-            <Route path="/clay-shooting" element={<ModuleGate module="clay_shooting"><ClayShooting /></ModuleGate>} />
-            <Route path="/deer-management" element={<ModuleGate module="deer_management"><DeerManagement /></ModuleGate>} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/profile/settings" element={<ProfileSettings />} />
-            <Route path="/profile/theme" element={<AppTheme />} />
-            <Route path="/profile/modules" element={<AppModules />} />
-            <Route path="/records" element={<Records />} />
-            <Route path="/goals" element={<Goals />} />
-            <Route path="/settings/rifles" element={<Rifles />} />
-            <Route path="/settings/shotguns" element={<Shotguns />} />
-            <Route path="/settings/clubs" element={<Clubs />} />
-            <Route path="/settings/locations" element={<Locations />} />
-            <Route path="/settings/ammunition" element={<Ammunition />} />
-            <Route path="/settings/ammunition-inventory" element={<AmmunitionInventory />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/admin/users" element={<AdminUsers />} />
-            <Route path="/users" element={<Users />} />
-            <Route path="/deer-stalking" element={<ModuleGate module="stalk_map"><DeerStalkingMap /></ModuleGate>} />
-            <Route path="/deer-stalking-logs" element={<ModuleGate module="stalk_map"><DeerStalkingLogs /></ModuleGate>} />
-            <Route path="/area-share" element={<ModuleGate module="stalk_map"><AreaShareAccept /></ModuleGate>} />
-            <Route path="/sunrise-sunset" element={<SunriseSunsetTracker />} />
-            <Route path="/ammo-summary" element={<AmmoSummary />} />
-            <Route path="/reloading" element={<ModuleGate module="reloading"><ReloadingManagement /></ModuleGate>} />
-            <Route path="/load-development" element={<ModuleGate module="reloading"><LoadDevelopment /></ModuleGate>} />
-            <Route path="/load-comparison" element={<ModuleGate module="reloading"><LoadComparison /></ModuleGate>} />
-            <Route path="/scope-click-card" element={<ModuleGate module="target_shooting"><ScopeClickCard /></ModuleGate>} />
-            <Route path="/settings/bullet-reference" element={<BulletReferenceDB />} />
-            <Route path="/settings/scope-reference" element={<ScopeReferenceDB />} />
-            <Route path="/settings/reference-database" element={<ReferenceDatabase />} />
-            <Route path="/qr-scanner" element={<QRScanner />} />
-            <Route path="/qr-item" element={<QRItemDetails />} />
-            <Route path="/beta-feedback" element={<BetaFeedback />} />
-            <Route path="/admin/beta-testers" element={<BetaTesters />} />
-            <Route path="/admin/beta-feedback" element={<BetaFeedbackAdmin />} />
+          <Suspense fallback={<PageLoadingFallback />}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/target-shooting" element={<ModuleGate module="target_shooting"><TargetShooting /></ModuleGate>} />
+              <Route path="/target-analyzer" element={<ModuleGate module="target_shooting"><TargetShootingAnalyzer /></ModuleGate>} />
+              <Route path="/clay-shooting" element={<ModuleGate module="clay_shooting"><ClayShooting /></ModuleGate>} />
+              <Route path="/deer-management" element={<ModuleGate module="deer_management"><DeerManagement /></ModuleGate>} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile/settings" element={<ProfileSettings />} />
+              <Route path="/profile/theme" element={<AppTheme />} />
+              <Route path="/profile/modules" element={<AppModules />} />
+              <Route path="/records" element={<Records />} />
+              <Route path="/goals" element={<Goals />} />
+              <Route path="/settings/rifles" element={<Rifles />} />
+              <Route path="/settings/shotguns" element={<Shotguns />} />
+              <Route path="/settings/clubs" element={<Clubs />} />
+              <Route path="/settings/locations" element={<Locations />} />
+              <Route path="/settings/ammunition" element={<Ammunition />} />
+              <Route path="/settings/ammunition-inventory" element={<AmmunitionInventory />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/admin/users" element={<AdminUsers />} />
+              <Route path="/users" element={<Users />} />
+              <Route path="/deer-stalking" element={<ModuleGate module="stalk_map"><DeerStalkingMap /></ModuleGate>} />
+              <Route path="/deer-stalking-logs" element={<ModuleGate module="stalk_map"><DeerStalkingLogs /></ModuleGate>} />
+              <Route path="/area-share" element={<ModuleGate module="stalk_map"><AreaShareAccept /></ModuleGate>} />
+              <Route path="/sunrise-sunset" element={<SunriseSunsetTracker />} />
+              <Route path="/ammo-summary" element={<AmmoSummary />} />
+              <Route path="/reloading" element={<ModuleGate module="reloading"><ReloadingManagement /></ModuleGate>} />
+              <Route path="/load-development" element={<ModuleGate module="reloading"><LoadDevelopment /></ModuleGate>} />
+              <Route path="/load-comparison" element={<ModuleGate module="reloading"><LoadComparison /></ModuleGate>} />
+              <Route path="/scope-click-card" element={<ModuleGate module="target_shooting"><ScopeClickCard /></ModuleGate>} />
+              <Route path="/settings/bullet-reference" element={<BulletReferenceDB />} />
+              <Route path="/settings/scope-reference" element={<ScopeReferenceDB />} />
+              <Route path="/settings/reference-database" element={<ReferenceDatabase />} />
+              <Route path="/qr-scanner" element={<QRScanner />} />
+              <Route path="/qr-item" element={<QRItemDetails />} />
+              <Route path="/beta-feedback" element={<BetaFeedback />} />
+              <Route path="/admin/beta-testers" element={<BetaTesters />} />
+              <Route path="/admin/beta-feedback" element={<BetaFeedbackAdmin />} />
 
-            <Route path="*" element={<PageNotFound />} />
-          </Routes>
+              <Route path="*" element={<PageNotFound />} />
+            </Routes>
+          </Suspense>
         </div>
       </AnimatedRoutes>
     </>
@@ -256,11 +266,13 @@ function AppContent() {
     return (
       <>
         <ThemeSync />
-        <Routes>
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/support" element={<Support />} />
-          <Route path="*" element={<PageNotFound />} />
-        </Routes>
+        <Suspense fallback={<PageLoadingFallback />}>
+          <Routes>
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/support" element={<Support />} />
+            <Route path="*" element={<PageNotFound />} />
+          </Routes>
+        </Suspense>
         <Toaster />
       </>
     );

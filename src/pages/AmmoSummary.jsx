@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { AlertCircle, Bell, CheckCircle2, Crosshair, Download, Droplet, X } from 'lucide-react';
@@ -95,9 +95,9 @@ export default function AmmoSummary() {
     setAlerts((current) => current.filter((alert) => alert.id !== alertId));
   };
 
-  const riflesNeedingCleaning = rifles.filter(
+  const riflesNeedingCleaning = useMemo(() => rifles.filter(
     (r) => r.cleaning_reminder_threshold && ((r.total_rounds_fired || 0) - (r.rounds_at_last_cleaning || 0)) >= r.cleaning_reminder_threshold
-  );
+  ), [rifles]);
 
   const handleExportPDF = () => {
     const doc = generateAmmunitionSummaryPDF(rifles, shotguns);

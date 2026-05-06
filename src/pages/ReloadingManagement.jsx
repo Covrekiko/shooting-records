@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
 import { Plus, Trash2, Edit2, ArrowLeft, Menu, Eye, FlaskConical } from 'lucide-react';
@@ -93,8 +93,8 @@ export default function ReloadingManagement() {
     }
   };
 
-  const totalCost = sessions.reduce((sum, s) => sum + (s.total_cost || 0), 0);
-  const totalRounds = sessions.reduce((sum, s) => sum + (s.rounds_loaded || 0), 0);
+  const totalCost = useMemo(() => sessions.reduce((sum, s) => sum + (s.total_cost || 0), 0), [sessions]);
+  const totalRounds = useMemo(() => sessions.reduce((sum, s) => sum + (s.rounds_loaded || 0), 0), [sessions]);
 
   if (loading) {
     return (
