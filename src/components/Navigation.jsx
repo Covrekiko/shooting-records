@@ -63,8 +63,7 @@ const NAV_SECTIONS = [
     items: [
       { path: '/ammo-summary', label: 'Armory', icon: Shield },
       { path: '/reloading', label: 'Reloading', icon: RefreshCw, module: 'reloading' },
-      { path: '/load-development', label: 'Load Development', icon: FlaskConical, module: 'reloading' },
-      { path: '/load-comparison', label: 'Load Comparison', icon: BarChart3, module: 'reloading' },
+      { path: '/load-development', label: 'Load Development', icon: FlaskConical, module: 'reloading' }
     ],
   },
   {
@@ -83,8 +82,7 @@ const DESKTOP_ITEMS = [
   { path: '/deer-stalking', label: 'Map', icon: Map, module: 'stalk_map' },
   { path: '/ammo-summary', label: 'Armory', icon: Shield },
   { path: '/records', label: 'Records', icon: BookOpen },
-  { path: '/reloading', label: 'Reloading', icon: RefreshCw, module: 'reloading' },
-  { path: '/load-comparison', label: 'Compare', icon: BarChart3, module: 'reloading' },
+  { path: '/reloading', label: 'Reloading', icon: RefreshCw, module: 'reloading' }
 ];
 
 export default function Navigation() {
