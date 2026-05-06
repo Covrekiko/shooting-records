@@ -61,8 +61,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   // Pan/zoom state
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const panRef = useRef({ x: 0, y: 0 });
-  const zoomRef = useRef(1);
   const panStart = useRef(null);
   const lastPan = useRef({ x: 0, y: 0 });
   const lastPinchDist = useRef(null);
@@ -87,14 +85,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     mq.addEventListener('change', update);
     return () => mq.removeEventListener('change', update);
   }, []);
-
-  useEffect(() => {
-    panRef.current = pan;
-  }, [pan]);
-
-  useEffect(() => {
-    zoomRef.current = zoom;
-  }, [zoom]);
 
   useEffect(() => {
     if (!scalePx || marks.length < 2) {
@@ -228,14 +218,10 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     lastPinchDist.current = null;
   }, [photo]);
 
-  const clampPan = useCallback((px, py, z, containerEl, imgEl, freeMove = false) => {
+  const clampPan = useCallback((px, py, z, containerEl, imgEl) => {
     if (!containerEl || !imgEl) return { x: px, y: py };
     const cw = containerEl.offsetWidth;
     const ch = containerEl.offsetHeight;
-    // During mobile scale calibration, allow free X/Y positioning under the fixed crosshair.
-    if (freeMove) {
-      return { x: px, y: py };
-    }
     // image rendered at 100% width of container, aspect ratio preserved
     const naturalAspect = (imgEl.naturalHeight || 1) / (imgEl.naturalWidth || 1);
     const imgH = cw * naturalAspect;
@@ -256,10 +242,8 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     const cRect = container.getBoundingClientRect();
     const relX = clientX - cRect.left - cRect.width / 2;
     const relY = clientY - cRect.top - cRect.height / 2;
-    const activePan = panRef.current;
-    const activeZoom = zoomRef.current;
-    const imgX = (relX - activePan.x) / activeZoom + cRect.width / 2;
-    const imgY = (relY - activePan.y) / activeZoom + cRect.height / 2;
+    const imgX = (relX - pan.x) / zoom + cRect.width / 2;
+    const imgY = (relY - pan.y) / zoom + cRect.height / 2;
     const displayedImgWidth = cRect.width;
     const naturalAspect = (img.naturalHeight || 1) / (img.naturalWidth || 1);
     const displayedImgHeight = displayedImgWidth * naturalAspect;
@@ -331,10 +315,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     setSetScaleMode(false);
     setScalePoints([]);
     setScaleDragPoint(null);
-    if (zoomRef.current < 1.8) {
-      setZoom(1.8);
-      zoomRef.current = 1.8;
-    }
     setCalibrationStep('placingPointA');
     clearGestureState();
   };
@@ -379,17 +359,17 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
   };
 
   const handleMobilePointerDown = (e) => {
-    if (!mobileCalibrationActive || e.target.closest('[data-calibration-controls]')) return;
+    if (!mobileCalibrationActive) return;
     e.preventDefault();
     e.currentTarget.setPointerCapture?.(e.pointerId);
     activePointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     const points = Array.from(activePointers.current.values());
     if (points.length === 1) {
-      pointerGesture.current = { ...pointerGesture.current, startPan: { ...panRef.current }, startCenter: points[0] };
+      pointerGesture.current = { ...pointerGesture.current, startPan: { ...pan }, startCenter: points[0] };
     } else if (points.length === 2) {
       pointerGesture.current = {
-        startPan: { ...panRef.current },
-        startZoom: zoomRef.current,
+        startPan: { ...pan },
+        startZoom: zoom,
         startDistance: getPointerDistance(points),
         startCenter: { x: (points[0].x + points[1].x) / 2, y: (points[0].y + points[1].y) / 2 },
       };
@@ -404,9 +384,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     if (points.length === 1 && pointerGesture.current.startCenter) {
       const dx = points[0].x - pointerGesture.current.startCenter.x;
       const dy = points[0].y - pointerGesture.current.startCenter.y;
-      const nextPan = clampPan(pointerGesture.current.startPan.x + dx, pointerGesture.current.startPan.y + dy, zoomRef.current, containerRef.current, imgRef.current, true);
-      panRef.current = nextPan;
-      setPan(nextPan);
+      setPan(clampPan(pointerGesture.current.startPan.x + dx, pointerGesture.current.startPan.y + dy, zoom, containerRef.current, imgRef.current));
     } else if (points.length >= 2) {
       const dist = getPointerDistance(points);
       const startDist = pointerGesture.current.startDistance || dist;
@@ -415,11 +393,8 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
       const startCenter = pointerGesture.current.startCenter || center;
       const dx = center.x - startCenter.x;
       const dy = center.y - startCenter.y;
-      const nextPan = clampPan(pointerGesture.current.startPan.x + dx, pointerGesture.current.startPan.y + dy, nextZoom, containerRef.current, imgRef.current, true);
-      zoomRef.current = nextZoom;
-      panRef.current = nextPan;
       setZoom(nextZoom);
-      setPan(nextPan);
+      setPan(clampPan(pointerGesture.current.startPan.x + dx, pointerGesture.current.startPan.y + dy, nextZoom, containerRef.current, imgRef.current));
     }
   };
 
@@ -429,7 +404,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     e.currentTarget.releasePointerCapture?.(e.pointerId);
     const remaining = Array.from(activePointers.current.values());
     if (remaining.length === 1) {
-      pointerGesture.current = { ...pointerGesture.current, startPan: { ...panRef.current }, startCenter: remaining[0] };
+      pointerGesture.current = { ...pointerGesture.current, startPan: { ...pan }, startCenter: remaining[0] };
     } else if (remaining.length === 0) {
       panStart.current = null;
       lastPinchDist.current = null;
@@ -784,11 +759,24 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             </button>
           </div>
 
+          {/* Mobile compact calibration setup */}
+          <div className="md:hidden bg-card border border-border rounded-2xl p-3 mb-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Scale Reference</p>
+                <p className="text-sm font-semibold">{scalePx ? `✓ ${scaleInput} ${scaleUnit} calibrated` : 'Set grid/reference size'}</p>
+              </div>
+              <button type="button" onClick={startMobileCalibration} className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold">
+                {scalePx ? 'Recalibrate' : 'Start'}
+              </button>
+            </div>
+          </div>
+
           {/* Interactive Image — desktop keeps tap calibration; mobile uses centre crosshair calibration */}
           <div
             ref={containerRef}
-            className="relative mb-1 rounded-2xl overflow-hidden border border-border bg-black select-none h-[70vh] md:h-auto md:max-h-none"
-            style={{ touchAction: mobileCalibrationActive || mode ? 'none' : 'auto', aspectRatio: 'auto', overscrollBehavior: 'contain' }}
+            className="relative mb-1 rounded-2xl overflow-hidden border border-border bg-black select-none max-h-96 md:max-h-none"
+            style={{ touchAction: mobileCalibrationActive || mode ? 'none' : 'auto', aspectRatio: 'auto' }}
             onPointerDown={handleMobilePointerDown}
             onPointerMove={handleMobilePointerMove}
             onPointerUp={handleMobilePointerEnd}
@@ -798,25 +786,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             onTouchEnd={handleContainerTouchEnd}
             onMouseMove={handleContainerMouseMove}
           >
-            <MobileScaleCalibrationSheet
-              visible={isMobile && analysisMode === 'manual'}
-              step={calibrationStep}
-              scaleInput={scaleInput}
-              scaleUnit={scaleUnit}
-              onScaleInputChange={setScaleInput}
-              onScaleUnitChange={setScaleUnit}
-              onPreset={(unit) => { setScaleInput('1'); setScaleUnit(unit); setScaleRef(unit === 'cm' ? '1cm grid' : '1in grid'); }}
-              onStart={startMobileCalibration}
-              onPlaceA={placeMobilePointA}
-              onPlaceB={placeMobilePointB}
-              onConfirm={() => confirmCalibrationPoints(scalePoints)}
-              onUndo={undoMobileCalibrationPoint}
-              onReset={resetMobileCalibration}
-              pointCount={scalePoints.length || calibPoints.length}
-              pixelDistance={getPixelDistance(scalePoints)}
-              scalePx={scalePx}
-            />
-
             {/* Zoom indicator */}
             {zoom > 1.05 && (
               <div className="absolute top-2 right-2 z-10 bg-black/60 text-white text-xs font-bold px-2 py-1 rounded-lg pointer-events-none">
@@ -844,7 +813,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             {/* Image + marks — both transform together so marks stay aligned */}
             <div
               style={{
-                transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
+                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
                 transformOrigin: 'center center',
                 willChange: 'transform',
               }}
@@ -920,12 +889,30 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             </div>
           </div>
 
+          <MobileScaleCalibrationSheet
+            visible={isMobile && analysisMode === 'manual'}
+            step={calibrationStep}
+            scaleInput={scaleInput}
+            scaleUnit={scaleUnit}
+            onScaleInputChange={setScaleInput}
+            onScaleUnitChange={setScaleUnit}
+            onPreset={(unit) => { setScaleInput('1'); setScaleUnit(unit); setScaleRef(unit === 'cm' ? '1cm grid' : '1in grid'); }}
+            onStart={startMobileCalibration}
+            onPlaceA={placeMobilePointA}
+            onPlaceB={placeMobilePointB}
+            onConfirm={() => confirmCalibrationPoints(scalePoints)}
+            onUndo={undoMobileCalibrationPoint}
+            onReset={resetMobileCalibration}
+            pointCount={scalePoints.length || calibPoints.length}
+            pixelDistance={getPixelDistance(scalePoints)}
+            scalePx={scalePx}
+          />
 
           {/* Zoom reset button */}
           {zoom > 1.05 && (
             <div className="flex justify-center mb-2">
               <button type="button"
-                onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); zoomRef.current = 1; panRef.current = { x: 0, y: 0 }; lastPan.current = { x: 0, y: 0 }; }}
+                onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); lastPan.current = { x: 0, y: 0 }; }}
                 className="px-4 py-1.5 bg-secondary rounded-xl text-xs font-semibold">
                 Reset Zoom
               </button>
