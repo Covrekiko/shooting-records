@@ -715,6 +715,12 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
 
       {photo && analysisMode === 'manual' && (
         <>
+          {/* Group name */}
+          <div className={`mb-3 ${mobileCalibrationActive ? 'md:block hidden' : ''}`}>
+            <label className={lbl}>Group Name</label>
+            <input value={groupName} onChange={e => setGroupName(e.target.value)} className={inp} />
+          </div>
+
           <MobileScaleCalibrationSheet
             visible={isMobile && analysisMode === 'manual'}
             step={calibrationStep}
@@ -733,12 +739,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
             pixelDistance={getPixelDistance(scalePoints)}
             scalePx={scalePx}
           />
-
-          {/* Group name */}
-          <div className="mb-3">
-            <label className={lbl}>Group Name</label>
-            <input value={groupName} onChange={e => setGroupName(e.target.value)} className={inp} />
-          </div>
 
           {/* Scale setup */}
           <div className="hidden md:block bg-card border border-border rounded-2xl p-4 mb-3">
@@ -781,7 +781,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           {/* Interactive Image — desktop keeps tap calibration; mobile uses centre crosshair calibration */}
           <div
             ref={containerRef}
-            className="relative mb-1 rounded-2xl overflow-hidden border border-border bg-black select-none max-h-96 md:max-h-none"
+            className="relative mb-1 rounded-2xl overflow-hidden border border-border bg-black select-none max-h-[58vh] md:max-h-none"
             style={{ touchAction: mobileCalibrationActive || mode ? 'none' : 'auto', aspectRatio: 'auto' }}
             onPointerDown={handleMobilePointerDown}
             onPointerMove={handleMobilePointerMove}
