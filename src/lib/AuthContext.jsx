@@ -10,6 +10,12 @@ const AuthContext = createContext();
 const AUTH_RETRY_COOLDOWN_MS = 60000;
 let lastAuthFailureAt = 0;
 
+const routeDebugLog = (...args) => {
+  try {
+    if (window.localStorage.getItem('SR_ROUTE_DEBUG') === 'true') console.log(...args);
+  } catch {}
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -174,7 +180,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async (shouldRedirect = true) => {
-    console.log('[ROUTE_DEBUG] redirect requested', {
+    routeDebugLog('[ROUTE_DEBUG] redirect requested', {
       from: window.location.href,
       to: shouldRedirect ? window.location.href : 'SDK logout default',
       reason: 'logout called',
@@ -237,7 +243,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const navigateToLogin = (reason = 'auth_required') => {
-    console.log('[ROUTE_DEBUG] redirect requested', {
+    routeDebugLog('[ROUTE_DEBUG] redirect requested', {
       from: window.location.href,
       to: 'Base44 login',
       reason,

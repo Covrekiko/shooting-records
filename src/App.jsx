@@ -58,7 +58,19 @@ import TargetShootingAnalyzer from './pages/TargetShootingAnalyzer';
 import QRScanner from './pages/QRScanner';
 import QRItemDetails from './pages/QRItemDetails';
 
-console.log('[ROUTE_DEBUG] App.jsx loaded - redirect debug version ACTIVE');
+const isRouteDebugEnabled = () => {
+  try {
+    return window.localStorage.getItem('SR_ROUTE_DEBUG') === 'true';
+  } catch {
+    return false;
+  }
+};
+
+const routeDebugLog = (...args) => {
+  if (isRouteDebugEnabled()) console.log(...args);
+};
+
+routeDebugLog('[ROUTE_DEBUG] App.jsx loaded - redirect debug version ACTIVE');
 
 // Sync dark mode with system preference
 function ThemeSync() {
@@ -129,11 +141,11 @@ const AuthenticatedApp = () => {
       redirectGuardFired: loginRedirectedRef.current,
       sessionGuardFired: Boolean(sessionStorage.getItem(authRedirectStorageKey)),
     };
-    console.log('[ROUTE_DEBUG] auth redirect decision', routeDebugState);
+    routeDebugLog('[ROUTE_DEBUG] auth redirect decision', routeDebugState);
 
     if (!isLoadingPublicSettings && !isLoadingAuth && !modulesLoading && authError?.type === 'auth_required' && !loginRedirectedRef.current) {
       if (sessionStorage.getItem(authRedirectStorageKey)) return;
-      console.log('[ROUTE_DEBUG] redirect requested', {
+      routeDebugLog('[ROUTE_DEBUG] redirect requested', {
         from: location.pathname,
         to: 'Base44 login',
         reason: 'auth_required after loading completed',
@@ -166,7 +178,7 @@ const AuthenticatedApp = () => {
 
   // Show profile setup for users who haven't completed their profile
   if (user && !user.profileComplete) {
-    console.log('[ROUTE_DEBUG] ProfileSetup shown', {
+    routeDebugLog('[ROUTE_DEBUG] ProfileSetup shown', {
       pathname: location.pathname,
       authLoading: isLoadingAuth,
       profileLoading: false,
