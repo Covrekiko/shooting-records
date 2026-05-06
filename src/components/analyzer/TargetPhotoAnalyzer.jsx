@@ -456,14 +456,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
       if (panStart.current) {
         const panDx = centerX - panStart.current.x;
         const panDy = centerY - panStart.current.y;
-        const newPan = clampPan(
-          lastPan.current.x + panDx,
-          lastPan.current.y + panDy,
-          zoom,
-          containerRef.current,
-          imgRef.current
-        );
-        setPan(newPan);
+        setPan({ x: lastPan.current.x + panDx, y: lastPan.current.y + panDy });
       }
       return;
     }
@@ -632,9 +625,11 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
     setAnalysisMode('manual');
   }
 
+  const showLockedScaleBar = photo && analysisMode === 'manual';
+
   return (
-    <div>
-      <div className="flex items-center gap-3 mb-5">
+    <div className="h-full flex flex-col overflow-hidden bg-background">
+      <div className="flex items-center gap-3 px-4 pt-[calc(env(safe-area-inset-top,0px)+1rem)] pb-4 border-b border-border bg-background flex-shrink-0">
         <button onClick={onBack} className="p-2 hover:bg-secondary rounded-xl transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </button>
@@ -645,6 +640,68 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           </p>
         </div>
       </div>
+
+      {showLockedScaleBar && (
+        <div className="flex-shrink-0 z-30 bg-background/95 backdrop-blur border-b border-border px-4 py-3">
+          <MobileScaleCalibrationSheet
+            visible={isMobile && analysisMode === 'manual'}
+            step={calibrationStep}
+            scaleInput={scaleInput}
+            scaleUnit={scaleUnit}
+            onScaleInputChange={setScaleInput}
+            onScaleUnitChange={setScaleUnit}
+            onPreset={(unit) => { setScaleInput('1'); setScaleUnit(unit); setScaleRef(unit === 'cm' ? '1cm grid' : '1in grid'); }}
+            onStart={startMobileCalibration}
+            onPlaceA={placeMobilePointA}
+            onPlaceB={placeMobilePointB}
+            onConfirm={() => confirmCalibrationPoints(scalePoints)}
+            onUndo={undoMobileCalibrationPoint}
+            onReset={resetMobileCalibration}
+            pointCount={scalePoints.length || calibPoints.length}
+            pixelDistance={getPixelDistance(scalePoints)}
+            scalePx={scalePx}
+          />
+
+          <div className="hidden md:block bg-card border border-border rounded-2xl p-4">
+            <p className="font-semibold text-sm mb-1">Scale Reference</p>
+            <p className="text-xs text-muted-foreground mb-3">Enter a known grid/reference size, then tap two matching points on the photo to calibrate measurements.</p>
+            <div className="flex gap-2 mb-2 items-center">
+              <input
+                value={scaleInput}
+                onChange={e => setScaleInput(e.target.value)}
+                placeholder="e.g. 1"
+                className={`${inp} flex-1`}
+                type="number"
+                min="0"
+                step="any"
+              />
+              <select
+                value={scaleUnit}
+                onChange={e => setScaleUnit(e.target.value)}
+                className="w-20 flex-shrink-0 px-2 py-2.5 border border-border rounded-xl bg-background text-sm"
+              >
+                <option value="mm">mm</option>
+                <option value="cm">cm</option>
+                <option value="in">in</option>
+              </select>
+            </div>
+            <div className="flex gap-2 mb-2 flex-wrap">
+              <button type="button" onClick={() => { setScaleInput('1'); setScaleUnit('cm'); setScaleRef('1cm grid'); }} className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold">1cm grid</button>
+              <button type="button" onClick={() => { setScaleInput('1'); setScaleUnit('in'); setScaleRef('1in grid'); }} className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold">1in grid</button>
+            </div>
+            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSetScaleMode(prev => !prev); setScalePoints([]); }}
+              className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all ${setScaleMode ? 'bg-amber-500 text-white' : 'bg-secondary hover:bg-secondary/80'}`}>
+              {setScaleMode
+                ? `Tap 2 points on photo (${scalePoints.length}/2 placed)`
+                : scalePx
+                  ? `✓ Scale set: ${scaleInput} ${scaleUnit} = ${Math.round(convertToMm(scaleInput, scaleUnit) / scalePx * 10) / 10}px — ${setScaleMode ? 'Cancel' : 'Recalibrate'}`
+                  : 'Tap 2 known points to set scale'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)]" data-target-photo-scroll>
 
       {/* Upload */}
       {!photo && (
@@ -719,63 +776,6 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           <div className={`mb-3 ${mobileCalibrationActive ? 'md:block hidden' : ''}`}>
             <label className={lbl}>Group Name</label>
             <input value={groupName} onChange={e => setGroupName(e.target.value)} className={inp} />
-          </div>
-
-          <MobileScaleCalibrationSheet
-            visible={isMobile && analysisMode === 'manual'}
-            step={calibrationStep}
-            scaleInput={scaleInput}
-            scaleUnit={scaleUnit}
-            onScaleInputChange={setScaleInput}
-            onScaleUnitChange={setScaleUnit}
-            onPreset={(unit) => { setScaleInput('1'); setScaleUnit(unit); setScaleRef(unit === 'cm' ? '1cm grid' : '1in grid'); }}
-            onStart={startMobileCalibration}
-            onPlaceA={placeMobilePointA}
-            onPlaceB={placeMobilePointB}
-            onConfirm={() => confirmCalibrationPoints(scalePoints)}
-            onUndo={undoMobileCalibrationPoint}
-            onReset={resetMobileCalibration}
-            pointCount={scalePoints.length || calibPoints.length}
-            pixelDistance={getPixelDistance(scalePoints)}
-            scalePx={scalePx}
-          />
-
-          {/* Scale setup */}
-          <div className="hidden md:block bg-card border border-border rounded-2xl p-4 mb-3">
-            <p className="font-semibold text-sm mb-1">Scale Reference</p>
-            <p className="text-xs text-muted-foreground mb-3">Enter a known grid/reference size, then tap two matching points on the photo to calibrate measurements.</p>
-            <div className="flex gap-2 mb-2 items-center">
-              <input
-                value={scaleInput}
-                onChange={e => setScaleInput(e.target.value)}
-                placeholder="e.g. 1"
-                className={`${inp} flex-1`}
-                type="number"
-                min="0"
-                step="any"
-              />
-              <select
-                value={scaleUnit}
-                onChange={e => setScaleUnit(e.target.value)}
-                className="w-20 flex-shrink-0 px-2 py-2.5 border border-border rounded-xl bg-background text-sm"
-              >
-                <option value="mm">mm</option>
-                <option value="cm">cm</option>
-                <option value="in">in</option>
-              </select>
-            </div>
-            <div className="flex gap-2 mb-2 flex-wrap">
-              <button type="button" onClick={() => { setScaleInput('1'); setScaleUnit('cm'); setScaleRef('1cm grid'); }} className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold">1cm grid</button>
-              <button type="button" onClick={() => { setScaleInput('1'); setScaleUnit('in'); setScaleRef('1in grid'); }} className="px-3 py-2 rounded-lg bg-secondary hover:bg-secondary/80 text-xs font-semibold">1in grid</button>
-            </div>
-            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setSetScaleMode(prev => !prev); setScalePoints([]); }}
-              className={`w-full py-2.5 rounded-xl font-semibold text-sm transition-all ${setScaleMode ? 'bg-amber-500 text-white' : 'bg-secondary hover:bg-secondary/80'}`}>
-              {setScaleMode
-                ? `Tap 2 points on photo (${scalePoints.length}/2 placed)`
-                : scalePx
-                  ? `✓ Scale set: ${scaleInput} ${scaleUnit} = ${Math.round(convertToMm(scaleInput, scaleUnit) / scalePx * 10) / 10}px — ${setScaleMode ? 'Cancel' : 'Recalibrate'}`
-                  : 'Tap 2 known points to set scale'}
-            </button>
           </div>
 
           {/* Interactive Image — desktop keeps tap calibration; mobile uses centre crosshair calibration */}
@@ -1070,6 +1070,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
           </button>
         </>
       )}
+      </div>
     </div>
   );
 }

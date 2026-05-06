@@ -168,8 +168,8 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
 
   if (showPhotoAnalyzer) {
     return createPortal(
-      <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-4 pt-4 pb-8">
+      <div className="fixed inset-0 z-[60000] bg-background overflow-hidden">
+        <div className="h-full max-w-2xl mx-auto">
           <TargetPhotoAnalyzer
             session={analyzerSession}
             editGroup={editGroup}
