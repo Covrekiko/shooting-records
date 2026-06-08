@@ -15,7 +15,7 @@
     "rifle_name": {
       "type": "string"
     },
-    "scope_profile_id": {
+    "scope_id": {
       "type": "string"
     },
     "scope_name": {
@@ -31,19 +31,12 @@
       "type": "string",
       "enum": [
         "inventory",
-        "reloading",
-        "manual"
+        "reloading"
       ],
-      "default": "manual"
-    },
-    "caliber": {
-      "type": "string"
-    },
-    "bullet_weight": {
-      "type": "string"
+      "default": "inventory"
     },
     "distance": {
-      "type": "number"
+      "type": "string"
     },
     "distance_unit": {
       "type": "string",
@@ -52,6 +45,12 @@
         "yards"
       ],
       "default": "m"
+    },
+    "caliber": {
+      "type": "string"
+    },
+    "bullet_weight": {
+      "type": "string"
     },
     "shooting_position": {
       "type": "string",

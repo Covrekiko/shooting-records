@@ -1,4 +1,4 @@
-import { createElement, useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import FirstTimeGuideModal from '@/components/FirstTimeGuideModal';
 
 const GUIDE_PREFIX = 'shootingRecords.guides.';
@@ -36,7 +36,7 @@ export function useFirstTimeGuide(config) {
     action?.();
   }, [config.key]);
 
-  const Guide = useCallback(() => createElement(FirstTimeGuideModal, {
+  const Guide = useCallback(() => React.createElement(FirstTimeGuideModal, {
     open,
     title: config.title,
     description: config.description,
