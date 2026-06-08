@@ -476,7 +476,7 @@ export default function DeerStalkingMap() {
     }, 10000);
   };
 
-  const useOfflineFallbackMap = !isLoaded || mapLoadFailed || !isOnline;
+  const useOfflineFallbackMap = mapLoadFailed || !isOnline;
 
   if (loading || outingLoading) {
     return (
@@ -508,6 +508,10 @@ export default function DeerStalkingMap() {
             waitingForPin={waitingForPin}
             onMapClick={handleMapClick}
           />
+        ) : !isLoaded ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-900">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-white"></div>
+          </div>
         ) : (
         <GoogleMap
           mapContainerStyle={mapContainerStyle}
