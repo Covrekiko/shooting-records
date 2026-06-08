@@ -34,7 +34,9 @@ export default function BottomSheet({
             style={{
               WebkitBackdropFilter: 'blur(20px)',
               maxHeight: 'min(90dvh, 100dvh - 60px)',
-              paddingBottom: 'env(safe-area-inset-bottom, 0)',
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+              paddingLeft: 'env(safe-area-inset-left, 0px)',
+              paddingRight: 'env(safe-area-inset-right, 0px)',
             }}
           >
             {/* Handle + Header */}

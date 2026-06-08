@@ -28,9 +28,16 @@ export default function GpsPathViewer({ track, onClose }) {
            !isNaN(lat) && !isNaN(lng);
   };
 
+  const safeStyle = {
+    paddingTop: 'env(safe-area-inset-top, 0px)',
+    paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+    paddingLeft: 'env(safe-area-inset-left, 0px)',
+    paddingRight: 'env(safe-area-inset-right, 0px)',
+  };
+
   if (!track || track.length === 0) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[50002]">
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[50002]" style={safeStyle}>
         <div className="bg-card rounded-lg p-6 max-w-md w-full">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">GPS Track</h2>
@@ -56,7 +63,7 @@ export default function GpsPathViewer({ track, onClose }) {
 
   if (!hasValidCoords || !isValidCoord(center.lat, center.lng)) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-[50002] pt-16">
+      <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-[50002]" style={safeStyle}>
         <div className="bg-card rounded-lg p-6 max-w-md w-full">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold">GPS Track</h2>
@@ -77,7 +84,7 @@ export default function GpsPathViewer({ track, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-[50002] flex items-center justify-center p-4" style={{ pointerEvents: 'auto' }}>
+    <div className="fixed inset-0 bg-black/50 z-[50002] flex items-center justify-center p-4" style={{ ...safeStyle, pointerEvents: 'auto' }}>
       <div className="bg-card rounded-lg w-full max-w-2xl flex flex-col" style={{ pointerEvents: 'auto', height: '80vh' }}>
         <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <h2 className="text-xl font-bold">GPS Track Visualization</h2>

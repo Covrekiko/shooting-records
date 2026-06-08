@@ -34,6 +34,12 @@ export default function ConfirmDialog({
             transition={{ type: 'spring', duration: 0.3, bounce: 0.1 }}
             onClick={(e) => e.stopPropagation()}
             className="fixed inset-0 z-[50001] flex items-center justify-center pointer-events-none"
+            style={{
+              paddingTop: 'env(safe-area-inset-top, 0px)',
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+              paddingLeft: 'env(safe-area-inset-left, 0px)',
+              paddingRight: 'env(safe-area-inset-right, 0px)',
+            }}
           >
             <div className="max-w-sm w-[calc(100%-2rem)] pointer-events-auto bg-white/98 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/40 overflow-hidden p-6" style={{ WebkitBackdropFilter: 'blur(20px)' }}>
               {/* Icon */}
