@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 
 // Maps spoken words to shot results
 // Supports: dead/hit/killed/yes/broke → 'dead', lost/miss/no/away → 'lost', no bird → 'no_bird'
