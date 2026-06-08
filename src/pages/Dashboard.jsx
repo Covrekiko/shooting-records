@@ -166,34 +166,22 @@ function ActiveCheckinBanner({ session }) {
       <motion.div
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center gap-4 px-4 py-4 bg-card border border-border rounded-2xl shadow-sm active:scale-[0.97] transition-all duration-100"
+        className="flex items-center gap-3 px-3 py-2.5 bg-card border border-border rounded-xl shadow-sm active:scale-[0.97] transition-all duration-100"
       >
-        {/* Location Icon */}
-        <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0 text-emerald-700 dark:text-emerald-400">
-          <MapPin className="w-5 h-5" />
+        <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0 text-emerald-700 dark:text-emerald-400">
+          <MapPin className="w-4 h-4" />
         </div>
-
-        {/* Content */}
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Current Shooting Location</p>
-          <p className="text-base font-bold text-foreground mt-1 truncate">
+          <p className="text-xs text-muted-foreground uppercase tracking-wide leading-none mb-0.5">Checked In</p>
+          <p className="text-sm font-bold text-foreground truncate">
             {session.location_name || session.title || cfg.label}
           </p>
-          <div className="flex items-center gap-1.5 mt-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
-            <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Checked In</p>
-          </div>
         </div>
-
-        {/* Time Elapsed + Chevron */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           {elapsed !== null && elapsed >= 0 && (
-            <div className="flex items-center gap-1 text-muted-foreground text-sm font-medium">
-              <Clock className="w-4 h-4" />
-              <span>{elapsed >= 60 ? `${Math.floor(elapsed / 60)}h ${elapsed % 60}m` : `${elapsed}m`} ago</span>
-            </div>
+            <span className="text-xs text-muted-foreground">{elapsed >= 60 ? `${Math.floor(elapsed / 60)}h ${elapsed % 60}m` : `${elapsed}m`}</span>
           )}
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
         </div>
       </motion.div>
     </Link>
