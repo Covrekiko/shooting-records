@@ -147,8 +147,8 @@ function ActiveSessionBanner({ outing }) {
 }
 
 const CHECKIN_CONFIG = {
-  target_shooting: { label: 'Target Shooting', badge: 'Checked In', to: '/target-shooting', color: 'bg-blue-600 dark:bg-blue-700', textColor: 'text-blue-200', icon: <Crosshair className="w-3.5 h-3.5" /> },
-  clay_shooting:   { label: 'Clay Shooting',   badge: 'Checked In', to: '/clay-shooting',   color: 'bg-orange-600 dark:bg-orange-700', textColor: 'text-orange-200', icon: <Target className="w-3.5 h-3.5" /> },
+  target_shooting: { label: 'Target Shooting', badge: 'Checked In', to: '/target-shooting', color: 'bg-emerald-600 dark:bg-emerald-700', textColor: 'text-emerald-200', icon: <Crosshair className="w-3.5 h-3.5" /> },
+  clay_shooting:   { label: 'Clay Shooting',   badge: 'Checked In', to: '/clay-shooting',   color: 'bg-emerald-600 dark:bg-emerald-700', textColor: 'text-emerald-200', icon: <Target className="w-3.5 h-3.5" /> },
   deer_management: { label: 'Deer Management', badge: 'Checked In', to: '/deer-management', color: 'bg-emerald-600 dark:bg-emerald-700', textColor: 'text-emerald-200', icon: <MapPin className="w-3.5 h-3.5" /> },
 };
 
