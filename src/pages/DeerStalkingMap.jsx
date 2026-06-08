@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { GoogleMap, Marker, Polyline, InfoWindow } from '@react-google-maps/api';
+import { GoogleMap, Marker, Polyline, InfoWindow, useJsApiLoader } from '@react-google-maps/api';
 import { Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useOuting } from '@/context/OutingContext';
@@ -44,50 +44,14 @@ const GOOGLE_MAPS_LIBRARIES = ['drawing', 'places'];
 export default function DeerStalkingMap() {
   const { activeOuting, loading: outingLoading, startOuting, endOuting, endOutingWithData, updateGpsTrack } = useOuting();
   
-  const [apiKey] = useState(() => import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '');
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [mapLoadFailed, setMapLoadFailed] = useState(false);
   const { isOnline, pendingCount } = useOffline();
 
-  // Load Google Maps with API key from env var
-  useEffect(() => {
-    if (apiKey) {
-      loadGoogleMapsScript(apiKey);
-    } else {
-      setMapLoadFailed(true);
-    }
-  }, [apiKey]);
+  const { isLoaded, loadError: mapLoadError } = useJsApiLoader({
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
+    libraries: GOOGLE_MAPS_LIBRARIES,
+  });
+  const mapLoadFailed = !!mapLoadError || !import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 
-  const loadGoogleMapsScript = (key) => {
-    if (window.google?.maps) {
-      setIsLoaded(true);
-      return;
-    }
-    if (document.getElementById('google-maps-script')) {
-      // Script already loading, wait for it
-      const checkInterval = setInterval(() => {
-        if (window.google?.maps) {
-          setIsLoaded(true);
-          clearInterval(checkInterval);
-        }
-      }, 100);
-      return;
-    }
-    const script = document.createElement('script');
-    script.id = 'google-maps-script';
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${key}&libraries=${GOOGLE_MAPS_LIBRARIES.join(',')}`;
-    script.async = true;
-    script.onload = () => {
-      if (window.google?.maps) {
-        setIsLoaded(true);
-      }
-    };
-    script.onerror = () => {
-      console.error('Failed to load Google Maps');
-      setMapLoadFailed(true);
-    };
-    document.head.appendChild(script);
-  };
 
   const [markers, setMarkers] = useState([]);
   const [harvests, setHarvests] = useState([]);
