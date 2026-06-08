@@ -36,6 +36,11 @@ const DrawerContent = React.forwardRef(({ className, children, ...props }, ref) 
         "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
         className
       )}
+      style={{
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        paddingLeft: 'env(safe-area-inset-left, 0px)',
+        paddingRight: 'env(safe-area-inset-right, 0px)',
+      }}
       {...props}>
       <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
       {children}

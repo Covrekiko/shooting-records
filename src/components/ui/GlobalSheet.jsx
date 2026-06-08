@@ -158,8 +158,10 @@ export default function GlobalSheet({
             className="fixed bottom-0 left-0 right-0 flex flex-col"
             style={{
               zIndex: Z_MODAL,
-              maxHeight: `min(${maxHeight}, calc(100dvh - var(--safe-top) - var(--safe-bottom) - 16px))`,
-              paddingBottom: 'var(--safe-bottom)',
+              maxHeight: `min(${maxHeight}, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px))`,
+              paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+              paddingLeft: 'env(safe-area-inset-left, 0px)',
+              paddingRight: 'env(safe-area-inset-right, 0px)',
             }}
             onClick={(e) => e.stopPropagation()}
           >

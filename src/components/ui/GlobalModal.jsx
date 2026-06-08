@@ -206,10 +206,10 @@ export default function GlobalModal({
             className="fixed inset-0 flex items-end sm:items-center justify-center pointer-events-none"
             style={{
               zIndex: Z_MODAL,
-              paddingLeft: '12px',
-              paddingRight: '12px',
-              paddingTop: 'calc(var(--safe-top) + 8px)',
-              paddingBottom: 'calc(var(--safe-bottom) + 8px)',
+              paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 12px)',
+              paddingRight: 'calc(env(safe-area-inset-right, 0px) + 12px)',
+              paddingTop: 'calc(env(safe-area-inset-top, 0px) + 8px)',
+              paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
               height: '100dvh',
               overflowY: 'auto',
               overscrollBehavior: 'contain',
@@ -231,7 +231,7 @@ export default function GlobalModal({
                 style={{
                   maxWidth: '100%',
                   overflowX: 'hidden',
-                  maxHeight: 'calc(100dvh - var(--safe-top) - var(--safe-bottom) - 16px)',
+                  maxHeight: 'calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px)',
                 }}
               >
                 {(title || showClose) && (
