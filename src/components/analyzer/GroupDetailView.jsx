@@ -16,6 +16,12 @@ export default function GroupDetailView({ group, session, onClose, onExportAll, 
     <div className="fixed inset-0 z-[70000] bg-black/70 flex items-end sm:items-center justify-center" onClick={onClose}>
       <div
         className="w-full sm:max-w-lg bg-background rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh]"
+        style={{
+          paddingLeft: 'env(safe-area-inset-left, 0px)',
+          paddingRight: 'env(safe-area-inset-right, 0px)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          maxHeight: 'calc(90vh - env(safe-area-inset-bottom, 0px))',
+        }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}

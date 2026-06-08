@@ -291,7 +291,8 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
         </div>
 
         <button type="submit" disabled={saving}
-          className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold text-base flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60">
+          className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold text-base flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-60"
+          style={{ marginBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)' }}>
           {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
           {saving ? 'Saving…' : 'Save Group'}
         </button>
