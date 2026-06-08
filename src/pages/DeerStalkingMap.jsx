@@ -652,7 +652,7 @@ export default function DeerStalkingMap() {
           ))}
 
           {/* Active Outing GPS Track */}
-          {activeOuting && activeOuting.gps_track && activeOuting.gps_track.length > 1 && (
+          {isLoaded && activeOuting && activeOuting.gps_track && activeOuting.gps_track.length > 1 && (
             <Polyline
               path={activeOuting.gps_track.map((p) => ({ lat: p.lat, lng: p.lng }))}
               options={{
@@ -664,16 +664,18 @@ export default function DeerStalkingMap() {
           )}
 
           {/* Saved Area Boundaries */}
-          {savedAreas.map((area) => (
-            <Polyline
-              key={area.id}
-              path={area.polygon_coordinates.map((coord) => ({ lat: coord[0], lng: coord[1] }))}
-              options={{
-                strokeColor: '#3b82f6',
-                strokeOpacity: 1,
-                strokeWeight: 5,
-              }}
-            />
+          {isLoaded && savedAreas.map((area) => (
+            area.polygon_coordinates?.length > 1 && (
+              <Polyline
+                key={area.id}
+                path={area.polygon_coordinates.map((coord) => ({ lat: coord[0], lng: coord[1] }))}
+                options={{
+                  strokeColor: '#3b82f6',
+                  strokeOpacity: 1,
+                  strokeWeight: 5,
+                }}
+              />
+            )
           ))}
 
           {/* Search Result Marker */}

@@ -95,7 +95,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
       >
         {/* Saved area boundaries */}
         {savedAreas.map((area) => (
-          <Polyline
+          area.polygon_coordinates?.length > 1 && <Polyline
             key={`saved-area-${area.id}`}
             path={area.polygon_coordinates.map((coord) => ({ lat: coord[0], lng: coord[1] }))}
             options={{
