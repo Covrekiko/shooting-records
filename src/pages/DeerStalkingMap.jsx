@@ -44,25 +44,17 @@ const GOOGLE_MAPS_LIBRARIES = ['drawing', 'places'];
 export default function DeerStalkingMap() {
   const { activeOuting, loading: outingLoading, startOuting, endOuting, endOutingWithData, updateGpsTrack } = useOuting();
   
-  const [apiKey, setApiKey] = useState(() => import.meta.env.VITE_GOOGLE_MAPS_API_KEY);
+  const [apiKey] = useState(() => import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '');
   const [isLoaded, setIsLoaded] = useState(false);
   const [mapLoadFailed, setMapLoadFailed] = useState(false);
   const { isOnline, pendingCount } = useOffline();
 
-  // Load Google Maps with API key
+  // Load Google Maps with API key from env var
   useEffect(() => {
-    if (!apiKey) {
-      base44.functions.invoke('getGoogleMapsApiKey', {})
-        .then(res => {
-          const key = res.data?.apiKey;
-          if (key) {
-            loadGoogleMapsScript(key);
-            setApiKey(key);
-          }
-        })
-        .catch(() => {});
-    } else {
+    if (apiKey) {
       loadGoogleMapsScript(apiKey);
+    } else {
+      setMapLoadFailed(true);
     }
   }, [apiKey]);
 
