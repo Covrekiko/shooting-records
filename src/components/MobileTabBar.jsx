@@ -69,7 +69,11 @@ export default function MobileTabBar() {
   return (
     <nav
       className="md:hidden fixed bottom-0 left-0 right-0 z-[9000] bg-card/95 backdrop-blur-md border-t border-border"
-      style={{ paddingBottom: 'var(--safe-bottom)' }}
+      style={{
+        paddingBottom: 'var(--safe-bottom)',
+        paddingLeft: 'var(--safe-left)',
+        paddingRight: 'var(--safe-right)',
+      }}
     >
       {/* Sync status strip */}
       {syncPill && (() => {

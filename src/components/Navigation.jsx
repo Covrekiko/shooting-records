@@ -166,7 +166,7 @@ export default function Navigation() {
       </div>
 
       {/* ── MOBILE TOP BAR ──────────────────────────────────────────── */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-[9000] bg-background safe-area-top mobile-fixed-topbar">
+      <div className="md:hidden fixed top-0 left-0 right-0 z-[9000] bg-background safe-area-top mobile-fixed-topbar" style={{ paddingLeft: 'var(--safe-left)', paddingRight: 'var(--safe-right)' }}>
         <div className="mx-3 mt-2 mb-1.5 bg-card rounded-2xl shadow-sm border border-border px-4 py-2.5 flex items-center justify-between">
           {isDashboard ? (
             <Link to="/" className="text-sm font-bold text-foreground flex items-center gap-2">
