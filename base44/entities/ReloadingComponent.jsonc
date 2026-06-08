@@ -27,7 +27,7 @@
     "is_used_brass": {
       "type": "boolean",
       "default": false,
-      "description": "Whether this was initially added as previously fired/used brass"
+      "description": "Whether this is previously fired/used brass"
     },
     "quantity_total": {
       "type": "number",
@@ -35,7 +35,7 @@
     },
     "quantity_remaining": {
       "type": "number",
-      "description": "Current total quantity available to reload"
+      "description": "Current quantity in stock / available to reload"
     },
     "total_owned": {
       "type": "number",
@@ -43,62 +43,22 @@
     },
     "available_to_reload": {
       "type": "number",
-      "description": "Total brass cases available to reload"
-    },
-    "available_new_unloaded": {
-      "type": "number",
-      "default": 0,
-      "description": "New never-loaded brass still carrying first-use cost"
-    },
-    "available_used_recovered": {
-      "type": "number",
-      "default": 0,
-      "description": "Used/recovered brass available to reload at zero brass cost"
+      "description": "Brass cases available to reload"
     },
     "currently_loaded": {
       "type": "number",
       "default": 0,
-      "description": "Total brass cases currently inside loaded ammunition"
-    },
-    "currently_loaded_new": {
-      "type": "number",
-      "default": 0,
-      "description": "Currently loaded cases loaded from new/first-use brass"
-    },
-    "currently_loaded_used": {
-      "type": "number",
-      "default": 0,
-      "description": "Currently loaded cases loaded from used/recovered brass"
+      "description": "Brass cases currently inside loaded ammunition"
     },
     "fired_awaiting_cleaning_or_inspection": {
       "type": "number",
       "default": 0,
-      "description": "Total fired cases waiting to be cleaned or inspected"
-    },
-    "fired_new_awaiting_cleaning_or_inspection": {
-      "type": "number",
-      "default": 0,
-      "description": "Fired cases that came from new first-use brass"
-    },
-    "fired_used_awaiting_cleaning_or_inspection": {
-      "type": "number",
-      "default": 0,
-      "description": "Fired cases that came from used/recovered brass"
+      "description": "Fired cases waiting to be cleaned or inspected"
     },
     "retired_or_discarded": {
       "type": "number",
       "default": 0,
       "description": "Cases retired or discarded"
-    },
-    "first_use_cost_remaining_quantity": {
-      "type": "number",
-      "default": 0,
-      "description": "New cases whose first-use cost has not yet been consumed"
-    },
-    "cost_consumed_quantity": {
-      "type": "number",
-      "default": 0,
-      "description": "Cases whose first-use brass cost has already been consumed"
     },
     "reload_cycle_count": {
       "type": "integer",

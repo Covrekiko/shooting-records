@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 
 /**
  * Prevents body scroll when a modal/sheet is open

@@ -11,7 +11,7 @@
  *   onAutoCheckin(match) – called with { type:'club'|'area', id, name, lat, lng }
  */
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 const DWELL_MS = 10 * 60 * 1000; // 10 minutes
 const POLL_INTERVAL_MS = 30 * 1000; // poll every 30s
