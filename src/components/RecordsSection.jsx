@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPortal } from 'react-dom';
 import { getRecordsPdfBlob } from '@/utils/recordsPdfExport';
-import MobilePdfViewer from '@/components/MobilePdfViewer';
 import RecordCard from '@/components/RecordCard';
 import RecordDetailModal from '@/components/RecordDetailModal';
 import { sdkDiagLogOnce } from '@/lib/sdkDiagnostics';
+
+const MobilePdfViewer = lazy(() => import('@/components/MobilePdfViewer'));
 
 export default function RecordsSection({ category, title, emptyMessage = 'No records yet', onRecordDeleted, showTargetAnalysis = false }) {
    const [records, setRecords] = useState([]);
@@ -177,5 +178,9 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
 }
 
 function PdfPreviewModal({ pdfUrl, onClose }) {
-        return <MobilePdfViewer pdfUrl={pdfUrl} onClose={onClose} />;
-      }
+  return (
+    <Suspense fallback={<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" /></div>}>
+      <MobilePdfViewer pdfUrl={pdfUrl} onClose={onClose} />
+    </Suspense>
+  );
+}
