@@ -126,7 +126,7 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
   return (
     <div>
       <Navigation />
-      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8">
+      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
         {/* Back + Header */}
         <div className="flex items-center gap-3 mb-4">
           <button onClick={onBack} className="p-2 hover:bg-secondary rounded-xl">

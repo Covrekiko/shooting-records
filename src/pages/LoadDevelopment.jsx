@@ -117,21 +117,21 @@ export default function LoadDevelopment() {
     <div className="bg-slate-50 dark:bg-[#13161e] min-h-screen">
       <Navigation />
       <PullToRefreshIndicator pulling={pullToRefresh.pulling} refreshing={pullToRefresh.refreshing} progress={pullToRefresh.progress} offline={!navigator.onLine} />
-      <main className="max-w-4xl mx-auto px-3 pt-2 md:pt-4 pb-8 mobile-page-padding">
+      <main className="max-w-4xl mx-auto px-4 pt-2 md:pt-4 pb-8 mobile-page-padding">
         {/* Header */}
         <div className="flex items-start justify-between mb-6">
-          <div>
+          <div className="min-w-0 flex-1 pr-2">
             <Link to="/reloading" className="hidden md:inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mb-2 transition-colors">
               <ArrowLeft className="w-3.5 h-3.5" />
               Back to Reloading Management
             </Link>
             <div className="flex items-center gap-2 mb-1">
-              <FlaskConical className="w-5 h-5 text-primary" />
-              <h1 className="text-2xl md:text-3xl font-bold">Load Development</h1>
+              <FlaskConical className="w-5 h-5 text-primary flex-shrink-0" />
+              <h1 className="text-2xl md:text-3xl font-bold truncate">Load Development</h1>
             </div>
             <p className="text-muted-foreground text-sm">Test and compare load variants with full inventory tracking</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 shrink-0">
             <Link to="/load-comparison" className="px-4 py-2.5 bg-secondary text-secondary-foreground rounded-xl hover:bg-secondary/80 flex items-center gap-2 font-semibold text-sm">
               <Search className="w-4 h-4" />
               <span className="hidden sm:inline">Compare</span>
