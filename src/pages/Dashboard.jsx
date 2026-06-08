@@ -166,22 +166,35 @@ function ActiveCheckinBanner({ session }) {
       <motion.div
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`flex items-center gap-3 px-4 py-3.5 ${cfg.color} rounded-2xl shadow-lg`}
+        className="flex items-center gap-4 px-4 py-4 bg-card border border-border rounded-2xl shadow-sm active:scale-[0.97] transition-all duration-100"
       >
-        <div className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
+        {/* Location Icon */}
+        <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0 text-emerald-700 dark:text-emerald-400">
+          <MapPin className="w-5 h-5" />
+        </div>
+
+        {/* Content */}
         <div className="flex-1 min-w-0">
-          <p className={`text-xs font-bold ${cfg.textColor} uppercase tracking-widest`}>{cfg.badge}</p>
-          <p className="text-sm font-bold text-white truncate mt-0.5">
+          <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Current Shooting Location</p>
+          <p className="text-base font-bold text-foreground mt-1 truncate">
             {session.location_name || session.title || cfg.label}
           </p>
-        </div>
-        {elapsed !== null && elapsed >= 0 && (
-          <div className={`flex items-center gap-1 ${cfg.textColor} text-xs font-semibold flex-shrink-0 bg-black/10 px-2 py-1 rounded-lg`}>
-            <Clock className="w-3 h-3" />
-            {elapsed >= 60 ? `${Math.floor(elapsed / 60)}h ${elapsed % 60}m` : `${elapsed}m`}
+          <div className="flex items-center gap-1.5 mt-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+            <p className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">Checked In</p>
           </div>
-        )}
-        <ChevronRight className="w-4 h-4 text-white/60 flex-shrink-0" />
+        </div>
+
+        {/* Time Elapsed + Chevron */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {elapsed !== null && elapsed >= 0 && (
+            <div className="flex items-center gap-1 text-muted-foreground text-sm font-medium">
+              <Clock className="w-4 h-4" />
+              <span>{elapsed >= 60 ? `${Math.floor(elapsed / 60)}h ${elapsed % 60}m` : `${elapsed}m`} ago</span>
+            </div>
+          )}
+          <ChevronRight className="w-5 h-5 text-muted-foreground" />
+        </div>
       </motion.div>
     </Link>
   );
