@@ -151,10 +151,17 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
   // Find the group marked as best by user (NOT auto-calculated from MOA)
   const bestGroup = groups.find(g => g.best_group) || null;
 
+  const safeScreenStyle = {
+    paddingTop: 'env(safe-area-inset-top, 0px)',
+    paddingLeft: 'env(safe-area-inset-left, 0px)',
+    paddingRight: 'env(safe-area-inset-right, 0px)',
+    paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+  };
+
   // Sub-screens — full-screen overlays
   if (showBallisticCalc) {
     return createPortal(
-      <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto">
+      <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto" style={safeScreenStyle}>
         <div className="max-w-2xl mx-auto px-4 pt-4 pb-8">
           <BallisticCalculator
             session={analyzerSession}
@@ -168,7 +175,7 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
 
   if (showPhotoAnalyzer) {
     return createPortal(
-      <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto">
+      <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto" style={safeScreenStyle}>
         <div className="max-w-2xl mx-auto px-4 pt-4 pb-8">
           <TargetPhotoAnalyzer
             session={analyzerSession}
@@ -186,7 +193,7 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
 
   if (showManualForm) {
     return createPortal(
-      <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto">
+      <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto" style={safeScreenStyle}>
         <div className="max-w-2xl mx-auto px-4 pt-4 pb-8">
           <ManualGroupForm
             session={analyzerSession}
@@ -209,9 +216,17 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
       <div
         className="fixed inset-x-0 bottom-0 top-0 md:top-auto md:bottom-0 md:max-h-[90vh] bg-background overflow-y-auto rounded-t-3xl shadow-2xl"
         onClick={e => e.stopPropagation()}
+        style={{
+          paddingLeft: 'env(safe-area-inset-left, 0px)',
+          paddingRight: 'env(safe-area-inset-right, 0px)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        }}
       >
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-background border-b border-border px-5 py-4 flex items-center justify-between">
+        <div
+          className="sticky top-0 z-10 bg-background border-b border-border px-5 py-4 flex items-center justify-between"
+          style={{ paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)' }}
+        >
           <div>
             <h2 className="text-lg font-bold">Target Analysis</h2>
             <p className="text-xs text-muted-foreground">
