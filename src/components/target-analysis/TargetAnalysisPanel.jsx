@@ -161,8 +161,13 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
   // Sub-screens — full-screen overlays
   if (showBallisticCalc) {
     return createPortal(
-      <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto" style={safeScreenStyle}>
-        <div className="max-w-2xl mx-auto px-4 pt-4 pb-8">
+      <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto">
+        <div className="max-w-2xl mx-auto px-4 pb-8" style={{
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+          paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 16px)',
+          paddingRight: 'calc(env(safe-area-inset-right, 0px) + 16px)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)',
+        }}>
           <BallisticCalculator
             session={analyzerSession}
             onBack={() => setShowBallisticCalc(false)}
@@ -175,8 +180,13 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
 
   if (showPhotoAnalyzer) {
     return createPortal(
-      <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto" style={safeScreenStyle}>
-        <div className="max-w-2xl mx-auto px-4 pt-4 pb-8">
+      <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto">
+        <div className="max-w-2xl mx-auto px-4" style={{
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+          paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 16px)',
+          paddingRight: 'calc(env(safe-area-inset-right, 0px) + 16px)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)',
+        }}>
           <TargetPhotoAnalyzer
             session={analyzerSession}
             editGroup={editGroup}
@@ -193,8 +203,13 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
 
   if (showManualForm) {
     return createPortal(
-      <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto" style={safeScreenStyle}>
-        <div className="max-w-2xl mx-auto px-4 pt-4 pb-8">
+      <div className="fixed inset-0 z-[60000] bg-background overflow-y-auto">
+        <div className="max-w-2xl mx-auto px-4" style={{
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+          paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 16px)',
+          paddingRight: 'calc(env(safe-area-inset-right, 0px) + 16px)',
+          paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)',
+        }}>
           <ManualGroupForm
             session={analyzerSession}
             editGroup={editGroup}
