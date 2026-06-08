@@ -10,7 +10,7 @@ import { motion } from 'framer-motion';
 import React from 'react';
 import {
   Target, Crosshair, BookOpen,
-  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck, MessageCircle,
+  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck, MessageCircle, MapPin,
 } from 'lucide-react';
 import {
   MonthlyActivityChart,
@@ -146,6 +146,47 @@ function ActiveSessionBanner({ outing }) {
   );
 }
 
+const CHECKIN_CONFIG = {
+  target_shooting: { label: 'Target Shooting', badge: 'Checked In', to: '/target-shooting', color: 'bg-blue-600 dark:bg-blue-700', textColor: 'text-blue-200', icon: <Crosshair className="w-3.5 h-3.5" /> },
+  clay_shooting:   { label: 'Clay Shooting',   badge: 'Checked In', to: '/clay-shooting',   color: 'bg-orange-600 dark:bg-orange-700', textColor: 'text-orange-200', icon: <Target className="w-3.5 h-3.5" /> },
+  deer_management: { label: 'Deer Management', badge: 'Checked In', to: '/deer-management', color: 'bg-emerald-600 dark:bg-emerald-700', textColor: 'text-emerald-200', icon: <MapPin className="w-3.5 h-3.5" /> },
+};
+
+function ActiveCheckinBanner({ session }) {
+  const cfg = CHECKIN_CONFIG[session.category];
+  if (!cfg) return null;
+  const checkinTime = session.checkin_time || session.start_time;
+  const elapsed = checkinTime ? (() => {
+    const base = checkinTime.includes('T') ? new Date(checkinTime) : new Date(`${session.date}T${checkinTime}`);
+    return Math.floor((Date.now() - base.getTime()) / 60000);
+  })() : null;
+
+  return (
+    <Link to={cfg.to}>
+      <motion.div
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`flex items-center gap-3 px-4 py-3.5 ${cfg.color} rounded-2xl shadow-lg`}
+      >
+        <div className="w-2 h-2 rounded-full bg-white animate-pulse flex-shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className={`text-xs font-bold ${cfg.textColor} uppercase tracking-widest`}>{cfg.badge}</p>
+          <p className="text-sm font-bold text-white truncate mt-0.5">
+            {session.location_name || session.title || cfg.label}
+          </p>
+        </div>
+        {elapsed !== null && elapsed >= 0 && (
+          <div className={`flex items-center gap-1 ${cfg.textColor} text-xs font-semibold flex-shrink-0 bg-black/10 px-2 py-1 rounded-lg`}>
+            <Clock className="w-3 h-3" />
+            {elapsed >= 60 ? `${Math.floor(elapsed / 60)}h ${elapsed % 60}m` : `${elapsed}m`}
+          </div>
+        )}
+        <ChevronRight className="w-4 h-4 text-white/60 flex-shrink-0" />
+      </motion.div>
+    </Link>
+  );
+}
+
 const KpiRow = React.memo(function KpiRow({ stats }) {
   const items = [
     { label: 'Target', value: stats?.targetSessions ?? stats?.targetRecords ?? 0 },
@@ -256,6 +297,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(authUser || null);
   const [stats, setStats] = useState(null);
   const [analyticsData, setAnalyticsData] = useState(null);
+  const [activeCheckins, setActiveCheckins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [widgetsReady, setWidgetsReady] = useState(false);
   const { activeOuting } = useOuting();
@@ -271,8 +313,9 @@ export default function Dashboard() {
       }
       setUser(currentUser);
       
-      const [allRecordsRaw, rifles, shotguns, clubs, locations] = await Promise.all([
+      const [allRecordsRaw, activeSessionsRaw, rifles, shotguns, clubs, locations] = await Promise.all([
         getRepository('SessionRecord').filter({ created_by: currentUser.email, status: 'completed' }),
+        getRepository('SessionRecord').filter({ created_by: currentUser.email, status: 'active' }),
         getRepository('Rifle').filter({ created_by: currentUser.email }),
         getRepository('Shotgun').filter({ created_by: currentUser.email }),
         getRepository('Club').filter({ created_by: currentUser.email }),
@@ -291,6 +334,7 @@ export default function Dashboard() {
       const totalShotgunRounds = clayShoots.reduce((sum, s) => sum + (s.rounds_fired || 0), 0);
       setStats({ targetSessions: targetShoots.length, claySessions: clayShoots.length, deerOutings: deerMgmt.length, totalRifleRounds: totalRounds, totalShotgunRounds });
       setAnalyticsData({ targetShoots, clayShoots, deerMgmt, rifles, shotguns, clubs, locations });
+      setActiveCheckins((activeSessionsRaw || []).filter(r => r.isDeleted !== true));
     } catch (err) {
       console.error('Dashboard load error:', err);
     } finally {
@@ -333,7 +377,12 @@ export default function Dashboard() {
 
 
 
-        {/* ── Active Session Banner ── */}
+        {/* ── Active Check-in Banners (target, clay, deer management) ── */}
+        {activeCheckins.map(session => (
+          <ActiveCheckinBanner key={session.id} session={session} />
+        ))}
+
+        {/* ── Active Deer Outing Banner (OutingContext) ── */}
         {activeOuting && <ActiveSessionBanner outing={activeOuting} />}
 
         {/* ── Secondary Grid ── */}
