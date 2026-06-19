@@ -6,6 +6,7 @@
 import { runSync, getPendingCount } from './syncQueue';
 import { connectivityManager } from './connectivityManager';
 import { offlineDB } from './offlineDB';
+import { base44, savedAuthToken } from '@/api/base44Client';
 
 export const SYNC_STATE = {
   IDLE: 'idle',
@@ -40,6 +41,9 @@ async function updatePendingCount() {
 export async function triggerSync() {
   if (_isSyncing) return;
   if (!connectivityManager.isOnline()) return;
+
+  // Ensure the SDK has a token before making API calls
+  if (savedAuthToken) base44.auth.setToken(savedAuthToken);
 
   const count = await getPendingCount();
   if (count === 0) {

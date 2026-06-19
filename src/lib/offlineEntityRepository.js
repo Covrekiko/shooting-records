@@ -11,7 +11,7 @@
  *   await repo.refresh();                      // force fetch from server and cache
  */
 
-import { base44 } from '@/api/base44Client';
+import { base44, savedAuthToken } from '@/api/base44Client';
 import { offlineDB, ENTITY_STORE_MAP } from './offlineDB';
 import { enqueueAction, SYNC_ACTIONS } from './syncQueue';
 import { connectivityManager } from './connectivityManager';
@@ -31,6 +31,10 @@ class EntityRepository {
     this._sdk = base44.entities[entityName];
   }
 
+  _ensureToken() {
+    if (savedAuthToken) base44.auth.setToken(savedAuthToken);
+  }
+
   /**
    * List all records.
    * - Online: fetch from server, cache locally, return server data.
@@ -38,6 +42,7 @@ class EntityRepository {
    */
   async list(sortField, limit) {
     if (connectivityManager.isOnline() && this.storeName) {
+      this._ensureToken();
       try {
         const records = await this._sdk.list(sortField, limit);
         await offlineDB.putMany(this.storeName, records);
@@ -58,6 +63,7 @@ class EntityRepository {
    */
   async filter(criteria, sortField, limit) {
     if (connectivityManager.isOnline() && this.storeName) {
+      this._ensureToken();
       try {
         const records = await this._sdk.filter(criteria, sortField, limit);
         await offlineDB.putMany(this.storeName, records);
@@ -79,6 +85,7 @@ class EntityRepository {
    */
   async get(id) {
     if (connectivityManager.isOnline()) {
+      this._ensureToken();
       try {
         const record = await this._sdk.get(id);
         if (this.storeName) await offlineDB.put(this.storeName, record);
@@ -111,6 +118,7 @@ class EntityRepository {
     if (this.storeName) await offlineDB.put(this.storeName, localRecord);
 
     if (connectivityManager.isOnline()) {
+      this._ensureToken();
       try {
         const serverRecord = await this._sdk.create(data);
         // Replace temp local record with real server record
@@ -161,6 +169,7 @@ class EntityRepository {
     if (this.storeName) await offlineDB.put(this.storeName, mergedRecord);
 
     if (connectivityManager.isOnline()) {
+      this._ensureToken();
       try {
         const serverRecord = await this._sdk.update(id, data);
         if (this.storeName) await offlineDB.put(this.storeName, serverRecord);
@@ -196,6 +205,7 @@ class EntityRepository {
     if (this.storeName) await offlineDB.remove(this.storeName, id);
 
     if (connectivityManager.isOnline()) {
+      this._ensureToken();
       try {
         await this._sdk.delete(id);
         return;
@@ -224,6 +234,7 @@ class EntityRepository {
    */
   async refresh(criteria) {
     if (!connectivityManager.isOnline()) return;
+    this._ensureToken();
     try {
       const records = criteria
         ? await this._sdk.filter(criteria)
@@ -247,6 +258,7 @@ class EntityRepository {
    */
   async bulkCreate(dataArray) {
     if (connectivityManager.isOnline()) {
+      this._ensureToken();
       try {
         const records = await this._sdk.bulkCreate(dataArray);
         if (this.storeName) await offlineDB.putMany(this.storeName, records);

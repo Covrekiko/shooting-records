@@ -5,7 +5,7 @@
  */
 
 import { offlineDB } from './offlineDB';
-import { base44 } from '@/api/base44Client';
+import { base44, savedAuthToken } from '@/api/base44Client';
 
 export const SYNC_STATUS = {
   PENDING: 'pending',
@@ -241,6 +241,9 @@ async function processSyncEntry(entry) {
  * Returns { synced, failed, conflicts, expired }.
  */
 export async function runSync(onProgress) {
+  // Ensure the SDK has a token before syncing (client was created without one)
+  if (savedAuthToken) base44.auth.setToken(savedAuthToken);
+
   const queue = await getPendingQueue();
   if (queue.length === 0) return { synced: 0, failed: 0, conflicts: 0, expired: 0 };
 

@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44, savedAuthToken } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
 import { cacheUserProfile, getCachedUserProfile } from '@/lib/syncEngine';
@@ -143,6 +143,10 @@ export const AuthProvider = ({ children }) => {
         setIsLoadingAuth(false);
         return;
       }
+      // Inject the saved token before making SDK auth calls
+      // (client was created without a token to prevent offline ErrorScreen)
+      if (savedAuthToken) base44.auth.setToken(savedAuthToken);
+      
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       setIsAuthenticated(true);
@@ -300,6 +304,7 @@ export const AuthProvider = ({ children }) => {
         const cached = await getCachedUserProfile().catch(() => null);
         if (cached) return cached;
       }
+      if (savedAuthToken) base44.auth.setToken(savedAuthToken);
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       // Update cache with fresh data
