@@ -109,6 +109,10 @@ export const AuthProvider = ({ children }) => {
           } else {
             // Not cached — treat as auth required
             setIsAuthenticated(false);
+            setAuthError({
+              type: 'auth_required',
+              message: 'Authentication required — please go online to sign in'
+            });
           }
           setIsLoadingAuth(false);
           setIsLoadingPublicSettings(false);

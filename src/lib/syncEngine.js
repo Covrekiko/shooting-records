@@ -107,12 +107,31 @@ export const syncEngine = {
   getLastResult: () => _lastSyncResult,
 };
 
-// Save user profile to local DB for offline access
+// Save user profile to local DB for offline access (with localStorage fallback)
 export async function cacheUserProfile(user) {
   if (!user) return;
-  await offlineDB.put('user_profile', { id: 'current_user', ...user, cachedAt: Date.now() });
+  // Always save to localStorage as a reliable fallback
+  try {
+    const key = 'sr_cached_user_profile';
+    localStorage.setItem(key, JSON.stringify({ ...user, cachedAt: Date.now() }));
+  } catch {}
+  // Also try IndexedDB for structured access
+  try {
+    await offlineDB.put('user_profile', { id: 'current_user', ...user, cachedAt: Date.now() });
+  } catch {}
 }
 
 export async function getCachedUserProfile() {
-  return offlineDB.getById('user_profile', 'current_user');
+  // Try IndexedDB first
+  try {
+    const cached = await offlineDB.getById('user_profile', 'current_user');
+    if (cached) return cached;
+  } catch {}
+  // Fall back to localStorage
+  try {
+    const key = 'sr_cached_user_profile';
+    const raw = localStorage.getItem(key);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
 }
