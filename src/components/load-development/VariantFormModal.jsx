@@ -41,9 +41,48 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (variant) setForm({ ...form, ...variant, deduct_stock: false });
-    loadComponents();
-  }, []);
+    if (open) {
+      if (variant) {
+        setForm({ ...form, ...variant, deduct_stock: false });
+      } else {
+        setForm({
+          label: '',
+          round_count: '',
+          powder_name: '',
+          powder_component_id: '',
+          powder_charge_grains: '',
+          powder_lot_number: '',
+          bullet_brand: test.bullet_brand || '',
+          bullet_name: '',
+          bullet_grains: '',
+          bullet_component_id: '',
+          bullet_entry_mode: '',
+          bullet_quantity_used: '',
+          bullet_lot_number: '',
+          brass_brand: test.brass_brand || '',
+          brass_component_id: '',
+          brass_quantity_used: '',
+          brass_lot_number: '',
+          primer_brand: test.primer_brand || '',
+          primer_component_id: '',
+          primer_quantity_used: '',
+          primer_lot_number: '',
+          seating_depth: '',
+          coal_oal: '',
+          cbto: '',
+          bullet_jump: '',
+          neck_tension: '',
+          crimp: '',
+          case_trim_length: '',
+          case_prep_notes: '',
+          annealed: false,
+          notes: '',
+          deduct_stock: false,
+        });
+      }
+      loadComponents();
+    }
+  }, [open, variant]);
 
   const loadComponents = async () => {
     const user = await base44.auth.me();
@@ -184,11 +223,15 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
         await base44.entities.ReloadingTestVariant.update(variant.id, payload);
       } else {
         await base44.entities.ReloadingTestVariant.create(payload);
-        // Increment variant count on parent test
-        const currentTest = await base44.entities.ReloadingTest.filter({ id: test.id }).then(r => r[0]).catch(() => null);
-        await base44.entities.ReloadingTest.update(test.id, {
-          variant_count: (currentTest?.variant_count || 0) + 1,
-        });
+        // Increment variant count on parent test — non-critical, don't block onSaved
+        try {
+          const currentTest = await base44.entities.ReloadingTest.filter({ id: test.id }).then(r => r[0]).catch(() => null);
+          await base44.entities.ReloadingTest.update(test.id, {
+            variant_count: (currentTest?.variant_count || 0) + 1,
+          });
+        } catch (e) {
+          console.warn('[variant] Failed to update test variant_count:', e?.message);
+        }
       }
       onSaved();
     } catch (e) {
