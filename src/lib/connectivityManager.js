@@ -31,9 +31,9 @@ async function pingCheck() {
   }
 }
 
-// Poll every 30 seconds
+// Poll every 60 seconds (reduced from 30s for performance)
 if (typeof setInterval !== 'undefined') {
-  setInterval(pingCheck, 30000);
+  setInterval(pingCheck, 60000);
 }
 
 export const connectivityManager = {

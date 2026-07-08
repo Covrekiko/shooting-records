@@ -17,8 +17,18 @@ import { base44 } from '@/api/base44Client';
 import { offlineDB, ENTITY_STORE_MAP } from './offlineDB';
 import { connectivityManager } from './connectivityManager';
 
+const PRECACHE_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes
+let _preCacheInProgress = false;
+
 export async function preCacheUserData(userEmail) {
   if (!connectivityManager.isOnline()) return;
+  if (_preCacheInProgress) return;
+
+  // Skip if we pre-cached recently
+  const lastPreCache = await offlineDB.getMeta('lastPreCache').catch(() => 0);
+  if (lastPreCache && Date.now() - lastPreCache < PRECACHE_COOLDOWN_MS) return;
+
+  _preCacheInProgress = true;
   try {
     const entities = [
       { name: 'SessionRecord', method: () => base44.entities.SessionRecord.filter({ created_by: userEmail }) },
@@ -40,18 +50,25 @@ export async function preCacheUserData(userEmail) {
       { name: 'ReloadingInventory', method: () => base44.entities.ReloadingInventory.filter({ created_by: userEmail }) },
     ];
 
-    await Promise.allSettled(
-      entities.map(async ({ name, method }) => {
-        const storeName = ENTITY_STORE_MAP[name];
-        if (!storeName) return;
-        const records = await method();
-        if (records?.length) await offlineDB.putMany(storeName, records);
-      })
-    );
+    // Process in small batches of 3 to avoid overwhelming the server
+    const batchSize = 3;
+    for (let i = 0; i < entities.length; i += batchSize) {
+      const batch = entities.slice(i, i + batchSize);
+      await Promise.allSettled(
+        batch.map(async ({ name, method }) => {
+          const storeName = ENTITY_STORE_MAP[name];
+          if (!storeName) return;
+          const records = await method();
+          if (records?.length) await offlineDB.putMany(storeName, records);
+        })
+      );
+    }
 
     await offlineDB.setMeta('lastPreCache', Date.now());
   } catch (e) {
     console.warn('[offline] Pre-cache failed:', e?.message);
+  } finally {
+    _preCacheInProgress = false;
   }
 }
 
