@@ -110,11 +110,25 @@
   ],
   "rls": {
     "create": {
-      "created_by": "{{user.email}}",
       "$or": [
         {
           "user_condition": {
             "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "normal_user"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "beta_tester"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
           }
         }
       ]
