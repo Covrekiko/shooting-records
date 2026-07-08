@@ -223,15 +223,15 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
         await base44.entities.ReloadingTestVariant.update(variant.id, payload);
       } else {
         await base44.entities.ReloadingTestVariant.create(payload);
-        // Increment variant count on parent test — non-critical, don't block onSaved
-        try {
-          const currentTest = await base44.entities.ReloadingTest.filter({ id: test.id }).then(r => r[0]).catch(() => null);
-          await base44.entities.ReloadingTest.update(test.id, {
+        // Refresh the list immediately — don't wait for variant_count update
+        onSaved();
+        // Update variant count on parent test in the background (non-blocking)
+        base44.entities.ReloadingTest.get(test.id)
+          .then(currentTest => base44.entities.ReloadingTest.update(test.id, {
             variant_count: (currentTest?.variant_count || 0) + 1,
-          });
-        } catch (e) {
-          console.warn('[variant] Failed to update test variant_count:', e?.message);
-        }
+          }))
+          .catch(e => console.warn('[variant] Failed to update test variant_count:', e?.message));
+        return;
       }
       onSaved();
     } catch (e) {
