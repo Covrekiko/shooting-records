@@ -79,6 +79,73 @@ export function summarizeReadings(readings) {
   };
 }
 
+export function getStoredSd(result) {
+  const sd = typeof result?.sd === 'number' ? result.sd : parseFloat(result?.sd);
+  return isValidVelocity(sd) || sd === 0 ? sd : null;
+}
+
+export function hasExplicitV2Readings(result) {
+  return Array.isArray(result?.velocity_readings) && result.velocity_readings.length > 0;
+}
+
+export function getSdAssessment(result) {
+  const readings = getVelocityReadings(result);
+  const summary = summarizeReadings(readings);
+  const storedSd = getStoredSd(result);
+  const readingSource = hasExplicitV2Readings(result)
+    ? 'velocity_readings'
+    : readings.length > 0
+      ? 'legacy_velocity_fields'
+      : 'none';
+
+  if (summary.includedCount >= 2 && summary.sd !== null) {
+    return {
+      value: summary.sd,
+      source: 'calculated_sample',
+      label: 'Sample SD (calculated)',
+      formula: 'sample_n_minus_1',
+      comparable: true,
+      usesReadings: true,
+      usesStoredValue: false,
+      readingSource,
+      recordedCount: summary.recordedCount,
+      includedCount: summary.includedCount,
+      storedSd,
+    };
+  }
+
+  if (storedSd !== null) {
+    const source = result?.sd_source === 'manually_entered' ? 'manually_entered' : 'historical_stored';
+    return {
+      value: storedSd,
+      source,
+      label: source === 'manually_entered' ? 'Manual SD' : 'Stored SD (historical/manual)',
+      formula: result?.sd_formula || 'unknown',
+      comparable: false,
+      usesReadings: false,
+      usesStoredValue: true,
+      readingSource,
+      recordedCount: summary.recordedCount,
+      includedCount: summary.includedCount,
+      storedSd,
+    };
+  }
+
+  return {
+    value: null,
+    source: 'unknown',
+    label: 'SD unavailable',
+    formula: 'unknown',
+    comparable: false,
+    usesReadings: false,
+    usesStoredValue: false,
+    readingSource,
+    recordedCount: summary.recordedCount,
+    includedCount: summary.includedCount,
+    storedSd: null,
+  };
+}
+
 // Parse pasted velocity text: newline, comma, semicolon, or whitespace separated.
 // Returns { values: number[], invalid: string[] }. Nothing is written by parsing.
 export function parsePastedVelocities(text) {

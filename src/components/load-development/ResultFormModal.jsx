@@ -47,10 +47,16 @@ export default function ResultFormModal({ open, test, variant, result, onClose, 
   const [fetchingWeather, setFetchingWeather] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [sdSource, setSdSource] = useState('unknown');
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    if (result) setForm(f => ({ ...f, ...result }));
+    if (result) {
+      setForm(f => ({ ...f, ...result }));
+      setSdSource(result.sd_source || (result.sd !== undefined && result.sd !== null ? 'historical_stored' : 'unknown'));
+    } else {
+      setSdSource('unknown');
+    }
   }, [result]);
 
   // Dynamic chronograph readings — expected count follows variant.round_count
@@ -156,6 +162,7 @@ export default function ResultFormModal({ open, test, variant, result, onClose, 
       es: summary.es,
       sd: summary.sd ?? '',
     }));
+    setSdSource(summary.sd !== null ? 'calculated_sample' : 'unknown');
   };
 
   const handleSubmit = async () => {
@@ -182,6 +189,8 @@ export default function ResultFormModal({ open, test, variant, result, onClose, 
         avg_velocity: parseFloat(form.avg_velocity) || null,
         es: parseFloat(form.es) || null,
         sd: parseFloat(form.sd) || null,
+        sd_source: form.sd ? sdSource : 'unknown',
+        sd_formula: sdSource === 'calculated_sample' ? 'sample_n_minus_1' : null,
         pressure_signs_notes: form.pressure_signs_notes,
         recoil_notes: form.recoil_notes,
         accuracy_notes: form.accuracy_notes,
@@ -286,8 +295,9 @@ export default function ResultFormModal({ open, test, variant, result, onClose, 
           <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border">
             <NumberInput label="Avg (fps)" value={form.avg_velocity ?? ''} onChange={v => set('avg_velocity', v)} placeholder="auto" />
             <NumberInput label="ES (fps)" value={form.es ?? ''} onChange={v => set('es', v)} placeholder="auto" />
-            <NumberInput label="SD" value={form.sd ?? ''} onChange={v => set('sd', v)} placeholder="auto" allowDecimal />
+            <NumberInput label={sdSource === 'manually_entered' ? 'SD (Manual Override)' : 'SD'} value={form.sd ?? ''} onChange={v => { set('sd', v); setSdSource(v ? 'manually_entered' : 'unknown'); }} placeholder="auto" allowDecimal />
           </div>
+          <p className="text-[10px] text-muted-foreground">SD convention: Sample SD (N-1). Manual edits are saved as manual override.</p>
         </div>
 
         {/* Environmental Conditions */}

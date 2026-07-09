@@ -1,6 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
-import { getVelocityReadings } from '@/utils/loadDevelopmentStatistics';
+import { getVelocityReadings, getSdAssessment } from '@/utils/loadDevelopmentStatistics';
 
 export const generateLoadTestPDF = (test, variants, results) => {
   const doc = new jsPDF();
@@ -151,10 +151,12 @@ export const generateLoadTestPDF = (test, variants, results) => {
       y += 5;
       doc.setTextColor(0);
 
+      const sdAssessment = getSdAssessment(result);
+
       [
         ['Avg Velocity:', result.avg_velocity ? `${result.avg_velocity} fps` : null],
         ['ES:', result.es],
-        ['SD:', result.sd],
+        [`SD (${sdAssessment.label}):`, sdAssessment.value],
         ['Group Size:', result.group_size_moa ? `${result.group_size_moa} MOA` : (result.group_size_mm ? `${result.group_size_mm}mm` : null)],
         ['Distance:', result.distance_yards ? `${result.distance_yards} yds` : null],
         ['Pressure Signs:', result.pressure_signs_notes],

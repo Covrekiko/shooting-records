@@ -1,3 +1,5 @@
+import { getSdAssessment } from '@/utils/loadDevelopmentStatistics';
+
 const ISSUE_WORDS = ['jam', 'misfeed', 'misfire', 'fail', 'failure', 'pressure', 'stuck', 'split', 'pierced', 'hard bolt', 'eject', 'extract'];
 
 export function average(values) {
@@ -107,7 +109,8 @@ export function buildComparisonRows({ rifles, ammunition, reloadingSessions, tar
     const test = testById[variant.test_id] || {};
     const variantResults = resultsByVariant[variant.id] || [];
     const groupMoas = variantResults.map((result) => result.group_size_moa);
-    const sds = variantResults.map((result) => result.sd);
+    const sdAssessments = variantResults.map((result) => getSdAssessment(result));
+    const calculatedSds = sdAssessments.filter((sd) => sd.comparable).map((sd) => sd.value);
     const esValues = variantResults.map((result) => result.es);
     const notes = variantResults.flatMap((result) => [result.pressure_signs_notes, result.feeding_notes, result.recoil_notes, result.final_comments]).filter(Boolean);
 
@@ -124,7 +127,9 @@ export function buildComparisonRows({ rifles, ammunition, reloadingSessions, tar
       bestMoa: Math.min(...groupMoas.map(Number).filter(Number.isFinite)),
       testedCount: variantResults.filter((result) => result.tested || Number.isFinite(Number(result.group_size_moa))).length,
       reliability: scoreReliability(notes, variantResults.length),
-      consistency: scoreConsistency(average(sds), average(esValues)),
+      consistency: scoreConsistency(average(calculatedSds), average(esValues)),
+      sdAssessments,
+      consistencySdSource: calculatedSds.length ? 'calculated_sample' : 'es_fallback',
       notes,
     };
   });

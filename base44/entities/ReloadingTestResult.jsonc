@@ -70,6 +70,25 @@
       "type": "number",
       "description": "Standard Deviation"
     },
+    "sd_source": {
+      "type": "string",
+      "enum": [
+        "calculated_sample",
+        "historical_stored",
+        "manually_entered",
+        "unknown"
+      ],
+      "description": "Provenance of the stored SD value. calculated_sample uses Sample SD (N-1). Existing historical records may be blank/unknown until saved."
+    },
+    "sd_formula": {
+      "type": "string",
+      "enum": [
+        "sample_n_minus_1",
+        "population_n",
+        "unknown"
+      ],
+      "description": "Formula associated with the stored SD value when known."
+    },
     "pressure_signs_notes": {
       "type": "string"
     },
