@@ -32,20 +32,42 @@ export function createLoadTestPdfPreview(doc) {
   return { blob, url };
 }
 
+export function isShareCancellationError(error) {
+  const name = String(error?.name || '').toLowerCase();
+  const message = String(error?.message || '').toLowerCase();
+  const code = String(error?.code || '').toLowerCase();
+
+  return name === 'aborterror'
+    || code === 'aborterror'
+    || message.includes('abort')
+    || message.includes('cancelled')
+    || message.includes('canceled')
+    || message.includes('user cancel');
+}
+
 export async function saveLoadTestPdf(doc, fileName) {
   const blob = createLoadTestPdfBlob(doc);
   const safeFileName = fileName || 'load-test.pdf';
 
-  if (typeof File !== 'undefined' && navigator?.share) {
+  if (typeof File !== 'undefined' && typeof navigator !== 'undefined' && navigator.share) {
     const file = new File([blob], safeFileName, { type: PDF_MIME_TYPE });
     if (!navigator.canShare || navigator.canShare({ files: [file] })) {
-      await navigator.share({
-        files: [file],
-        title: safeFileName,
-        text: 'Load development PDF',
-      });
-      return 'shared';
+      try {
+        await navigator.share({
+          files: [file],
+          title: safeFileName,
+          text: 'Load development PDF',
+        });
+        return 'shared';
+      } catch (error) {
+        if (isShareCancellationError(error)) return 'share_cancelled';
+        throw error;
+      }
     }
+  }
+
+  if (typeof document === 'undefined' || !document.createElement || !document.body) {
+    throw new Error('PDF saving is not supported in this environment.');
   }
 
   const url = URL.createObjectURL(blob);
@@ -58,7 +80,7 @@ export async function saveLoadTestPdf(doc, fileName) {
   anchor.remove();
 
   window.setTimeout(() => URL.revokeObjectURL(url), 30000);
-  return 'download_started';
+  return 'save_initiated';
 }
 
 export function revokeLoadTestPdfPreview(preview) {

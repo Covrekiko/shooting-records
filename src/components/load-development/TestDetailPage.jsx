@@ -132,7 +132,13 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
     try {
       const doc = generateLoadTestPDF(test, variants, results);
       const result = await saveLoadTestPdf(doc, getLoadTestPdfFileName(test));
-      setPdfMessage(result === 'shared' ? 'PDF opened in the share sheet.' : 'PDF download started.');
+      if (result === 'share_cancelled') {
+        setPdfMessage('');
+      } else if (result === 'shared') {
+        setPdfMessage('PDF shared using the share sheet.');
+      } else {
+        setPdfMessage('PDF save action started. If no save prompt appears, use the PDF preview option.');
+      }
     } catch (e) {
       const message = e?.message || 'PDF download failed.';
       setPdfMessage(message);
