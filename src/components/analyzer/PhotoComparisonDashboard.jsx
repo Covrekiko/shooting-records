@@ -55,7 +55,7 @@ export default function PhotoComparisonDashboard({ onBack }) {
         };
       })
       .filter((group) => !caliber || group.sessionCaliber === caliber)
-      .sort((a, b) => new Date(b.sessionDate) - new Date(a.sessionDate));
+      .sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime());
   }, [groups, sessions, sessionRecords, caliber]);
 
   const calibers = useMemo(() => {

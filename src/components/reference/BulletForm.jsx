@@ -137,7 +137,7 @@ export default function BulletForm({ item, onSaved, onClose }) {
               <Field label="Manufacturer SKU"><input value={form.manufacturer_sku} onChange={e => set('manufacturer_sku', e.target.value)} className={inp} placeholder="e.g. 80753" /></Field>
             </div>
             <Field label="Official Product URL"><input value={form.official_product_url} onChange={e => set('official_product_url', e.target.value)} className={inp} placeholder="https://..." /></Field>
-            <Field label="Notes"><textarea value={form.notes} onChange={e => set('notes', e.target.value)} className={inp} rows="2" /></Field>
+            <Field label="Notes"><textarea value={form.notes} onChange={e => set('notes', e.target.value)} className={inp} rows={2} /></Field>
           </Section>
         </div>
         <div className="flex gap-3 px-5 py-4 border-t border-border flex-shrink-0">

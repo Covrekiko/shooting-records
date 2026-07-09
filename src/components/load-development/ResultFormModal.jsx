@@ -103,11 +103,11 @@ export default function ResultFormModal({ open, test, variant, result, onClose, 
     if (!current) return false;
     setForm(f => ({
       ...f,
-      air_pressure_value: current.surface_pressure != null ? Math.round(current.surface_pressure) : f.air_pressure_value,
+      air_pressure_value: current.surface_pressure != null ? String(Math.round(current.surface_pressure)) : f.air_pressure_value,
       air_pressure_unit: 'hPa',
-      temperature_value: current.temperature_2m != null ? current.temperature_2m : f.temperature_value,
+      temperature_value: current.temperature_2m != null ? String(current.temperature_2m) : f.temperature_value,
       temperature_unit: '°C',
-      humidity: current.relative_humidity_2m != null ? current.relative_humidity_2m : f.humidity,
+      humidity: current.relative_humidity_2m != null ? String(current.relative_humidity_2m) : f.humidity,
     }));
     return true;
   };
@@ -137,10 +137,10 @@ export default function ResultFormModal({ open, test, variant, result, onClose, 
         if (cur) {
           setForm(f => ({
             ...f,
-            temperature_value: parseFloat(cur.temp_C) || f.temperature_value,
+            temperature_value: cur.temp_C || f.temperature_value,
             temperature_unit: '°C',
-            humidity: parseFloat(cur.humidity) || f.humidity,
-            air_pressure_value: parseFloat(cur.pressure) || f.air_pressure_value,
+            humidity: cur.humidity || f.humidity,
+            air_pressure_value: cur.pressure || f.air_pressure_value,
             air_pressure_unit: 'hPa',
           }));
         }
@@ -158,9 +158,9 @@ export default function ResultFormModal({ open, test, variant, result, onClose, 
     if (summary.includedCount === 0) return;
     setForm(f => ({
       ...f,
-      avg_velocity: summary.avg,
-      es: summary.es,
-      sd: summary.sd ?? '',
+      avg_velocity: String(summary.avg),
+      es: String(summary.es),
+      sd: summary.sd != null ? String(summary.sd) : '',
     }));
     setSdSource(summary.sd !== null ? 'calculated_sample' : 'unknown');
   };

@@ -935,7 +935,7 @@ export default function ComponentManager() {
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
                 placeholder="Any notes about this component"
-                rows="2"
+                rows={2}
               />
             </div>
 

@@ -484,7 +484,7 @@ export default function ManualRecordModal({ record = null, onClose, onSave, reco
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-              rows="3"
+              rows={3}
             />
           </div>
 

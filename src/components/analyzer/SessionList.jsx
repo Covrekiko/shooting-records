@@ -19,7 +19,7 @@ export default function SessionList({ onBack, onView, onNew }) {
       base44.entities.TargetGroup.list(),
       base44.entities.Rifle.filter({ created_by: user.email }),
     ]);
-    setSessions(s.sort((a, b) => new Date(b.date) - new Date(a.date)));
+    setSessions(s.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     setGroups(g);
     setRifles(r);
     setLoading(false);

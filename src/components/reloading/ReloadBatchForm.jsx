@@ -18,7 +18,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
   const [caliberResults, setCaliberResults] = useState([]);
   const [validationError, setValidationError] = useState(null);
   const [showCaliberDropdown, setShowCaliberDropdown] = useState(false);
-  const [stockWarnings, setStockWarnings] = useState({});
+  const [stockWarnings, setStockWarnings] = useState(/** @type {any} */ ({}));
 
   const [formData, setFormData] = useState({
     date: format(new Date(), 'yyyy-MM-dd'),
@@ -250,6 +250,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
 
   const checkStockWarnings = () => {
     const cartridgesLoaded = parseInt(formData.cartridges_loaded) || 0;
+    /** @type {any} */
     const warnings = {};
 
     if (cartridgesLoaded <= 0) return warnings;
@@ -683,7 +684,7 @@ export default function ReloadBatchForm({ onSubmit, onClose }) {
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             className="w-full px-3.5 py-3 border border-input bg-background text-foreground rounded-lg transition-all focus:border-primary focus:ring-1 focus:ring-primary/20 outline-none"
             placeholder="Batch notes"
-            rows="2"
+            rows={2}
           />
         </div>
 

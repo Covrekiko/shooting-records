@@ -177,7 +177,7 @@ export default function StandFormWrapper({ stand, standNumber, onSave, onCancel,
 
       <div>
         <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">Notes</label>
-        <textarea value={form.notes || ''} onChange={e => set('notes', e.target.value)} rows="2" className={inp} placeholder="Optional notes…" />
+        <textarea value={form.notes || ''} onChange={e => set('notes', e.target.value)} rows={2} className={inp} placeholder="Optional notes…" />
       </div>
 
       <div className="flex gap-2">

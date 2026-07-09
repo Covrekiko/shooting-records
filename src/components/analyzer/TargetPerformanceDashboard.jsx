@@ -55,7 +55,7 @@ export default function TargetPerformanceDashboard({ onBack }) {
       })
       .filter((group) => group.session && group.group_size_moa > 0)
       .filter((group) => !caliber || group.caliber === caliber)
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     const filteredSessions = Array.from(sessionMap.values()).filter((session) => !caliber || session.caliber === caliber);
     const byMonth = new Map();

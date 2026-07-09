@@ -83,7 +83,7 @@ export default function CleaningLogPanel({ firearm, firearmType, history = [], o
           </div>
           <div>
             <label className="block text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">Notes</label>
-            <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className={inp} rows="3" placeholder="Optional details, products used, issues found…" />
+            <textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className={inp} rows={3} placeholder="Optional details, products used, issues found…" />
           </div>
         </div>
       </GlobalModal>

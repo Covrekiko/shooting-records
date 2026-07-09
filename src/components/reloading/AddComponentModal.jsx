@@ -46,6 +46,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
     max_reloads: '',
     reload_limit: '',
     brass_use_type: 'new',
+    anneal_count: '',
   });
 
   const inp = 'w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring/40';
@@ -88,6 +89,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
       displayName = `${formData.brand} ${formData.bullet_name} (${formData.caliber})`;
     }
 
+    /** @type {any} */
     const componentData = {
       component_type: componentType,
       name: displayName,
@@ -244,7 +246,6 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
             onChange={(v) => set('quantity_total', v)}
             placeholder={componentType === 'powder' ? '1000' : '100'}
             allowDecimal={componentType === 'powder'}
-            required
           />
           <div>
             <label className={lbl}>Unit</label>
@@ -260,7 +261,6 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
           onChange={(v) => set('price_total', v)}
           placeholder="0.00"
           allowDecimal
-          required
         />
 
         <div>
@@ -278,7 +278,7 @@ export default function AddComponentModal({ isOpen, onClose, onSave, componentTy
         <div>
           <label className={lbl}>Notes (optional)</label>
           <textarea value={formData.notes ?? ''} onChange={(e) => set('notes', e.target.value)}
-            className={inp} rows="2" placeholder="Any additional notes" />
+            className={inp} rows={2} placeholder="Any additional notes" />
         </div>
       </div>
     </GlobalModal>

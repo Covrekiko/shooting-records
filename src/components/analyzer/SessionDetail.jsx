@@ -23,7 +23,7 @@ export default function SessionDetail({ session, onBack, onEdit, onNewSession })
       base44.entities.TargetGroup.filter({ session_id: session.id }),
       session.scope_profile_id ? base44.entities.ScopeProfile.filter({ id: session.scope_profile_id }) : Promise.resolve([]),
     ]);
-    setGroups(g.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)));
+    setGroups(g.sort((a, b) => new Date(a.created_date).getTime() - new Date(b.created_date).getTime()));
     setScopeProfile(sp[0] || null);
     setLoading(false);
   };
@@ -208,6 +208,7 @@ export default function SessionDetail({ session, onBack, onEdit, onNewSession })
               onDuplicate={() => handleDuplicateGroup(group)}
               onSaveToScope={() => handleSaveToScopeCard(group)}
               onMarkBest={() => handleMarkBest(group)}
+              allGroups={groups}
             />
           ))}
         </div>

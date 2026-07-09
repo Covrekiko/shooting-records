@@ -717,7 +717,7 @@ export default function ClayScorecard({ session, shotguns, ammunition, onClose }
               </AnimatePresence>
 
               {showAddForm ? (
-                <StandFormWrapper standNumber={nextStandNumber} onSave={handleAddStand} onCancel={() => setShowAddForm(false)} />
+                <StandFormWrapper stand={null} standNumber={nextStandNumber} initialShots={[]} onSave={handleAddStand} onCancel={() => setShowAddForm(false)} />
               ) : (
                 <motion.button whileTap={{ scale: 0.97 }} onClick={() => setShowAddForm(true)}
                   className="w-full py-4 bg-primary text-primary-foreground rounded-2xl font-bold text-base flex items-center justify-center gap-2">

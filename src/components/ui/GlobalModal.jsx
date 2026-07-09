@@ -112,7 +112,7 @@ export function ModalFooter({ children }) {
 export function ModalSaveButton({ children = 'Save', danger = false, disabled = false, type = 'submit', onClick }) {
   return (
     <button
-      type={type}
+      type={/** @type {'button' | 'submit' | 'reset'} */ (type)}
       disabled={disabled}
       onClick={onClick}
       className={`flex-1 h-11 rounded-xl font-semibold text-sm transition-colors active:scale-95 disabled:opacity-50 ${

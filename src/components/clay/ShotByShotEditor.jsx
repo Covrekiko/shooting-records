@@ -143,6 +143,7 @@ export default function ShotByShotEditor({ totalShots, shots, shotMeta, noBirds,
       setLastCommand(result);
       setTimeout(() => setVoiceFlash(null), 800);
     },
+    onStatusChange: () => {},
   });
 
   // ─── CALCULATIONS ─────────────────────────────────────────────────

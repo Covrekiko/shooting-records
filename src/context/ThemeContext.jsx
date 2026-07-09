@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { THEME_KEYS, applyThemeToCSSVariables, ThemeStorage } from '@/lib/themeSystem';
 
-const ThemeContext = createContext();
+const ThemeContext = createContext(null);
 
 /**
  * Theme Provider Component

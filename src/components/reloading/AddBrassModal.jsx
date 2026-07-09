@@ -189,7 +189,6 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
             value={formData.quantity_total ?? ''}
             onChange={(v) => set('quantity_total', v)}
             placeholder="100"
-            required
           />
           <NumberInput
             label="Total Cost"
@@ -198,7 +197,6 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
             placeholder="0.00"
             unit="£"
             allowDecimal
-            required
           />
         </div>
 
@@ -227,7 +225,7 @@ export default function AddBrassModal({ isOpen, onClose, onSave, defaultIsUsed =
         <div>
           <label className={lbl}>Notes (optional)</label>
           <textarea value={formData.notes ?? ''} onChange={(e) => set('notes', e.target.value)}
-            className={inp} rows="2" placeholder="Any additional notes" />
+            className={inp} rows={2} placeholder="Any additional notes" />
         </div>
       </div>
     </GlobalModal>

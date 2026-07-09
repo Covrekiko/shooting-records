@@ -18,7 +18,7 @@ export default function BrassLifecycleManager({ brass, onUpdated }) {
       .then((logs) => {
         if (!mounted) return;
         setMovementLogs((logs || [])
-          .sort((a, b) => new Date(b.movement_date || b.created_date) - new Date(a.movement_date || a.created_date))
+          .sort((a, b) => new Date(b.movement_date || b.created_date).getTime() - new Date(a.movement_date || a.created_date).getTime())
           .slice(0, 10));
       })
       .catch(() => { if (mounted) setMovementLogs([]); });

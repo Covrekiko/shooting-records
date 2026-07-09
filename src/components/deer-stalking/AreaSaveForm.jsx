@@ -162,7 +162,7 @@ export default function AreaSaveForm({ polygon, onSave, onCancel, onFlyTo }) {
           <textarea value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             placeholder="e.g. Good for stalking in autumn..."
-            className={DESIGN.INPUT} rows="3" />
+            className={DESIGN.INPUT} rows={3} />
         </div>
       </div>
     </GlobalModal>

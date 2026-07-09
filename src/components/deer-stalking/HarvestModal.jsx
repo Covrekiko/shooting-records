@@ -100,7 +100,7 @@ export default function HarvestModal({ location, onClose, onSubmit }) {
         <div>
           <label className={DESIGN.LABEL}>Notes (optional)</label>
           <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
-            className={DESIGN.INPUT} rows="3"
+            className={DESIGN.INPUT} rows={3}
             placeholder="Add details about the harvest..." />
         </div>
 

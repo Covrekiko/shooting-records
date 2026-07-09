@@ -999,7 +999,7 @@ export default function TargetPhotoAnalyzer({ session, groups = [], editGroup, r
 
           <div className="mb-4">
             <label className={lbl}>Notes</label>
-            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows="2" placeholder="Notes about this group…" className={inp} />
+            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} placeholder="Notes about this group…" className={inp} />
           </div>
           <label className="flex items-center gap-3 mb-4 cursor-pointer">
              <input type="checkbox" checked={confirmedZero} onChange={e => setConfirmedZero(e.target.checked)} className="w-5 h-5" />

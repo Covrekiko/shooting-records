@@ -16,7 +16,7 @@ export default function ScopeProfileForm({ profile, rifles, onSave, onClose }) {
     rifle_id: '', rifle_name: '', caliber: '', scope_brand: '', scope_model: '',
     reticle_type: '', turret_type: 'MOA', click_value: '1/4 MOA',
     zero_distance: '', zero_ammo_id: '', zero_ammo_source: '',
-    zero_ammo: '', bullet_brand: '', bullet_weight: '',
+    zero_ammo: '', bullet_brand: '', bullet_weight: '', click_value_custom: '',
     setup_type: 'standard', notes: '', photos: [], active: true,
   });
   const [uploading, setUploading] = useState(false);
@@ -86,6 +86,7 @@ export default function ScopeProfileForm({ profile, rifles, onSave, onClose }) {
         <div>
           <label className={lbl}>Scope Reference Database <span className="normal-case font-normal text-muted-foreground">(optional autofill)</span></label>
           <ScopeReferencePicker
+            selectedId=""
             onSelect={(s) => {
               set('scope_brand', s.manufacturer);
               set('scope_model', s.model);
@@ -132,7 +133,7 @@ export default function ScopeProfileForm({ profile, rifles, onSave, onClose }) {
           </div>
         </div>
         {form.click_value === 'custom' && (
-          <input value={form.click_value_custom || ''} onChange={e => set('click_value', e.target.value)}
+          <input value={form.click_value_custom || ''} onChange={e => set('click_value_custom', e.target.value)}
             placeholder="Enter custom click value" className={inp} />
         )}
 
@@ -147,6 +148,7 @@ export default function ScopeProfileForm({ profile, rifles, onSave, onClose }) {
           <label className={lbl}>Zero Ammunition <span className="normal-case font-normal text-muted-foreground">(from your inventory)</span></label>
           <UserAmmoSelector
             filterCaliber={form.caliber}
+            selectedId={form.zero_ammo_id || ''}
             onSelect={(a) => {
               set('zero_ammo_id', a.id);
               set('zero_ammo_source', a.source);
@@ -185,7 +187,7 @@ export default function ScopeProfileForm({ profile, rifles, onSave, onClose }) {
         {/* Notes */}
         <div>
           <label className={lbl}>Notes</label>
-          <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows="3" placeholder="Setup notes, conditions, etc." className={inp} />
+          <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={3} placeholder="Setup notes, conditions, etc." className={inp} />
         </div>
 
         {/* Photos */}

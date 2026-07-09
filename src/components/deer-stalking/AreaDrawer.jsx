@@ -76,7 +76,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
     <>
       {/* Floating Map Search */}
       <div className="fixed right-4 top-1/2 transform -translate-y-1/2 z-[9999]">
-        <FloatingMapSearch onSearch={handleMapSearch} />
+        <FloatingMapSearch onSearch={handleMapSearch} onError={() => {}} />
       </div>
 
       {/* Google Map */}
@@ -84,7 +84,7 @@ export default function AreaDrawer({ userLocation, onFinish, onCancel, mapCenter
         mapContainerStyle={mapContainerStyle}
         center={center}
         zoom={zoom}
-        onLoad={(map) => (mapRef.current = map)}
+        onLoad={(map) => { mapRef.current = map; }}
         onClick={handleMapClick}
         options={{
           mapTypeId: useSatellite ? 'satellite' : 'roadmap',

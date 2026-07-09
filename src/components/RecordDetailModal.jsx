@@ -238,7 +238,7 @@ export default function RecordDetailModal({ record, onClose, rifles, shotguns, c
                       onClick={() => window.open(photoUrl, '_blank')}
                       className="relative group overflow-hidden rounded-lg border border-border"
                     >
-                      <img src={photoUrl} alt={`Photo ${i + 1}`} className="h-24 w-24 object-cover" onError={(e) => e.target.style.display = 'none'} />
+                      <img src={photoUrl} alt={`Photo ${i + 1}`} className="h-24 w-24 object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                         <span className="text-white text-xs font-bold opacity-0 group-hover:opacity-100">Open</span>
                       </div>

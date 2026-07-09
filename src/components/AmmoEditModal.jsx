@@ -112,7 +112,7 @@ export default function AmmoEditModal({ ammo, isOpen, onClose, onSave }) {
           <label className={lbl}>Notes</label>
           <textarea value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            className={inp} rows="3" placeholder="Additional notes" />
+            className={inp} rows={3} placeholder="Additional notes" />
         </div>
       </div>
     </GlobalModal>

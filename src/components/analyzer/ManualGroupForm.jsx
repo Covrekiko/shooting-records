@@ -81,10 +81,12 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
     // Click calculations
     const clickVal = scopeProfile?.click_value || '1/4 MOA';
     const isMrad = clickVal.toLowerCase().includes('mrad');
-    const clicksElev = isMrad ? Math.round((parseFloat(form.point_of_impact_y) / distM) / parseFloat(clickVal) * 10) / 10
-      : calcClicksFromMoa(mmToMoa(Math.abs(parseFloat(form.point_of_impact_y) || 0), distM), clickVal);
-    const clicksWind = isMrad ? Math.round((parseFloat(form.point_of_impact_x) / distM) / parseFloat(clickVal) * 10) / 10
-      : calcClicksFromMoa(mmToMoa(Math.abs(parseFloat(form.point_of_impact_x) || 0), distM), clickVal);
+    const impactY = Number(form.point_of_impact_y) || 0;
+    const impactX = Number(form.point_of_impact_x) || 0;
+    const clicksElev = isMrad ? Math.round((impactY / distM) / parseFloat(clickVal) * 10) / 10
+      : calcClicksFromMoa(mmToMoa(Math.abs(impactY), distM), clickVal);
+    const clicksWind = isMrad ? Math.round((impactX / distM) / parseFloat(clickVal) * 10) / 10
+      : calcClicksFromMoa(mmToMoa(Math.abs(impactX), distM), clickVal);
 
     if (!isFinite(moa) || !isFinite(mrad)) return;
 
@@ -93,10 +95,10 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
       moa: Math.round(moa * 100) / 100,
       mrad: Math.round(mrad * 1000) / 1000,
       inches: Math.round(mm / 25.4 * 100) / 100,
-      clicksUp: form.point_of_impact_y < 0 ? Math.round(Math.abs(clicksElev) * 10) / 10 : 0,
-      clicksDown: form.point_of_impact_y > 0 ? Math.round(Math.abs(clicksElev) * 10) / 10 : 0,
-      clicksRight: form.point_of_impact_x < 0 ? Math.round(Math.abs(clicksWind) * 10) / 10 : 0,
-      clicksLeft: form.point_of_impact_x > 0 ? Math.round(Math.abs(clicksWind) * 10) / 10 : 0,
+      clicksUp: impactY < 0 ? Math.round(Math.abs(clicksElev) * 10) / 10 : 0,
+      clicksDown: impactY > 0 ? Math.round(Math.abs(clicksElev) * 10) / 10 : 0,
+      clicksRight: impactX < 0 ? Math.round(Math.abs(clicksWind) * 10) / 10 : 0,
+      clicksLeft: impactX > 0 ? Math.round(Math.abs(clicksWind) * 10) / 10 : 0,
       clickValue: clickVal,
     });
   };
@@ -118,8 +120,8 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
       group_size_moa: calculated?.moa || 0,
       group_size_mrad: calculated?.mrad || 0,
       group_size_inches: calculated?.inches || 0,
-      point_of_impact_x: parseFloat(form.point_of_impact_x) || 0,
-      point_of_impact_y: parseFloat(form.point_of_impact_y) || 0,
+      point_of_impact_x: Number(form.point_of_impact_x) || 0,
+      point_of_impact_y: Number(form.point_of_impact_y) || 0,
       clicks_up_down: (calculated?.clicksUp || 0) - (calculated?.clicksDown || 0),
       clicks_left_right: (calculated?.clicksRight || 0) - (calculated?.clicksLeft || 0),
       confirmed: form.confirmed,
@@ -286,7 +288,7 @@ export default function ManualGroupForm({ session, editGroup, scopeProfile, grou
           </label>
           <div>
             <label className={lbl}>Notes</label>
-            <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows="3" placeholder="e.g. Windy, first cold bore shot excluded" className={inp} />
+            <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={3} placeholder="e.g. Windy, first cold bore shot excluded" className={inp} />
           </div>
         </div>
 

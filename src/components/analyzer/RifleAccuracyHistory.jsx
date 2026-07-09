@@ -72,7 +72,7 @@ export default function RifleAccuracyHistory({ onBack }) {
 
   const rifle = rifles.find(r => r.id === selectedRifle);
   const stats = selectedRifle ? getRifleStats(selectedRifle) : null;
-  const rifleSessions = sessions.filter(s => s.rifle_id === selectedRifle).sort((a, b) => new Date(b.date) - new Date(a.date));
+  const rifleSessions = sessions.filter(s => s.rifle_id === selectedRifle).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   if (loading) return (
     <main className="max-w-2xl mx-auto px-4 pt-4 pb-8 flex justify-center min-h-[40vh] items-center">

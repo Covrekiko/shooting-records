@@ -31,7 +31,6 @@ export default function ScorecardShareButton({ scorecard, stands = [] }) {
         type="button"
         whileTap={{ scale: 0.95 }}
         onClick={handleNativeShare}
-        onLongPress={() => setIsOpen(!isOpen)}
         onContextMenu={(e) => {
           e.preventDefault();
           setIsOpen(!isOpen);

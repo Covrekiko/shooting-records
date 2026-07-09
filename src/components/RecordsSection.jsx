@@ -139,6 +139,9 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
           key={record.id}
           record={record}
           onView={setViewingRecord}
+          onViewTrack={() => setViewingRecord(record)}
+          onViewPhoto={() => setViewingRecord(record)}
+          onEdit={() => setViewingRecord(record)}
           onDelete={() => handleDelete(record.id)}
           onPdf={handlePdfPreview}
           generatingPdf={generatingPdf === record.id}
@@ -169,7 +172,6 @@ export default function RecordsSection({ category, title, emptyMessage = 'No rec
          <PdfPreviewModal 
            pdfUrl={previewingPdf.url}
            onClose={() => { setPreviewingPdf(null); URL.revokeObjectURL(previewingPdf.url); }}
-           record={previewingPdf.record}
          />,
          document.body
        )}

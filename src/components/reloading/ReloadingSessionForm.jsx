@@ -202,7 +202,7 @@ export default function ReloadingSessionForm({ session, onSubmit, onClose }) {
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className={inputCls}
-              rows="2"
+              rows={2}
               placeholder="Load data, observations, etc."
             />
           </div>

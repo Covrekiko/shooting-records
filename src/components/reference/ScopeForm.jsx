@@ -125,7 +125,7 @@ export default function ScopeForm({ item, onSaved, onClose }) {
               <Field label="Waterproof"><input value={form.waterproof_rating} onChange={e => set('waterproof_rating', e.target.value)} className={inp} placeholder="IPX7" /></Field>
             </div>
             <Field label="Official Product URL"><input value={form.official_product_url} onChange={e => set('official_product_url', e.target.value)} className={inp} placeholder="https://..." /></Field>
-            <Field label="Notes"><textarea value={form.notes} onChange={e => set('notes', e.target.value)} className={inp} rows="2" /></Field>
+            <Field label="Notes"><textarea value={form.notes} onChange={e => set('notes', e.target.value)} className={inp} rows={2} /></Field>
           </Section>
         </div>
         <div className="flex gap-3 px-5 py-4 border-t border-border flex-shrink-0">

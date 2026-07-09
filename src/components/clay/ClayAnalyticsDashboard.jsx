@@ -31,7 +31,7 @@ export default function ClayAnalyticsDashboard({ sessions, stands, onRefresh }) 
     });
 
     return Object.values(months)
-      .sort((a, b) => new Date(a.month) - new Date(b.month))
+      .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime())
       .map(m => ({
         ...m,
         hitPercentage: m.totalValid > 0 ? Math.round((m.totalHits / m.totalValid) * 100) : 0,

@@ -203,6 +203,7 @@ export default function NewSessionForm({ editSession, onSaved, onBack }) {
             <label className={lbl}>Bullet Reference Database <span className="normal-case font-normal text-muted-foreground">(optional autofill)</span></label>
             <BulletReferencePicker
               filterCaliber={form.caliber}
+              selectedId=""
               onSelect={(b) => {
                 if (b.caliber) set('caliber', b.caliber);
                 if (b.weight_grains) set('bullet_weight', `${b.weight_grains}gr`);
@@ -315,7 +316,7 @@ export default function NewSessionForm({ editSession, onSaved, onBack }) {
           <p className="font-semibold text-sm">Notes & Photos</p>
           <div>
             <label className={lbl}>Notes</label>
-            <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows="3" placeholder="Session notes…" className={inp} />
+            <textarea value={form.notes} onChange={e => set('notes', e.target.value)} rows={3} placeholder="Session notes…" className={inp} />
           </div>
           <div>
             <label className={lbl}>Session Photos</label>

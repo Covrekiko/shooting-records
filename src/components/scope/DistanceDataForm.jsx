@@ -182,7 +182,7 @@ export default function DistanceDataForm({ row, turretType, onSave, onClose }) {
         <div>
           <label className={lbl}>Notes</label>
           <textarea value={form.notes} onChange={e => set('notes', e.target.value)}
-            rows="2" placeholder="e.g. 10 mph wind from right" className={inp} />
+            rows={2} placeholder="e.g. 10 mph wind from right" className={inp} />
         </div>
 
         {/* Photos */}

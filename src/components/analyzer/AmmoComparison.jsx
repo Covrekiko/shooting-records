@@ -43,7 +43,7 @@ export default function AmmoComparison({ onBack }) {
       const moas = a.groups.map(g => g.group_size_moa);
       const best = moas.length ? Math.min(...moas) : null;
       const avg = moas.length ? moas.reduce((s, m) => s + m, 0) / moas.length : null;
-      const lastSession = a.sessions.sort((x, y) => new Date(y.date) - new Date(x.date))[0];
+      const lastSession = [...a.sessions].sort((x, y) => new Date(y.date).getTime() - new Date(x.date).getTime())[0];
       return {
         ammo: a.ammo,
         sessions: a.sessions.length,

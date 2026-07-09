@@ -137,7 +137,7 @@ export const stateUpdate = (state) => {
   };
 };
 
-export async function logBrassMovement({ brassId, reloadBatchId, recordId, ammunitionId, quantity, movementType, previousState, newState, notes }) {
+export async function logBrassMovement({ brassId, reloadBatchId = '', recordId = '', ammunitionId = '', quantity, movementType, previousState, newState, notes = '' }) {
   await base44.entities.BrassMovementLog.create({
     brass_id: brassId,
     reload_batch_id: reloadBatchId || '',
@@ -227,7 +227,7 @@ export async function getReusedBrassStockRestoreWarning(ammo, recordId) {
     const brassLogs = await base44.entities.BrassMovementLog.filter({ created_by: user.email, brass_id: firedLog.brass_id });
     const orderedLogs = brassLogs
       .filter(log => log.movement_date)
-      .sort((a, b) => new Date(a.movement_date) - new Date(b.movement_date));
+      .sort((a, b) => new Date(a.movement_date).getTime() - new Date(b.movement_date).getTime());
 
     const firedTime = new Date(firedLog.movement_date).getTime();
     const recoveredLog = orderedLogs.find(log =>

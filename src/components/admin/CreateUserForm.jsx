@@ -474,7 +474,7 @@ export default function CreateUserForm({ onSuccess, onCancel, user }) {
                 onChange={(e) => handleChange('betaTesterNotes', e.target.value)}
                 placeholder="Internal notes about this beta tester..."
                 className="w-full px-3 py-2.5 border border-border rounded-lg bg-background text-sm"
-                rows="3"
+                rows={3}
               />
             </div>
 

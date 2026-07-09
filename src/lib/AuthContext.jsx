@@ -6,7 +6,7 @@ import { cacheUserProfile, clearCachedUserProfiles, getCachedUserProfile } from 
 import { preCacheUserData } from '@/lib/offlineSupport';
 import { offlineDB, ENTITY_STORE_MAP } from '@/lib/offlineDB';
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 const AUTH_RETRY_COOLDOWN_MS = 60000;
 let lastAuthFailureAt = 0;
 const sdkDiagLogged = new Set();

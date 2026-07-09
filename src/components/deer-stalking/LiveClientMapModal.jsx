@@ -115,7 +115,7 @@ export default function LiveClientMapModal({ open, onClose, clients = [], onView
           mapContainerStyle={mapContainerStyle}
           center={defaultCenter}
           zoom={10}
-          onLoad={(map) => (mapRef.current = map)}
+          onLoad={(map) => { mapRef.current = map; }}
           options={{ disableDefaultUI: true, gestureHandling: 'greedy', mapTypeId: 'roadmap' }}
         >
           {clients.map((log) => {

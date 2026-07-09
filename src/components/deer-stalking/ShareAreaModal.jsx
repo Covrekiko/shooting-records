@@ -98,7 +98,7 @@ export default function ShareAreaModal({ areas, markers, onClose }) {
             <div><label className={DESIGN.LABEL}>Invitee / client name</label><input value={formData.invitee_name} onChange={(e) => setFormData({ ...formData, invitee_name: e.target.value })} className={DESIGN.INPUT} required /></div>
             <div><label className={DESIGN.LABEL}>Owner / company display name</label><input value={formData.owner_display_name} onChange={(e) => setFormData({ ...formData, owner_display_name: e.target.value })} className={DESIGN.INPUT} required /></div>
           </div>
-          <div><label className={DESIGN.LABEL}>Optional note/message</label><textarea value={formData.note} onChange={(e) => setFormData({ ...formData, note: e.target.value })} className={DESIGN.INPUT} rows="2" /></div>
+          <div><label className={DESIGN.LABEL}>Optional note/message</label><textarea value={formData.note} onChange={(e) => setFormData({ ...formData, note: e.target.value })} className={DESIGN.INPUT} rows={2} /></div>
         </section>
 
         <section className={`${DESIGN.CARD} p-4 space-y-3`}>
