@@ -45,10 +45,22 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
         base44.entities.ReloadingTestVariant.filter({ test_id: test.id }),
         base44.entities.ReloadingTestResult.filter({ test_id: test.id }),
       ]);
-      setVariants(vs);
-      setResults(rs);
-    } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+
+      console.log('[loadData]', {
+        testId: test.id,
+        testIdType: typeof test.id,
+        variants: vs,
+        variantCount: vs?.length,
+      });
+
+      setVariants(Array.isArray(vs) ? vs : []);
+      setResults(Array.isArray(rs) ? rs : []);
+    } catch (e) {
+      console.error('[loadData failed]', e);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getResultForVariant = (variantId) => results.find(r => r.variant_id === variantId);
@@ -520,7 +532,17 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
         variant={editingVariant}
         variantCount={variants.length}
         onClose={() => { setShowVariantForm(false); setEditingVariant(null); }}
-        onSaved={() => { setShowVariantForm(false); setEditingVariant(null); loadData(); }}
+        onSaved={(savedVariant) => {
+          setVariants(prev => {
+            const exists = prev.some(v => v.id === savedVariant.id);
+            return exists
+              ? prev.map(v => v.id === savedVariant.id ? savedVariant : v)
+              : [...prev, savedVariant];
+          });
+          setShowVariantForm(false);
+          setEditingVariant(null);
+          loadData();
+        }}
       />
 
       <ResultFormModal

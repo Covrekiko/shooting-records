@@ -220,11 +220,39 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
       }
 
       if (variant) {
-        await base44.entities.ReloadingTestVariant.update(variant.id, payload);
+        const updated = await base44.entities.ReloadingTestVariant.update(variant.id, payload);
+        onSaved(updated || { ...variant, ...payload });
       } else {
-        await base44.entities.ReloadingTestVariant.create(payload);
-        // Refresh the list immediately — don't wait for variant_count update
-        onSaved();
+        // === CREATE PATH: capture, verify, validate test_id ===
+        const created = await base44.entities.ReloadingTestVariant.create(payload);
+
+        console.log('[ReloadingTestVariant:create]', {
+          created,
+          expectedTestId: test.id,
+          actualTestId: created?.test_id,
+          createdId: created?.id,
+        });
+
+        if (!created?.id) {
+          throw new Error('CREATE_RETURNED_NO_ID: Variant create returned no ID');
+        }
+
+        // Verify persistence immediately
+        const verified = await base44.entities.ReloadingTestVariant.get(created.id);
+
+        if (!verified) {
+          throw new Error('CREATED_BUT_GET_FAILED: Variant was created but cannot be read back');
+        }
+
+        // Validate relationship field
+        if (String(verified.test_id) !== String(test.id)) {
+          throw new Error(
+            `TEST_ID_MISMATCH: expected ${test.id}, got ${verified.test_id}`
+          );
+        }
+
+        onSaved(verified);
+
         // Update variant count on parent test in the background (non-blocking)
         base44.entities.ReloadingTest.get(test.id)
           .then(currentTest => base44.entities.ReloadingTest.update(test.id, {
@@ -233,7 +261,6 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
           .catch(e => console.warn('[variant] Failed to update test variant_count:', e?.message));
         return;
       }
-      onSaved();
     } catch (e) {
       alert('Error: ' + e.message);
     } finally {
