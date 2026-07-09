@@ -30,8 +30,8 @@ export default function Rifles() {
     model: '',
     caliber: '',
     serial_number: '',
-    total_rounds_fired: 0,
-    cleaning_reminder_threshold: 100,
+    total_rounds_fired: '0',
+    cleaning_reminder_threshold: '100',
     notes: '',
   };
 
@@ -102,7 +102,7 @@ export default function Rifles() {
   };
 
   const startEdit = (rifle) => {
-    setFormData({ ...emptyFormData, ...rifle, total_rounds_fired: rifle.total_rounds_fired || 0 });
+    setFormData({ ...emptyFormData, ...rifle, total_rounds_fired: String(rifle.total_rounds_fired || 0), cleaning_reminder_threshold: String(rifle.cleaning_reminder_threshold || 100) });
     setEditingId(rifle.id);
     setShowForm(true);
   };
@@ -168,7 +168,7 @@ export default function Rifles() {
               <div><label className={lbl}>Current rounds fired</label><input type="number" min="0" value={formData.total_rounds_fired ?? 0} onChange={(e) => setFormData({ ...formData, total_rounds_fired: e.target.value })} className={inp} /></div>
               <div><label className={lbl}>Cleaning reminder</label><input type="number" min="1" value={formData.cleaning_reminder_threshold ?? 100} onChange={(e) => setFormData({ ...formData, cleaning_reminder_threshold: e.target.value })} className={inp} placeholder="e.g. 75" /></div>
             </div>
-            <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows="2" /></div>
+            <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows={2} /></div>
           </div>
         </GlobalModal>
 

@@ -28,8 +28,8 @@ export default function Shotguns() {
     gauge: '',
     barrel_length: '',
     serial_number: '',
-    total_cartridges_fired: 0,
-    cleaning_reminder_threshold: 100,
+    total_cartridges_fired: '0',
+    cleaning_reminder_threshold: '100',
     notes: '',
   };
 
@@ -99,7 +99,7 @@ export default function Shotguns() {
   };
 
   const startEdit = (shotgun) => {
-    setFormData({ ...emptyFormData, ...shotgun, total_cartridges_fired: shotgun.total_cartridges_fired || 0 });
+    setFormData({ ...emptyFormData, ...shotgun, total_cartridges_fired: String(shotgun.total_cartridges_fired || 0), cleaning_reminder_threshold: String(shotgun.cleaning_reminder_threshold || 100) });
     setEditingId(shotgun.id);
     setShowForm(true);
   };
@@ -166,7 +166,7 @@ export default function Shotguns() {
               <div><label className={lbl}>Current shots fired</label><input type="number" min="0" value={formData.total_cartridges_fired ?? 0} onChange={(e) => setFormData({ ...formData, total_cartridges_fired: e.target.value })} className={inp} /></div>
               <div><label className={lbl}>Cleaning reminder</label><input type="number" min="1" value={formData.cleaning_reminder_threshold ?? 100} onChange={(e) => setFormData({ ...formData, cleaning_reminder_threshold: e.target.value })} className={inp} placeholder="e.g. 75" /></div>
             </div>
-            <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows="2" /></div>
+            <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows={2} /></div>
           </div>
         </GlobalModal>
 

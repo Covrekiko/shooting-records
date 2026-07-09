@@ -14,7 +14,7 @@ export default function ReferenceDatabase() {
   const [scopes, setScopes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState(/** @type {any} */ ({}));
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState(null);
   const [showImporter, setShowImporter] = useState(false);

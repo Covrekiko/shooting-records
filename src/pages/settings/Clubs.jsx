@@ -123,7 +123,7 @@ export default function Clubs() {
               <BottomSheetSelect value={formData.type} onChange={(val) => setFormData({ ...formData, type: val })} placeholder="Select type" options={[{ value: 'Target Shooting', label: 'Target Shooting' }, { value: 'Clay Shooting', label: 'Clay Shooting' }, { value: 'Both', label: 'Both' }]} />
             </div>
             <div><label className={lbl}>Location / Address *</label><input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} className={inp} required /></div>
-            <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows="2" /></div>
+            <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows={2} /></div>
           </div>
         </GlobalModal>
 

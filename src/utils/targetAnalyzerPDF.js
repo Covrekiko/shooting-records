@@ -84,7 +84,7 @@ export function generateSessionPDF(session, groups) {
     y = sectionTitle(doc, 'Target Groups', y);
     groups.forEach((g, i) => {
       if (y > 260) { doc.addPage(); y = 14; }
-      doc.setFillColor(...LIGHT);
+      doc.setFillColor(LIGHT[0], LIGHT[1], LIGHT[2]);
       doc.roundedRect(14, y, 182, 26, 2, 2, 'F');
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
@@ -104,7 +104,7 @@ export function generateSessionPDF(session, groups) {
         g.clicks_up_down ? `${Math.abs(g.clicks_up_down).toFixed(1)} clicks ${g.clicks_up_down > 0 ? 'up' : 'down'}` : null,
         g.clicks_left_right ? `${Math.abs(g.clicks_left_right).toFixed(1)} clicks ${g.clicks_left_right > 0 ? 'right' : 'left'}` : null,
       ].filter(Boolean).join('  ');
-      if (corr) { doc.setTextColor(...PRIMARY); doc.text(`Correction: ${corr}`, 18, y + 20); doc.setTextColor(0, 0, 0); }
+      if (corr) { doc.setTextColor(PRIMARY[0], PRIMARY[1], PRIMARY[2]); doc.text(`Correction: ${corr}`, 18, y + 20); doc.setTextColor(0, 0, 0); }
       y += 30;
     });
   }
@@ -191,7 +191,7 @@ export function generateAmmoComparisonPDF(sessions, groups, rifles) {
       doc.setFillColor(255, 251, 230);
       doc.rect(14, y, 182, 7, 'F');
     } else if (i % 2 === 0) {
-      doc.setFillColor(...LIGHT);
+      doc.setFillColor(LIGHT[0], LIGHT[1], LIGHT[2]);
       doc.rect(14, y, 182, 7, 'F');
     }
     doc.setFont('helvetica', i === 0 ? 'bold' : 'normal');
@@ -201,7 +201,7 @@ export function generateAmmoComparisonPDF(sessions, groups, rifles) {
     doc.text(String(row.sessions), 110, y + 5);
     doc.text(row.best, 135, y + 5);
     doc.text(row.avg, 162, y + 5);
-    if (i === 0) { doc.setTextColor(...PRIMARY); doc.text(' ★', 190, y + 5); doc.setTextColor(0, 0, 0); }
+    if (i === 0) { doc.setTextColor(PRIMARY[0], PRIMARY[1], PRIMARY[2]); doc.text(' ★', 190, y + 5); doc.setTextColor(0, 0, 0); }
     y += 8;
   });
 

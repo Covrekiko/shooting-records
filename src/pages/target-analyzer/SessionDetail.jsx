@@ -131,6 +131,7 @@ export default function SessionDetail() {
               key={group.id}
               group={group}
               session={session}
+              allGroups={groups}
               onDelete={() => handleDeleteGroup(group.id)}
               onMarkBest={() => handleMarkBest(group.id)}
               onSaveToScopeCard={() => handleSaveToScopeCard(group)}

@@ -221,7 +221,7 @@ export default function Locations() {
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="w-full px-3 py-2 border border-border rounded-lg bg-background"
-              rows="3"
+              rows={3}
             />
             <div className="flex gap-3">
               <button type="submit" className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90">
