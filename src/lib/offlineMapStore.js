@@ -155,14 +155,39 @@ export async function prepareOfflineAreaPackage({ area, markers = [], harvests =
   return record;
 }
 
+export async function readOfflineMapResponseBlob(response, onProgress = null) {
+  const total = Number(response.headers?.get?.('content-length') || 0);
+  const reader = response.body?.getReader?.();
+
+  if (!reader) {
+    const blob = await response.blob();
+    onProgress?.(100);
+    return blob;
+  }
+
+  const chunks = [];
+  let received = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    received += value.length;
+    onProgress?.(total ? Math.min(100, Math.round((received / total) * 100)) : 0);
+  }
+  onProgress?.(100);
+  return new Blob(chunks, { type: 'application/octet-stream' });
+}
+
 export async function downloadOfflineMapPackage({ id: requestedId = null, name = null, sourceUrl, type = 'custom', area = null, center = null, radiusKm = null, zoomOverride = null, regionName = '', onProgress = null, markers = [], harvests = [] }) {
   const bounds = type === 'radius' ? getBoundsFromRadius(center, radiusKm || 5) : getBoundsFromArea(area);
   const zoom = zoomOverride || chooseZoomStrategy(type, bounds);
   const id = requestedId || (area?.id ? `basemap_area_${area.id}` : makeId());
+  const packageName = name || area?.name || 'Offline map';
+  const createdAt = Date.now();
 
   await offlineDB.put(STORE, {
     id,
-    name: name || area?.name || 'Offline map',
+    name: packageName,
     sourceUrl,
     type,
     regionName,
@@ -170,49 +195,62 @@ export async function downloadOfflineMapPackage({ id: requestedId = null, name =
     zoom,
     status: 'downloading',
     progress: 0,
-    createdAt: Date.now(),
+    createdAt,
     updatedAt: Date.now(),
   });
 
-  const response = await fetch(sourceUrl, { cache: 'no-store' });
-  if (!response.ok) throw new Error('Offline map download failed');
+  try {
+    const response = await fetch(sourceUrl, { cache: 'no-store' });
+    if (!response.ok) throw new Error('Offline map download failed');
 
-  const total = Number(response.headers.get('content-length') || 0);
-  const reader = response.body?.getReader();
-  const chunks = [];
-  let received = 0;
-
-  if (reader) {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-      received += value.length;
-      const progress = total ? Math.round((received / total) * 100) : 0;
+    const blob = await readOfflineMapResponseBlob(response, async (progress) => {
       onProgress?.(progress);
       await offlineDB.put(STORE, {
         id,
-        name: name || area?.name || 'Offline map',
+        name: packageName,
         sourceUrl,
         type,
+        regionName,
         bounds,
         zoom,
         status: 'downloading',
         progress,
-        sizeBytes: total || received,
+        sizeBytes: Number(response.headers?.get?.('content-length') || 0) || undefined,
         overlaySnapshot: buildOfflineAreaSnapshot({ area, markers, harvests }),
-        createdAt: Date.now(),
+        createdAt,
         updatedAt: Date.now(),
       });
-    }
-  }
+    });
 
-  const blob = new Blob(chunks, { type: 'application/octet-stream' });
-  const integrity = await verifyPmtilesBlob(blob);
-  if (!integrity.ok) {
+    const integrity = await verifyPmtilesBlob(blob);
+    if (!integrity.ok) throw new Error(integrity.reason);
+
+    const record = {
+      id,
+      name: packageName,
+      sourceUrl,
+      type,
+      regionName,
+      bounds,
+      zoom,
+      blob,
+      status: 'ready',
+      progress: 100,
+      sizeBytes: blob.size,
+      sizeLabel: formatOfflineMapBytes(blob.size),
+      integrity,
+      layerCapabilities: buildLayerCapabilities([]),
+      overlaySnapshot: buildOfflineAreaSnapshot({ area, markers, harvests }),
+      createdAt,
+      updatedAt: Date.now(),
+    };
+
+    await offlineDB.put(STORE, record);
+    return record;
+  } catch (error) {
     await offlineDB.put(STORE, {
       id,
-      name: name || area?.name || 'Offline map',
+      name: packageName,
       sourceUrl,
       type,
       regionName,
@@ -220,38 +258,13 @@ export async function downloadOfflineMapPackage({ id: requestedId = null, name =
       zoom,
       status: 'failed',
       progress: 100,
-      sizeBytes: blob.size,
-      sizeLabel: formatOfflineMapBytes(blob.size),
-      integrity,
+      lastError: error?.message || 'Offline map download failed',
       overlaySnapshot: buildOfflineAreaSnapshot({ area, markers, harvests }),
-      createdAt: Date.now(),
+      createdAt,
       updatedAt: Date.now(),
     });
-    throw new Error(integrity.reason);
+    throw error;
   }
-
-  const record = {
-    id,
-    name: name || area?.name || 'Offline map',
-    sourceUrl,
-    type,
-    regionName,
-    bounds,
-    zoom,
-    blob,
-    status: 'ready',
-    progress: 100,
-    sizeBytes: blob.size,
-    sizeLabel: formatOfflineMapBytes(blob.size),
-    integrity,
-    layerCapabilities: buildLayerCapabilities([]),
-    overlaySnapshot: buildOfflineAreaSnapshot({ area, markers, harvests }),
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-  };
-
-  await offlineDB.put(STORE, record);
-  return record;
 }
 
 export async function importOfflineMapPackageFromFile({ file, name, regionName }) {

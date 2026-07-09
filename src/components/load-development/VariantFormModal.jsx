@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import GlobalModal, { ModalSaveButton, ModalCancelButton } from '@/components/ui/GlobalModal.jsx';
+import { getRepository } from '@/lib/offlineSupport';
 
 export default function VariantFormModal({ open, test, variant, variantCount, onClose, onSaved }) {
   const [components, setComponents] = useState({ powder: [], bullet: [], brass: [], primer: [] });
@@ -85,8 +86,7 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
   }, [open, variant]);
 
   const loadComponents = async () => {
-    const user = await base44.auth.me();
-    const comps = await base44.entities.ReloadingComponent.filter({ created_by: user.email });
+    const comps = await getRepository('ReloadingComponent').list();
     setComponents({
       powder: comps.filter(c => c.component_type === 'powder'),
       bullet: comps.filter(c => c.component_type === 'bullet'),
@@ -151,7 +151,6 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
     if (!form.label.trim()) return alert('Label is required.');
     setSaving(true);
     try {
-      const user = await base44.auth.me();
       const payload = {
         test_id: test.id,
         label: form.label,
@@ -189,6 +188,7 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
 
       // Deduct stock if requested and not already done
       if (form.deduct_stock && !variant?.stock_deducted) {
+        const user = await base44.auth.me();
         const gramsPerGrain = 0.06479891;
         const roundCount = parseInt(form.round_count) || 0;
 
@@ -219,12 +219,13 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
         payload.stock_deducted = true;
       }
 
+      const variantRepository = getRepository('ReloadingTestVariant');
       if (variant) {
-        const updated = await base44.entities.ReloadingTestVariant.update(variant.id, payload);
+        const updated = await variantRepository.update(variant.id, payload);
         onSaved(updated || { ...variant, ...payload });
       } else {
         // === CREATE PATH: capture, verify, validate test_id ===
-        const created = await base44.entities.ReloadingTestVariant.create(payload);
+        const created = await variantRepository.create(payload);
 
         console.log('[ReloadingTestVariant:create]', {
           created,
@@ -238,7 +239,7 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
         }
 
         // Verify persistence immediately
-        const verified = await base44.entities.ReloadingTestVariant.get(created.id);
+        const verified = await variantRepository.get(created.id);
 
         if (!verified) {
           throw new Error('CREATED_BUT_GET_FAILED: Variant was created but cannot be read back');
@@ -254,8 +255,8 @@ export default function VariantFormModal({ open, test, variant, variantCount, on
         onSaved(verified);
 
         // Update variant count on parent test in the background (non-blocking)
-        base44.entities.ReloadingTest.get(test.id)
-          .then(currentTest => base44.entities.ReloadingTest.update(test.id, {
+        getRepository('ReloadingTest').get(test.id)
+          .then(currentTest => getRepository('ReloadingTest').update(test.id, {
             variant_count: (currentTest?.variant_count || 0) + 1,
           }))
           .catch(e => console.warn('[variant] Failed to update test variant_count:', e?.message));

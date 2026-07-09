@@ -6,6 +6,8 @@ import GroupCard from './GroupCard';
 import ManualGroupForm from './ManualGroupForm';
 import TargetPhotoAnalyzer from './TargetPhotoAnalyzer';
 import { exportSessionPDF } from '@/utils/analyzerPdfExport';
+import { getRepository } from '@/lib/offlineSupport';
+import OfflinePhotoImage from '@/components/OfflinePhotoImage';
 
 export default function SessionDetail({ session, onBack, onEdit, onNewSession }) {
   const [groups, setGroups] = useState([]);
@@ -20,8 +22,8 @@ export default function SessionDetail({ session, onBack, onEdit, onNewSession })
   const loadData = async () => {
     setLoading(true);
     const [g, sp] = await Promise.all([
-      base44.entities.TargetGroup.filter({ session_id: session.id }),
-      session.scope_profile_id ? base44.entities.ScopeProfile.filter({ id: session.scope_profile_id }) : Promise.resolve([]),
+      getRepository('TargetGroup').filter({ session_id: session.id }),
+      session.scope_profile_id ? base44.entities.ScopeProfile.filter({ id: session.scope_profile_id }).catch(() => []) : Promise.resolve([]),
     ]);
     setGroups(g.sort((a, b) => new Date(a.created_date).getTime() - new Date(b.created_date).getTime()));
     setScopeProfile(sp[0] || null);
@@ -30,15 +32,15 @@ export default function SessionDetail({ session, onBack, onEdit, onNewSession })
 
   const handleDeleteGroup = async (id) => {
     if (!confirm('Delete this group?')) return;
-    await base44.entities.TargetGroup.delete(id);
+    await getRepository('TargetGroup').delete(id);
     loadData();
   };
 
   const handleSaveGroup = async (data) => {
     if (editGroup?.id) {
-      await base44.entities.TargetGroup.update(editGroup.id, data);
+      await getRepository('TargetGroup').update(editGroup.id, data);
     } else {
-      await base44.entities.TargetGroup.create({ ...data, session_id: session.id });
+      await getRepository('TargetGroup').create({ ...data, session_id: session.id });
     }
     setShowManualForm(false);
     setShowPhotoAnalyzer(false);
@@ -48,7 +50,7 @@ export default function SessionDetail({ session, onBack, onEdit, onNewSession })
 
   const handleDuplicateSession = async () => {
     const { id, created_date, updated_date, created_by, ...rest } = session;
-    await base44.entities.TargetSession.create({ ...rest, date: new Date().toISOString().split('T')[0] });
+    await getRepository('TargetSession').create({ ...rest, date: new Date().toISOString().split('T')[0] });
     alert('Session duplicated — check Previous Sessions');
   };
 
@@ -73,16 +75,16 @@ export default function SessionDetail({ session, onBack, onEdit, onNewSession })
   const handleMarkBest = async (group) => {
     for (const g of groups) {
       if (g.id !== group.id && g.best_group) {
-        await base44.entities.TargetGroup.update(g.id, { best_group: false });
+        await getRepository('TargetGroup').update(g.id, { best_group: false });
       }
     }
-    await base44.entities.TargetGroup.update(group.id, { best_group: !group.best_group });
+    await getRepository('TargetGroup').update(group.id, { best_group: !group.best_group });
     loadData();
   };
 
   const handleDuplicateGroup = async (group) => {
     const { id, created_date, updated_date, created_by, ...rest } = group;
-    await base44.entities.TargetGroup.create({ ...rest, session_id: session.id, group_name: `${rest.group_name} (copy)`, confirmed: false, best_group: false });
+    await getRepository('TargetGroup').create({ ...rest, session_id: session.id, group_name: `${rest.group_name} (copy)`, confirmed: false, best_group: false });
     loadData();
   };
 
@@ -176,7 +178,7 @@ export default function SessionDetail({ session, onBack, onEdit, onNewSession })
         <div className="mb-4 flex gap-2 overflow-x-auto pb-1">
           {session.photos.map((url, i) => (
             <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-              <img src={url} className="h-24 w-24 object-cover rounded-xl border border-border flex-shrink-0" alt="" />
+              <OfflinePhotoImage src={url} className="h-24 w-24 object-cover rounded-xl border border-border flex-shrink-0" alt="" />
             </a>
           ))}
         </div>

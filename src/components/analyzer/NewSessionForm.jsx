@@ -3,6 +3,9 @@ import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { compressImage } from '@/lib/imageUtils';
 import BulletReferencePicker from '@/components/reference/BulletReferencePicker';
+import { getRepository } from '@/lib/offlineSupport';
+import { saveOfflinePhoto } from '@/lib/offlinePhotoStore';
+import OfflinePhotoImage from '@/components/OfflinePhotoImage';
 
 const DISTANCES = [25, 50, 100, 200, 300, 400, 600];
 const POSITIONS = [
@@ -57,12 +60,11 @@ export default function NewSessionForm({ editSession, onSaved, onBack }) {
   }, []);
 
   const loadOptions = async () => {
-    const user = await base44.auth.me();
     const [r, s, a, rl] = await Promise.all([
-      base44.entities.Rifle.filter({ created_by: user.email }),
-      base44.entities.ScopeProfile.filter({ created_by: user.email }),
-      base44.entities.Ammunition.filter({ created_by: user.email }),
-      base44.entities.ReloadingSession.filter({ created_by: user.email }),
+      getRepository('Rifle').list(),
+      base44.entities.ScopeProfile.list().catch(() => []),
+      getRepository('Ammunition').list(),
+      getRepository('ReloadingSession').list(),
     ]);
     setRifles(r);
     setScopeProfiles(s);
@@ -114,8 +116,12 @@ export default function NewSessionForm({ editSession, onSaved, onBack }) {
       const urls = [...(form.photos || [])];
       for (const file of files) {
         const compressed = await compressImage(file);
-        const { file_url } = await base44.integrations.Core.UploadFile({ file: compressed });
-        urls.push(file_url);
+        if (!navigator.onLine) {
+          urls.push(await saveOfflinePhoto(compressed, file.name));
+        } else {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file: compressed });
+          urls.push(file_url);
+        }
       }
       set('photos', urls);
     } catch (error) {
@@ -137,9 +143,9 @@ export default function NewSessionForm({ editSession, onSaved, onBack }) {
 
     let session;
     if (editSession?.id) {
-      session = await base44.entities.TargetSession.update(editSession.id, payload);
+      session = await getRepository('TargetSession').update(editSession.id, payload);
     } else {
-      session = await base44.entities.TargetSession.create(payload);
+      session = await getRepository('TargetSession').create(payload);
     }
     setSaving(false);
     onSaved(session);
@@ -334,7 +340,7 @@ export default function NewSessionForm({ editSession, onSaved, onBack }) {
               <div className="flex flex-wrap gap-2">
                 {form.photos.map((url, i) => (
                   <div key={i} className="relative group">
-                    <img src={url} className="w-20 h-20 object-cover rounded-xl border border-border" alt="" />
+                    <OfflinePhotoImage src={url} className="w-20 h-20 object-cover rounded-xl border border-border" alt="" />
                     <button type="button" onClick={() => set('photos', form.photos.filter((_, idx) => idx !== i))}
                       className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground w-5 h-5 rounded-full text-xs flex items-center justify-center">×</button>
                   </div>

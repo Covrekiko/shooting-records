@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { Plus } from 'lucide-react';
 import GlobalModal, { ModalSaveButton, ModalCancelButton } from '@/components/ui/GlobalModal.jsx';
+import { getRepository } from '@/lib/offlineSupport';
 
 const TEST_TYPES = [
   'Powder Charge Test',
@@ -30,9 +30,7 @@ export default function CreateTestModal({ open, onClose, onCreated }) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    base44.auth.me().then(u => {
-      base44.entities.Rifle.filter({ created_by: u.email }).then(setRifles).catch(() => {});
-    });
+    getRepository('Rifle').list().then(setRifles).catch(() => {});
   }, []);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -58,7 +56,7 @@ export default function CreateTestModal({ open, onClose, onCreated }) {
 
       if (mode === 'new') {
         if (!newRifle.name.trim()) return alert('Rifle name is required.');
-        const created = await base44.entities.Rifle.create({
+        const created = await getRepository('Rifle').create({
           name: newRifle.name,
           make: newRifle.make,
           model: newRifle.model,
@@ -70,7 +68,7 @@ export default function CreateTestModal({ open, onClose, onCreated }) {
         rifle_name = created.name;
       }
 
-      const test = await base44.entities.ReloadingTest.create({
+      const test = await getRepository('ReloadingTest').create({
         ...form,
         rifle_id,
         rifle_name,

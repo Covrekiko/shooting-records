@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { buildLayerCapabilities, buildOfflineAreaSnapshot, calculateOfflineMapCoverage, formatOfflineMapBytes } from '../../src/lib/offlineMapStore.js';
+import { buildLayerCapabilities, buildOfflineAreaSnapshot, calculateOfflineMapCoverage, formatOfflineMapBytes, readOfflineMapResponseBlob } from '../../src/lib/offlineMapStore.js';
 import { buildOfflineBasemapRequest } from '../../src/lib/offlineBasemapProvider.js';
 
 const area = {
@@ -44,5 +44,16 @@ assert.equal(capabilities.water, true);
 assert.equal(capabilities.buildings, true);
 assert.equal(capabilities.labels, true);
 assert.equal(capabilities.terrain, false);
+
+const pmtilesBytes = new Uint8Array(128);
+pmtilesBytes.set(Array.from('PMTiles').map((char) => char.charCodeAt(0)), 0);
+let fallbackProgress = 0;
+const fallbackBlob = await readOfflineMapResponseBlob({
+  headers: { get: () => String(pmtilesBytes.length) },
+  body: null,
+  blob: async () => new Blob([pmtilesBytes], { type: 'application/octet-stream' }),
+}, (progress) => { fallbackProgress = progress; });
+assert.equal(fallbackBlob.size, 128);
+assert.equal(fallbackProgress, 100);
 
 console.log('offline map store tests passed');

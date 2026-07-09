@@ -285,10 +285,13 @@ function AppContent() {
         import('./pages/DeerStalkingLogs'),
         import('./pages/Records'),
         import('./pages/TargetShooting'),
+        import('./pages/TargetShootingAnalyzer'),
         import('./pages/ClayShooting'),
         import('./pages/DeerManagement'),
         import('./pages/AmmoSummary'),
         import('./pages/LoadDevelopment'),
+        import('./pages/LoadComparison'),
+        import('./pages/ScopeClickCard'),
         import('./pages/SyncConflictCenter'),
       ]);
     });

@@ -16,6 +16,7 @@ export { enqueueAction, getPendingQueue, getPendingCount } from './syncQueue';
 import { base44 } from '@/api/base44Client';
 import { offlineDB, ENTITY_STORE_MAP } from './offlineDB';
 import { connectivityManager } from './connectivityManager';
+import { getCurrentCachePointer } from './authCacheIsolation';
 
 const PRECACHE_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes
 let _preCacheInProgress = false;
@@ -24,8 +25,11 @@ export async function preCacheUserData(userEmail) {
   if (!connectivityManager.isOnline()) return;
   if (_preCacheInProgress) return;
 
-  // Skip if we pre-cached recently
-  const lastPreCache = await offlineDB.getMeta('lastPreCache').catch(() => 0);
+  const cacheOwnerKey = getCurrentCachePointer(typeof window !== 'undefined' ? window.localStorage : null)?.key || '';
+  const preCacheMetaKey = cacheOwnerKey ? `lastPreCache:${cacheOwnerKey}` : 'lastPreCache';
+
+  // Skip if we pre-cached recently for this account
+  const lastPreCache = await offlineDB.getMeta(preCacheMetaKey).catch(() => 0);
   if (lastPreCache && Date.now() - lastPreCache < PRECACHE_COOLDOWN_MS) return;
 
   _preCacheInProgress = true;
@@ -68,12 +72,15 @@ export async function preCacheUserData(userEmail) {
           const storeName = ENTITY_STORE_MAP[name];
           if (!storeName) return;
           const records = await method();
-          if (records?.length) await offlineDB.putMany(storeName, records);
+          if (records?.length) {
+            const ownedRecords = cacheOwnerKey ? records.map((record) => ({ ...record, _cacheOwnerKey: cacheOwnerKey })) : records;
+            await offlineDB.putMany(storeName, ownedRecords);
+          }
         })
       );
     }
 
-    await offlineDB.setMeta('lastPreCache', Date.now());
+    await offlineDB.setMeta(preCacheMetaKey, Date.now());
   } catch (e) {
     console.warn('[offline] Pre-cache failed:', e?.message);
   } finally {

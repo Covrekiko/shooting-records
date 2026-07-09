@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { ArrowLeft, Plus, Target, Trash2, ChevronRight } from 'lucide-react';
+import { getRepository } from '@/lib/offlineSupport';
 import { format } from 'date-fns';
 
 export default function SessionList({ onBack, onView, onNew }) {
@@ -13,11 +13,10 @@ export default function SessionList({ onBack, onView, onNew }) {
   useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
-    const user = await base44.auth.me();
     const [s, g, r] = await Promise.all([
-      base44.entities.TargetSession.filter({ created_by: user.email }),
-      base44.entities.TargetGroup.list(),
-      base44.entities.Rifle.filter({ created_by: user.email }),
+      getRepository('TargetSession').list(),
+      getRepository('TargetGroup').list(),
+      getRepository('Rifle').list(),
     ]);
     setSessions(s.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     setGroups(g);
@@ -29,8 +28,8 @@ export default function SessionList({ onBack, onView, onNew }) {
     e.stopPropagation();
     if (!confirm('Delete this session and all its groups?')) return;
     const sessionGroups = groups.filter(g => g.session_id === id);
-    for (const g of sessionGroups) await base44.entities.TargetGroup.delete(g.id);
-    await base44.entities.TargetSession.delete(id);
+    for (const g of sessionGroups) await getRepository('TargetGroup').delete(g.id);
+    await getRepository('TargetSession').delete(id);
     loadData();
   };
 

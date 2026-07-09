@@ -48,7 +48,7 @@ export default function OfflineMapManager() {
   const selectedRequest = hasRuntimeProvider
     ? { ...configuredRequest, status: 'ready', mode: 'runtime_package', sourceUrl: runtimePackageUrl, providerName: 'Custom PMTiles URL', requiresExternalConfig: false }
     : configuredRequest;
-  const selectedPackageId = selectedArea?.id ? `basemap_area_${selectedArea.id}` : null;
+  const selectedPackageId = selectedArea?.id ? `basemap_area_${selectedArea.id}` : selectedAreaId === 'uk_overview' ? 'basemap_uk_overview' : null;
   const selectedPackage = selectedPackageId ? packages.find((pkg) => pkg.id === selectedPackageId) : null;
   const hasInstalledBasemap = packages.some((pkg) => pkg.status === 'ready' && pkg.blob);
   const hasAnyProvider = hasConfiguredOfflineMapPackage() || hasRuntimeProvider;

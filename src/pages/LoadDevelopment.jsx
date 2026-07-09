@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
+import { getRepository } from '@/lib/offlineSupport';
 import { Plus, Search, ChevronRight, FlaskConical, Trash2, ArrowLeft, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
@@ -46,10 +47,10 @@ export default function LoadDevelopment() {
   const loadTests = async () => {
     try {
       setLoading(true);
-      const u = await base44.auth.me();
+      const u = await base44.auth.me().catch(() => null);
       setUser(u);
-      const data = await base44.entities.ReloadingTest.filter({ created_by: u.email });
-      setTests(data.sort((a, b) => new Date(b.created_date).getTime() - new Date(a.created_date).getTime()));
+      const data = await getRepository('ReloadingTest').list();
+      setTests(data.sort((a, b) => new Date(b.created_date || 0).getTime() - new Date(a.created_date || 0).getTime()));
     } catch (e) {
       console.error(e);
     } finally {
@@ -63,8 +64,8 @@ export default function LoadDevelopment() {
     setViewLoading(true);
     try {
       const [variants, results] = await Promise.all([
-        base44.entities.ReloadingTestVariant.filter({ test_id: test.id }),
-        base44.entities.ReloadingTestResult.filter({ test_id: test.id }),
+        getRepository('ReloadingTestVariant').filter({ test_id: test.id }),
+        getRepository('ReloadingTestResult').filter({ test_id: test.id }),
       ]);
       setViewData({ variants, results });
     } catch (err) { console.error(err); }
@@ -103,14 +104,14 @@ export default function LoadDevelopment() {
     try {
       // Delete related variants and results first
       const [variants, results] = await Promise.all([
-        base44.entities.ReloadingTestVariant.filter({ test_id: testId }),
-        base44.entities.ReloadingTestResult.filter({ test_id: testId }),
+        getRepository('ReloadingTestVariant').filter({ test_id: testId }),
+        getRepository('ReloadingTestResult').filter({ test_id: testId }),
       ]);
       await Promise.all([
-        ...variants.map(v => base44.entities.ReloadingTestVariant.delete(v.id)),
-        ...results.map(r => base44.entities.ReloadingTestResult.delete(r.id)),
+        ...variants.map(v => getRepository('ReloadingTestVariant').delete(v.id)),
+        ...results.map(r => getRepository('ReloadingTestResult').delete(r.id)),
       ]);
-      await base44.entities.ReloadingTest.delete(testId);
+      await getRepository('ReloadingTest').delete(testId);
       loadTests();
     } catch (e) {
       console.error(e);

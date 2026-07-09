@@ -61,13 +61,6 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
         getRepository('ReloadingTestResult').filter({ test_id: test.id }),
       ]);
 
-      console.log('[loadData]', {
-        testId: test.id,
-        testIdType: typeof test.id,
-        variants: vs,
-        variantCount: vs?.length,
-      });
-
       setVariants(Array.isArray(vs) ? vs : []);
       setResults(Array.isArray(rs) ? rs : []);
     } catch (e) {
@@ -123,8 +116,8 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
   const handleSaveTest = async () => {
     setSaving(true);
     try {
-      const updated = await base44.entities.ReloadingTest.update(test.id, testForm);
-      onUpdated({ ...test, ...testForm });
+      const updated = await getRepository('ReloadingTest').update(test.id, testForm);
+      onUpdated(updated || { ...test, ...testForm });
       setEditingTest(false);
     } catch (e) { alert('Error: ' + e.message); }
     finally { setSaving(false); }
@@ -173,8 +166,8 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
 
   const handleStatusChange = async (status) => {
     try {
-      await base44.entities.ReloadingTest.update(test.id, { status });
-      onUpdated({ ...test, status });
+      const updated = await getRepository('ReloadingTest').update(test.id, { status });
+      onUpdated(updated || { ...test, status });
     } catch (e) { alert('Error: ' + e.message); }
   };
 
