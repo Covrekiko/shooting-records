@@ -1,4 +1,4 @@
-import { offlineDB } from './offlineDB';
+import { offlineDB } from './offlineDB.js';
 
 const STORE = 'offline_map_packages';
 
@@ -51,8 +51,8 @@ function chooseZoomStrategy(type, bounds) {
   return { minzoom: 10, maxzoom: 13, label: 'County/local area' };
 }
 
-function formatBytes(bytes = 0) {
-  if (!bytes) return 'Unknown';
+export function formatOfflineMapBytes(bytes = 0) {
+  if (!bytes) return '0 B';
   const units = ['B', 'KB', 'MB', 'GB'];
   let value = bytes;
   let unit = 0;
@@ -69,7 +69,7 @@ export async function listOfflineMapPackages() {
 
 export async function getActiveOfflineMapPackage() {
   const packages = await listOfflineMapPackages();
-  return packages.find((pkg) => pkg.status === 'ready' && pkg.blob) || null;
+  return packages.find((pkg) => pkg.status === 'ready') || null;
 }
 
 export async function deleteOfflineMapPackage(id) {
@@ -79,10 +79,56 @@ export async function deleteOfflineMapPackage(id) {
 export async function estimateOfflineMapPackage(sourceUrl) {
   const response = await fetch(sourceUrl, { method: 'HEAD', cache: 'no-store' });
   const size = Number(response.headers.get('content-length') || 0);
-  return { bytes: size, label: formatBytes(size) };
+  return { bytes: size, label: formatOfflineMapBytes(size) };
 }
 
-export async function downloadOfflineMapPackage({ name, sourceUrl, type = 'custom', area, center, radiusKm, zoomOverride, regionName, onProgress }) {
+export function buildOfflineAreaSnapshot({ area, markers = [], harvests = [] }) {
+  const bounds = getBoundsFromArea(area);
+  const withinBounds = (item) => {
+    if (!bounds) return true;
+    const lat = Number(item.latitude);
+    const lng = Number(item.longitude);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+    return lat >= bounds.minLat && lat <= bounds.maxLat && lng >= bounds.minLng && lng <= bounds.maxLng;
+  };
+  const areaShareMatches = (item) => Boolean(area?.area_share_id && item.area_share_id && item.area_share_id === area.area_share_id);
+  const overlayMarkers = markers.filter((marker) => marker.area_id === area?.id || areaShareMatches(marker) || withinBounds(marker));
+  const overlayHarvests = harvests.filter((harvest) => harvest.area_id === area?.id || areaShareMatches(harvest) || withinBounds(harvest));
+  return {
+    areaId: area?.id || null,
+    areaName: area?.name || 'Selected area',
+    boundaryPoints: area?.polygon_coordinates?.length || 0,
+    markerCount: overlayMarkers.length,
+    highSeatCount: overlayMarkers.filter((marker) => marker.marker_type === 'high_seat').length,
+    harvestCount: overlayHarvests.length,
+    preparedAt: Date.now(),
+  };
+}
+
+export async function prepareOfflineAreaPackage({ area, markers = [], harvests = [], name }) {
+  if (!area?.id) throw new Error('Select an area before preparing offline use.');
+  const bounds = getBoundsFromArea(area);
+  const snapshot = buildOfflineAreaSnapshot({ area, markers, harvests });
+  const record = {
+    id: `area_${area.id}`,
+    name: name || `${area.name} offline data`,
+    type: 'area_overlays',
+    regionName: area.name,
+    bounds,
+    zoom: chooseZoomStrategy('area', bounds),
+    overlaySnapshot: snapshot,
+    status: 'ready',
+    progress: 100,
+    sizeBytes: 0,
+    sizeLabel: '0 B',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+  await offlineDB.put(STORE, record);
+  return record;
+}
+
+export async function downloadOfflineMapPackage({ name, sourceUrl, type = 'custom', area, center, radiusKm, zoomOverride, regionName, onProgress, markers = [], harvests = [] }) {
   const bounds = type === 'radius' ? getBoundsFromRadius(center, radiusKm || 5) : getBoundsFromArea(area);
   const zoom = zoomOverride || chooseZoomStrategy(type, bounds);
   const id = makeId();
@@ -127,6 +173,7 @@ export async function downloadOfflineMapPackage({ name, sourceUrl, type = 'custo
         status: 'downloading',
         progress,
         sizeBytes: total || received,
+        overlaySnapshot: buildOfflineAreaSnapshot({ area, markers, harvests }),
         createdAt: Date.now(),
         updatedAt: Date.now(),
       });
@@ -146,7 +193,8 @@ export async function downloadOfflineMapPackage({ name, sourceUrl, type = 'custo
     status: 'ready',
     progress: 100,
     sizeBytes: blob.size,
-    sizeLabel: formatBytes(blob.size),
+    sizeLabel: formatOfflineMapBytes(blob.size),
+    overlaySnapshot: buildOfflineAreaSnapshot({ area, markers: [], harvests: [] }),
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };
@@ -162,7 +210,7 @@ export async function getOfflineMapStorageSummary() {
   return {
     packages,
     totalBytes,
-    totalLabel: formatBytes(totalBytes),
+    totalLabel: formatOfflineMapBytes(totalBytes),
     browserEstimate,
   };
 }
@@ -173,5 +221,6 @@ export const offlineMapStore = {
   remove: deleteOfflineMapPackage,
   estimate: estimateOfflineMapPackage,
   download: downloadOfflineMapPackage,
+  prepareArea: prepareOfflineAreaPackage,
   summary: getOfflineMapStorageSummary,
 };

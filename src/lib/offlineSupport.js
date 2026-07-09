@@ -4,7 +4,7 @@
  */
 
 export { connectivityManager } from './connectivityManager';
-export { syncEngine, triggerSync, cacheUserProfile, getCachedUserProfile } from './syncEngine';
+export { syncEngine, triggerSync, cacheUserProfile, getCachedUserProfile, clearCachedUserProfiles } from './syncEngine';
 export { getRepository } from './offlineEntityRepository';
 export { offlineDB } from './offlineDB';
 export { enqueueAction, getPendingQueue, getPendingCount } from './syncQueue';

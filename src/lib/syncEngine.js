@@ -7,6 +7,7 @@ import { runSync, getPendingCount } from './syncQueue';
 import { connectivityManager } from './connectivityManager';
 import { offlineDB } from './offlineDB';
 import { base44, savedAuthToken } from '@/api/base44Client';
+import { clearUserCaches, readCurrentUserCache, writeUserCache } from './authCacheIsolation';
 
 export const SYNC_STATE = {
   IDLE: 'idle',
@@ -114,28 +115,28 @@ export const syncEngine = {
 // Save user profile to local DB for offline access (with localStorage fallback)
 export async function cacheUserProfile(user) {
   if (!user) return;
-  // Always save to localStorage as a reliable fallback
+  const cachedAt = Date.now();
+  try { writeUserCache(localStorage, user, cachedAt); } catch {}
   try {
-    const key = 'sr_cached_user_profile';
-    localStorage.setItem(key, JSON.stringify({ ...user, cachedAt: Date.now() }));
-  } catch {}
-  // Also try IndexedDB for structured access
-  try {
-    await offlineDB.put('user_profile', { id: 'current_user', ...user, cachedAt: Date.now() });
+    await offlineDB.put('user_profile', { id: 'current_user', ...user, cachedAt });
+    if (user.id) await offlineDB.put('user_profile', { id: `user:${user.id}`, ...user, cachedAt });
+    if (user.email) await offlineDB.put('user_profile', { id: `email:${String(user.email).toLowerCase()}`, ...user, cachedAt });
   } catch {}
 }
 
 export async function getCachedUserProfile() {
-  // Try IndexedDB first
   try {
-    const cached = await offlineDB.getById('user_profile', 'current_user');
+    const cached = readCurrentUserCache(localStorage);
     if (cached) return cached;
   } catch {}
-  // Fall back to localStorage
   try {
-    const key = 'sr_cached_user_profile';
-    const raw = localStorage.getItem(key);
-    if (raw) return JSON.parse(raw);
+    const cached = await offlineDB.getById('user_profile', 'current_user');
+    if (cached?.id || cached?.email) return cached;
   } catch {}
   return null;
+}
+
+export async function clearCachedUserProfiles() {
+  try { clearUserCaches(localStorage); } catch {}
+  try { await offlineDB.clearStore('user_profile'); } catch {}
 }

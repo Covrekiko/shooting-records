@@ -10,9 +10,9 @@ export default function NumberInput({
   onChange,
   placeholder = '0',
   allowDecimal = false,
-  unit,
-  min,
-  max,
+  unit = undefined,
+  min = undefined,
+  max = undefined,
   disabled = false,
   className = '',
 }) {

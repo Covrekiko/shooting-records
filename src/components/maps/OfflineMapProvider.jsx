@@ -194,9 +194,9 @@ export default function OfflineMapProvider({
   return (
     <div className="absolute inset-0 bg-slate-200 dark:bg-slate-950">
       <div ref={containerRef} className="absolute inset-0" />
-      {!mapPackage && (
+      {(!mapPackage || !mapPackage.blob) && (
         <div className="absolute left-1/2 -translate-x-1/2 z-10 px-3 py-2 rounded-xl bg-card/90 border border-border shadow-lg text-xs font-semibold text-foreground map-overlay-top-center">
-          {OFFLINE_MAP_NOT_CONFIGURED_MESSAGE}
+          {mapPackage ? 'Offline overlays ready — no offline basemap package installed.' : OFFLINE_MAP_NOT_CONFIGURED_MESSAGE}
         </div>
       )}
     </div>

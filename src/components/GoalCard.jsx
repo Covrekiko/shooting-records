@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Trash2, TrendingUp } from 'lucide-react';
 
 export default function GoalCard({ goal, onDelete }) {
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState({ current: 0, percentage: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

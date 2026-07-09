@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { base44, savedAuthToken } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
-import { cacheUserProfile, getCachedUserProfile } from '@/lib/syncEngine';
+import { cacheUserProfile, clearCachedUserProfiles, getCachedUserProfile } from '@/lib/syncEngine';
 import { preCacheUserData } from '@/lib/offlineSupport';
 import { offlineDB, ENTITY_STORE_MAP } from '@/lib/offlineDB';
 
@@ -25,6 +25,7 @@ const sdkDebugLogOnce = (key, message, details = {}) => {
 };
 
 const isLikelyNetworkError = (error) => !error?.status || error.status === 0 || /network error/i.test(error?.message || '');
+const hasStoredAuthToken = () => Boolean(savedAuthToken || appParams.token);
 
 const routeDebugLog = (...args) => {
   try {
@@ -101,7 +102,7 @@ export const AuthProvider = ({ children }) => {
         } else {
           // Network or other errors — try offline fallback
           const cached = await getCachedUserProfile().catch(() => null);
-          if (cached && !navigator.onLine) {
+          if (cached && !navigator.onLine && hasStoredAuthToken()) {
             // Previously authenticated user cache only; no new privileges are fabricated offline.
             setUser({ ...cached, profileComplete: cached.profileComplete !== false });
             setIsAuthenticated(true);
@@ -135,7 +136,7 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(true);
       if (Date.now() - lastAuthFailureAt < AUTH_RETRY_COOLDOWN_MS) {
         const cached = await getCachedUserProfile().catch(() => null);
-        if (cached) {
+        if (cached && hasStoredAuthToken()) {
           setUser({ ...cached, profileComplete: cached.profileComplete !== false });
           setIsAuthenticated(true);
           setAuthError(null);
@@ -171,7 +172,7 @@ export const AuthProvider = ({ children }) => {
       if (error.status === 429) {
         console.warn('[RATE LIMIT] 429 on auth.me — stopping retries, using cache');
         const cached = await getCachedUserProfile().catch(() => null);
-        if (cached) {
+        if (cached && hasStoredAuthToken()) {
           setUser({ ...cached, profileComplete: cached.profileComplete !== false });
           setIsAuthenticated(true);
           setAuthError(null);
@@ -187,7 +188,7 @@ export const AuthProvider = ({ children }) => {
       // Try to restore from local cache if network error (not auth error)
       if (isNetworkError) {
         const cached = await getCachedUserProfile().catch(() => null);
-        if (cached) {
+        if (cached && hasStoredAuthToken()) {
           setUser({ ...cached, profileComplete: cached.profileComplete !== false });
           setIsAuthenticated(true);
           setAuthError(null);
@@ -266,6 +267,7 @@ export const AuthProvider = ({ children }) => {
       console.error('Error clearing offline cache on logout:', err);
     }
     
+    await clearCachedUserProfiles().catch(() => {});
     setUser(null);
     setIsAuthenticated(false);
     
@@ -302,7 +304,7 @@ export const AuthProvider = ({ children }) => {
       // Force fresh fetch by invalidating SDK cache
       if (Date.now() - lastAuthFailureAt < AUTH_RETRY_COOLDOWN_MS) {
         const cached = await getCachedUserProfile().catch(() => null);
-        if (cached) return cached;
+        if (cached && hasStoredAuthToken()) return cached;
       }
       if (savedAuthToken) base44.auth.setToken(savedAuthToken);
       const currentUser = await base44.auth.me();
@@ -314,15 +316,14 @@ export const AuthProvider = ({ children }) => {
       console.error('Error refreshing user:', error);
       lastAuthFailureAt = Date.now();
       const cached = await getCachedUserProfile().catch(() => null);
-      if (cached) return cached;
+      if (cached && hasStoredAuthToken()) return cached;
       throw error;
     }
   };
 
   const invalidateUserCache = () => {
     // Force a fresh fetch on next auth check (for when admin changes user role)
-    localStorage.removeItem('cachedUserProfile');
-    localStorage.removeItem('sr_cached_user_profile');
+    clearCachedUserProfiles().catch(() => {});
   };
 
   return (

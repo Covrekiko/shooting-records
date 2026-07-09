@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import { Download, HardDrive, Trash2, Map, RefreshCw } from 'lucide-react';
 import { getRepository } from '@/lib/offlineSupport';
 import { OFFLINE_MAP_CONFIG, OFFLINE_MAP_NOT_CONFIGURED_MESSAGE, hasConfiguredOfflineMapPackage } from '@/lib/offlineMapConfig';
-import { deleteOfflineMapPackage, downloadOfflineMapPackage, estimateOfflineMapPackage, getOfflineMapStorageSummary } from '@/lib/offlineMapStore';
+import { deleteOfflineMapPackage, downloadOfflineMapPackage, estimateOfflineMapPackage, getOfflineMapStorageSummary, prepareOfflineAreaPackage } from '@/lib/offlineMapStore';
 
 export default function OfflineMapManager() {
   const [areas, setAreas] = useState([]);
   const [selectedAreaId, setSelectedAreaId] = useState('uk_overview');
   const sourceUrl = OFFLINE_MAP_CONFIG.packageUrl;
   const [packages, setPackages] = useState([]);
+  const [markers, setMarkers] = useState([]);
+  const [harvests, setHarvests] = useState([]);
   const [storageLabel, setStorageLabel] = useState('0 B');
   const [estimate, setEstimate] = useState(null);
   const [progress, setProgress] = useState(null);
@@ -16,11 +18,15 @@ export default function OfflineMapManager() {
   const [error, setError] = useState('');
 
   const load = async () => {
-    const [areaList, summary] = await Promise.all([
+    const [areaList, markerList, harvestList, summary] = await Promise.all([
       getRepository('Area').list(),
+      getRepository('MapMarker').list(),
+      getRepository('Harvest').list(),
       getOfflineMapStorageSummary(),
     ]);
     setAreas(areaList || []);
+    setMarkers(markerList || []);
+    setHarvests(harvestList || []);
     setPackages(summary.packages || []);
     setStorageLabel(summary.totalLabel);
   };
@@ -45,30 +51,37 @@ export default function OfflineMapManager() {
   };
 
   const handleDownload = async () => {
-    if (!sourceUrl) return;
     setBusy(true);
     setError('');
     setProgress(0);
     const type = selectedAreaId === 'uk_overview' ? 'configured_pmtiles' : 'area';
     try {
-      await downloadOfflineMapPackage({
-        name: OFFLINE_MAP_CONFIG.packageName,
-        sourceUrl,
-        type,
-        area: selectedArea,
-        zoomOverride: {
-          minzoom: OFFLINE_MAP_CONFIG.minZoom,
-          maxzoom: OFFLINE_MAP_CONFIG.maxZoom,
-          label: `${OFFLINE_MAP_CONFIG.minZoom}–${OFFLINE_MAP_CONFIG.maxZoom}`,
-        },
-        regionName: OFFLINE_MAP_CONFIG.regionName,
-        onProgress: setProgress,
-      });
+      if (sourceUrl) {
+        await downloadOfflineMapPackage({
+          name: OFFLINE_MAP_CONFIG.packageName,
+          sourceUrl,
+          type,
+          area: selectedArea,
+          markers,
+          harvests,
+          zoomOverride: {
+            minzoom: OFFLINE_MAP_CONFIG.minZoom,
+            maxzoom: OFFLINE_MAP_CONFIG.maxZoom,
+            label: `${OFFLINE_MAP_CONFIG.minZoom}–${OFFLINE_MAP_CONFIG.maxZoom}`,
+          },
+          regionName: OFFLINE_MAP_CONFIG.regionName,
+          onProgress: setProgress,
+        });
+      } else if (selectedArea) {
+        await prepareOfflineAreaPackage({ area: selectedArea, markers, harvests });
+      } else {
+        throw new Error('Select a saved area or configure a licensed PMTiles package.');
+      }
       setProgress(null);
       setEstimate(null);
       await load();
     } catch (err) {
-      setError(err?.message || 'Offline map download failed. Check the PMTiles URL and CORS settings.');
+      setError(err?.message || 'Offline preparation failed. Check the PMTiles URL and CORS settings.');
     }
     setBusy(false);
   };
@@ -133,7 +146,7 @@ export default function OfflineMapManager() {
           className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50 flex items-center gap-2"
         >
           {busy ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-          Download map
+          Download for Offline Use
         </button>
       </div>
 
@@ -157,7 +170,8 @@ export default function OfflineMapManager() {
           <div key={pkg.id} className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground truncate">{pkg.name}</p>
-              <p className="text-xs text-muted-foreground">{pkg.zoom?.label || pkg.type} • {pkg.sizeLabel || 'Unknown size'} • {pkg.status}</p>
+              <p className="text-xs text-muted-foreground">{pkg.zoom?.label || pkg.type} • {pkg.sizeLabel || '0 B'} • {pkg.status} • updated {pkg.updatedAt ? new Date(pkg.updatedAt).toLocaleDateString() : 'unknown'}</p>
+              {pkg.overlaySnapshot && <p className="text-xs text-muted-foreground">Boundary {pkg.overlaySnapshot.boundaryPoints} pts • POIs {pkg.overlaySnapshot.markerCount} • high seats {pkg.overlaySnapshot.highSeatCount} • harvests {pkg.overlaySnapshot.harvestCount}</p>}
             </div>
             <button
               type="button"

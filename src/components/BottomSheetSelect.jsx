@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown } from 'lucide-react';
 
-export default function BottomSheetSelect({ value, onChange, options = [], placeholder = 'Select...', required, className = '' }) {
+export default function BottomSheetSelect({ value, onChange, options = [], placeholder = 'Select...', required = false, className = '' }) {
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState({ top: 0, left: 0, width: 0, maxHeight: 0 });
   const buttonRef = useRef(null);

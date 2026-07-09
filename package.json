@@ -9,7 +9,7 @@
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
-    "test": "node tests/unit/gaugeUtils.test.js && node tests/unit/offlineLogic.test.js && node tests/unit/loadDevelopmentAnalysis.test.js && node tests/unit/loadDevelopmentStatistics.test.js && node tests/unit/measurementLogic.test.js",
+    "test": "node tests/unit/gaugeUtils.test.js && node tests/unit/authCacheIsolation.test.js && node tests/unit/offlineLogic.test.js && node tests/unit/loadDevelopmentAnalysis.test.js && node tests/unit/loadDevelopmentStatistics.test.js && node tests/unit/offlineMapStore.test.js && node tests/unit/measurementLogic.test.js",
     "preview": "vite preview"
   },
   "dependencies": {
