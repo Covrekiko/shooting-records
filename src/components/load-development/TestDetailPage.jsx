@@ -6,6 +6,13 @@ import { format } from 'date-fns';
 import VariantFormModal from './VariantFormModal';
 import ResultFormModal from './ResultFormModal';
 import { generateLoadTestPDF } from '@/utils/loadTestPDF';
+import LoadDevelopmentPdfPreview from '@/components/load-development/LoadDevelopmentPdfPreview';
+import {
+  createLoadTestPdfPreview,
+  getLoadTestPdfFileName,
+  revokeLoadTestPdfPreview,
+  saveLoadTestPdf,
+} from '@/utils/loadDevelopmentPdfActions';
 import QRLabelButton from '@/components/qr/QRLabelButton';
 
 const STATUS_COLORS = {
@@ -33,11 +40,15 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
   const [saving, setSaving] = useState(false);
   const [expandedVariants, setExpandedVariants] = useState({});
   const [expandedResults, setExpandedResults] = useState({});
+  const [pdfAction, setPdfAction] = useState(null);
+  const [pdfMessage, setPdfMessage] = useState('');
+  const [pdfPreview, setPdfPreview] = useState(null);
 
   const toggleVariant = (id) => setExpandedVariants(p => ({ ...p, [id]: !p[id] }));
   const toggleResult = (id) => setExpandedResults(p => ({ ...p, [id]: !p[id] }));
 
   useEffect(() => { loadData(); }, [test.id]);
+  useEffect(() => () => revokeLoadTestPdfPreview(pdfPreview), [pdfPreview]);
 
   const loadData = async () => {
     try {
@@ -115,15 +126,39 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
     finally { setSaving(false); }
   };
 
-  const handleExportPDF = () => {
-    const doc = generateLoadTestPDF(test, variants, results);
-    doc.save(`load-test-${test.name.replace(/\s+/g, '-')}.pdf`);
+  const handleExportPDF = async () => {
+    setPdfAction('download');
+    setPdfMessage('Preparing PDF…');
+    try {
+      const doc = generateLoadTestPDF(test, variants, results);
+      const result = await saveLoadTestPdf(doc, getLoadTestPdfFileName(test));
+      setPdfMessage(result === 'shared' ? 'PDF opened in the share sheet.' : 'PDF download started.');
+    } catch (e) {
+      const message = e?.message || 'PDF download failed.';
+      setPdfMessage(message);
+      alert(`PDF download failed: ${message}`);
+    } finally {
+      setPdfAction(null);
+    }
   };
 
   const handleViewPDF = () => {
-    const doc = generateLoadTestPDF(test, variants, results);
-    const url = URL.createObjectURL(doc.output('blob'));
-    window.open(url, '_blank', 'noopener,noreferrer');
+    setPdfAction('preview');
+    setPdfMessage('Preparing PDF preview…');
+    try {
+      const doc = generateLoadTestPDF(test, variants, results);
+      setPdfPreview((current) => {
+        revokeLoadTestPdfPreview(current);
+        return createLoadTestPdfPreview(doc);
+      });
+      setPdfMessage('');
+    } catch (e) {
+      const message = e?.message || 'PDF preview failed.';
+      setPdfMessage(message);
+      alert(`PDF preview failed: ${message}`);
+    } finally {
+      setPdfAction(null);
+    }
   };
 
   const handleStatusChange = async (status) => {
@@ -161,14 +196,19 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
             >
               {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
-            <button onClick={handleViewPDF} className="p-2 hover:bg-primary/10 text-primary rounded-xl" title="View PDF">
-              <BookOpen className="w-4 h-4" />
+            <button onClick={handleViewPDF} disabled={!!pdfAction} className="p-2 hover:bg-primary/10 text-primary rounded-xl disabled:opacity-50" title="View PDF">
+              <BookOpen className={`w-4 h-4 ${pdfAction === 'preview' ? 'animate-pulse' : ''}`} />
             </button>
-            <button onClick={handleExportPDF} className="p-2 hover:bg-primary/10 text-primary rounded-xl" title="Export PDF">
-              <Download className="w-4 h-4" />
+            <button onClick={handleExportPDF} disabled={!!pdfAction} className="p-2 hover:bg-primary/10 text-primary rounded-xl disabled:opacity-50" title="Download PDF">
+              <Download className={`w-4 h-4 ${pdfAction === 'download' ? 'animate-pulse' : ''}`} />
             </button>
           </div>
         </div>
+        {pdfMessage && (
+          <div className="mb-4 rounded-xl border border-border bg-card px-3 py-2 text-sm text-muted-foreground">
+            {pdfMessage}
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex gap-1 mb-5 border-b border-border overflow-x-auto">
@@ -525,6 +565,10 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
         )}
 
       </main>
+
+      {pdfPreview && (
+        <LoadDevelopmentPdfPreview pdfUrl={pdfPreview.url} onClose={() => setPdfPreview(null)} />
+      )}
 
       <VariantFormModal
         open={showVariantForm}

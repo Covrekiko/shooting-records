@@ -7,7 +7,9 @@ import { Link } from 'react-router-dom';
 import CreateTestModal from '@/components/load-development/CreateTestModal';
 import TestDetailPage from '@/components/load-development/TestDetailPage';
 import TestViewModal from '@/components/load-development/TestViewModal';
+import LoadDevelopmentPdfPreview from '@/components/load-development/LoadDevelopmentPdfPreview';
 import { generateLoadTestPDF } from '@/utils/loadTestPDF';
+import { createLoadTestPdfPreview, revokeLoadTestPdfPreview } from '@/utils/loadDevelopmentPdfActions';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 import PullToRefreshIndicator from '@/components/PullToRefreshIndicator';
 
@@ -32,10 +34,14 @@ export default function LoadDevelopment() {
   const [viewTest, setViewTest] = useState(null);
   const [viewData, setViewData] = useState({ variants: [], results: [] });
   const [viewLoading, setViewLoading] = useState(false);
+  const [modalPdfLoading, setModalPdfLoading] = useState(false);
+  const [modalPdfMessage, setModalPdfMessage] = useState('');
+  const [modalPdfPreview, setModalPdfPreview] = useState(null);
 
   useEffect(() => {
     loadTests();
   }, []);
+  useEffect(() => () => revokeLoadTestPdfPreview(modalPdfPreview), [modalPdfPreview]);
 
   const loadTests = async () => {
     try {
@@ -69,6 +75,26 @@ export default function LoadDevelopment() {
     setShowCreate(false);
     loadTests();
     setSelectedTest(test);
+  };
+
+  const handleModalPdfPreview = () => {
+    if (!viewTest) return;
+    setModalPdfLoading(true);
+    setModalPdfMessage('Preparing PDF preview…');
+    try {
+      const doc = generateLoadTestPDF(viewTest, viewData.variants, viewData.results);
+      setModalPdfPreview((current) => {
+        revokeLoadTestPdfPreview(current);
+        return createLoadTestPdfPreview(doc);
+      });
+      setModalPdfMessage('');
+    } catch (e) {
+      const message = e?.message || 'PDF preview failed.';
+      setModalPdfMessage(message);
+      alert(`PDF preview failed: ${message}`);
+    } finally {
+      setModalPdfLoading(false);
+    }
   };
 
   const handleDelete = async (e, testId) => {
@@ -264,12 +290,14 @@ export default function LoadDevelopment() {
         results={viewData.results}
         onClose={() => setViewTest(null)}
         onEdit={() => { setSelectedTest(viewTest); setViewTest(null); }}
-        onExportPDF={viewTest ? () => {
-          const doc = generateLoadTestPDF(viewTest, viewData.variants, viewData.results);
-          const url = URL.createObjectURL(doc.output('blob'));
-          window.open(url, '_blank', 'noopener,noreferrer');
-        } : undefined}
+        onExportPDF={viewTest ? handleModalPdfPreview : undefined}
+        pdfLoading={modalPdfLoading}
+        pdfMessage={modalPdfMessage}
       />
+
+      {modalPdfPreview && (
+        <LoadDevelopmentPdfPreview pdfUrl={modalPdfPreview.url} onClose={() => setModalPdfPreview(null)} />
+      )}
 
       <CreateTestModal open={showCreate} onClose={() => setShowCreate(false)} onCreated={handleCreated} />
     </div>

@@ -29,7 +29,7 @@ const StatBadge = ({ label, value }) => (
 
 const TABS = ['Overview', 'Variants', 'Results'];
 
-export default function TestViewModal({ open, test, variants, results, onClose, onEdit, onExportPDF }) {
+export default function TestViewModal({ open, test, variants, results, onClose, onEdit, onExportPDF, pdfLoading = false, pdfMessage = '' }) {
   const [tab, setTab] = useState('Overview');
 
   const getResult = (variantId) => results.find(r => r.variant_id === variantId);
@@ -48,9 +48,9 @@ export default function TestViewModal({ open, test, variants, results, onClose, 
         Close
       </button>
       {onExportPDF && (
-        <button onClick={onExportPDF} className="h-11 rounded-xl font-semibold text-sm border border-border hover:bg-secondary transition-colors active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap">
-          <Download className="w-3.5 h-3.5 flex-shrink-0" />
-          <span>PDF</span>
+        <button onClick={onExportPDF} disabled={pdfLoading} className="h-11 rounded-xl font-semibold text-sm border border-border hover:bg-secondary transition-colors active:scale-95 flex items-center justify-center gap-1.5 whitespace-nowrap disabled:opacity-50">
+          <Download className={`w-3.5 h-3.5 flex-shrink-0 ${pdfLoading ? 'animate-pulse' : ''}`} />
+          <span>{pdfLoading ? 'PDF…' : 'PDF'}</span>
         </button>
       )}
       {onEdit && (
@@ -71,6 +71,12 @@ export default function TestViewModal({ open, test, variants, results, onClose, 
       maxWidth="max-w-2xl"
       footer={footer}
     >
+      {pdfMessage && (
+        <div className="mb-4 rounded-xl border border-border bg-secondary/40 px-3 py-2 text-sm text-muted-foreground">
+          {pdfMessage}
+        </div>
+      )}
+
       {/* Status badge row */}
       <div className="flex items-center gap-2 mb-4">
         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${STATUS_COLORS[test?.status] || STATUS_COLORS.Draft}`}>
