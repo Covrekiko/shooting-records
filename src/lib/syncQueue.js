@@ -7,6 +7,7 @@
 import { offlineDB } from './offlineDB';
 import { base44, savedAuthToken } from '@/api/base44Client';
 import { queueEntryNeedsReview } from './syncQueuePolicy';
+import { resolveOfflinePhotoRefs } from './offlinePhotoStore';
 
 export const SYNC_STATUS = {
   PENDING: 'pending',
@@ -203,13 +204,18 @@ async function processSyncEntry(entry) {
     if (entry.action === SYNC_ACTIONS.CREATE) {
       // Strip the temp local id and add transactionId for idempotency before sending to server
       const { id, _localOnly, _tempId, ...data } = entry.payload;
-      // Add transactionId to payload for server-side deduplication (optional, depends on backend support)
-      const dataWithTx = { ...data, _transactionId: entry.transactionId };
+      const dataWithTx = await resolveOfflinePhotoRefs({ ...data, _transactionId: entry.transactionId });
+      if (sdk.filter && entry.transactionId) {
+        const existing = await sdk.filter({ _transactionId: entry.transactionId }, '-created_date', 1).catch(() => []);
+        if (existing?.[0]) {
+          return { success: true, alreadySynced: true, serverRecord: existing[0] };
+        }
+      }
       serverRecord = await sdk.create(dataWithTx);
 
     } else if (entry.action === SYNC_ACTIONS.UPDATE) {
       const { id, _localOnly, _tempId, ...data } = entry.payload;
-      const dataWithTx = { ...data, _transactionId: entry.transactionId };
+      const dataWithTx = await resolveOfflinePhotoRefs({ ...data, _transactionId: entry.transactionId });
       serverRecord = await sdk.update(entry.localId, dataWithTx);
 
     } else if (entry.action === SYNC_ACTIONS.DELETE) {

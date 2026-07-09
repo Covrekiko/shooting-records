@@ -53,10 +53,12 @@ function makeStyle(pmtilesUrl) {
     },
     layers: [
       { id: 'background', type: 'background', paint: { 'background-color': '#e2e8f0' } },
-      { id: 'land', type: 'fill', source: 'offline', 'source-layer': land, paint: { 'fill-color': '#e5e7eb' } },
+      { id: 'landcover', type: 'fill', source: 'offline', 'source-layer': land, paint: { 'fill-color': '#d9ead3', 'fill-opacity': 0.9 } },
+      { id: 'landuse', type: 'fill', source: 'offline', 'source-layer': 'landuse', paint: { 'fill-color': ['case', ['in', ['get', 'class'], ['literal', ['wood', 'forest', 'park']]], '#b7d7a8', '#e5e7eb'], 'fill-opacity': 0.72 } },
       { id: 'water', type: 'fill', source: 'offline', 'source-layer': water, paint: { 'fill-color': '#bfdbfe' } },
-      { id: 'roads', type: 'line', source: 'offline', 'source-layer': roads, paint: { 'line-color': '#ffffff', 'line-width': 1.2 } },
-      { id: 'places', type: 'symbol', source: 'offline', 'source-layer': places, layout: { 'text-field': ['get', 'name'], 'text-size': 11 }, paint: { 'text-color': '#334155', 'text-halo-color': '#ffffff', 'text-halo-width': 1 } },
+      { id: 'minor-roads-paths', type: 'line', source: 'offline', 'source-layer': roads, filter: ['in', ['get', 'class'], ['literal', ['path', 'track', 'footway', 'bridleway', 'minor', 'service']]], paint: { 'line-color': '#a16207', 'line-width': ['interpolate', ['linear'], ['zoom'], 10, 0.5, 15, 1.8], 'line-dasharray': [1.5, 1] } },
+      { id: 'roads', type: 'line', source: 'offline', 'source-layer': roads, filter: ['!', ['in', ['get', 'class'], ['literal', ['path', 'track', 'footway', 'bridleway']]]], paint: { 'line-color': '#ffffff', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 0.7, 15, 3], 'line-opacity': 0.92 } },
+      { id: 'places', type: 'symbol', source: 'offline', 'source-layer': places, layout: { 'text-field': ['coalesce', ['get', 'name:en'], ['get', 'name']], 'text-size': 11 }, paint: { 'text-color': '#334155', 'text-halo-color': '#ffffff', 'text-halo-width': 1 } },
     ],
   };
 }
@@ -75,6 +77,8 @@ export default function OfflineMapProvider({
   const mapRef = useRef(null);
   const pmtilesRef = useRef(null);
   const objectUrlRef = useRef(null);
+  const waitingForPinRef = useRef(waitingForPin);
+  const onMapClickRef = useRef(onMapClick);
   const [mapPackage, setMapPackage] = useState(null);
 
   const overlayData = useMemo(() => {
@@ -113,6 +117,11 @@ export default function OfflineMapProvider({
   }, [areas, markers, harvests, userLocation, activeTrack, selectedAreaId]);
 
   useEffect(() => {
+    waitingForPinRef.current = waitingForPin;
+    onMapClickRef.current = onMapClick;
+  }, [waitingForPin, onMapClick]);
+
+  useEffect(() => {
     getActiveOfflineMapPackage().then(setMapPackage);
   }, []);
 
@@ -144,8 +153,8 @@ export default function OfflineMapProvider({
     map.touchZoomRotate.disableRotation();
 
     map.on('click', (event) => {
-      if (!waitingForPin || !onMapClick) return;
-      onMapClick({ lat: event.lngLat.lat, lng: event.lngLat.lng });
+      if (!waitingForPinRef.current || !onMapClickRef.current) return;
+      onMapClickRef.current({ lat: event.lngLat.lat, lng: event.lngLat.lng });
     });
 
     map.on('error', (event) => {

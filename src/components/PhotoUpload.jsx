@@ -1,26 +1,47 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Upload, X } from 'lucide-react';
 import { compressImage } from '@/lib/imageUtils';
+import { getOfflinePhotoObjectUrl, isOfflinePhotoRef, saveOfflinePhoto } from '@/lib/offlinePhotoStore';
 
 export default function PhotoUpload({ photos = [], onPhotosChange }) {
   const [uploading, setUploading] = useState(false);
+  const [displayUrls, setDisplayUrls] = useState({});
+
+  useEffect(() => {
+    let cancelled = false;
+    const objectUrls = [];
+    const loadDisplayUrls = async () => {
+      const entries = await Promise.all((photos || []).map(async (photo) => {
+        if (!isOfflinePhotoRef(photo)) return [photo, photo];
+        const url = await getOfflinePhotoObjectUrl(photo);
+        if (url) objectUrls.push(url);
+        return [photo, url];
+      }));
+      if (!cancelled) setDisplayUrls(Object.fromEntries(entries));
+    };
+    loadDisplayUrls();
+    return () => {
+      cancelled = true;
+      objectUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [photos]);
 
   const handleFileSelect = async (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
     e.target.value = '';
-    if (!navigator.onLine) {
-      alert('Photo upload requires internet. Please try again when online.');
-      return;
-    }
     setUploading(true);
     try {
       const newUrls = [];
       for (const file of files) {
         const compressed = await compressImage(file);
-        const response = await base44.integrations.Core.UploadFile({ file: compressed });
-        newUrls.push(response.file_url);
+        if (!navigator.onLine) {
+          newUrls.push(await saveOfflinePhoto(compressed, file.name));
+        } else {
+          const response = await base44.integrations.Core.UploadFile({ file: compressed });
+          newUrls.push(response.file_url);
+        }
       }
       onPhotosChange([...photos, ...newUrls]);
     } catch (error) {
@@ -60,7 +81,7 @@ export default function PhotoUpload({ photos = [], onPhotosChange }) {
           {photos.map((photo, index) => (
             <div key={index} className="relative group">
               <img
-                src={photo}
+                src={displayUrls[photo] || photo}
                 alt={`Photo ${index + 1}`}
                 className="w-full h-32 object-cover rounded-lg"
               />

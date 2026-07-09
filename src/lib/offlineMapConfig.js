@@ -12,10 +12,10 @@ export const OFFLINE_MAP_CONFIG = {
   bounds: null,
   sizeEstimate: import.meta.env.VITE_OFFLINE_PMTILES_SIZE_ESTIMATE || '',
   vectorLayers: {
-    land: import.meta.env.VITE_OFFLINE_PMTILES_LAND_LAYER || 'land',
+    land: import.meta.env.VITE_OFFLINE_PMTILES_LAND_LAYER || 'landcover',
     water: import.meta.env.VITE_OFFLINE_PMTILES_WATER_LAYER || 'water',
-    roads: import.meta.env.VITE_OFFLINE_PMTILES_ROADS_LAYER || 'roads',
-    places: import.meta.env.VITE_OFFLINE_PMTILES_PLACES_LAYER || 'places',
+    roads: import.meta.env.VITE_OFFLINE_PMTILES_ROADS_LAYER || 'transportation',
+    places: import.meta.env.VITE_OFFLINE_PMTILES_PLACES_LAYER || 'place',
   },
 };
 

@@ -69,7 +69,7 @@ export async function listOfflineMapPackages() {
 
 export async function getActiveOfflineMapPackage() {
   const packages = await listOfflineMapPackages();
-  return packages.find((pkg) => pkg.status === 'ready') || null;
+  return packages.find((pkg) => pkg.status === 'ready' && pkg.blob) || packages.find((pkg) => pkg.status === 'ready') || null;
 }
 
 export async function deleteOfflineMapPackage(id) {
@@ -203,6 +203,29 @@ export async function downloadOfflineMapPackage({ name, sourceUrl, type = 'custo
   return record;
 }
 
+export async function importOfflineMapPackageFromFile({ file, name, regionName }) {
+  if (!file) throw new Error('Select a PMTiles file to import.');
+  const record = {
+    id: makeId(),
+    name: name || file.name || 'Imported offline basemap',
+    sourceUrl: 'local-file',
+    type: 'pmtiles_import',
+    regionName: regionName || file.name || 'Imported region',
+    bounds: null,
+    zoom: { minzoom: 5, maxzoom: 16, label: 'Imported PMTiles' },
+    blob: file,
+    status: 'ready',
+    progress: 100,
+    sizeBytes: file.size || 0,
+    sizeLabel: formatOfflineMapBytes(file.size || 0),
+    overlaySnapshot: null,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  };
+  await offlineDB.put(STORE, record);
+  return record;
+}
+
 export async function getOfflineMapStorageSummary() {
   const packages = await listOfflineMapPackages();
   const totalBytes = packages.reduce((sum, pkg) => sum + Number(pkg.sizeBytes || 0), 0);
@@ -221,6 +244,7 @@ export const offlineMapStore = {
   remove: deleteOfflineMapPackage,
   estimate: estimateOfflineMapPackage,
   download: downloadOfflineMapPackage,
+  importFile: importOfflineMapPackageFromFile,
   prepareArea: prepareOfflineAreaPackage,
   summary: getOfflineMapStorageSummary,
 };

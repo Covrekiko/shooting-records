@@ -13,8 +13,8 @@ self.addEventListener('message', (event) => {
  *   - API calls: Network-only (never cached — IndexedDB handles data offline)
  */
 
-const CACHE_NAME = 'shooting-records-v5';
-const SHELL_CACHE = 'shell-v5';
+const CACHE_NAME = 'shooting-records-v6';
+const SHELL_CACHE = 'shell-v6';
 const OFFLINE_RESPONSE = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline</title></head><body><main style="font-family:system-ui;padding:24px"><h1>Offline</h1><p>The app shell is not cached on this device yet. Go online once to finish setup.</p></main></body></html>`;
 
 // Core app shell files to pre-cache on install
@@ -26,11 +26,10 @@ const PRECACHE_URLS = [
 // ── Install: pre-cache app shell ─────────────────────────────────────────────
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(SHELL_CACHE).then((cache) =>
-      cache.addAll(PRECACHE_URLS).catch(() => {
-        // Individual failures are OK — don't block install
-      })
-    ).then(() => self.skipWaiting())
+    caches.open(SHELL_CACHE)
+      .then((cache) => cache.addAll(PRECACHE_URLS).catch(() => {}))
+      .then(() => cacheCurrentShellAssets())
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -86,6 +85,24 @@ self.addEventListener('fetch', (event) => {
 });
 
 // ── Strategies ────────────────────────────────────────────────────────────────
+
+async function cacheCurrentShellAssets() {
+  try {
+    const response = await fetch('/', { cache: 'no-store' });
+    if (!response.ok) return;
+    const html = await response.clone().text();
+    const cache = await caches.open(SHELL_CACHE);
+    await cache.put('/', response);
+    const assetUrls = Array.from(html.matchAll(/(?:src|href)=["']([^"']+\.(?:js|css))["']/g))
+      .map((match) => new URL(match[1], self.location.origin).toString())
+      .filter((url) => new URL(url).origin === self.location.origin);
+    const assetCache = await caches.open(CACHE_NAME);
+    await Promise.allSettled(assetUrls.map(async (url) => {
+      const assetResponse = await fetch(url, { cache: 'no-store' });
+      if (assetResponse.ok) await assetCache.put(url, assetResponse);
+    }));
+  } catch {}
+}
 
 async function networkFirstShell(request) {
   try {

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Download, HardDrive, Trash2, Map, RefreshCw } from 'lucide-react';
+import { Download, HardDrive, Trash2, Map, RefreshCw, Upload } from 'lucide-react';
 import { getRepository } from '@/lib/offlineSupport';
 import { OFFLINE_MAP_CONFIG, OFFLINE_MAP_NOT_CONFIGURED_MESSAGE, hasConfiguredOfflineMapPackage } from '@/lib/offlineMapConfig';
-import { deleteOfflineMapPackage, downloadOfflineMapPackage, estimateOfflineMapPackage, getOfflineMapStorageSummary, prepareOfflineAreaPackage } from '@/lib/offlineMapStore';
+import { deleteOfflineMapPackage, downloadOfflineMapPackage, estimateOfflineMapPackage, getOfflineMapStorageSummary, importOfflineMapPackageFromFile, prepareOfflineAreaPackage } from '@/lib/offlineMapStore';
 
 export default function OfflineMapManager() {
   const [areas, setAreas] = useState([]);
@@ -36,6 +36,7 @@ export default function OfflineMapManager() {
   }, []);
 
   const selectedArea = areas.find((area) => area.id === selectedAreaId);
+  const hasInstalledBasemap = packages.some((pkg) => pkg.status === 'ready' && pkg.blob);
 
   const handleEstimate = async () => {
     if (!sourceUrl) return;
@@ -86,6 +87,21 @@ export default function OfflineMapManager() {
     setBusy(false);
   };
 
+  const handleImportFile = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    setBusy(true);
+    setError('');
+    try {
+      await importOfflineMapPackageFromFile({ file, name: file.name, regionName: file.name });
+      await load();
+    } catch (err) {
+      setError(err?.message || 'Could not import the PMTiles file.');
+    }
+    setBusy(false);
+  };
+
   const handleDelete = async (id) => {
     await deleteOfflineMapPackage(id);
     await load();
@@ -124,6 +140,7 @@ export default function OfflineMapManager() {
 
       <div className="rounded-xl bg-secondary/50 p-3 text-sm text-muted-foreground space-y-1">
         <p>URL configured: <span className="font-semibold text-foreground">{hasConfiguredOfflineMapPackage() ? 'Yes' : 'No'}</span></p>
+        <p>Offline basemap installed: <span className="font-semibold text-foreground">{hasInstalledBasemap ? 'Yes' : 'No'}</span></p>
         <p>Package name: <span className="font-semibold text-foreground">{OFFLINE_MAP_CONFIG.packageName}</span></p>
         <p>Region: <span className="font-semibold text-foreground">{OFFLINE_MAP_CONFIG.regionName}</span></p>
         <p>Zoom range: <span className="font-semibold text-foreground">{OFFLINE_MAP_CONFIG.minZoom}–{OFFLINE_MAP_CONFIG.maxZoom}</span></p>
@@ -142,12 +159,16 @@ export default function OfflineMapManager() {
         <button
           type="button"
           onClick={handleDownload}
-          disabled={busy || !sourceUrl}
+          disabled={busy || (!sourceUrl && !selectedArea)}
           className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50 flex items-center gap-2"
         >
           {busy ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
           Download for Offline Use
         </button>
+        <label className={`px-4 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold flex items-center gap-2 ${busy ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}>
+          <Upload className="w-4 h-4" /> Import PMTiles
+          <input type="file" accept=".pmtiles,application/octet-stream" onChange={handleImportFile} disabled={busy} className="hidden" />
+        </label>
       </div>
 
       {OFFLINE_MAP_CONFIG.sizeEstimate && !estimate && (
@@ -170,7 +191,7 @@ export default function OfflineMapManager() {
           <div key={pkg.id} className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground truncate">{pkg.name}</p>
-              <p className="text-xs text-muted-foreground">{pkg.zoom?.label || pkg.type} • {pkg.sizeLabel || '0 B'} • {pkg.status} • updated {pkg.updatedAt ? new Date(pkg.updatedAt).toLocaleDateString() : 'unknown'}</p>
+              <p className="text-xs text-muted-foreground">{pkg.blob ? 'Basemap + overlays' : 'Overlays only'} • {pkg.zoom?.label || pkg.type} • {pkg.sizeLabel || '0 B'} • {pkg.status} • updated {pkg.updatedAt ? new Date(pkg.updatedAt).toLocaleDateString() : 'unknown'}</p>
               {pkg.overlaySnapshot && <p className="text-xs text-muted-foreground">Boundary {pkg.overlaySnapshot.boundaryPoints} pts • POIs {pkg.overlaySnapshot.markerCount} • high seats {pkg.overlaySnapshot.highSeatCount} • harvests {pkg.overlaySnapshot.harvestCount}</p>}
             </div>
             <button
