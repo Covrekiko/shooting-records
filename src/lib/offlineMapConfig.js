@@ -13,7 +13,7 @@ export const OFFLINE_MAP_CONFIG = {
   minZoom: Number.isFinite(configuredMinZoom) ? configuredMinZoom : 5,
   maxZoom: Number.isFinite(configuredMaxZoom) ? configuredMaxZoom : 14,
   bounds: null,
-  sizeEstimate: import.meta.env.VITE_OFFLINE_PMTILES_SIZE_ESTIMATE || '',
+  sizeEstimate: env.VITE_OFFLINE_PMTILES_SIZE_ESTIMATE || '',
   vectorLayers: {
     land: env.VITE_OFFLINE_PMTILES_LAND_LAYER || 'landcover',
     water: env.VITE_OFFLINE_PMTILES_WATER_LAYER || 'water',

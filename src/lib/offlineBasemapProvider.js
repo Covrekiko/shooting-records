@@ -1,4 +1,4 @@
-import { OFFLINE_MAP_CONFIG } from './offlineMapConfig';
+import { OFFLINE_MAP_CONFIG } from './offlineMapConfig.js';
 
 function replaceToken(template, token, value) {
   return template.replaceAll(`{${token}}`, encodeURIComponent(String(value)));

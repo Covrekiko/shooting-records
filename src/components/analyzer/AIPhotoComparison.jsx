@@ -475,7 +475,11 @@ export default function AIPhotoComparison({
                 src={photo}
                 className="w-full"
                 alt="Target"
-                onClick={() => {
+                onClick={(e) => {
+                  if (scaleMode) {
+                    handleScaleTap(e);
+                    return;
+                  }
                   if (scalePx) {
                     setTab('ai');
                   } else {
@@ -487,9 +491,6 @@ export default function AIPhotoComparison({
                     e.preventDefault();
                     handleScaleTap(e);
                   }
-                }}
-                onClick={(e) => {
-                  if (scaleMode) handleScaleTap(e);
                 }}
               />
               {scalePoints.map((p, i) => {
@@ -926,7 +927,7 @@ export default function AIPhotoComparison({
             </label>
             <div>
               <label className={lbl}>Notes</label>
-              <textarea value={notes} onChange={e => setNotes(e.target.value)} rows="2" className={inp} placeholder="Optional notes…" />
+              <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} className={inp} placeholder="Optional notes…" />
             </div>
           </div>
 
