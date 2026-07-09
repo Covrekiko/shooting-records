@@ -101,9 +101,9 @@ export const AuthProvider = ({ children }) => {
         } else {
           // Network or other errors — try offline fallback
           const cached = await getCachedUserProfile().catch(() => null);
-          if (cached && appParams.token) {
-            // User was previously logged in — allow offline access
-            setUser({ ...cached, profileComplete: true });
+          if (cached && !navigator.onLine) {
+            // Previously authenticated user cache only; no new privileges are fabricated offline.
+            setUser({ ...cached, profileComplete: cached.profileComplete !== false });
             setIsAuthenticated(true);
             setAuthError(null);
           } else {
@@ -136,7 +136,7 @@ export const AuthProvider = ({ children }) => {
       if (Date.now() - lastAuthFailureAt < AUTH_RETRY_COOLDOWN_MS) {
         const cached = await getCachedUserProfile().catch(() => null);
         if (cached) {
-          setUser({ ...cached, profileComplete: true });
+          setUser({ ...cached, profileComplete: cached.profileComplete !== false });
           setIsAuthenticated(true);
           setAuthError(null);
         }
@@ -172,7 +172,7 @@ export const AuthProvider = ({ children }) => {
         console.warn('[RATE LIMIT] 429 on auth.me — stopping retries, using cache');
         const cached = await getCachedUserProfile().catch(() => null);
         if (cached) {
-          setUser({ ...cached, profileComplete: true });
+          setUser({ ...cached, profileComplete: cached.profileComplete !== false });
           setIsAuthenticated(true);
           setAuthError(null);
           setIsLoadingAuth(false);
@@ -188,7 +188,7 @@ export const AuthProvider = ({ children }) => {
       if (isNetworkError) {
         const cached = await getCachedUserProfile().catch(() => null);
         if (cached) {
-          setUser({ ...cached, profileComplete: true });
+          setUser({ ...cached, profileComplete: cached.profileComplete !== false });
           setIsAuthenticated(true);
           setAuthError(null);
           setIsLoadingAuth(false);
@@ -322,6 +322,7 @@ export const AuthProvider = ({ children }) => {
   const invalidateUserCache = () => {
     // Force a fresh fetch on next auth check (for when admin changes user role)
     localStorage.removeItem('cachedUserProfile');
+    localStorage.removeItem('sr_cached_user_profile');
   };
 
   return (

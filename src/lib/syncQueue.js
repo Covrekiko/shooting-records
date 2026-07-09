@@ -6,6 +6,7 @@
 
 import { offlineDB } from './offlineDB';
 import { base44, savedAuthToken } from '@/api/base44Client';
+import { queueEntryNeedsReview } from './syncQueuePolicy';
 
 export const SYNC_STATUS = {
   PENDING: 'pending',
@@ -22,11 +23,11 @@ export const SYNC_ACTIONS = {
   DELETE: 'delete',
 };
 
-// Queue configuration
+// Queue configuration: field users may be offline for multiple days.
+// Old entries are flagged for review in the UI, not silently abandoned.
 const QUEUE_CONFIG = {
   MAX_RETRIES: 5,
   RETRY_DELAY_MS: 1000,
-  ENTRY_TTL_MS: 24 * 60 * 60 * 1000, // 24 hours
 };
 
 /**
@@ -62,40 +63,27 @@ export async function enqueueAction({ entityName, action, localId, payload }) {
 
 /**
  * Get all pending queue entries ordered by timestamp.
- * Automatically marks expired entries as EXPIRED instead of retrying forever.
+ * Long-offline entries remain durable and retryable; the UI flags them for review.
  */
 export async function getPendingQueue() {
   const all = await offlineDB.getAll('sync_queue');
-  const now = Date.now();
-  let changed = false;
-  
-  // Mark expired entries (older than TTL)
-  for (const entry of all) {
-    if (
-      (entry.status === SYNC_STATUS.PENDING || entry.status === SYNC_STATUS.FAILED) &&
-      (now - entry.timestamp) > QUEUE_CONFIG.ENTRY_TTL_MS
-    ) {
-      console.warn(`[SYNC QUEUE] Entry ${entry.id} expired (age: ${Math.floor((now - entry.timestamp) / 1000)}s), marking as EXPIRED`);
-      await offlineDB.put('sync_queue', { ...entry, status: SYNC_STATUS.EXPIRED, lastError: 'Queue entry expired (24h+)' });
-      changed = true;
-    }
-  }
-
-  const current = changed ? await offlineDB.getAll('sync_queue') : all;
-  return current
+  return all
     .filter((e) => e.status === SYNC_STATUS.PENDING || e.status === SYNC_STATUS.FAILED)
+    .map((e) => ({ ...e, needsReview: queueEntryNeedsReview(e) }))
     .sort((a, b) => a.timestamp - b.timestamp);
 }
 
 export async function getAllQueueEntries() {
   const all = await offlineDB.getAll('sync_queue');
-  return all.sort((a, b) => a.timestamp - b.timestamp);
+  return all
+    .map((e) => ({ ...e, needsReview: queueEntryNeedsReview(e) }))
+    .sort((a, b) => a.timestamp - b.timestamp);
 }
 
 export async function retryQueueEntry(entryId) {
-  const entry = await offlineDB.get('sync_queue', entryId);
+  const entry = await offlineDB.getById('sync_queue', entryId);
   if (!entry) return null;
-  const retryable = [SYNC_STATUS.FAILED, SYNC_STATUS.CONFLICT, SYNC_STATUS.PENDING].includes(entry.status);
+  const retryable = [SYNC_STATUS.FAILED, SYNC_STATUS.CONFLICT, SYNC_STATUS.PENDING, SYNC_STATUS.EXPIRED].includes(entry.status);
   if (!retryable) return entry;
   const updated = { ...entry, status: SYNC_STATUS.PENDING, lastError: null };
   await offlineDB.put('sync_queue', updated);
@@ -103,7 +91,7 @@ export async function retryQueueEntry(entryId) {
 }
 
 export async function discardQueueEntry(entryId) {
-  const entry = await offlineDB.get('sync_queue', entryId);
+  const entry = await offlineDB.getById('sync_queue', entryId);
   if (!entry) return null;
   const discardable = [SYNC_STATUS.FAILED, SYNC_STATUS.CONFLICT, SYNC_STATUS.EXPIRED].includes(entry.status);
   if (!discardable) return entry;
@@ -258,7 +246,7 @@ async function processSyncEntry(entry) {
 /**
  * Run the full sync queue.
  * IDEMPOTENCY: transactionId prevents double-apply on retry.
- * TTL/Expiry: Entries older than 24h are marked EXPIRED and not retried.
+ * Long-offline durability: entries are not abandoned after 24h; old entries are surfaced for review.
  * Emits progress via optional onProgress(stats) callback.
  * Returns { synced, failed, conflicts, expired }.
  */

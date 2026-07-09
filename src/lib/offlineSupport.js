@@ -36,18 +36,27 @@ export async function preCacheUserData(userEmail) {
       { name: 'Shotgun', method: () => base44.entities.Shotgun.filter({ created_by: userEmail }) },
       { name: 'Club', method: () => base44.entities.Club.filter({ created_by: userEmail }) },
       { name: 'Area', method: () => base44.entities.Area.filter({ created_by: userEmail }) },
+      { name: 'MapMarker', method: () => base44.entities.MapMarker.filter({ created_by: userEmail }) },
+      { name: 'Harvest', method: () => base44.entities.Harvest.filter({ created_by: userEmail }) },
+      { name: 'DeerOuting', method: () => base44.entities.DeerOuting.filter({ created_by: userEmail }) },
       { name: 'Ammunition', method: async () => {
         const response = await base44.functions.invoke('listAmmunitionForUser', {});
         return response.data.ammunition || [];
       } },
-      { name: 'MapMarker', method: () => base44.entities.MapMarker.list() },
-      { name: 'Harvest', method: () => base44.entities.Harvest.list() },
       { name: 'ReloadingComponent', method: () => base44.entities.ReloadingComponent.filter({ created_by: userEmail }) },
       { name: 'ReloadingSession', method: () => base44.entities.ReloadingSession.filter({ created_by: userEmail }) },
-      { name: 'CleaningHistory', method: () => base44.entities.CleaningHistory.filter({ created_by: userEmail }) },
-      { name: 'DeerOuting', method: () => base44.entities.DeerOuting.filter({ created_by: userEmail }) },
-      { name: 'AmmoSpending', method: () => base44.entities.AmmoSpending.filter({ created_by: userEmail }) },
       { name: 'ReloadingInventory', method: () => base44.entities.ReloadingInventory.filter({ created_by: userEmail }) },
+      { name: 'ReloadingTest', method: () => base44.entities.ReloadingTest.filter({ created_by: userEmail }) },
+      { name: 'ReloadingTestVariant', method: () => base44.entities.ReloadingTestVariant.filter({ created_by: userEmail }) },
+      { name: 'ReloadingTestResult', method: () => base44.entities.ReloadingTestResult.filter({ created_by: userEmail }) },
+      { name: 'TargetSession', method: () => base44.entities.TargetSession.filter({ created_by: userEmail }) },
+      { name: 'TargetGroup', method: () => base44.entities.TargetGroup.filter({ created_by: userEmail }) },
+      { name: 'ClayStand', method: () => base44.entities.ClayStand.filter({ created_by: userEmail }) },
+      { name: 'ClayScorecard', method: () => base44.entities.ClayScorecard.filter({ created_by: userEmail }) },
+      { name: 'ClayShot', method: () => base44.entities.ClayShot.filter({ created_by: userEmail }) },
+      { name: 'MaintenanceAlert', method: () => base44.entities.MaintenanceAlert.filter({ created_by: userEmail }) },
+      { name: 'CleaningHistory', method: () => base44.entities.CleaningHistory.filter({ created_by: userEmail }) },
+      { name: 'AmmoSpending', method: () => base44.entities.AmmoSpending.filter({ created_by: userEmail }) },
     ];
 
     // Process in small batches of 3 to avoid overwhelming the server

@@ -14,6 +14,7 @@ import {
   saveLoadTestPdf,
 } from '@/utils/loadDevelopmentPdfActions';
 import { getVelocityReadings } from '@/utils/loadDevelopmentStatistics';
+import LoadDevelopmentAnalysis from '@/components/load-development/LoadDevelopmentAnalysis';
 import QRLabelButton from '@/components/qr/QRLabelButton';
 
 const STATUS_COLORS = {
@@ -175,7 +176,7 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
     } catch (e) { alert('Error: ' + e.message); }
   };
 
-  const tabs = ['overview', 'variants', 'results'];
+  const tabs = ['overview', 'variants', 'results', 'analysis'];
 
   return (
     <div>
@@ -446,6 +447,10 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'analysis' && (
+          <LoadDevelopmentAnalysis test={test} variants={variants} results={results} />
         )}
 
         {/* Results Tab */}

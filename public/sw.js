@@ -13,8 +13,9 @@ self.addEventListener('message', (event) => {
  *   - API calls: Network-only (never cached — IndexedDB handles data offline)
  */
 
-const CACHE_NAME = 'shooting-records-v4';
-const SHELL_CACHE = 'shell-v4';
+const CACHE_NAME = 'shooting-records-v5';
+const SHELL_CACHE = 'shell-v5';
+const OFFLINE_RESPONSE = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Offline</title></head><body><main style="font-family:system-ui;padding:24px"><h1>Offline</h1><p>The app shell is not cached on this device yet. Go online once to finish setup.</p></main></body></html>`;
 
 // Core app shell files to pre-cache on install
 const PRECACHE_URLS = [
@@ -91,24 +92,32 @@ async function networkFirstShell(request) {
     const response = await fetch(request);
     const cache = await caches.open(SHELL_CACHE);
     cache.put(request, response.clone());
+    if (request.mode === 'navigate') cache.put('/', response.clone());
     return response;
   } catch {
     const cached = await caches.match(request);
     if (cached) return cached;
-    // Last resort: return root index for navigation
     const root = await caches.match('/');
-    return root || new Response('Offline', { status: 503 });
+    if (root) return root;
+    return new Response(OFFLINE_RESPONSE, { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
   }
 }
 
 async function cacheFirst(request, cacheName) {
   const cached = await caches.match(request);
   if (cached) {
-    // Update cache in background
     fetchAndCache(request, cacheName).catch(() => {});
     return cached;
   }
-  return fetchAndCache(request, cacheName);
+  try {
+    return await fetchAndCache(request, cacheName);
+  } catch {
+    if (request.destination === 'script') {
+      const root = await caches.match('/');
+      if (root) return new Response('', { status: 503, statusText: 'Chunk unavailable offline' });
+    }
+    return new Response('', { status: 503, statusText: 'Offline asset unavailable' });
+  }
 }
 
 async function networkFirst(request) {
