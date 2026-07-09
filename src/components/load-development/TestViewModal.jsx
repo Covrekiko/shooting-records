@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Download, Edit2, Star, CheckCircle2, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
+import { getVelocityReadings } from '@/utils/loadDevelopmentStatistics';
 
 const Section = ({ title, children }) => (
   <div className="mb-6">
@@ -255,13 +256,13 @@ export default function TestViewModal({ open, test, variants, results, onClose, 
                         </div>
                       ))}
                     </div>
-                    {[result.velocity_1, result.velocity_2, result.velocity_3, result.velocity_4, result.velocity_5].some(Boolean) && (
+                    {getVelocityReadings(result).length > 0 && (
                       <div>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase mb-2">Chronograph Readings</p>
                         <div className="flex gap-2 flex-wrap">
-                          {[result.velocity_1, result.velocity_2, result.velocity_3, result.velocity_4, result.velocity_5].map((vel, i) =>
-                            vel ? <span key={i} className="text-xs bg-secondary rounded-lg px-3 py-1.5 font-semibold">V{i + 1}: {vel} fps</span> : null
-                          )}
+                          {getVelocityReadings(result).map((r, i) => (
+                            <span key={i} className={`text-xs rounded-lg px-3 py-1.5 font-semibold ${r.included ? 'bg-secondary' : 'bg-secondary/50 text-muted-foreground line-through'}`}>V{r.shot_number}: {r.velocity} fps{r.included ? '' : ' (excl.)'}</span>
+                          ))}
                         </div>
                       </div>
                     )}

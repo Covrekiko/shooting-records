@@ -4,6 +4,8 @@ import { Calculator, Camera, ImagePlus, Trash2, CloudSun } from 'lucide-react';
 import { compressImage } from '@/lib/imageUtils';
 import NumberInput from '@/components/ui/NumberInput.jsx';
 import GlobalModal, { ModalSaveButton, ModalCancelButton } from '@/components/ui/GlobalModal.jsx';
+import ChronographReadingsEditor from '@/components/load-development/ChronographReadingsEditor.jsx';
+import { getVelocityReadings, summarizeReadings } from '@/utils/loadDevelopmentStatistics';
 
 const Field = ({ label, children }) => (
   <div>
@@ -50,6 +52,20 @@ export default function ResultFormModal({ open, test, variant, result, onClose, 
   useEffect(() => {
     if (result) setForm(f => ({ ...f, ...result }));
   }, [result]);
+
+  // Dynamic chronograph readings — expected count follows variant.round_count
+  const expectedShots = Math.max(0, parseInt(variant?.round_count, 10) || 0);
+  const [readings, setReadings] = useState([]);
+
+  useEffect(() => {
+    if (!open) return;
+    const existing = result ? getVelocityReadings(result) : [];
+    const rows = existing.map(r => ({ ...r, velocity: String(r.velocity) }));
+    while (rows.length < expectedShots) {
+      rows.push({ shot_number: rows.length + 1, velocity: '', included: true });
+    }
+    setReadings(rows);
+  }, [open, result, variant?.id, expectedShots]);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -132,24 +148,22 @@ export default function ResultFormModal({ open, test, variant, result, onClose, 
   };
 
   const calcVelocityStats = () => {
-    const vels = [form.velocity_1, form.velocity_2, form.velocity_3, form.velocity_4, form.velocity_5]
-      .map(v => parseFloat(v)).filter(v => !isNaN(v) && v > 0);
-    if (vels.length === 0) return;
-    const avg = vels.reduce((a, b) => a + b, 0) / vels.length;
-    const es = Math.max(...vels) - Math.min(...vels);
-    const variance = vels.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / vels.length;
-    const sd = Math.sqrt(variance);
+    const summary = summarizeReadings(readings.map(r => ({ ...r, velocity: parseFloat(r.velocity) })));
+    if (summary.includedCount === 0) return;
     setForm(f => ({
       ...f,
-      avg_velocity: Math.round(avg),
-      es: Math.round(es),
-      sd: Math.round(sd * 10) / 10,
+      avg_velocity: summary.avg,
+      es: summary.es,
+      sd: summary.sd ?? '',
     }));
   };
 
   const handleSubmit = async () => {
     setSaving(true);
     try {
+      const savedReadings = readings
+        .map((r, i) => ({ shot_number: i + 1, velocity: parseFloat(r.velocity), included: r.included !== false }))
+        .filter(r => !isNaN(r.velocity) && r.velocity > 0);
       const payload = {
         test_id: test.id,
         variant_id: variant.id,
@@ -158,11 +172,13 @@ export default function ResultFormModal({ open, test, variant, result, onClose, 
         distance_yards: parseFloat(form.distance_yards) || null,
         group_size_moa: parseFloat(form.group_size_moa) || null,
         group_size_mm: parseFloat(form.group_size_mm) || null,
-        velocity_1: parseFloat(form.velocity_1) || null,
-        velocity_2: parseFloat(form.velocity_2) || null,
-        velocity_3: parseFloat(form.velocity_3) || null,
-        velocity_4: parseFloat(form.velocity_4) || null,
-        velocity_5: parseFloat(form.velocity_5) || null,
+        velocity_readings: savedReadings,
+        // Temporary dual-write for backward compatibility (see LOAD_DEVELOPMENT_V2_MIGRATION_PLAN.md)
+        velocity_1: savedReadings[0]?.velocity ?? null,
+        velocity_2: savedReadings[1]?.velocity ?? null,
+        velocity_3: savedReadings[2]?.velocity ?? null,
+        velocity_4: savedReadings[3]?.velocity ?? null,
+        velocity_5: savedReadings[4]?.velocity ?? null,
         avg_velocity: parseFloat(form.avg_velocity) || null,
         es: parseFloat(form.es) || null,
         sd: parseFloat(form.sd) || null,
@@ -266,11 +282,7 @@ export default function ResultFormModal({ open, test, variant, result, onClose, 
               <Calculator className="w-3 h-3" />Calculate
             </button>
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            {[1,2,3,4,5].map(n => (
-              <NumberInput key={n} label={`V${n} (fps)`} value={form[`velocity_${n}`] ?? ''} onChange={v => set(`velocity_${n}`, v)} placeholder="2650" />
-            ))}
-          </div>
+          <ChronographReadingsEditor readings={readings} onChange={setReadings} expectedShots={expectedShots} />
           <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border">
             <NumberInput label="Avg (fps)" value={form.avg_velocity ?? ''} onChange={v => set('avg_velocity', v)} placeholder="auto" />
             <NumberInput label="ES (fps)" value={form.es ?? ''} onChange={v => set('es', v)} placeholder="auto" />

@@ -13,6 +13,7 @@ import {
   revokeLoadTestPdfPreview,
   saveLoadTestPdf,
 } from '@/utils/loadDevelopmentPdfActions';
+import { getVelocityReadings } from '@/utils/loadDevelopmentStatistics';
 import QRLabelButton from '@/components/qr/QRLabelButton';
 
 const STATUS_COLORS = {
@@ -520,13 +521,13 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
                             ))}
                           </div>
 
-                          {[result.velocity_1, result.velocity_2, result.velocity_3, result.velocity_4, result.velocity_5].some(Boolean) && (
+                          {getVelocityReadings(result).length > 0 && (
                             <div>
                               <p className="text-[10px] font-semibold text-muted-foreground uppercase mb-1.5">Chronograph Readings</p>
                               <div className="flex gap-1.5 flex-wrap">
-                                {[result.velocity_1, result.velocity_2, result.velocity_3, result.velocity_4, result.velocity_5].map((vel, i) => vel ? (
-                                  <span key={i} className="text-xs bg-secondary rounded-md px-2 py-1 font-medium">V{i+1}: {vel}</span>
-                                ) : null)}
+                                {getVelocityReadings(result).map((r, i) => (
+                                  <span key={i} className={`text-xs rounded-md px-2 py-1 font-medium ${r.included ? 'bg-secondary' : 'bg-secondary/50 text-muted-foreground line-through'}`}>V{r.shot_number}: {r.velocity}{r.included ? '' : ' (excl.)'}</span>
+                                ))}
                               </div>
                             </div>
                           )}

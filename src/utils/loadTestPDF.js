@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
+import { getVelocityReadings } from '@/utils/loadDevelopmentStatistics';
 
 export const generateLoadTestPDF = (test, variants, results) => {
   const doc = new jsPDF();
@@ -174,19 +175,22 @@ export const generateLoadTestPDF = (test, variants, results) => {
         y += split.length * 4.5 + 0.5;
       });
 
-      // Velocity string
-      const vels = [result.velocity_1, result.velocity_2, result.velocity_3, result.velocity_4, result.velocity_5]
-        .filter(Boolean).join(' / ');
-      if (vels) {
-        checkPage(6);
+      // Velocity string — dynamic readings with legacy velocity_1-5 fallback
+      const readingList = getVelocityReadings(result);
+      if (readingList.length > 0) {
+        const velText = readingList
+          .map(r => `${r.velocity}${r.included ? '' : ' (excl.)'}`)
+          .join(' / ') + ' fps';
+        const split = doc.splitTextToSize(velText, pageWidth - 85);
+        checkPage(split.length * 4.5 + 4);
         doc.setFontSize(9);
         doc.setFont(undefined, 'bold');
         doc.setTextColor(80);
         doc.text('Velocities:', 24, y);
         doc.setFont(undefined, 'normal');
         doc.setTextColor(0);
-        doc.text(vels + ' fps', 62, y);
-        y += 5;
+        doc.text(split, 62, y);
+        y += split.length * 4.5 + 0.5;
       }
     } else {
       checkPage(6);

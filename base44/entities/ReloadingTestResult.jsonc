@@ -25,6 +25,25 @@
     "group_size_mm": {
       "type": "number"
     },
+    "velocity_readings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "shot_number": {
+            "type": "integer"
+          },
+          "velocity": {
+            "type": "number"
+          },
+          "included": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "description": "Dynamic chronograph readings (V2). Legacy velocity_1-5 fields are retained for backward compatibility."
+    },
     "velocity_1": {
       "type": "number"
     },
