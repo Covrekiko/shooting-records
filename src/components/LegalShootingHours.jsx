@@ -1,4 +1,4 @@
-import { Sunrise, Sunset, AlertCircle, Sun, CheckCircle } from 'lucide-react';
+import { Sunrise, Sunset, Sun, CheckCircle } from 'lucide-react';
 import { useSunTimes } from '@/hooks/useSunTimes';
 import { useState, useEffect } from 'react';
 

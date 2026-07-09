@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Crosshair, AlertCircle, CheckCircle2, Zap } from 'lucide-react';
+import { Crosshair, AlertCircle, Zap } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function RifleAmmoTracker() {

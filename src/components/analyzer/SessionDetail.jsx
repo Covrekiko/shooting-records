@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Plus, Edit2, Trash2, Download, Copy, Target, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Edit2, Download, Copy } from 'lucide-react';
 import { format } from 'date-fns';
 import GroupCard from './GroupCard';
 import ManualGroupForm from './ManualGroupForm';

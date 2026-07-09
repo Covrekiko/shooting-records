@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Upload, X, Image } from 'lucide-react';
+import { Upload, X } from 'lucide-react';
 import { compressImage } from '@/lib/imageUtils';
 
 export default function PhotoUpload({ photos = [], onPhotosChange }) {

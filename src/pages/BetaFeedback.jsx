@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Plus, Search, Filter, MessageSquare, AlertCircle, Lightbulb, Eye, Upload, X } from 'lucide-react';
+import { Plus, Search, MessageSquare, AlertCircle, Lightbulb, Eye, Upload, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 

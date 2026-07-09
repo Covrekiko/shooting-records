@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { base44 } from '@/api/base44Client';
 import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import ManualGroupForm from '@/components/target-analyzer/ManualGroupForm';
 import PhotoGroupAnalyzer from '@/components/target-analyzer/PhotoGroupAnalyzer';
 

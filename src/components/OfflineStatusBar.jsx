@@ -4,7 +4,8 @@
  */
 
 import { useOffline } from '@/context/OfflineContext';
-import { Wifi, WifiOff, RefreshCw, AlertTriangle, CheckCircle2, CloudOff } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { WifiOff, RefreshCw, AlertTriangle, CloudOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SYNC_STATE } from '@/lib/syncEngine';
 
@@ -55,6 +56,7 @@ export default function OfflineStatusBar() {
         >
           Retry
         </button>
+        <Link to="/sync-conflicts" className="ml-1 text-[10px] font-bold underline hover:no-underline">Review</Link>
       </>
     );
   } else if (isOnline && pendingCount > 0) {
@@ -69,6 +71,7 @@ export default function OfflineStatusBar() {
         >
           Sync now
         </button>
+        <Link to="/sync-conflicts" className="ml-1 text-[10px] font-bold underline hover:no-underline">Review</Link>
       </>
     );
   }

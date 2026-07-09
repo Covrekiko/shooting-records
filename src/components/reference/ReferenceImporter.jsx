@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Upload, CheckCircle, AlertCircle, Download } from 'lucide-react';
+import { X, Upload, CheckCircle, Download } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 // Duplicate key rules

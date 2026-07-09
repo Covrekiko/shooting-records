@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import { Target, Plus, History, BarChart2, Package, Crosshair, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';

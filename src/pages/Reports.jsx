@@ -8,7 +8,6 @@ import TargetShootingAnalytics from '@/components/analytics/TargetShootingAnalyt
 import ClayShootingAnalytics from '@/components/analytics/ClayShootingAnalytics';
 import DeerManagementAnalytics from '@/components/analytics/DeerManagementAnalytics';
 import {
-  generateRecordPDF,
   generateMonthlySummaryPDF,
   generateCategoryReportPDF,
 } from '@/utils/pdfExport';

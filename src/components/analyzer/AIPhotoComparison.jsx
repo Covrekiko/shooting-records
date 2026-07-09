@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Loader2, AlertCircle, CheckCircle2, Save, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, CheckCircle2, Trash2, X } from 'lucide-react';
 import { calcGroupSizePixels, convertGroupSize } from '@/lib/groupSizeCalculations';
 
 // FEATURE DISABLED: AI Target Photo Analysis is currently disabled because detection accuracy needs further work.

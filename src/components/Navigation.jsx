@@ -2,9 +2,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Menu, X, Settings, Target, Crosshair, Map,
   BookOpen, User, ArrowLeft, BarChart3,
-  Shield, Layers, RefreshCw, Sun, FlaskConical, ScanLine, QrCode,
+  Shield, Layers, RefreshCw, Sun, FlaskConical, ScanLine,
 } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../lib/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOffline } from '@/context/OfflineContext';

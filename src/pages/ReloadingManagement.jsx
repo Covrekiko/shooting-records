@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Plus, Trash2, Edit2, ArrowLeft, Menu, Eye, FlaskConical } from 'lucide-react';
+import { Plus, Trash2, Edit2, Eye, FlaskConical } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';

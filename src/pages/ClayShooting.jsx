@@ -13,9 +13,9 @@ import RecordsSection from '@/components/RecordsSection';
 import { decrementAmmoStock } from '@/lib/ammoUtils';
 import { loadOwnedAmmunitionWithReloads } from '@/lib/ownedAmmunition';
 import { formatAmmunitionLabel } from '@/utils/ammoLabels';
+import { shotgunGaugeMatchesAmmunition } from '@/lib/gaugeUtils';
 import { sessionManager } from '@/lib/sessionManager';
 import { trackingService } from '@/lib/trackingService';
-import BottomSheetSelect from '@/components/BottomSheetSelect';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { motion } from 'framer-motion';
 import { DESIGN } from '@/lib/designConstants';
@@ -601,7 +601,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
                 <option value="">Select saved ammunition</option>
                 {ammunition.filter(a => {
                   const selectedShotgun = shotguns.find(s => s.id === data.shotgun_id);
-                  return !selectedShotgun || !selectedShotgun.gauge || a.caliber === selectedShotgun.gauge;
+                  return !selectedShotgun || shotgunGaugeMatchesAmmunition(a.caliber, selectedShotgun.gauge);
                 }).map(a => <option key={a.id} value={a.id}>{formatAmmunitionLabel(a)}</option>)}
               </select>
             </div>

@@ -8,9 +8,8 @@ import GpsPathViewer from '@/components/GpsPathViewer';
 import ManualRecordModal from '@/components/ManualRecordModal';
 import { createPortal } from 'react-dom';
 import { useBodyScrollLock } from '@/hooks/useBodyScrollLock';
-import { Download, Eye, Trash2, X, FileText, Map, Image, ChevronDown, Plus, Edit, Search } from 'lucide-react';
-import { format } from 'date-fns';
-import { exportRecordsToPdf, getRecordsPdfBlob } from '@/utils/recordsPdfExport';
+import { X, FileText, Plus, Search } from 'lucide-react';
+import { getRecordsPdfBlob } from '@/utils/recordsPdfExport';
 import { DESIGN } from '@/lib/designConstants';
 import RecordDetailModal from '@/components/RecordDetailModal';
 import RecordCard from '@/components/RecordCard';
@@ -476,17 +475,25 @@ function PdfPreviewModal({ records, userInfo, rifles, clubs, shotguns, locations
    useBodyScrollLock(true);
 
    useEffect(() => {
+     let currentUrl = null;
+     let cancelled = false;
      (async () => {
        const blob = await getRecordsPdfBlob(records, userInfo, rifles, clubs, shotguns, locations, [], {}, { overview: true, selectedCategory });
       const url = URL.createObjectURL(blob);
-      setPdfUrl(url);
-      setLoading(false);
+      currentUrl = url;
+      if (!cancelled) {
+        setPdfUrl(url);
+        setLoading(false);
+      } else {
+        URL.revokeObjectURL(url);
+      }
     })();
 
     return () => {
-      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+      cancelled = true;
+      if (currentUrl) URL.revokeObjectURL(currentUrl);
     };
-  }, [records, userInfo]);
+  }, [records, userInfo, rifles, clubs, shotguns, locations, selectedCategory]);
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[50001]">

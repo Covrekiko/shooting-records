@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
-import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext';
 import Navigation from '@/components/Navigation';
@@ -9,8 +8,8 @@ import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 import React from 'react';
 import {
-  Target, Crosshair, BookOpen,
-  BarChart3, ChevronRight, Clock, Zap, Shield, RefreshCw, Layers, FlaskConical, ShieldCheck, MessageCircle, MapPin,
+  Target, Crosshair,
+  BarChart3, ChevronRight, Clock, RefreshCw, FlaskConical, ShieldCheck, MessageCircle, MapPin,
 } from 'lucide-react';
 import {
   MonthlyActivityChart,
@@ -233,6 +232,11 @@ const SecondaryGrid = React.memo(function SecondaryGrid({ user }) {
     { to: '/load-development', icon: <FlaskConical className="w-5 h-5" />, label: 'Load Dev' },
     { to: '/settings/rifles', icon: <span className="text-lg">🔧</span>, label: 'Equipment' },
     { to: '/reports', icon: <BarChart3 className="w-5 h-5" />, label: 'Reports' },
+    { to: '/global-search', icon: <span className="text-lg">🔎</span>, label: 'Search' },
+    { to: '/data-health', icon: <span className="text-lg">✅</span>, label: 'Health' },
+    { to: '/activity-timeline', icon: <span className="text-lg">🕒</span>, label: 'Timeline' },
+    { to: '/firearm-profiles', icon: <span className="text-lg">🔫</span>, label: 'Firearms' },
+    { to: '/notifications', icon: <span className="text-lg">🔔</span>, label: 'Alerts' },
     ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck className="w-5 h-5" />, label: 'Admin' }] : []),
   ];
 

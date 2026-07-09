@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { X, Download, Calculator } from 'lucide-react';
+import { X, Download } from 'lucide-react';
 import GroupCard from '@/components/analyzer/GroupCard';
 import ManualGroupForm from '@/components/analyzer/ManualGroupForm';
 import TargetPhotoAnalyzer from '@/components/analyzer/TargetPhotoAnalyzer';

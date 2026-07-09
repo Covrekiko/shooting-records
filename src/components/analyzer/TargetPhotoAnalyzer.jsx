@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowLeft, Save, Loader2, Trash2, Plus, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, Trash2, RotateCcw } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import AIPhotoComparison from './AIPhotoComparison';
-import { mmToMoa, mmToMrad, calcGroupSizePixels, convertGroupSize } from '@/lib/groupSizeCalculations';
+import { calcGroupSizePixels, convertGroupSize } from '@/lib/groupSizeCalculations';
 import MobileScaleCalibrationSheet from './MobileScaleCalibrationSheet';
 
 // FEATURE FLAG: AI Target Photo Analysis is currently disabled because detection accuracy needs further work.

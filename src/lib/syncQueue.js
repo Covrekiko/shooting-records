@@ -67,6 +67,7 @@ export async function enqueueAction({ entityName, action, localId, payload }) {
 export async function getPendingQueue() {
   const all = await offlineDB.getAll('sync_queue');
   const now = Date.now();
+  let changed = false;
   
   // Mark expired entries (older than TTL)
   for (const entry of all) {
@@ -76,10 +77,12 @@ export async function getPendingQueue() {
     ) {
       console.warn(`[SYNC QUEUE] Entry ${entry.id} expired (age: ${Math.floor((now - entry.timestamp) / 1000)}s), marking as EXPIRED`);
       await offlineDB.put('sync_queue', { ...entry, status: SYNC_STATUS.EXPIRED, lastError: 'Queue entry expired (24h+)' });
+      changed = true;
     }
   }
-  
-  return all
+
+  const current = changed ? await offlineDB.getAll('sync_queue') : all;
+  return current
     .filter((e) => e.status === SYNC_STATUS.PENDING || e.status === SYNC_STATUS.FAILED)
     .sort((a, b) => a.timestamp - b.timestamp);
 }
@@ -87,6 +90,25 @@ export async function getPendingQueue() {
 export async function getAllQueueEntries() {
   const all = await offlineDB.getAll('sync_queue');
   return all.sort((a, b) => a.timestamp - b.timestamp);
+}
+
+export async function retryQueueEntry(entryId) {
+  const entry = await offlineDB.get('sync_queue', entryId);
+  if (!entry) return null;
+  const retryable = [SYNC_STATUS.FAILED, SYNC_STATUS.CONFLICT, SYNC_STATUS.PENDING].includes(entry.status);
+  if (!retryable) return entry;
+  const updated = { ...entry, status: SYNC_STATUS.PENDING, lastError: null };
+  await offlineDB.put('sync_queue', updated);
+  return updated;
+}
+
+export async function discardQueueEntry(entryId) {
+  const entry = await offlineDB.get('sync_queue', entryId);
+  if (!entry) return null;
+  const discardable = [SYNC_STATUS.FAILED, SYNC_STATUS.CONFLICT, SYNC_STATUS.EXPIRED].includes(entry.status);
+  if (!discardable) return entry;
+  await offlineDB.remove('sync_queue', entryId);
+  return { ...entry, discarded: true };
 }
 
 export async function getPendingCount() {

@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, Trash2, Target, X } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { compressImage } from '@/lib/imageUtils';
 
 const MM_PER_PX_DEFAULT = 0.5; // fallback

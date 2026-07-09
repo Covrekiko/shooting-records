@@ -20,7 +20,6 @@ import LegalShootingHoursWidget from '@/components/deer-stalking/LegalShootingHo
 import { useAutoCheckin } from '@/hooks/useAutoCheckin';
 import AutoCheckinBanner from '@/components/AutoCheckinBanner';
 import ShareAreaModal from '@/components/deer-stalking/ShareAreaModal';
-import OfflineFieldMap from '@/components/deer-stalking/OfflineFieldMap';
 import OfflineMapProvider from '@/components/maps/OfflineMapProvider';
 import { useFirstTimeGuide } from '@/hooks/useFirstTimeGuide';
 import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';

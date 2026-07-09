@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { ArrowLeft, Wind, Target, ChevronDown, ChevronUp, Plus, Trash2, Save } from 'lucide-react';
+import { ArrowLeft, Wind, Target, Plus, Save } from 'lucide-react';
 import BulletReferencePicker from '@/components/reference/BulletReferencePicker';
 import { base44 } from '@/api/base44Client';
 import { formatAmmunitionLabel } from '@/utils/ammoLabels';

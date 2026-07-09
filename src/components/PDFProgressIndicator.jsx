@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, CheckCircle2, AlertCircle } from 'lucide-react';
+import { CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function PDFProgressIndicator({ isGenerating, progress = 0, status = 'generating' }) {
   const [displayProgress, setDisplayProgress] = useState(progress);

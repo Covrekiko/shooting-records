@@ -1,11 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
-import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight, Trash2, Zap, Layers, Database, Palette, Bell } from 'lucide-react';
+import { Settings, FileText, LogOut, BarChart3, Map, User, ChevronDown, ChevronRight, Trash2, Zap, Layers, Palette, Bell } from 'lucide-react';
 import AutoCheckinSettingToggle from '@/components/AutoCheckinSettingToggle';
 import ThemeSelector from '@/components/ThemeSelector';
 import { base44 } from '@/api/base44Client';
-import { DESIGN } from '@/lib/designConstants';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { clearLocalAccountData } from '@/lib/accountDataCleanup';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';

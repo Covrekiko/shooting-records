@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import Navigation from '@/components/Navigation';
-import { Plus, Search, Upload, Download, Trash2, Edit2, X, ChevronDown, ChevronUp, Filter } from 'lucide-react';
+import { Plus, Search, Upload, Trash2, Edit2, Filter } from 'lucide-react';
 import BulletForm from '@/components/reference/BulletForm';
 import ScopeForm from '@/components/reference/ScopeForm';
 import ReferenceImporter from '@/components/reference/ReferenceImporter';

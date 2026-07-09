@@ -1,4 +1,4 @@
-import { Download, Eye } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { useState } from 'react';
 
 export default function PdfExportButton({ onClick, variant = 'icon' }) {

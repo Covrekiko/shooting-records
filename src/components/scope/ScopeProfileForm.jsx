@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Upload, Loader2 } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import ScopeReferencePicker from '@/components/reference/ScopeReferencePicker';
 import UserAmmoSelector from '@/components/scope/UserAmmoSelector';

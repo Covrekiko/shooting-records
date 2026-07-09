@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, MapPin, X, LogOut, PenSquare, LayoutGrid, Share2 } from 'lucide-react';
+import { Plus, MapPin, LogOut, LayoutGrid, Share2 } from 'lucide-react';
 
 export default function FloatingActionBar({
   onPOI,

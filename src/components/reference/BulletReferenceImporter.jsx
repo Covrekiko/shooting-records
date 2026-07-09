@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Upload, X, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Upload, X, CheckCircle2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
 const DUPLICATE_KEY = (row) => `${row.manufacturer}|${row.bullet_family}|${row.calibre}|${row.weight_grains}`;

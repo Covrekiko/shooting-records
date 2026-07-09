@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { base44 } from '@/api/base44Client';
-import { ArrowLeft, Plus, Edit2, Trash2, Copy, Download, Target, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Download, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import GroupCard from '@/components/target-analyzer/GroupCard';
 import { generateSessionPDF } from '@/utils/targetAnalyzerPDF';

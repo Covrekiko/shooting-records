@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import ShotByShotEditor from './ShotByShotEditor';
 
 const inp = 'w-full px-3 py-3 border border-border rounded-xl bg-background text-sm';
