@@ -274,6 +274,27 @@ const AuthenticatedApp = () => {
 function AppContent() {
   const location = useLocation();
 
+  useEffect(() => {
+    if (!navigator.onLine) return;
+    const idle = window.requestIdleCallback || ((cb) => window.setTimeout(cb, 1500));
+    const cancel = window.cancelIdleCallback || window.clearTimeout;
+    const id = idle(() => {
+      Promise.allSettled([
+        import('./pages/Dashboard'),
+        import('./pages/DeerStalkingMap'),
+        import('./pages/DeerStalkingLogs'),
+        import('./pages/Records'),
+        import('./pages/TargetShooting'),
+        import('./pages/ClayShooting'),
+        import('./pages/DeerManagement'),
+        import('./pages/AmmoSummary'),
+        import('./pages/LoadDevelopment'),
+        import('./pages/SyncConflictCenter'),
+      ]);
+    });
+    return () => cancel(id);
+  }, []);
+
   if (location.pathname === '/privacy-policy' || location.pathname === '/support') {
     return (
       <>

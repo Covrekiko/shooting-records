@@ -36,9 +36,24 @@ const emptyData = {
   photos: [],
 };
 
-export default function POIModal({ location, onClose, onSubmit }) {
-  const [type, setType] = useState('');
-  const [data, setData] = useState(emptyData);
+export default function POIModal({ location, initialMarker = null, onClose, onSubmit }) {
+  const [type, setType] = useState(initialMarker?.marker_type || '');
+  const [data, setData] = useState(() => initialMarker ? {
+    title: initialMarker.title || '',
+    species: initialMarker.species || '',
+    sex: initialMarker.sex || '',
+    age_class: initialMarker.age_class || '',
+    quantity: String(initialMarker.quantity || '1'),
+    sign_type: initialMarker.sign_type || '',
+    animal_category: initialMarker.animal_category || 'Pest Control',
+    pest_species: initialMarker.pest_species || '',
+    custom_animal_name: initialMarker.custom_animal_name || '',
+    feed_type: initialMarker.feed_type || '',
+    battery_life: initialMarker.battery_life || '',
+    placed_date: initialMarker.placed_date || new Date().toISOString().slice(0, 10),
+    notes: initialMarker.notes || '',
+    photos: initialMarker.photos || [],
+  } : emptyData);
   const { Guide: HighSeatGuide, showGuideThen: showHighSeatGuideThen } = useFirstTimeGuide(FIRST_TIME_GUIDES.highSeatCreate);
 
   const selectedType = POI_TYPES.find(opt => opt.value === type);
@@ -58,7 +73,7 @@ export default function POIModal({ location, onClose, onSubmit }) {
 
   const handleSubmit = () => {
     const payload = { type, ...data };
-    if (type === 'deer_sighting') payload.quantity = parseInt(data.quantity) || 1;
+    if (type === 'deer_sighting') payload.quantity = String(parseInt(data.quantity) || 1);
     onSubmit(payload);
   };
 
@@ -90,7 +105,7 @@ export default function POIModal({ location, onClose, onSubmit }) {
     <>
       <div>
         <label className={DESIGN.LABEL}>Notes</label>
-        <textarea value={data.notes} onChange={(e) => update('notes', e.target.value)} className={DESIGN.INPUT} rows="3" placeholder="Add any notes about this location..." />
+        <textarea value={data.notes} onChange={(e) => update('notes', e.target.value)} className={DESIGN.INPUT} rows={3} placeholder="Add any notes about this location..." />
       </div>
       <div>
         <label className={DESIGN.LABEL}>Photos</label>
@@ -167,7 +182,7 @@ export default function POIModal({ location, onClose, onSubmit }) {
       <GlobalModal
       open={true}
       onClose={onClose}
-      title={selectedType ? `Add ${selectedType.title}` : 'Add Point of Interest'}
+      title={selectedType ? `${initialMarker ? 'Edit' : 'Add'} ${selectedType.title}` : 'Add Point of Interest'}
       subtitle={`Location: ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`}
       onSubmit={selectedType ? handleSubmit : undefined}
       primaryAction={selectedType ? `Save ${selectedType.title}` : undefined}

@@ -25,14 +25,21 @@ function boundsFromData({ areas = [], markers = [], harvests = [], userLocation,
   const valid = points.filter(([lng, lat]) => Number.isFinite(lng) && Number.isFinite(lat));
   if (valid.length === 0) return null;
 
-  return valid.reduce((bounds, point) => bounds.extend(point), new maplibregl.LngLatBounds(valid[0], valid[0]));
+  const first = /** @type {[number, number]} */ (valid[0]);
+  return valid.reduce((bounds, point) => bounds.extend(/** @type {[number, number]} */ (point)), new maplibregl.LngLatBounds(first, first));
 }
 
+/** @returns {any} */
 function toFeatureCollection(features) {
   return { type: 'FeatureCollection', features };
 }
 
+function unique(values) {
+  return [...new Set(values.filter(Boolean))];
+}
+
 function makeStyle(pmtilesUrl) {
+  /** @type {any} */
   const baseStyle = {
     version: 8,
     sources: {},
@@ -41,25 +48,30 @@ function makeStyle(pmtilesUrl) {
 
   if (!pmtilesUrl) return baseStyle;
 
-  const { land, water, roads, places } = OFFLINE_MAP_CONFIG.vectorLayers;
+  const configured = OFFLINE_MAP_CONFIG.vectorLayers;
+  const layerCandidates = {
+    land: unique([configured.land, 'landcover', 'landuse', 'landcover_wood', 'woodland', 'forest']),
+    water: unique([configured.water, 'water', 'waterway', 'water_polygons']),
+    roads: unique([configured.roads, 'transportation', 'roads', 'road', 'transportation_lines']),
+    buildings: unique(['building', 'buildings']),
+    labels: unique([configured.places, 'place', 'places', 'poi', 'transportation_name']),
+  };
+
+  /** @type {any[]} */
+  const layers = [{ id: 'background', type: 'background', paint: { 'background-color': '#e2e8f0' } }];
+  layerCandidates.land.forEach((layer) => layers.push({ id: `land-${layer}`, type: 'fill', source: 'offline', 'source-layer': layer, paint: { 'fill-color': '#d9ead3', 'fill-opacity': 0.74 } }));
+  layerCandidates.water.forEach((layer) => layers.push({ id: `water-${layer}`, type: 'fill', source: 'offline', 'source-layer': layer, paint: { 'fill-color': '#bfdbfe', 'fill-opacity': 0.9 } }));
+  layerCandidates.buildings.forEach((layer) => layers.push({ id: `buildings-${layer}`, type: 'fill', source: 'offline', 'source-layer': layer, paint: { 'fill-color': '#d6d3d1', 'fill-opacity': 0.65 } }));
+  layerCandidates.roads.forEach((layer) => {
+    layers.push({ id: `paths-${layer}`, type: 'line', source: 'offline', 'source-layer': layer, filter: ['in', ['get', 'class'], ['literal', ['path', 'track', 'footway', 'bridleway', 'minor', 'service']]], paint: { 'line-color': '#a16207', 'line-width': ['interpolate', ['linear'], ['zoom'], 10, 0.5, 15, 1.8], 'line-dasharray': [1.5, 1] } });
+    layers.push({ id: `roads-${layer}`, type: 'line', source: 'offline', 'source-layer': layer, paint: { 'line-color': '#ffffff', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 0.7, 15, 3], 'line-opacity': 0.92 } });
+  });
+  layerCandidates.labels.forEach((layer) => layers.push({ id: `labels-${layer}`, type: 'symbol', source: 'offline', 'source-layer': layer, layout: { 'text-field': ['coalesce', ['get', 'name:en'], ['get', 'name']], 'text-size': 11 }, paint: { 'text-color': '#334155', 'text-halo-color': '#ffffff', 'text-halo-width': 1 } }));
 
   return {
     version: 8,
-    sources: {
-      offline: {
-        type: 'vector',
-        url: `pmtiles://${pmtilesUrl}`,
-      },
-    },
-    layers: [
-      { id: 'background', type: 'background', paint: { 'background-color': '#e2e8f0' } },
-      { id: 'landcover', type: 'fill', source: 'offline', 'source-layer': land, paint: { 'fill-color': '#d9ead3', 'fill-opacity': 0.9 } },
-      { id: 'landuse', type: 'fill', source: 'offline', 'source-layer': 'landuse', paint: { 'fill-color': ['case', ['in', ['get', 'class'], ['literal', ['wood', 'forest', 'park']]], '#b7d7a8', '#e5e7eb'], 'fill-opacity': 0.72 } },
-      { id: 'water', type: 'fill', source: 'offline', 'source-layer': water, paint: { 'fill-color': '#bfdbfe' } },
-      { id: 'minor-roads-paths', type: 'line', source: 'offline', 'source-layer': roads, filter: ['in', ['get', 'class'], ['literal', ['path', 'track', 'footway', 'bridleway', 'minor', 'service']]], paint: { 'line-color': '#a16207', 'line-width': ['interpolate', ['linear'], ['zoom'], 10, 0.5, 15, 1.8], 'line-dasharray': [1.5, 1] } },
-      { id: 'roads', type: 'line', source: 'offline', 'source-layer': roads, filter: ['!', ['in', ['get', 'class'], ['literal', ['path', 'track', 'footway', 'bridleway']]]], paint: { 'line-color': '#ffffff', 'line-width': ['interpolate', ['linear'], ['zoom'], 8, 0.7, 15, 3], 'line-opacity': 0.92 } },
-      { id: 'places', type: 'symbol', source: 'offline', 'source-layer': places, layout: { 'text-field': ['coalesce', ['get', 'name:en'], ['get', 'name']], 'text-size': 11 }, paint: { 'text-color': '#334155', 'text-halo-color': '#ffffff', 'text-halo-width': 1 } },
-    ],
+    sources: { offline: { type: 'vector', url: `pmtiles://${pmtilesUrl}` } },
+    layers,
   };
 }
 
@@ -138,7 +150,7 @@ export default function OfflineMapProvider({
     }
 
     const bounds = boundsFromData({ areas, markers, harvests, userLocation, activeTrack });
-    const center = userLocation ? [userLocation.lng, userLocation.lat] : [-0.1278, 51.5074];
+    const center = /** @type {[number, number]} */ (userLocation ? [Number(userLocation.lng), Number(userLocation.lat)] : [-0.1278, 51.5074]);
 
     const map = new maplibregl.Map({
       container: containerRef.current,
@@ -185,7 +197,7 @@ export default function OfflineMapProvider({
     return () => {
       map.remove();
       mapRef.current = null;
-      if (pmtilesRef.current) protocol.remove(pmtilesRef.current);
+      if (pmtilesRef.current) /** @type {any} */ (protocol).remove?.(pmtilesRef.current);
       if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
     };
   }, [mapPackage]);

@@ -20,6 +20,13 @@ export function getOfflinePhotoId(ref) {
   return isOfflinePhotoRef(ref) ? ref.slice(PREFIX.length) : null;
 }
 
+export function collectOfflinePhotoRefs(value, refs = new Set()) {
+  if (isOfflinePhotoRef(value)) refs.add(value);
+  else if (Array.isArray(value)) value.forEach((item) => collectOfflinePhotoRefs(item, refs));
+  else if (value && typeof value === 'object') Object.values(value).forEach((item) => collectOfflinePhotoRefs(item, refs));
+  return [...refs];
+}
+
 export async function saveOfflinePhoto(blob, name = 'offline-photo.jpg') {
   const id = makeId();
   const record = {
@@ -50,8 +57,15 @@ async function uploadOfflinePhotoRef(ref) {
   if (!record?.blob) return ref;
   if (record.remoteUrl) return record.remoteUrl;
 
+  await offlineDB.put(STORE, { ...record, status: 'uploading', attempts: Number(record.attempts || 0) + 1, updatedAt: Date.now() });
   const file = new File([record.blob], record.name || `${id}.jpg`, { type: record.type || record.blob.type || 'image/jpeg' });
-  const response = await base44.integrations.Core.UploadFile({ file });
+  let response;
+  try {
+    response = await base44.integrations.Core.UploadFile({ file });
+  } catch (error) {
+    await offlineDB.put(STORE, { ...record, status: 'pending_upload', attempts: Number(record.attempts || 0) + 1, lastError: error?.message || String(error), updatedAt: Date.now() });
+    throw error;
+  }
   const remoteUrl = response.file_url || response.url;
   if (!remoteUrl) throw new Error('Offline photo upload did not return a URL.');
 
@@ -76,4 +90,24 @@ export async function resolveOfflinePhotoRefs(value) {
     return Object.fromEntries(entries);
   }
   return value;
+}
+
+export async function cleanupUploadedOfflinePhotoRefs(refs = []) {
+  for (const ref of refs) {
+    const id = getOfflinePhotoId(ref);
+    if (!id) continue;
+    const record = await offlineDB.getById(STORE, id);
+    if (record?.remoteUrl) await offlineDB.remove(STORE, id);
+  }
+}
+
+export async function discardOfflinePhotoRefs(refs = []) {
+  for (const ref of refs) {
+    const id = getOfflinePhotoId(ref);
+    if (id) await offlineDB.remove(STORE, id);
+  }
+}
+
+export async function listQueuedOfflinePhotos() {
+  return offlineDB.getAll(STORE);
 }

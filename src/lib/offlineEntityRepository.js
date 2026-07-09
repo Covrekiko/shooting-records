@@ -13,8 +13,9 @@
 
 import { base44, savedAuthToken } from '@/api/base44Client';
 import { offlineDB, ENTITY_STORE_MAP } from './offlineDB';
-import { enqueueAction, SYNC_ACTIONS } from './syncQueue';
+import { enqueueAction, removeQueuedMutationsForLocalRecord, SYNC_ACTIONS } from './syncQueue';
 import { connectivityManager } from './connectivityManager';
+import { collectOfflinePhotoRefs, discardOfflinePhotoRefs } from './offlinePhotoStore';
 
 function generateTempId() {
   return `_local_${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -202,6 +203,15 @@ class EntityRepository {
    * - If offline: queues sync action.
    */
   async delete(id) {
+    const existing = this.storeName ? await offlineDB.getById(this.storeName, id) : null;
+    if (existing?._localOnly || String(id).startsWith('_local_')) {
+      const removed = await removeQueuedMutationsForLocalRecord(this.entityName, id);
+      const photoRefs = removed.flatMap((entry) => collectOfflinePhotoRefs(entry.payload));
+      if (photoRefs.length) await discardOfflinePhotoRefs(photoRefs);
+      if (this.storeName) await offlineDB.remove(this.storeName, id);
+      return;
+    }
+
     if (this.storeName) await offlineDB.remove(this.storeName, id);
 
     if (connectivityManager.isOnline()) {

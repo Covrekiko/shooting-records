@@ -19,20 +19,32 @@ export function writeUserCache(storage, user, now = Date.now()) {
   return identity.key;
 }
 
+function safeParseJson(raw) {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 export function readCurrentUserCache(storage) {
   if (!storage) return null;
-  const pointerRaw = storage.getItem(CURRENT_KEY);
-  if (!pointerRaw) return null;
-  const pointer = JSON.parse(pointerRaw);
+  const pointer = safeParseJson(storage.getItem(CURRENT_KEY));
   if (!pointer?.key || !pointer.key.startsWith(PREFIX)) return null;
-  const raw = storage.getItem(pointer.key);
-  if (!raw) return null;
-  const cached = JSON.parse(raw);
+  const cached = safeParseJson(storage.getItem(pointer.key));
+  if (!cached) return null;
   const cachedIdentity = getUserIdentity(cached);
   if (!cachedIdentity) return null;
   if (pointer.id && cachedIdentity.id && pointer.id !== cachedIdentity.id) return null;
   if (pointer.email && cachedIdentity.email && pointer.email !== cachedIdentity.email) return null;
   return cached;
+}
+
+export function getCurrentCachePointer(storage) {
+  const pointer = safeParseJson(storage?.getItem(CURRENT_KEY));
+  if (!pointer?.key || !pointer.key.startsWith(PREFIX)) return null;
+  return pointer;
 }
 
 export function clearUserCaches(storage) {

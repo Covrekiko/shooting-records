@@ -129,6 +129,7 @@ export default function DeerStalkingMap() {
   const [autoCheckinEnabled, setAutoCheckinEnabled] = useState(false);
   const [openInfoWindowId, setOpenInfoWindowId] = useState(null);
   const [openInfoWindowType, setOpenInfoWindowType] = useState(null);
+  const [editingPOI, setEditingPOI] = useState(null);
   const mapRef = useRef(null);
 
   useEffect(() => {
@@ -257,6 +258,33 @@ export default function DeerStalkingMap() {
   const handlePOISubmit = async (data) => {
     try {
       const now = new Date().toISOString();
+      if (editingPOI) {
+        const updatedMarker = await getRepository('MapMarker').update(editingPOI.id, {
+          marker_type: data.type,
+          title: data.title || '',
+          species: data.species || '',
+          sex: data.sex || '',
+          age_class: data.age_class || '',
+          quantity: data.quantity || null,
+          sign_type: data.sign_type || '',
+          animal_category: data.animal_category || '',
+          pest_species: data.pest_species || '',
+          custom_animal_name: data.custom_animal_name || '',
+          feed_type: data.feed_type || '',
+          battery_life: data.battery_life || '',
+          placed_date: data.placed_date || '',
+          notes: data.notes,
+          photos: data.photos || [],
+          updated_at: now,
+          _offline_status: navigator.onLine ? 'synced' : 'pending_sync',
+        });
+        setMarkers(prev => prev.map(marker => marker.id === editingPOI.id ? updatedMarker : marker));
+        setEditingPOI(null);
+        setShowPOI(false);
+        setMapClick(null);
+        setWaitingForPin(null);
+        return;
+      }
       const createdMarker = await getRepository('MapMarker').create({
         marker_type: data.type,
         latitude: mapClick.lat,
@@ -397,7 +425,9 @@ export default function DeerStalkingMap() {
 
   const handleDeletePOI = async (id) => {
     try {
-      await base44.entities.MapMarker.delete(id);
+      await getRepository('MapMarker').delete(id);
+      setMarkers(prev => prev.filter(marker => marker.id !== id));
+      setOpenInfoWindowId(null);
       if (loadDataTimeoutRef.current) clearTimeout(loadDataTimeoutRef.current);
       loadDataTimeoutRef.current = setTimeout(() => loadData(), 500);
     } catch (err) {
@@ -407,7 +437,9 @@ export default function DeerStalkingMap() {
 
   const handleDeleteHarvest = async (id) => {
     try {
-      await base44.entities.Harvest.delete(id);
+      await getRepository('Harvest').delete(id);
+      setHarvests(prev => prev.filter(harvest => harvest.id !== id));
+      setOpenInfoWindowId(null);
       if (loadDataTimeoutRef.current) clearTimeout(loadDataTimeoutRef.current);
       loadDataTimeoutRef.current = setTimeout(() => loadData(), 500);
     } catch (err) {
@@ -576,8 +608,19 @@ export default function DeerStalkingMap() {
                       </details>
                     )}
                     <button
+                      onClick={() => {
+                        setEditingPOI(marker);
+                        setMapClick({ lat: marker.latitude, lng: marker.longitude });
+                        setShowPOI(true);
+                        setOpenInfoWindowId(null);
+                      }}
+                      className="w-full mt-2 px-2 py-1.5 bg-primary text-white text-sm rounded hover:bg-primary/90"
+                    >
+                      Edit
+                    </button>
+                    <button
                       onClick={() => handleDeletePOI(marker.id)}
-                      className="w-full mt-2 px-2 py-1.5 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                      className="w-full mt-1 px-2 py-1.5 bg-red-500 text-white text-sm rounded hover:bg-red-600"
                     >
                       Delete
                     </button>
@@ -810,7 +853,7 @@ export default function DeerStalkingMap() {
 
       {/* Modals — GlobalModal handles its own portal/overlay */}
       {showPOI && mapClick && (
-        <POIModal location={mapClick} onClose={() => { setShowPOI(false); setWaitingForPin(null); setMapClick(null); }} onSubmit={handlePOISubmit} />
+        <POIModal location={mapClick} initialMarker={editingPOI} onClose={() => { setShowPOI(false); setEditingPOI(null); setWaitingForPin(null); setMapClick(null); }} onSubmit={handlePOISubmit} />
       )}
 
       {showHarvest && mapClick && (

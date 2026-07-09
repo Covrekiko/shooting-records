@@ -7,7 +7,8 @@
 import { offlineDB } from './offlineDB';
 import { base44, savedAuthToken } from '@/api/base44Client';
 import { queueEntryNeedsReview } from './syncQueuePolicy';
-import { resolveOfflinePhotoRefs } from './offlinePhotoStore';
+import { cleanupUploadedOfflinePhotoRefs, collectOfflinePhotoRefs, resolveOfflinePhotoRefs } from './offlinePhotoStore';
+import { getCurrentCachePointer } from './authCacheIsolation';
 
 export const SYNC_STATUS = {
   PENDING: 'pending',
@@ -39,6 +40,20 @@ function generateTransactionId() {
   return `tx_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 }
 
+function getQueueOwnerIdentity() {
+  if (typeof window === 'undefined') return null;
+  const pointer = getCurrentCachePointer(window.localStorage);
+  if (!pointer) return null;
+  return { id: pointer.id || '', email: pointer.email || '', key: pointer.key || '' };
+}
+
+function queueOwnerMatches(entryOwner, currentOwner) {
+  if (!entryOwner || !currentOwner) return true;
+  if (entryOwner.id && currentOwner.id && entryOwner.id !== currentOwner.id) return false;
+  if (entryOwner.email && currentOwner.email && entryOwner.email !== currentOwner.email) return false;
+  return true;
+}
+
 /**
  * Enqueue a mutation for later sync.
  * Each entry has a unique transactionId for idempotent retry.
@@ -52,6 +67,7 @@ export async function enqueueAction({ entityName, action, localId, payload }) {
     action,
     localId,       // The local (or server) id of the record
     payload,       // Full data payload
+    owner: getQueueOwnerIdentity(),
     timestamp: Date.now(),
     status: SYNC_STATUS.PENDING,
     retryCount: 0,
@@ -98,6 +114,13 @@ export async function discardQueueEntry(entryId) {
   if (!discardable) return entry;
   await offlineDB.remove('sync_queue', entryId);
   return { ...entry, discarded: true };
+}
+
+export async function removeQueuedMutationsForLocalRecord(entityName, localId) {
+  const all = await offlineDB.getAll('sync_queue');
+  const matches = all.filter((entry) => entry.entityName === entityName && entry.localId === localId && [SYNC_STATUS.PENDING, SYNC_STATUS.FAILED, SYNC_STATUS.CONFLICT].includes(entry.status));
+  for (const entry of matches) await offlineDB.remove('sync_queue', entry.id);
+  return matches;
 }
 
 export async function getPendingCount() {
@@ -262,6 +285,7 @@ export async function runSync(onProgress) {
 
   const queue = await getPendingQueue();
   if (queue.length === 0) return { synced: 0, failed: 0, conflicts: 0, expired: 0 };
+  const currentOwner = getQueueOwnerIdentity();
 
   let synced = 0;
   let failed = 0;
@@ -274,6 +298,17 @@ export async function runSync(onProgress) {
     if (entry.status === SYNC_STATUS.EXPIRED) {
       expired++;
       console.warn(`[SYNC QUEUE] Skipping expired entry ${entry.id}`);
+      continue;
+    }
+
+    if (!queueOwnerMatches(entry.owner, currentOwner)) {
+      conflicts++;
+      await offlineDB.put('sync_queue', {
+        ...entry,
+        status: SYNC_STATUS.CONFLICT,
+        lastError: 'Queued operation belongs to a different cached account. Review before syncing.',
+        lastAttemptTime: Date.now(),
+      });
       continue;
     }
 
@@ -291,6 +326,8 @@ export async function runSync(onProgress) {
 
     if (result.success) {
       synced++;
+      const syncedPhotoRefs = collectOfflinePhotoRefs(entry.payload);
+      if (syncedPhotoRefs.length) await cleanupUploadedOfflinePhotoRefs(syncedPhotoRefs);
       // If it was a CREATE, update local store with server id
       if (entry.action === SYNC_ACTIONS.CREATE && result.serverRecord) {
         if (entry.localId && result.serverRecord.id) {

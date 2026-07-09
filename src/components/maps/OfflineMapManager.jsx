@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { Download, HardDrive, Trash2, Map, RefreshCw, Upload } from 'lucide-react';
 import { getRepository } from '@/lib/offlineSupport';
 import { OFFLINE_MAP_CONFIG, OFFLINE_MAP_NOT_CONFIGURED_MESSAGE, hasConfiguredOfflineMapPackage } from '@/lib/offlineMapConfig';
-import { deleteOfflineMapPackage, downloadOfflineMapPackage, estimateOfflineMapPackage, getOfflineMapStorageSummary, importOfflineMapPackageFromFile, prepareOfflineAreaPackage } from '@/lib/offlineMapStore';
+import { buildOfflineBasemapRequest } from '@/lib/offlineBasemapProvider';
+import { calculateOfflineMapCoverage, deleteOfflineMapPackage, downloadOfflineMapPackage, estimateOfflineMapPackage, getOfflineMapStorageSummary, importOfflineMapPackageFromFile, prepareOfflineAreaPackage, refreshOfflineMapPackage } from '@/lib/offlineMapStore';
 
 export default function OfflineMapManager() {
   const [areas, setAreas] = useState([]);
   const [selectedAreaId, setSelectedAreaId] = useState('uk_overview');
-  const sourceUrl = OFFLINE_MAP_CONFIG.packageUrl;
   const [packages, setPackages] = useState([]);
   const [markers, setMarkers] = useState([]);
   const [harvests, setHarvests] = useState([]);
@@ -36,14 +36,20 @@ export default function OfflineMapManager() {
   }, []);
 
   const selectedArea = areas.find((area) => area.id === selectedAreaId);
+  const selectedCoverage = selectedArea
+    ? calculateOfflineMapCoverage(selectedArea)
+    : { bounds: null, zoom: { minzoom: OFFLINE_MAP_CONFIG.minZoom, maxzoom: OFFLINE_MAP_CONFIG.maxZoom, label: `${OFFLINE_MAP_CONFIG.minZoom}–${OFFLINE_MAP_CONFIG.maxZoom}` } };
+  const selectedRequest = buildOfflineBasemapRequest({ area: selectedArea, bounds: selectedCoverage.bounds, zoom: selectedCoverage.zoom });
+  const selectedPackageId = selectedArea?.id ? `basemap_area_${selectedArea.id}` : null;
+  const selectedPackage = selectedPackageId ? packages.find((pkg) => pkg.id === selectedPackageId) : null;
   const hasInstalledBasemap = packages.some((pkg) => pkg.status === 'ready' && pkg.blob);
 
   const handleEstimate = async () => {
-    if (!sourceUrl) return;
     setBusy(true);
     setError('');
     try {
-      const result = await estimateOfflineMapPackage(sourceUrl);
+      if (selectedRequest.requiresExternalConfig) throw new Error(selectedRequest.message);
+      const result = await estimateOfflineMapPackage(selectedRequest.sourceUrl);
       setEstimate(result);
     } catch (err) {
       setError(err?.message || 'Could not estimate offline map package size.');
@@ -57,32 +63,49 @@ export default function OfflineMapManager() {
     setProgress(0);
     const type = selectedAreaId === 'uk_overview' ? 'configured_pmtiles' : 'area';
     try {
-      if (sourceUrl) {
-        await downloadOfflineMapPackage({
-          name: OFFLINE_MAP_CONFIG.packageName,
-          sourceUrl,
-          type,
-          area: selectedArea,
-          markers,
-          harvests,
-          zoomOverride: {
-            minzoom: OFFLINE_MAP_CONFIG.minZoom,
-            maxzoom: OFFLINE_MAP_CONFIG.maxZoom,
-            label: `${OFFLINE_MAP_CONFIG.minZoom}–${OFFLINE_MAP_CONFIG.maxZoom}`,
-          },
-          regionName: OFFLINE_MAP_CONFIG.regionName,
-          onProgress: setProgress,
-        });
-      } else if (selectedArea) {
-        await prepareOfflineAreaPackage({ area: selectedArea, markers, harvests });
-      } else {
-        throw new Error('Select a saved area or configure a licensed PMTiles package.');
+      if (selectedRequest.requiresExternalConfig) {
+        if (selectedArea) await prepareOfflineAreaPackage({ area: selectedArea, markers, harvests });
+        throw new Error(selectedRequest.message);
       }
+      const confirmText = estimate?.label
+        ? `Download ${estimate.label} for offline use?`
+        : 'Download this offline basemap package now?';
+      if (!window.confirm(confirmText)) {
+        setProgress(null);
+        setBusy(false);
+        return;
+      }
+      await downloadOfflineMapPackage({
+        id: selectedPackageId || undefined,
+        name: selectedArea ? `${selectedArea.name} offline map` : OFFLINE_MAP_CONFIG.packageName,
+        sourceUrl: selectedRequest.sourceUrl,
+        type,
+        area: selectedArea,
+        markers,
+        harvests,
+        zoomOverride: selectedCoverage.zoom,
+        regionName: selectedArea?.name || OFFLINE_MAP_CONFIG.regionName,
+        onProgress: setProgress,
+      });
       setProgress(null);
       setEstimate(null);
       await load();
     } catch (err) {
       setError(err?.message || 'Offline preparation failed. Check the PMTiles URL and CORS settings.');
+    }
+    setBusy(false);
+  };
+
+  const handleRefresh = async (pkg) => {
+    setBusy(true);
+    setError('');
+    setProgress(0);
+    try {
+      await refreshOfflineMapPackage({ packageRecord: pkg, area: selectedArea, markers, harvests, onProgress: setProgress });
+      setProgress(null);
+      await load();
+    } catch (err) {
+      setError(err?.message || 'Could not refresh offline map.');
     }
     setBusy(false);
   };
@@ -115,7 +138,7 @@ export default function OfflineMapManager() {
         </div>
         <div>
           <h3 className="font-semibold text-foreground">Offline Maps</h3>
-          <p className="text-sm text-muted-foreground mt-1">Download legal PMTiles map packages for offline stalking map use.</p>
+          <p className="text-sm text-muted-foreground mt-1">Download a legal offline basemap and selected-area overlays for field use without Google Maps.</p>
           {!hasConfiguredOfflineMapPackage() && (
             <p className="text-sm text-amber-700 dark:text-amber-300 mt-2 font-medium">
               {OFFLINE_MAP_NOT_CONFIGURED_MESSAGE}
@@ -139,7 +162,8 @@ export default function OfflineMapManager() {
       </div>
 
       <div className="rounded-xl bg-secondary/50 p-3 text-sm text-muted-foreground space-y-1">
-        <p>URL configured: <span className="font-semibold text-foreground">{hasConfiguredOfflineMapPackage() ? 'Yes' : 'No'}</span></p>
+        <p>Provider configured: <span className="font-semibold text-foreground">{hasConfiguredOfflineMapPackage() ? 'Yes' : 'No'}</span></p>
+        <p>Selected area available offline: <span className="font-semibold text-foreground">{selectedPackage?.status === 'ready' && selectedPackage?.blob ? 'Yes' : 'No'}</span></p>
         <p>Offline basemap installed: <span className="font-semibold text-foreground">{hasInstalledBasemap ? 'Yes' : 'No'}</span></p>
         <p>Package name: <span className="font-semibold text-foreground">{OFFLINE_MAP_CONFIG.packageName}</span></p>
         <p>Region: <span className="font-semibold text-foreground">{OFFLINE_MAP_CONFIG.regionName}</span></p>
@@ -151,7 +175,7 @@ export default function OfflineMapManager() {
         <button
           type="button"
           onClick={handleEstimate}
-          disabled={busy || !sourceUrl}
+          disabled={busy}
           className="px-4 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold disabled:opacity-50 flex items-center gap-2"
         >
           <HardDrive className="w-4 h-4" /> Estimate size
@@ -159,7 +183,7 @@ export default function OfflineMapManager() {
         <button
           type="button"
           onClick={handleDownload}
-          disabled={busy || (!sourceUrl && !selectedArea)}
+          disabled={busy || (!selectedArea && selectedAreaId !== 'uk_overview')}
           className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50 flex items-center gap-2"
         >
           {busy ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
@@ -191,17 +215,30 @@ export default function OfflineMapManager() {
           <div key={pkg.id} className="flex items-center justify-between gap-3 rounded-xl border border-border p-3">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-foreground truncate">{pkg.name}</p>
-              <p className="text-xs text-muted-foreground">{pkg.blob ? 'Basemap + overlays' : 'Overlays only'} • {pkg.zoom?.label || pkg.type} • {pkg.sizeLabel || '0 B'} • {pkg.status} • updated {pkg.updatedAt ? new Date(pkg.updatedAt).toLocaleDateString() : 'unknown'}</p>
+              <p className="text-xs text-muted-foreground">{pkg.blob ? 'Available Offline — basemap + overlays' : 'Overlays only'} • {pkg.zoom?.label || pkg.type} • {pkg.sizeLabel || '0 B'} • {pkg.status} • updated {pkg.updatedAt ? new Date(pkg.updatedAt).toLocaleDateString() : 'unknown'}</p>
+              {pkg.integrity && <p className="text-xs text-muted-foreground">Integrity: {pkg.integrity.ok ? 'verified' : pkg.integrity.reason}</p>}
               {pkg.overlaySnapshot && <p className="text-xs text-muted-foreground">Boundary {pkg.overlaySnapshot.boundaryPoints} pts • POIs {pkg.overlaySnapshot.markerCount} • high seats {pkg.overlaySnapshot.highSeatCount} • harvests {pkg.overlaySnapshot.harvestCount}</p>}
             </div>
-            <button
-              type="button"
-              onClick={() => handleDelete(pkg.id)}
-              className="p-2 rounded-lg text-destructive hover:bg-destructive/10"
-              title="Delete offline map"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              {pkg.sourceUrl && pkg.sourceUrl !== 'local-file' && (
+                <button
+                  type="button"
+                  onClick={() => handleRefresh(pkg)}
+                  className="p-2 rounded-lg text-muted-foreground hover:bg-secondary"
+                  title="Refresh offline map"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => handleDelete(pkg.id)}
+                className="p-2 rounded-lg text-destructive hover:bg-destructive/10"
+                title="Delete offline map"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         ))}
       </div>

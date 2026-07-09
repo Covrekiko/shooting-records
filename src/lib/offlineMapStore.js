@@ -6,7 +6,7 @@ function makeId() {
   return `map_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 }
 
-function getBoundsFromArea(area) {
+export function getBoundsFromArea(area) {
   const points = (area?.polygon_coordinates || [])
     .map((coord) => ({ lat: Number(coord[0]), lng: Number(coord[1]) }))
     .filter((point) => Number.isFinite(point.lat) && Number.isFinite(point.lng));
@@ -38,7 +38,7 @@ function getBoundsFromRadius(center, radiusKm) {
   return { minLat: lat - latDelta, maxLat: lat + latDelta, minLng: lng - lngDelta, maxLng: lng + lngDelta };
 }
 
-function chooseZoomStrategy(type, bounds) {
+export function chooseZoomStrategy(type, bounds) {
   if (type === 'uk_overview') return { minzoom: 5, maxzoom: 10, label: 'UK overview' };
   if (!bounds) return { minzoom: 10, maxzoom: 13, label: 'Local area' };
 
@@ -82,6 +82,33 @@ export async function estimateOfflineMapPackage(sourceUrl) {
   return { bytes: size, label: formatOfflineMapBytes(size) };
 }
 
+export function calculateOfflineMapCoverage(area) {
+  const bounds = getBoundsFromArea(area);
+  const zoom = chooseZoomStrategy('area', bounds);
+  return { bounds, zoom };
+}
+
+async function verifyPmtilesBlob(blob) {
+  if (!blob || blob.size < 127) return { ok: false, reason: 'Downloaded basemap is empty or incomplete.' };
+  const header = new Uint8Array(await blob.slice(0, 7).arrayBuffer());
+  const magic = String.fromCharCode(...header);
+  if (magic !== 'PMTiles') return { ok: false, reason: 'Downloaded file is not a valid PMTiles package.' };
+  return { ok: true, checkedAt: Date.now(), sizeBytes: blob.size };
+}
+
+export function buildLayerCapabilities(layerNames = []) {
+  const hasAny = (names) => names.some((name) => layerNames.includes(name));
+  return {
+    roads: hasAny(['transportation', 'roads', 'road', 'transportation_lines']),
+    paths: hasAny(['transportation', 'roads', 'road', 'transportation_lines']),
+    woodland: hasAny(['landcover', 'landuse', 'landcover_wood', 'woodland', 'forest']),
+    water: hasAny(['water', 'waterway', 'water_polygons']),
+    buildings: hasAny(['building', 'buildings']),
+    labels: hasAny(['place', 'places', 'poi', 'pois', 'transportation_name']),
+    terrain: hasAny(['terrain', 'hillshade', 'contour', 'contours']),
+  };
+}
+
 export function buildOfflineAreaSnapshot({ area, markers = [], harvests = [] }) {
   const bounds = getBoundsFromArea(area);
   const withinBounds = (item) => {
@@ -105,7 +132,7 @@ export function buildOfflineAreaSnapshot({ area, markers = [], harvests = [] }) 
   };
 }
 
-export async function prepareOfflineAreaPackage({ area, markers = [], harvests = [], name }) {
+export async function prepareOfflineAreaPackage({ area, markers = [], harvests = [], name = null }) {
   if (!area?.id) throw new Error('Select an area before preparing offline use.');
   const bounds = getBoundsFromArea(area);
   const snapshot = buildOfflineAreaSnapshot({ area, markers, harvests });
@@ -128,10 +155,10 @@ export async function prepareOfflineAreaPackage({ area, markers = [], harvests =
   return record;
 }
 
-export async function downloadOfflineMapPackage({ name, sourceUrl, type = 'custom', area, center, radiusKm, zoomOverride, regionName, onProgress, markers = [], harvests = [] }) {
+export async function downloadOfflineMapPackage({ id: requestedId = null, name = null, sourceUrl, type = 'custom', area = null, center = null, radiusKm = null, zoomOverride = null, regionName = '', onProgress = null, markers = [], harvests = [] }) {
   const bounds = type === 'radius' ? getBoundsFromRadius(center, radiusKm || 5) : getBoundsFromArea(area);
   const zoom = zoomOverride || chooseZoomStrategy(type, bounds);
-  const id = makeId();
+  const id = requestedId || (area?.id ? `basemap_area_${area.id}` : makeId());
 
   await offlineDB.put(STORE, {
     id,
@@ -181,6 +208,28 @@ export async function downloadOfflineMapPackage({ name, sourceUrl, type = 'custo
   }
 
   const blob = new Blob(chunks, { type: 'application/octet-stream' });
+  const integrity = await verifyPmtilesBlob(blob);
+  if (!integrity.ok) {
+    await offlineDB.put(STORE, {
+      id,
+      name: name || area?.name || 'Offline map',
+      sourceUrl,
+      type,
+      regionName,
+      bounds,
+      zoom,
+      status: 'failed',
+      progress: 100,
+      sizeBytes: blob.size,
+      sizeLabel: formatOfflineMapBytes(blob.size),
+      integrity,
+      overlaySnapshot: buildOfflineAreaSnapshot({ area, markers, harvests }),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+    throw new Error(integrity.reason);
+  }
+
   const record = {
     id,
     name: name || area?.name || 'Offline map',
@@ -194,7 +243,9 @@ export async function downloadOfflineMapPackage({ name, sourceUrl, type = 'custo
     progress: 100,
     sizeBytes: blob.size,
     sizeLabel: formatOfflineMapBytes(blob.size),
-    overlaySnapshot: buildOfflineAreaSnapshot({ area, markers: [], harvests: [] }),
+    integrity,
+    layerCapabilities: buildLayerCapabilities([]),
+    overlaySnapshot: buildOfflineAreaSnapshot({ area, markers, harvests }),
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };
@@ -205,6 +256,8 @@ export async function downloadOfflineMapPackage({ name, sourceUrl, type = 'custo
 
 export async function importOfflineMapPackageFromFile({ file, name, regionName }) {
   if (!file) throw new Error('Select a PMTiles file to import.');
+  const integrity = await verifyPmtilesBlob(file);
+  if (!integrity.ok) throw new Error(integrity.reason);
   const record = {
     id: makeId(),
     name: name || file.name || 'Imported offline basemap',
@@ -218,12 +271,32 @@ export async function importOfflineMapPackageFromFile({ file, name, regionName }
     progress: 100,
     sizeBytes: file.size || 0,
     sizeLabel: formatOfflineMapBytes(file.size || 0),
+    integrity,
+    layerCapabilities: buildLayerCapabilities([]),
     overlaySnapshot: null,
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };
   await offlineDB.put(STORE, record);
   return record;
+}
+
+export async function refreshOfflineMapPackage({ packageRecord, area, markers = [], harvests = [], onProgress }) {
+  if (!packageRecord?.sourceUrl || packageRecord.sourceUrl === 'local-file') {
+    throw new Error('Imported PMTiles packages cannot be refreshed automatically. Re-import an updated package instead.');
+  }
+  return downloadOfflineMapPackage({
+    id: packageRecord.id,
+    name: packageRecord.name,
+    sourceUrl: packageRecord.sourceUrl,
+    type: packageRecord.type,
+    area,
+    zoomOverride: packageRecord.zoom,
+    regionName: packageRecord.regionName,
+    markers,
+    harvests,
+    onProgress,
+  });
 }
 
 export async function getOfflineMapStorageSummary() {
@@ -244,6 +317,7 @@ export const offlineMapStore = {
   remove: deleteOfflineMapPackage,
   estimate: estimateOfflineMapPackage,
   download: downloadOfflineMapPackage,
+  refresh: refreshOfflineMapPackage,
   importFile: importOfflineMapPackageFromFile,
   prepareArea: prepareOfflineAreaPackage,
   summary: getOfflineMapStorageSummary,
