@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Navigation from '@/components/Navigation';
 import { AlertTriangle, CheckCircle2, Clock, RefreshCw, RotateCw, Trash2 } from 'lucide-react';
 import { discardQueueEntry, getAllQueueEntries, retryQueueEntry, runSync, SYNC_STATUS } from '@/lib/syncQueue';
-import { getQueueSaveState } from '@/lib/syncQueuePolicy';
+import { getQueueAgeMs, getQueueSaveState } from '@/lib/syncQueuePolicy';
 import { useOffline } from '@/context/OfflineContext';
 
 const STATUS_STYLES = {
@@ -26,6 +26,14 @@ function statusLabel(status) {
   if (status === SYNC_STATUS.PENDING) return 'Pending';
   if (status === SYNC_STATUS.SYNCING) return 'Syncing';
   return 'Synced';
+}
+
+function formatAge(ms) {
+  const days = Math.floor(ms / (24 * 60 * 60 * 1000));
+  if (days > 0) return `${days}d`;
+  const hours = Math.floor(ms / (60 * 60 * 1000));
+  if (hours > 0) return `${hours}h`;
+  return 'Today';
 }
 
 export default function SyncConflictCenter() {
@@ -53,6 +61,8 @@ export default function SyncConflictCenter() {
     acc[entry.status] = (acc[entry.status] || 0) + 1;
     return acc;
   }, {}), [entries]);
+
+  const reviewDueCount = useMemo(() => entries.filter((entry) => entry.status === SYNC_STATUS.EXPIRED || entry.needsReview).length, [entries]);
 
   const handleSync = async () => {
     if (!isOnline) { setError('You are offline. Sync will run when connection returns.'); return; }
@@ -98,8 +108,8 @@ export default function SyncConflictCenter() {
           {[
             ['Pending', counts[SYNC_STATUS.PENDING] || 0],
             ['Failed', counts[SYNC_STATUS.FAILED] || 0],
-            ['Needs review', counts[SYNC_STATUS.CONFLICT] || 0],
-            ['Needs review', (counts[SYNC_STATUS.EXPIRED] || 0) + entries.filter((e) => e.needsReview).length],
+            ['Conflicts', counts[SYNC_STATUS.CONFLICT] || 0],
+            ['Review due', reviewDueCount],
           ].map(([label, value]) => (
             <div key={label} className="rounded-xl border border-border bg-card p-3">
               <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide">{label}</p>
@@ -122,7 +132,7 @@ export default function SyncConflictCenter() {
           <div className="space-y-3">
             {entries.map((entry) => {
               const canDiscard = entry.status === SYNC_STATUS.EXPIRED || entry.status === SYNC_STATUS.CONFLICT || entry.status === SYNC_STATUS.FAILED;
-              const canRetry = entry.status === SYNC_STATUS.PENDING || entry.status === SYNC_STATUS.FAILED || entry.status === SYNC_STATUS.CONFLICT;
+              const canRetry = entry.status === SYNC_STATUS.PENDING || entry.status === SYNC_STATUS.FAILED || entry.status === SYNC_STATUS.CONFLICT || entry.status === SYNC_STATUS.EXPIRED;
               return (
                 <div key={entry.id} className="rounded-2xl border border-border bg-card p-4">
                   <div className="flex flex-wrap items-start justify-between gap-3">
@@ -132,7 +142,7 @@ export default function SyncConflictCenter() {
                         <span className="text-xs text-muted-foreground">{entry.entityName || 'Unknown module'} · {entry.action || 'operation'} · {getQueueSaveState(entry.status)}</span>
                       </div>
                       <p className="text-sm font-semibold mt-2 truncate">Affected record: {entry.payload?.title || entry.payload?.name || entry.payload?.location_name || entry.localId || 'Local change'}</p>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1"><Clock className="w-3 h-3" /> Last retry: {formatTime(entry.lastAttemptTime)}</div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1"><Clock className="w-3 h-3" /> Queued: {formatTime(entry.timestamp)} · Age {formatAge(getQueueAgeMs(entry))} · Last retry: {formatTime(entry.lastAttemptTime)}</div>
                       {entry.needsReview && <p className="text-sm text-amber-700 dark:text-amber-300 mt-2 flex gap-1.5"><AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />This change has been waiting for several days and should be reviewed before relying on cloud sync.</p>}
                       {entry.lastError && <p className="text-sm text-destructive mt-2 flex gap-1.5"><AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />{entry.lastError}</p>}
                     </div>

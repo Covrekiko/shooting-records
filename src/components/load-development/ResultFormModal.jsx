@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { Calculator, CloudSun } from 'lucide-react';
 import NumberInput from '@/components/ui/NumberInput.jsx';
 import GlobalModal, { ModalSaveButton, ModalCancelButton } from '@/components/ui/GlobalModal.jsx';
