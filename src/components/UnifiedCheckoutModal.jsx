@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
-import { base44 } from '@/api/base44Client';
 import { getSelectableAmmunition } from '@/lib/ammoUtils';
 import { formatAmmunitionLabel } from '@/utils/ammoLabels';
-import { Camera, Check, Clock, Crosshair, MapPin, Plus, Trash2, Upload, X } from 'lucide-react';
+import { Camera, Check, Clock, Crosshair, MapPin, Plus, Trash2, X } from 'lucide-react';
+import PhotoUpload from '@/components/PhotoUpload';
 
 const DEER_SPECIES = ['Roe', 'Muntjac', 'Fallow', 'Red', 'Sika', 'Chinese Water Deer', 'Other'];
 const PEST_SPECIES = ['Fox', 'Rabbit', 'Grey Squirrel', 'Brown Rat', 'Mink', 'Stoat', 'Weasel', 'Mole', 'Pigeon (Feral)', 'Pigeon (Wood)', 'Crow', 'Magpie', 'Jackdaw', 'Jay', 'Rook', 'Canada Goose', 'Other (Pest)'];
@@ -26,28 +26,6 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
   const [deerQuantity, setDeerQuantity] = useState('1');
   const [pestQuantity, setPestQuantity] = useState('1');
   const [photos, setPhotos] = useState([]);
-  const [uploading, setUploading] = useState(false);
-  const [showPhotoOptions, setShowPhotoOptions] = useState(false);
-
-  const handlePhotoUpload = async (e) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    e.target.value = '';
-    if (!navigator.onLine) {
-      alert('Photo upload requires internet. Please try again when online.');
-      return;
-    }
-    setUploading(true);
-    try {
-      for (const file of files) {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        setPhotos(prev => [...prev, file_url]);
-      }
-    } finally {
-      setUploading(false);
-      setShowPhotoOptions(false);
-    }
-  };
 
   const set = (field, value) => setFormData(prev => ({ ...prev, [field]: value }));
 
@@ -361,41 +339,7 @@ export default function UnifiedCheckoutModal({ activeOuting, rifles, ammunition,
                   <p className="text-xs text-muted-foreground mt-1">Add photos from your outing.</p>
                 </div>
               </div>
-              <input id="photo-gallery" type="file" multiple accept="image/*" onChange={handlePhotoUpload} disabled={uploading} className="hidden" />
-              <input id="photo-camera" type="file" accept="image/*" capture="environment" onChange={handlePhotoUpload} disabled={uploading} className="hidden" />
-              {!showPhotoOptions ? (
-                <button
-                  type="button"
-                  disabled={uploading}
-                  onClick={() => setShowPhotoOptions(true)}
-                  className="w-full min-h-16 flex flex-col items-center justify-center gap-1 px-4 py-3 border-2 border-dashed border-border rounded-xl hover:border-primary transition-all text-sm disabled:opacity-50 bg-background/50"
-                >
-                  <Upload className="w-5 h-5 text-muted-foreground" />
-                  <span className="font-semibold text-foreground">{uploading ? 'Uploading...' : 'Tap to add photos'}</span>
-                  <span className="text-xs text-muted-foreground">You can add multiple images</span>
-                </button>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2">
-                  <label htmlFor="photo-camera" className="flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-xl cursor-pointer text-sm font-semibold hover:bg-primary/90 transition-colors">
-                    <Camera className="w-4 h-4" /> Take Photo
-                  </label>
-                  <label htmlFor="photo-gallery" className="flex items-center justify-center gap-2 px-4 py-3 bg-secondary text-secondary-foreground rounded-xl cursor-pointer text-sm font-semibold hover:bg-secondary/80 transition-colors">
-                    <Upload className="w-4 h-4" /> Gallery
-                  </label>
-                  <button type="button" onClick={() => setShowPhotoOptions(false)} className="px-3 py-3 rounded-xl border border-border text-muted-foreground hover:bg-secondary text-sm">✕</button>
-                </div>
-              )}
-              {photos.length > 0 && (
-                <div className="grid grid-cols-3 gap-2">
-                  {photos.map((photo, idx) => (
-                    <div key={idx} className="relative">
-                      <img src={photo} alt="harvest" className="w-full h-20 object-cover rounded-xl border border-border" />
-                      <button type="button" onClick={() => setPhotos(prev => prev.filter((_, i) => i !== idx))}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">×</button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <PhotoUpload photos={photos} onPhotosChange={setPhotos} />
             </section>
           </>
         )}

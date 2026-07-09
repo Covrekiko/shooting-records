@@ -226,7 +226,7 @@ async function processSyncEntry(entry) {
 
     if (entry.action === SYNC_ACTIONS.CREATE) {
       // Strip the temp local id and add transactionId for idempotency before sending to server
-      const { id, _localOnly, _tempId, ...data } = entry.payload;
+      const { id, _localOnly, _tempId, _cacheOwnerKey, ...data } = entry.payload;
       const dataWithTx = await resolveOfflinePhotoRefs({ ...data, _transactionId: entry.transactionId });
       if (sdk.filter && entry.transactionId) {
         const existing = await sdk.filter({ _transactionId: entry.transactionId }, '-created_date', 1).catch(() => []);
@@ -237,7 +237,7 @@ async function processSyncEntry(entry) {
       serverRecord = await sdk.create(dataWithTx);
 
     } else if (entry.action === SYNC_ACTIONS.UPDATE) {
-      const { id, _localOnly, _tempId, ...data } = entry.payload;
+      const { id, _localOnly, _tempId, _cacheOwnerKey, ...data } = entry.payload;
       const dataWithTx = await resolveOfflinePhotoRefs({ ...data, _transactionId: entry.transactionId });
       serverRecord = await sdk.update(entry.localId, dataWithTx);
 
@@ -328,19 +328,20 @@ export async function runSync(onProgress) {
       synced++;
       const syncedPhotoRefs = collectOfflinePhotoRefs(entry.payload);
       if (syncedPhotoRefs.length) await cleanupUploadedOfflinePhotoRefs(syncedPhotoRefs);
-      // If it was a CREATE, update local store with server id
-      if (entry.action === SYNC_ACTIONS.CREATE && result.serverRecord) {
-        if (entry.localId && result.serverRecord.id) {
+      // Update local cache with the server result while preserving account isolation.
+      if ((entry.action === SYNC_ACTIONS.CREATE || entry.action === SYNC_ACTIONS.UPDATE) && result.serverRecord) {
+        if (entry.action === SYNC_ACTIONS.CREATE && entry.localId && result.serverRecord.id) {
           idMap[entry.localId] = result.serverRecord.id;
         }
         const { ENTITY_STORE_MAP } = await import('./offlineDB');
-            const storeName = ENTITY_STORE_MAP[entry.entityName];
-            if (storeName && result.serverRecord) {
-              if (entry.localId && entry.localId !== result.serverRecord.id) {
-                await offlineDB.remove(storeName, entry.localId);
-              }
-              await offlineDB.put(storeName, result.serverRecord);
-            }
+        const storeName = ENTITY_STORE_MAP[entry.entityName];
+        if (storeName) {
+          if (entry.action === SYNC_ACTIONS.CREATE && entry.localId && entry.localId !== result.serverRecord.id) {
+            await offlineDB.remove(storeName, entry.localId);
+          }
+          const localServerRecord = currentOwner?.key ? { ...result.serverRecord, _cacheOwnerKey: currentOwner.key } : result.serverRecord;
+          await offlineDB.put(storeName, localServerRecord);
+        }
       } else if (entry.action === SYNC_ACTIONS.DELETE && result.serverRecord?._deleted) {
         // Already removed from local store at delete time — nothing extra needed
       }

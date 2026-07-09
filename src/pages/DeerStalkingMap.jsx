@@ -26,6 +26,7 @@ import { FIRST_TIME_GUIDES } from '@/lib/firstTimeGuides';
 import { getRepository } from '@/lib/offlineSupport';
 import { queueFieldCheckoutEffects } from '@/lib/offlineFieldSessions';
 import { useOffline } from '@/context/OfflineContext';
+import OfflinePhotoImage from '@/components/OfflinePhotoImage';
 
 const mapContainerStyle = {
   width: '100%',
@@ -601,7 +602,7 @@ export default function DeerStalkingMap() {
                         <div className="grid grid-cols-2 gap-2">
                           {marker.photos.map((photo, idx) => (
                             <a key={idx} href={photo} target="_blank" rel="noopener noreferrer">
-                              <img src={photo} alt="poi" className="w-full h-24 object-cover rounded hover:opacity-80 transition-opacity" />
+                              <OfflinePhotoImage src={photo} alt="poi" className="w-full h-24 object-cover rounded hover:opacity-80 transition-opacity" />
                             </a>
                           ))}
                         </div>
@@ -669,7 +670,7 @@ export default function DeerStalkingMap() {
                         <div className="grid grid-cols-2 gap-2">
                           {harvest.photos.map((photo, idx) => (
                             <a key={idx} href={photo} target="_blank" rel="noopener noreferrer">
-                              <img
+                              <OfflinePhotoImage
                                 src={photo}
                                 alt="harvest"
                                 className="w-full h-24 object-cover rounded hover:opacity-80 transition-opacity"

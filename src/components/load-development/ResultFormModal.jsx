@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Calculator, Camera, ImagePlus, Trash2, CloudSun } from 'lucide-react';
-import { compressImage } from '@/lib/imageUtils';
+import { Calculator, CloudSun } from 'lucide-react';
 import NumberInput from '@/components/ui/NumberInput.jsx';
 import GlobalModal, { ModalSaveButton, ModalCancelButton } from '@/components/ui/GlobalModal.jsx';
 import ChronographReadingsEditor from '@/components/load-development/ChronographReadingsEditor.jsx';
 import { getVelocityReadings, summarizeReadings } from '@/utils/loadDevelopmentStatistics';
+import PhotoUpload from '@/components/PhotoUpload';
+import { getRepository } from '@/lib/offlineSupport';
 
 const Field = ({ label, children }) => (
   <div>
@@ -46,9 +47,7 @@ export default function ResultFormModal({ open, test, variant, result, onClose, 
   });
   const [fetchingWeather, setFetchingWeather] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [sdSource, setSdSource] = useState('unknown');
-  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (result) {
@@ -74,30 +73,6 @@ export default function ResultFormModal({ open, test, variant, result, onClose, 
   }, [open, result, variant?.id, expectedShots]);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
-  const handlePhotoUpload = async (e) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-    e.target.value = '';
-    setUploadingPhoto(true);
-    try {
-      const urls = [];
-      for (const file of files) {
-        const compressed = await compressImage(file);
-        const res = await base44.integrations.Core.UploadFile({ file: compressed });
-        urls.push(res.file_url);
-      }
-      setForm(f => ({ ...f, photos: [...(f.photos || []), ...urls] }));
-    } catch (err) {
-      alert('Upload failed: ' + (err.message || 'Unknown error'));
-    } finally {
-      setUploadingPhoto(false);
-    }
-  };
-
-  const removePhoto = (idx) => {
-    setForm(f => ({ ...f, photos: f.photos.filter((_, i) => i !== idx) }));
-  };
 
   const applyWeatherData = (current) => {
     if (!current) return false;
@@ -205,10 +180,11 @@ export default function ResultFormModal({ open, test, variant, result, onClose, 
         humidity: parseFloat(form.humidity) || null,
       };
 
+      const resultRepo = getRepository('ReloadingTestResult');
       if (result?.id) {
-        await base44.entities.ReloadingTestResult.update(result.id, payload);
+        await resultRepo.update(result.id, payload);
       } else {
-        await base44.entities.ReloadingTestResult.create(payload);
+        await resultRepo.create(payload);
       }
       onSaved();
     } catch (e) {
@@ -367,34 +343,8 @@ export default function ResultFormModal({ open, test, variant, result, onClose, 
 
         {/* Range Photos */}
         <div className="bg-secondary/30 rounded-xl p-3 space-y-2">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-bold text-muted-foreground uppercase">Range Photos</p>
-            <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploadingPhoto}
-              className="flex items-center gap-1.5 text-xs text-primary font-semibold hover:underline disabled:opacity-50">
-              <ImagePlus className="w-3.5 h-3.5" />
-              {uploadingPhoto ? 'Uploading…' : 'Add Photos'}
-            </button>
-          </div>
-          <input ref={fileInputRef} type="file" accept="image/*" multiple capture="environment" className="hidden" onChange={handlePhotoUpload} />
-          {form.photos && form.photos.length > 0 ? (
-            <div className="grid grid-cols-3 gap-2">
-              {form.photos.map((url, idx) => (
-                <div key={idx} className="relative group aspect-square">
-                  <img src={url} alt={`Target ${idx + 1}`} className="w-full h-full object-cover rounded-lg" />
-                  <button type="button" onClick={() => removePhoto(idx)}
-                    className="absolute top-1 right-1 p-1 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Trash2 className="w-3 h-3 text-white" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <button type="button" onClick={() => fileInputRef.current?.click()}
-              className="w-full py-6 border-2 border-dashed border-border rounded-xl flex flex-col items-center gap-2 text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors">
-              <Camera className="w-6 h-6" />
-              <span className="text-xs">Take a photo or upload from gallery</span>
-            </button>
-          )}
+          <p className="text-xs font-bold text-muted-foreground uppercase">Range Photos</p>
+          <PhotoUpload photos={form.photos || []} onPhotosChange={(photos) => set('photos', photos)} />
         </div>
 
         {/* Best Result */}

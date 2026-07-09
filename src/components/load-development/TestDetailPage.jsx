@@ -16,6 +16,8 @@ import {
 import { getVelocityReadings } from '@/utils/loadDevelopmentStatistics';
 import LoadDevelopmentAnalysis from '@/components/load-development/LoadDevelopmentAnalysis';
 import QRLabelButton from '@/components/qr/QRLabelButton';
+import OfflinePhotoImage from '@/components/OfflinePhotoImage';
+import { getRepository } from '@/lib/offlineSupport';
 
 const STATUS_COLORS = {
   Draft: 'bg-slate-100 text-slate-600',
@@ -55,8 +57,8 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
   const loadData = async () => {
     try {
       const [vs, rs] = await Promise.all([
-        base44.entities.ReloadingTestVariant.filter({ test_id: test.id }),
-        base44.entities.ReloadingTestResult.filter({ test_id: test.id }),
+        getRepository('ReloadingTestVariant').filter({ test_id: test.id }),
+        getRepository('ReloadingTestResult').filter({ test_id: test.id }),
       ]);
 
       console.log('[loadData]', {
@@ -421,7 +423,7 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
                               <div className="flex gap-2 flex-wrap">
                                 {result.photos.map((url, i) => (
                                   <a key={i} href={url} target="_blank" rel="noopener noreferrer" title="Open photo">
-                                    <img src={url} alt={`Variant ${idx + 1} photo ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity" />
+                                    <OfflinePhotoImage src={url} alt={`Variant ${idx + 1} photo ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity" />
                                   </a>
                                 ))}
                               </div>
@@ -560,7 +562,7 @@ export default function TestDetailPage({ test, onBack, onUpdated }) {
                               <div className="flex gap-2 flex-wrap">
                                 {result.photos.map((url, i) => (
                                   <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                                    <img src={url} alt={`Target ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity" />
+                                    <OfflinePhotoImage src={url} alt={`Target ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity" />
                                   </a>
                                 ))}
                               </div>

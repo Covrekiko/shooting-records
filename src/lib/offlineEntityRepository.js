@@ -16,6 +16,7 @@ import { offlineDB, ENTITY_STORE_MAP } from './offlineDB';
 import { enqueueAction, removeQueuedMutationsForLocalRecord, SYNC_ACTIONS } from './syncQueue';
 import { connectivityManager } from './connectivityManager';
 import { collectOfflinePhotoRefs, discardOfflinePhotoRefs } from './offlinePhotoStore';
+import { getCurrentCachePointer } from './authCacheIsolation';
 
 function generateTempId() {
   return `_local_${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -23,6 +24,26 @@ function generateTempId() {
 
 function getStoreName(entityName) {
   return ENTITY_STORE_MAP[entityName] || null;
+}
+
+function getCacheOwnerKey() {
+  if (typeof window === 'undefined') return '';
+  return getCurrentCachePointer(window.localStorage)?.key || '';
+}
+
+function tagForCurrentOwner(record) {
+  const ownerKey = getCacheOwnerKey();
+  return ownerKey ? { ...record, _cacheOwnerKey: ownerKey } : record;
+}
+
+function belongsToCurrentOwner(record) {
+  const ownerKey = getCacheOwnerKey();
+  if (!ownerKey || !record?._cacheOwnerKey) return true;
+  return record._cacheOwnerKey === ownerKey;
+}
+
+function filterForCurrentOwner(records = []) {
+  return records.filter(belongsToCurrentOwner);
 }
 
 class EntityRepository {
@@ -46,7 +67,7 @@ class EntityRepository {
       this._ensureToken();
       try {
         const records = await this._sdk.list(sortField, limit);
-        await offlineDB.putMany(this.storeName, records);
+        await offlineDB.putMany(this.storeName, records.map(tagForCurrentOwner));
         await offlineDB.setMeta(`${this.entityName}_lastFetch`, Date.now());
         return records;
       } catch (e) {
@@ -54,7 +75,7 @@ class EntityRepository {
         console.warn(`[offline] list(${this.entityName}) server failed, using cache`, e?.message);
       }
     }
-    return this.storeName ? offlineDB.getAll(this.storeName) : [];
+    return this.storeName ? filterForCurrentOwner(await offlineDB.getAll(this.storeName)) : [];
   }
 
   /**
@@ -67,7 +88,7 @@ class EntityRepository {
       this._ensureToken();
       try {
         const records = await this._sdk.filter(criteria, sortField, limit);
-        await offlineDB.putMany(this.storeName, records);
+        await offlineDB.putMany(this.storeName, records.map(tagForCurrentOwner));
         return records;
       } catch (e) {
         console.warn(`[offline] filter(${this.entityName}) server failed, using cache`, e?.message);
@@ -75,7 +96,7 @@ class EntityRepository {
     }
     // Local filter
     if (!this.storeName) return [];
-    const all = await offlineDB.getAll(this.storeName);
+    const all = filterForCurrentOwner(await offlineDB.getAll(this.storeName));
     return all.filter((record) => {
       return Object.entries(criteria || {}).every(([key, val]) => record[key] === val);
     });
@@ -89,13 +110,14 @@ class EntityRepository {
       this._ensureToken();
       try {
         const record = await this._sdk.get(id);
-        if (this.storeName) await offlineDB.put(this.storeName, record);
+        if (this.storeName) await offlineDB.put(this.storeName, tagForCurrentOwner(record));
         return record;
       } catch (e) {
         console.warn(`[offline] get(${this.entityName}, ${id}) server failed, using cache`);
       }
     }
-    return this.storeName ? offlineDB.getById(this.storeName, id) : null;
+    const localRecord = this.storeName ? await offlineDB.getById(this.storeName, id) : null;
+    return belongsToCurrentOwner(localRecord) ? localRecord : null;
   }
 
   /**
@@ -113,6 +135,7 @@ class EntityRepository {
       _tempId: tempId,
       created_date: new Date().toISOString(),
       updated_date: new Date().toISOString(),
+      ...(getCacheOwnerKey() ? { _cacheOwnerKey: getCacheOwnerKey() } : {}),
     };
 
     // Write locally first (optimistic)
@@ -125,7 +148,7 @@ class EntityRepository {
         // Replace temp local record with real server record
         if (this.storeName) {
           await offlineDB.remove(this.storeName, tempId);
-          await offlineDB.put(this.storeName, serverRecord);
+          await offlineDB.put(this.storeName, tagForCurrentOwner(serverRecord));
         }
         return serverRecord;
       } catch (e) {
@@ -165,6 +188,7 @@ class EntityRepository {
       ...data,
       id,
       updated_date: new Date().toISOString(),
+      ...(getCacheOwnerKey() ? { _cacheOwnerKey: getCacheOwnerKey() } : {}),
     };
 
     if (this.storeName) await offlineDB.put(this.storeName, mergedRecord);
@@ -173,7 +197,7 @@ class EntityRepository {
       this._ensureToken();
       try {
         const serverRecord = await this._sdk.update(id, data);
-        if (this.storeName) await offlineDB.put(this.storeName, serverRecord);
+        if (this.storeName) await offlineDB.put(this.storeName, tagForCurrentOwner(serverRecord));
         return serverRecord;
       } catch (e) {
         console.warn(`[offline] update(${this.entityName}, ${id}) server failed, queuing`);
@@ -249,7 +273,7 @@ class EntityRepository {
       const records = criteria
         ? await this._sdk.filter(criteria)
         : await this._sdk.list();
-      if (this.storeName) await offlineDB.putMany(this.storeName, records);
+      if (this.storeName) await offlineDB.putMany(this.storeName, records.map(tagForCurrentOwner));
       return records;
     } catch (e) {
       console.warn(`[offline] refresh(${this.entityName}) failed`, e?.message);
@@ -271,7 +295,7 @@ class EntityRepository {
       this._ensureToken();
       try {
         const records = await this._sdk.bulkCreate(dataArray);
-        if (this.storeName) await offlineDB.putMany(this.storeName, records);
+        if (this.storeName) await offlineDB.putMany(this.storeName, records.map(tagForCurrentOwner));
         return records;
       } catch (e) {
         console.warn(`[offline] bulkCreate(${this.entityName}) failed`);

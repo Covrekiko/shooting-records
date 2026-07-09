@@ -3,6 +3,7 @@ import { Download, Edit2, Star, CheckCircle2, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import GlobalModal from '@/components/ui/GlobalModal.jsx';
 import { getVelocityReadings } from '@/utils/loadDevelopmentStatistics';
+import OfflinePhotoImage from '@/components/OfflinePhotoImage';
 
 const Section = ({ title, children }) => (
   <div className="mb-6">
@@ -287,7 +288,7 @@ export default function TestViewModal({ open, test, variants, results, onClose, 
                         <div className="flex gap-2 flex-wrap">
                           {result.photos.map((url, i) => (
                             <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                              <img src={url} alt={`Target ${i + 1}`} className="w-24 h-24 object-cover rounded-xl border border-border hover:opacity-80 transition-opacity" />
+                              <OfflinePhotoImage src={url} alt={`Target ${i + 1}`} className="w-24 h-24 object-cover rounded-xl border border-border hover:opacity-80 transition-opacity" />
                             </a>
                           ))}
                         </div>

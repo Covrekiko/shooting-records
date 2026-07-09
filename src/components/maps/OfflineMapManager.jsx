@@ -16,6 +16,9 @@ export default function OfflineMapManager() {
   const [progress, setProgress] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [customPackageUrl, setCustomPackageUrl] = useState(() => {
+    try { return localStorage.getItem('sr_offline_pmtiles_url') || ''; } catch { return ''; }
+  });
 
   const load = async () => {
     const [areaList, markerList, harvestList, summary] = await Promise.all([
@@ -39,10 +42,16 @@ export default function OfflineMapManager() {
   const selectedCoverage = selectedArea
     ? calculateOfflineMapCoverage(selectedArea)
     : { bounds: null, zoom: { minzoom: OFFLINE_MAP_CONFIG.minZoom, maxzoom: OFFLINE_MAP_CONFIG.maxZoom, label: `${OFFLINE_MAP_CONFIG.minZoom}–${OFFLINE_MAP_CONFIG.maxZoom}` } };
-  const selectedRequest = buildOfflineBasemapRequest({ area: selectedArea, bounds: selectedCoverage.bounds, zoom: selectedCoverage.zoom });
+  const configuredRequest = buildOfflineBasemapRequest({ area: selectedArea, bounds: selectedCoverage.bounds, zoom: selectedCoverage.zoom });
+  const runtimePackageUrl = customPackageUrl.trim();
+  const hasRuntimeProvider = runtimePackageUrl.length > 0;
+  const selectedRequest = hasRuntimeProvider
+    ? { ...configuredRequest, status: 'ready', mode: 'runtime_package', sourceUrl: runtimePackageUrl, providerName: 'Custom PMTiles URL', requiresExternalConfig: false }
+    : configuredRequest;
   const selectedPackageId = selectedArea?.id ? `basemap_area_${selectedArea.id}` : null;
   const selectedPackage = selectedPackageId ? packages.find((pkg) => pkg.id === selectedPackageId) : null;
   const hasInstalledBasemap = packages.some((pkg) => pkg.status === 'ready' && pkg.blob);
+  const hasAnyProvider = hasConfiguredOfflineMapPackage() || hasRuntimeProvider;
 
   const handleEstimate = async () => {
     setBusy(true);
@@ -66,14 +75,6 @@ export default function OfflineMapManager() {
       if (selectedRequest.requiresExternalConfig) {
         if (selectedArea) await prepareOfflineAreaPackage({ area: selectedArea, markers, harvests });
         throw new Error(selectedRequest.message);
-      }
-      const confirmText = estimate?.label
-        ? `Download ${estimate.label} for offline use?`
-        : 'Download this offline basemap package now?';
-      if (!window.confirm(confirmText)) {
-        setProgress(null);
-        setBusy(false);
-        return;
       }
       await downloadOfflineMapPackage({
         id: selectedPackageId || undefined,
@@ -139,7 +140,7 @@ export default function OfflineMapManager() {
         <div>
           <h3 className="font-semibold text-foreground">Offline Maps</h3>
           <p className="text-sm text-muted-foreground mt-1">Download a legal offline basemap and selected-area overlays for field use without Google Maps.</p>
-          {!hasConfiguredOfflineMapPackage() && (
+          {!hasAnyProvider && (
             <p className="text-sm text-amber-700 dark:text-amber-300 mt-2 font-medium">
               {OFFLINE_MAP_NOT_CONFIGURED_MESSAGE}
             </p>
@@ -161,8 +162,27 @@ export default function OfflineMapManager() {
         </select>
       </div>
 
+      <div className="grid gap-2">
+        <label className="text-sm font-medium">Licensed PMTiles package URL</label>
+        <input
+          type="url"
+          value={customPackageUrl}
+          onChange={(event) => {
+            const value = event.target.value;
+            setCustomPackageUrl(value);
+            try {
+              if (value.trim()) localStorage.setItem('sr_offline_pmtiles_url', value.trim());
+              else localStorage.removeItem('sr_offline_pmtiles_url');
+            } catch {}
+          }}
+          placeholder="https://your-provider.example/maps/region.pmtiles"
+          className="w-full px-3 py-2 rounded-xl border border-border bg-background text-sm"
+        />
+        <p className="text-xs text-muted-foreground">Use a legal PMTiles package or provider export URL. Google Maps tiles are not cached.</p>
+      </div>
+
       <div className="rounded-xl bg-secondary/50 p-3 text-sm text-muted-foreground space-y-1">
-        <p>Provider configured: <span className="font-semibold text-foreground">{hasConfiguredOfflineMapPackage() ? 'Yes' : 'No'}</span></p>
+        <p>Provider configured: <span className="font-semibold text-foreground">{hasAnyProvider ? 'Yes' : 'No'}</span></p>
         <p>Selected area available offline: <span className="font-semibold text-foreground">{selectedPackage?.status === 'ready' && selectedPackage?.blob ? 'Yes' : 'No'}</span></p>
         <p>Offline basemap installed: <span className="font-semibold text-foreground">{hasInstalledBasemap ? 'Yes' : 'No'}</span></p>
         <p>Package name: <span className="font-semibold text-foreground">{OFFLINE_MAP_CONFIG.packageName}</span></p>
@@ -187,7 +207,7 @@ export default function OfflineMapManager() {
           className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50 flex items-center gap-2"
         >
           {busy ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-          Download for Offline Use
+          Download Offline Basemap
         </button>
         <label className={`px-4 py-2 rounded-xl bg-secondary text-secondary-foreground text-sm font-semibold flex items-center gap-2 ${busy ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}>
           <Upload className="w-4 h-4" /> Import PMTiles
