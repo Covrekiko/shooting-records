@@ -10,7 +10,7 @@ const STEPS = [
   { id: 'beta', label: 'Beta Tester' },
 ];
 
-export default function CreateUserForm({ onSuccess, onCancel, user }) {
+export default function CreateUserForm({ onSuccess, onCancel, user = null }) {
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

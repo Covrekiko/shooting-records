@@ -38,7 +38,7 @@ export default function ReloadingManagement() {
       const user = await base44.auth.me();
       const data = await base44.entities.ReloadingSession.filter({ created_by: user.email });
       const visibleSessions = data.filter((session) => session.isDeleted !== true && session.is_deleted !== true && session.archived !== true && session.status !== 'deleted' && session.reload_session_deleted !== true);
-      setSessions(visibleSessions.sort((a, b) => new Date(b.date) - new Date(a.date)));
+      setSessions(visibleSessions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
     } catch (error) {
       console.error('Error loading sessions:', error);
     } finally {

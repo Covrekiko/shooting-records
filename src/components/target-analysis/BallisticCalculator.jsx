@@ -354,6 +354,8 @@ export default function BallisticCalculator({ session, onBack, rifles = [], ammu
             <div>
               <label className={lbl}>From bullet database <span className="normal-case font-normal text-muted-foreground">(optional)</span></label>
               <BulletReferencePicker
+                selectedId=""
+                filterCaliber={selectedRifle?.caliber || ''}
                 onSelect={(b) => {
                   if (b.ballistic_coefficient_g1) setBcInput(String(b.ballistic_coefficient_g1));
                   else if (b.ballistic_coefficient_g7) setBcInput(String(b.ballistic_coefficient_g7));

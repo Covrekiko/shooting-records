@@ -31,7 +31,7 @@ export default function ScopeClickCard() {
       base44.entities.ScopeProfile.filter({ created_by: user.email }),
       base44.entities.Rifle.filter({ created_by: user.email }),
     ]);
-    setProfiles(profilesData.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
+    setProfiles(profilesData.sort((a, b) => new Date(b.created_date).getTime() - new Date(a.created_date).getTime()));
     setRifles(riflesData);
     setLoading(false);
   };

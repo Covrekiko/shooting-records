@@ -4,7 +4,7 @@ import { base44 } from '@/api/base44Client';
 
 const COORDINATE_REGEX = /^(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)$/;
 
-export default function FloatingMapSearch({ onSearch, onError, isGrouped = false }) {
+export default function FloatingMapSearch({ onSearch, onError = null, isGrouped = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);

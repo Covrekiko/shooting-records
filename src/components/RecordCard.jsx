@@ -96,7 +96,7 @@ export default function RecordCard({
   onViewTrack,
   onViewPhoto,
   onEdit,
-  onPdf,
+  onPdf = null,
   generatingPdf = false,
   rifles = {},
   shotguns = {},

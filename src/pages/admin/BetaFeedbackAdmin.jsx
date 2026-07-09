@@ -49,7 +49,7 @@ export default function BetaFeedbackAdmin() {
       }
       setUser(currentUser);
       const allPosts = await base44.entities.BetaFeedbackPost.list();
-      setPosts(allPosts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
+      setPosts(allPosts.sort((a, b) => new Date(b.created_date).getTime() - new Date(a.created_date).getTime()));
     } catch (error) {
       console.warn('Error loading feedback:', error);
     } finally {
@@ -247,7 +247,7 @@ function FeedbackDetailAdmin({ post, user, onClose, onStatusChange, onDelete, on
   const loadComments = async () => {
     try {
       const postComments = await base44.entities.BetaFeedbackComment.filter({ post_id: post.id });
-      setComments(postComments.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)));
+      setComments(postComments.sort((a, b) => new Date(a.created_date).getTime() - new Date(b.created_date).getTime()));
     } catch (error) {
       console.warn('Error loading comments:', error);
     } finally {
@@ -365,7 +365,7 @@ function FeedbackDetailAdmin({ post, user, onClose, onStatusChange, onDelete, on
               value={adminNotes}
               onChange={(e) => setAdminNotes(e.target.value)}
               className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm mb-2"
-              rows="2"
+              rows={2}
               placeholder="Internal notes for this feedback..."
             />
             <button

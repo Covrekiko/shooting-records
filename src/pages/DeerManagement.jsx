@@ -69,7 +69,7 @@ export default function DeerManagement() {
       liveGpsTrack = track;
       setGpsTrack(track);
     });
-    return () => unsubscribe();
+    return () => { unsubscribe(); };
   }, []);
 
   const handleCheckin = async (e) => {
@@ -88,7 +88,7 @@ export default function DeerManagement() {
       }
 
       const selectedArea = areas.find(a => a.id === checkinData.location_id);
-      const outing = await startOuting({
+      const outing = await /** @type {any} */ (startOuting)({
         ...checkinData,
         shared_area: selectedArea?.shared_area === true,
         area_share_id: selectedArea?.area_share_id || '',
@@ -182,7 +182,7 @@ export default function DeerManagement() {
       }
 
       // Save to database FIRST, then stop tracking
-      const completedRecordId = await endOutingWithData(activeOuting.id, submitData, finalTrack);
+      const completedRecordId = await /** @type {any} */ (endOutingWithData)(activeOuting.id, submitData, finalTrack);
 
       if (!navigator.onLine) {
         await queueFieldCheckoutEffects({

@@ -19,7 +19,7 @@ function getAge(dob) {
   return age;
 }
 
-function Field({ label, error, required, children }) {
+function Field({ label, error, required = false, children }) {
   return (
     <div>
       <label className="block text-sm font-medium text-foreground mb-1">
@@ -44,7 +44,7 @@ export default function ProfileSetup({ onComplete }) {
     country: 'United Kingdom',
     phone: '',
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState(/** @type {any} */ ({}));
   const [saving, setSaving] = useState(false);
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
 

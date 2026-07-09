@@ -32,7 +32,7 @@ function StatusPill({ status }) {
   );
 }
 
-export default function AppPermissionsPanel({ userEmail, compact = false, onActionComplete }) {
+export default function AppPermissionsPanel({ userEmail, compact = false, onActionComplete = null }) {
   const [status, setStatus] = useState(() => getStoredPermissionStatus(userEmail));
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState('');

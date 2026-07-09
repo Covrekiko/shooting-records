@@ -1,4 +1,4 @@
-const env = import.meta.env || {};
+const env = /** @type {any} */ (import.meta.env || {});
 const configuredMinZoom = Number(env.VITE_OFFLINE_PMTILES_MIN_ZOOM || 5);
 const configuredMaxZoom = Number(env.VITE_OFFLINE_PMTILES_MAX_ZOOM || 14);
 

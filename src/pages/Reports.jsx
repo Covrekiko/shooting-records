@@ -57,7 +57,7 @@ export default function Reports() {
           };
           return { ...r, recordType: recordTypeMap[r.category] || r.category };
         })
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
       setRecords(allRecords);
     } catch (error) {

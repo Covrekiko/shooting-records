@@ -8,7 +8,7 @@ import { sdkDiagLogOnce } from '@/lib/sdkDiagnostics';
 
 const MobilePdfViewer = lazy(() => import('@/components/MobilePdfViewer'));
 
-export default function RecordsSection({ category, title, emptyMessage = 'No records yet', onRecordDeleted, showTargetAnalysis = false }) {
+export default function RecordsSection({ category, title, emptyMessage = 'No records yet', onRecordDeleted = null, showTargetAnalysis = false }) {
    const [records, setRecords] = useState([]);
    const [loading, setLoading] = useState(true);
    const [user, setUser] = useState(null);

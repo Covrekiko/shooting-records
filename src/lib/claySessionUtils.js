@@ -39,7 +39,7 @@ export function buildClayScoreCardData(record = {}, scorecard = null, stands = [
       const hits = Number(stand.hits ?? targetResults.filter(result => result === 'H').length ?? 0);
       const missed = Number(stand.misses ?? targetResults.filter(result => result === 'M').length ?? 0);
       const noBirds = Number(stand.no_birds ?? targetResults.filter(result => result === 'NB').length ?? 0);
-      const targets = Number(stand.valid_scored_clays ?? stand.clays_total ?? (hits + missed) ?? 0);
+      const targets = Number(stand.valid_scored_clays ?? stand.clays_total ?? (hits + missed));
       const percentage = targets > 0 ? Math.round((hits / targets) * 100) : Number(stand.hit_percentage || 0);
 
       return {

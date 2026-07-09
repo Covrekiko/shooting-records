@@ -26,7 +26,7 @@ export default function BetaTesters() {
       }
       setUser(currentUser);
       const betaTesters = await base44.entities.User.filter({ role: 'beta_tester' });
-      setTesters(betaTesters.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
+      setTesters(betaTesters.sort((a, b) => new Date(b.created_date).getTime() - new Date(a.created_date).getTime()));
     } catch (error) {
       console.warn('Error loading testers:', error);
     } finally {
@@ -279,7 +279,7 @@ function CreateTesterForm({ onSubmit, onCancel }) {
             onChange={(e) => setFormData({ ...formData, beta_tester_notes: e.target.value })}
             placeholder="e.g., Focus on mobile performance, iOS 15 testing"
             className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
-            rows="3"
+            rows={3}
           />
         </div>
 

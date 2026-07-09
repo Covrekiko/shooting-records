@@ -167,7 +167,7 @@ export default function ClayShooting() {
   useEffect(() => {
     // Subscribe to trackingService updates (unified GPS tracking)
     const unsubscribe = trackingService.subscribe((track) => setGpsTrack(track));
-    return () => unsubscribe();
+    return () => { unsubscribe(); };
   }, []);
 
   // Proximity detection: whenever tracking updates location, check nearby clubs
@@ -184,7 +184,7 @@ export default function ClayShooting() {
         });
       }
     });
-    return () => unsubscribe();
+    return () => { unsubscribe(); };
   }, [clubs]);
 
   const handleCheckin = async () => {
@@ -503,7 +503,7 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
         </div>
         <div>
           <label className={labelCls}>Notes (optional)</label>
-          <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className={inputCls} rows="3" />
+          <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className={inputCls} rows={3} />
         </div>
       </div>
     </GlobalModal>
@@ -609,7 +609,7 @@ function CheckoutModal({ shotguns, ammunition, onSubmit, onClose, gpsTrack, onVi
         </div>
         <div>
           <label className={labelCls}>Notes</label>
-          <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className={inputCls} rows="2" />
+          <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className={inputCls} rows={2} />
         </div>
         <div>
           <label className={labelCls}>Photos</label>

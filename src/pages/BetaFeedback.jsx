@@ -46,12 +46,12 @@ export default function BetaFeedback() {
       // Admins see all posts
       if (currentUser.role === 'admin') {
         const allPosts = await base44.entities.BetaFeedbackPost.list();
-        setPosts(allPosts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
+        setPosts(allPosts.sort((a, b) => new Date(b.created_date).getTime() - new Date(a.created_date).getTime()));
       } 
       // Beta testers see only their own posts (and only if status is active)
       else if (currentUser.role === 'beta_tester' && currentUser.beta_tester_status !== 'inactive') {
         const userPosts = await base44.entities.BetaFeedbackPost.filter({ created_by: currentUser.email });
-        setPosts(userPosts.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
+        setPosts(userPosts.sort((a, b) => new Date(b.created_date).getTime() - new Date(a.created_date).getTime()));
       }
     } catch (error) {
       console.warn('Error loading feedback posts:', error);
@@ -402,7 +402,7 @@ function FeedbackForm({ onSubmit, onCancel }) {
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             placeholder="Describe what happened or your idea..."
             className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
-            rows="3"
+            rows={3}
             required
           />
         </div>
@@ -425,7 +425,7 @@ function FeedbackForm({ onSubmit, onCancel }) {
             onChange={(e) => setFormData({ ...formData, steps_to_reproduce: e.target.value })}
             placeholder="1. Step one&#10;2. Step two&#10;3. Step three"
             className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
-            rows="2"
+            rows={2}
           />
         </div>
 
@@ -527,7 +527,7 @@ function PostDetail({ post, user, onClose, onStatusChange, onRefresh }) {
   const loadComments = async () => {
     try {
       const postComments = await base44.entities.BetaFeedbackComment.filter({ post_id: post.id });
-      setComments(postComments.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)));
+      setComments(postComments.sort((a, b) => new Date(a.created_date).getTime() - new Date(b.created_date).getTime()));
     } catch (error) {
       console.warn('Error loading comments:', error);
     } finally {

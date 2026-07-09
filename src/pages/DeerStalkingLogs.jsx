@@ -52,7 +52,7 @@ export default function DeerStalkingLogs() {
 
   const formatDuration = (start, end) => {
     if (!start || !end) return null;
-    const ms = new Date(end) - new Date(start);
+    const ms = new Date(end).getTime() - new Date(start).getTime();
     if (ms < 0) return null;
     const hours = Math.floor(ms / 3600000);
     const mins = Math.floor((ms % 3600000) / 60000);

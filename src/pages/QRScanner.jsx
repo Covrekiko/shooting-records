@@ -54,7 +54,7 @@ export default function QRScanner() {
       return;
     }
 
-    const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+    const detector = new (/** @type {any} */ (window).BarcodeDetector)({ formats: ['qr_code'] });
     const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
     streamRef.current = stream;
     videoRef.current.srcObject = stream;

@@ -4,7 +4,7 @@ import { Target, Eye, Download, ChevronDown, ChevronUp } from 'lucide-react';
 import { exportSessionPDF } from '@/utils/analyzerPdfExport';
 import GroupDetailView from '@/components/analyzer/GroupDetailView';
 
-export default function TargetAnalysisSummary({ sessionRecordId, sessionRecord }) {
+export default function TargetAnalysisSummary({ sessionRecordId, sessionRecord = null }) {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);

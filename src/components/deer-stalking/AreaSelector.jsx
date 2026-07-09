@@ -1,7 +1,7 @@
 import { ChevronDown, MapPin } from 'lucide-react';
 import { useState } from 'react';
 
-export default function AreaSelector({ savedAreas, selectedAreaId, onSelectArea }) {
+export default function AreaSelector({ savedAreas, selectedAreaId, onSelectArea, userLocation = null }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const selectedArea = savedAreas.find((a) => a.id === selectedAreaId);

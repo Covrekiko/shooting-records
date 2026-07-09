@@ -217,7 +217,7 @@ function GoalForm({ onSuccess, onCancel }) {
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             placeholder="Add notes about this goal..."
             className="w-full px-3 py-2.5 border border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
-            rows="2"
+            rows={2}
           />
         </div>
 

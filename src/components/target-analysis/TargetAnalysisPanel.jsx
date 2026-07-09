@@ -61,7 +61,7 @@ export default function TargetAnalysisPanel({ sessionRecord, onClose }) {
       base44.entities.TargetGroup.filter({ session_id: sessionRecord.id }),
       base44.auth.me(),
     ]);
-    setGroups(g.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)));
+    setGroups(g.sort((a, b) => new Date(a.created_date).getTime() - new Date(b.created_date).getTime()));
 
     // Always load rifles, ammo and scope profiles from DB
     const rifleIds = (sessionRecord.rifles_used || []).map(r => r.rifle_id).filter(Boolean);

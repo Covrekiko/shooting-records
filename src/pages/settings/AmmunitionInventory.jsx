@@ -173,6 +173,7 @@ export default function AmmunitionInventory() {
       grain: '',
       quantity_in_stock: '0',
       units: 'rounds',
+      rounds_per_box: '20',
       cost_per_unit: '0',
       date_purchased: new Date().toISOString().split('T')[0],
       low_stock_threshold: '50',
@@ -353,7 +354,7 @@ export default function AmmunitionInventory() {
                   value={formData.notes}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                   className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
-                  rows="2"
+                  rows={2}
                 />
               </div>
               <div className="flex gap-2 pt-2">
@@ -386,7 +387,7 @@ export default function AmmunitionInventory() {
             <AlertCircle className="w-8 h-8 text-destructive mx-auto mb-3" />
             <p className="text-destructive font-medium mb-1">Failed to load ammunition</p>
             <p className="text-muted-foreground text-sm mb-4">{error}</p>
-            <button onClick={loadAmmo} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90">
+            <button onClick={() => loadAmmo()} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:opacity-90">
               Retry
             </button>
           </div>

@@ -152,7 +152,7 @@ export default function DeerStalkingMap() {
     const now = new Date();
     const area = savedAreas.find(a => a.id === autoCheckinMatch.id);
     try {
-      await startOuting({
+      await /** @type {any} */ (startOuting)({
         location_name: autoCheckinMatch.name,
         area_id: autoCheckinMatch.id,
         start_time: now.toISOString(),
@@ -343,7 +343,7 @@ export default function DeerStalkingMap() {
 
   const handleStartOuting = async (data) => {
     try {
-      await startOuting(data);
+      await /** @type {any} */ (startOuting)(data);
       setShowOuting(false);
       loadData();
     } catch (err) {
@@ -374,7 +374,7 @@ export default function DeerStalkingMap() {
         submitData.ammunition_id = null;
       }
 
-      const completedRecordId = await endOutingWithData(activeOuting.id, submitData, finalTrack);
+      const completedRecordId = await /** @type {any} */ (endOutingWithData)(activeOuting.id, submitData, finalTrack);
 
       if (navigator.onLine && checkoutData.shot_anything && checkoutData.ammunition_id && roundsFired > 0) {
         await decrementAmmoStock(checkoutData.ammunition_id, roundsFired, 'deer_management', completedRecordId || activeOuting.id);
@@ -548,7 +548,7 @@ export default function DeerStalkingMap() {
           mapContainerStyle={mapContainerStyle}
           center={userLocation}
           zoom={13}
-          onLoad={(map) => (mapRef.current = map)}
+          onLoad={(map) => { mapRef.current = map; }}
           onClick={handleMapClick}
           options={{
             mapTypeId: useSatellite ? 'satellite' : 'roadmap',

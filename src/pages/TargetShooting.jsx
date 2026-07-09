@@ -50,7 +50,7 @@ export default function TargetShooting() {
         setLocation({ latitude: lastPoint.lat, longitude: lastPoint.lng });
       }
     });
-    return () => unsubscribe();
+    return () => { unsubscribe(); };
   }, []);
   const [gpsTrack, setGpsTrack] = useState([]);
   const [viewingTrack, setViewingTrack] = useState(null);
@@ -210,7 +210,7 @@ export default function TargetShooting() {
   useEffect(() => {
     // Subscribe to trackingService updates (unified GPS tracking)
     const unsubscribe = trackingService.subscribe((track) => setGpsTrack(track));
-    return () => unsubscribe();
+    return () => { unsubscribe(); };
   }, []);
 
   useEffect(() => {
@@ -608,7 +608,7 @@ function CheckinModal({ data, clubs, onSubmit, onChange, onClose }) {
             <span className={iconWrapCls}><FileText className="w-5 h-5" /></span>
             <div className="flex-1 min-w-0">
               <label className={labelCls}>Notes (optional)</label>
-              <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className={`${fieldCls} h-20 py-3 resize-none`} rows="3" placeholder="Add any notes about this session..." />
+              <textarea value={data.notes} onChange={(e) => onChange('notes', e.target.value)} className={`${fieldCls} h-20 py-3 resize-none`} rows={3} placeholder="Add any notes about this session..." />
             </div>
           </div>
         </div>
@@ -676,14 +676,14 @@ async function uploadPhotos(files, existingPhotos, setUploading) {
 
 // ─── Check-out Modal ──────────────────────────────────────────────
 function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onViewTrack, sessionRecordId }) {
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState(/** @type {any} */ ({}));
   const [photoUploading, setPhotoUploading] = useState(false);
-  const [data, setData] = useState({
+  const [data, setData] = useState(/** @type {any} */ ({
     checkout_time: new Date().toTimeString().slice(0, 5),
     rifles_used: [{ rifle_id: '', rounds_fired: '', meters_range: '', ammunition_id: '', ammunition_brand: '', caliber: '', bullet_type: '', grain: '' }],
     notes: '',
     photos: [],
-  });
+  }));
 
   const inputCls = DESIGN.INPUT;
   const labelCls = DESIGN.LABEL;
@@ -840,7 +840,7 @@ function CheckoutModal({ rifles, ammunition, onSubmit, onClose, gpsTrack, onView
             <span className={sectionIconCls}><FileText className="w-5 h-5" /></span>
             <div className="flex-1 min-w-0">
               <label className={`${sectionLabelCls} block mb-1.5`}>Notes</label>
-              <textarea value={data.notes} onChange={(e) => setData(prev => ({ ...prev, notes: e.target.value }))} className={`${fieldCls} h-20 py-3 resize-none`} rows="2" placeholder="Add any notes about this session..." />
+              <textarea value={data.notes} onChange={(e) => setData(prev => ({ ...prev, notes: e.target.value }))} className={`${fieldCls} h-20 py-3 resize-none`} rows={2} placeholder="Add any notes about this session..." />
             </div>
           </div>
         </section>

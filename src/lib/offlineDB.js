@@ -69,8 +69,8 @@ async function openDB() {
   _opening = new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
+    request.onupgradeneeded = () => {
+      const db = request.result;
       STORES.forEach((storeName) => {
         if (!db.objectStoreNames.contains(storeName)) {
           const store = db.createObjectStore(storeName, { keyPath: 'id' });
@@ -82,8 +82,8 @@ async function openDB() {
       });
     };
 
-    request.onsuccess = (event) => {
-      _db = event.target.result;
+    request.onsuccess = () => {
+      _db = request.result;
       _opening = null;
       // Auto-reset on unexpected close
       _db.onclose = () => { _db = null; };
@@ -91,10 +91,10 @@ async function openDB() {
       resolve(_db);
     };
 
-    request.onerror = (event) => {
+    request.onerror = () => {
       _opening = null;
-      console.error('IndexedDB open error:', event.target.error);
-      reject(event.target.error);
+      console.error('IndexedDB open error:', request.error);
+      reject(request.error);
     };
   });
 

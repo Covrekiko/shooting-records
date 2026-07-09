@@ -232,7 +232,7 @@ function CollapsibleSection({ title, children }) {
   );
 }
 
-function Field({ label, error, required, children }) {
+function Field({ label, error, required = false, children }) {
   return (
     <div>
       <label className="block text-sm font-medium mb-1">
@@ -332,8 +332,8 @@ const COUNTRIES = [
 ];
 
 function PersonalDetailsPanel() {
-  const [form, setForm] = useState(null);
-  const [errors, setErrors] = useState({});
+  const [form, setForm] = useState(/** @type {any} */ (null));
+  const [errors, setErrors] = useState(/** @type {any} */ ({}));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 

@@ -187,43 +187,8 @@ function ActiveCheckinBanner({ session }) {
   );
 }
 
-const KpiRow = React.memo(function KpiRow({ stats }) {
-  const items = [
-    { label: 'Target', value: stats?.targetSessions ?? stats?.targetRecords ?? 0 },
-    { label: 'Clay', value: stats?.claySessions ?? stats?.clayRecords ?? 0 },
-    { label: 'Deer', value: stats?.deerOutings ?? stats?.deerRecords ?? 0 },
-    { label: 'Rounds', value: (stats?.totalRifleRounds ?? 0) + (stats?.totalShotgunRounds ?? 0) },
-  ];
-  return (
-    <div className="grid grid-cols-4 gap-2">
-      {items.map((item) => (
-        <div key={item.label} className="bg-card rounded-xl px-2 py-2.5 text-center border border-border shadow-sm">
-          <p className="text-base md:text-lg font-bold text-foreground leading-none">{item.value}</p>
-          <p className="text-xs text-muted-foreground mt-1 font-medium">{item.label}</p>
-        </div>
-      ))}
-    </div>
-  );
-});
-
-const PrimaryCard = React.memo(function PrimaryCard({ to, icon, label, sub }) {
-  return (
-    <Link to={to}>
-      <div className="bg-card rounded-2xl p-4 border border-border shadow-sm active:scale-[0.97] transition-all duration-100 flex items-center gap-4 select-none">
-        <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 text-primary [&_svg]:w-5 [&_svg]:h-5 select-none">
-          {icon}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-foreground leading-snug tracking-tight">{label}</p>
-          {sub && <p className="text-xs text-muted-foreground mt-0.5 truncate">{sub}</p>}
-        </div>
-        <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-      </div>
-    </Link>
-  );
-});
-
-const SecondaryGrid = React.memo(function SecondaryGrid({ user }) {
+function SecondaryGrid(props) {
+  const { user } = /** @type {any} */ (props);
   const items = [
     { to: '/target-shooting', icon: <Crosshair className="w-5 h-5" />, label: 'Target' },
     { to: '/clay-shooting', icon: <Target className="w-5 h-5" />, label: 'Clay' },
@@ -254,9 +219,10 @@ const SecondaryGrid = React.memo(function SecondaryGrid({ user }) {
        ))}
     </div>
   );
-});
+}
 
-const ChartsSection = React.memo(function ChartsSection({ analyticsData }) {
+function ChartsSection(props) {
+  const { analyticsData } = /** @type {any} */ (props);
   const [open, setOpen] = useState(false);
   const chartData = useMemo(() => {
     if (!open || !analyticsData) return null;
@@ -293,7 +259,7 @@ const ChartsSection = React.memo(function ChartsSection({ analyticsData }) {
       )}
     </div>
   );
-});
+}
 
 // ── Main component ────────────────────────────────────────────────────────────
 export default function Dashboard() {

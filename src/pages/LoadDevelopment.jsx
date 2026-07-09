@@ -49,7 +49,7 @@ export default function LoadDevelopment() {
       const u = await base44.auth.me();
       setUser(u);
       const data = await base44.entities.ReloadingTest.filter({ created_by: u.email });
-      setTests(data.sort((a, b) => new Date(b.created_date) - new Date(a.created_date)));
+      setTests(data.sort((a, b) => new Date(b.created_date).getTime() - new Date(a.created_date).getTime()));
     } catch (e) {
       console.error(e);
     } finally {

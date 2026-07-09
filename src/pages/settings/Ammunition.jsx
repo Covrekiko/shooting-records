@@ -167,7 +167,7 @@ export default function Ammunition() {
           <div className="space-y-4">
             <div>
               <label className={lbl}>Bullet Reference Database <span className="font-normal normal-case text-muted-foreground">(optional autofill)</span></label>
-              <BulletReferencePicker onSelect={(b) => setFormData(f => ({ ...f, brand: b.manufacturer, caliber: b.calibre || f.caliber, bullet_type: b.bullet_type || f.bullet_type, grain: b.weight_grains ? String(b.weight_grains) : f.grain }))} onClear={() => {}} />
+              <BulletReferencePicker selectedId="" filterCaliber={formData.caliber || ''} onSelect={(b) => setFormData(f => ({ ...f, brand: b.manufacturer, caliber: b.calibre || f.caliber, bullet_type: b.bullet_type || f.bullet_type, grain: b.weight_grains ? String(b.weight_grains) : f.grain }))} onClear={() => {}} />
             </div>
             <div><label className={lbl}>Brand *</label><input type="text" value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} className={inp} required /></div>
             <div><label className={lbl}>Caliber (optional)</label><CaliberTypeahead placeholder="e.g., .303 British, .308 Win" value={formData.caliber} onChange={(caliber) => setFormData({ ...formData, caliber })} className={inp} /></div>
@@ -176,7 +176,7 @@ export default function Ammunition() {
             <NumberInput label="Quantity" value={formData.quantity_in_stock} onChange={(v) => setFormData({ ...formData, quantity_in_stock: v })} placeholder="0" unit="rounds" />
             <NumberInput label="Cost per Round" value={formData.cost_per_unit} onChange={(v) => setFormData({ ...formData, cost_per_unit: v })} placeholder="0.00" allowDecimal unit="£" />
             <div><label className={lbl}>Purchase Date</label><input type="date" value={formData.date_purchased} onChange={(e) => setFormData({ ...formData, date_purchased: e.target.value })} className={inp} /></div>
-            <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows="2" placeholder="Additional notes" /></div>
+            <div><label className={lbl}>Notes</label><textarea value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className={inp} rows={2} placeholder="Additional notes" /></div>
           </div>
         </GlobalModal>
 
