@@ -66,8 +66,10 @@ export async function triggerSync() {
       setSyncState(SYNC_STATE.FAILED, result);
     } else {
       setSyncState(SYNC_STATE.DONE, result);
-      // Go back to idle after 3s
-      setTimeout(() => setSyncState(SYNC_STATE.IDLE), 3000);
+      // Go back to idle after 3s, unless another sync has started
+      setTimeout(() => {
+        if (!_isSyncing && _syncState === SYNC_STATE.DONE) setSyncState(SYNC_STATE.IDLE);
+      }, 3000);
     }
   } catch (e) {
     console.error('[sync] Sync engine error:', e);
@@ -81,12 +83,12 @@ export async function triggerSync() {
 connectivityManager.subscribe((online) => {
   if (online) {
     // Small delay to let connection stabilize
-    setTimeout(triggerSync, 1500);
+    setTimeout(() => { triggerSync().catch(() => {}); }, 1500);
   }
 });
 
 // Poll pending count every 30s (reduced for performance)
-setInterval(updatePendingCount, 30000);
+setInterval(() => { updatePendingCount().catch(() => {}); }, 30000);
 
 // Initial count
 updatePendingCount().catch(() => {});

@@ -84,7 +84,9 @@ export async function enqueueAction({ entityName, action, localId, payload }) {
  */
 export async function getPendingQueue() {
   const all = await offlineDB.getAll('sync_queue');
+  const currentOwner = getQueueOwnerIdentity();
   return all
+    .filter((e) => queueOwnerMatches(e.owner, currentOwner))
     .filter((e) => e.status === SYNC_STATUS.PENDING || e.status === SYNC_STATUS.FAILED)
     .map((e) => ({ ...e, needsReview: queueEntryNeedsReview(e) }))
     .sort((a, b) => a.timestamp - b.timestamp);
@@ -92,7 +94,9 @@ export async function getPendingQueue() {
 
 export async function getAllQueueEntries() {
   const all = await offlineDB.getAll('sync_queue');
+  const currentOwner = getQueueOwnerIdentity();
   return all
+    .filter((e) => queueOwnerMatches(e.owner, currentOwner))
     .map((e) => ({ ...e, needsReview: queueEntryNeedsReview(e) }))
     .sort((a, b) => a.timestamp - b.timestamp);
 }
@@ -118,7 +122,13 @@ export async function discardQueueEntry(entryId) {
 
 export async function removeQueuedMutationsForLocalRecord(entityName, localId) {
   const all = await offlineDB.getAll('sync_queue');
-  const matches = all.filter((entry) => entry.entityName === entityName && entry.localId === localId && [SYNC_STATUS.PENDING, SYNC_STATUS.FAILED, SYNC_STATUS.CONFLICT].includes(entry.status));
+  const currentOwner = getQueueOwnerIdentity();
+  const matches = all.filter((entry) => (
+    queueOwnerMatches(entry.owner, currentOwner)
+    && entry.entityName === entityName
+    && entry.localId === localId
+    && [SYNC_STATUS.PENDING, SYNC_STATUS.FAILED, SYNC_STATUS.CONFLICT, SYNC_STATUS.EXPIRED].includes(entry.status)
+  ));
   for (const entry of matches) await offlineDB.remove('sync_queue', entry.id);
   return matches;
 }
