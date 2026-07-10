@@ -197,11 +197,6 @@ function SecondaryGrid(props) {
     { to: '/load-development', icon: <FlaskConical className="w-5 h-5" />, label: 'Load Dev' },
     { to: '/settings/rifles', icon: <span className="text-lg">🔧</span>, label: 'Equipment' },
     { to: '/reports', icon: <BarChart3 className="w-5 h-5" />, label: 'Reports' },
-    { to: '/global-search', icon: <span className="text-lg">🔎</span>, label: 'Search' },
-    { to: '/data-health', icon: <span className="text-lg">✅</span>, label: 'Health' },
-    { to: '/activity-timeline', icon: <span className="text-lg">🕒</span>, label: 'Timeline' },
-    { to: '/firearm-profiles', icon: <span className="text-lg">🔫</span>, label: 'Firearms' },
-    { to: '/notifications', icon: <span className="text-lg">🔔</span>, label: 'Alerts' },
     ...(user?.role === 'admin' ? [{ to: '/admin/users', icon: <ShieldCheck className="w-5 h-5" />, label: 'Admin' }] : []),
   ];
 

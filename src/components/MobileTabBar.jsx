@@ -61,9 +61,9 @@ export default function MobileTabBar() {
   } else if (isSyncing) {
     syncPill = { icon: RefreshCw, label: `Syncing…`, bg: 'bg-blue-500', spinning: true, action: null };
   } else if (syncFailed) {
-    syncPill = { icon: CloudUpload, label: 'Sync failed — review', bg: 'bg-red-500', action: () => navigate('/sync-conflicts') };
+    syncPill = { icon: CloudUpload, label: 'Sync failed', bg: 'bg-red-500', action: null };
   } else if (hasPending) {
-    syncPill = { icon: CloudUpload, label: `${pendingCount} pending`, bg: 'bg-amber-500', action: () => navigate('/sync-conflicts') };
+    syncPill = { icon: CloudUpload, label: `${pendingCount} pending`, bg: 'bg-amber-500', action: null };
   }
 
   return (

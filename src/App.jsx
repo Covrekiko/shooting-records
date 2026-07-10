@@ -57,12 +57,7 @@ const Support = lazy(() => import('./pages/Support'));
 const TargetShootingAnalyzer = lazy(() => import('./pages/TargetShootingAnalyzer'));
 const QRScanner = lazy(() => import('./pages/QRScanner'));
 const QRItemDetails = lazy(() => import('./pages/QRItemDetails'));
-const SyncConflictCenter = lazy(() => import('./pages/SyncConflictCenter'));
-const DataHealthCenter = lazy(() => import('./pages/DataHealthCenter'));
-const GlobalSearch = lazy(() => import('./pages/GlobalSearch'));
-const ActivityTimeline = lazy(() => import('./pages/ActivityTimeline'));
-const FirearmProfiles = lazy(() => import('./pages/FirearmProfiles'));
-const NotificationCenter = lazy(() => import('./pages/NotificationCenter'));
+
 
 const isRouteDebugEnabled = () => {
   try {
@@ -251,12 +246,7 @@ const AuthenticatedApp = () => {
               <Route path="/settings/reference-database" element={<ReferenceDatabase />} />
               <Route path="/qr-scanner" element={<QRScanner />} />
               <Route path="/qr-item" element={<QRItemDetails />} />
-              <Route path="/sync-conflicts" element={<SyncConflictCenter />} />
-              <Route path="/data-health" element={<DataHealthCenter />} />
-              <Route path="/global-search" element={<GlobalSearch />} />
-              <Route path="/activity-timeline" element={<ActivityTimeline />} />
-              <Route path="/firearm-profiles" element={<FirearmProfiles />} />
-              <Route path="/notifications" element={<NotificationCenter />} />
+
               <Route path="/beta-feedback" element={<BetaFeedback />} />
               <Route path="/admin/beta-testers" element={<BetaTesters />} />
               <Route path="/admin/beta-feedback" element={<BetaFeedbackAdmin />} />
@@ -292,7 +282,6 @@ function AppContent() {
         import('./pages/LoadDevelopment'),
         import('./pages/LoadComparison'),
         import('./pages/ScopeClickCard'),
-        import('./pages/SyncConflictCenter'),
       ]);
     });
     return () => cancel(id);

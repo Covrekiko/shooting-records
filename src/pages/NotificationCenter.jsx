@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { Bell, AlertTriangle } from 'lucide-react';
-import { getAllQueueEntries, SYNC_STATUS } from '@/lib/syncQueue';
+import { getAllQueueEntries } from '@/lib/syncQueue';
 import { filterOwnedRows, getSafeCurrentUser, loadOwnedEntity } from '@/lib/professionalPageData';
 
 export default function NotificationCenter() {
@@ -28,7 +28,6 @@ export default function NotificationCenter() {
       ...data.alerts.map((a) => ({ title: a.firearm_name || 'Maintenance due', detail: a.message, to: '/ammo-summary' })),
       ...data.ammo.filter((a) => Number(a.quantity_in_stock || 0) <= Number(a.low_stock_threshold || 0)).map((a) => ({ title: 'Low ammunition', detail: `${a.brand || 'Ammo'} ${a.caliber || ''}: ${a.quantity_in_stock || 0} remaining`, to: '/settings/ammunition' })),
       ...data.components.filter((c) => Number(c.quantity_remaining || 0) <= 0).map((c) => ({ title: 'Component empty', detail: `${c.name || c.component_type} is out of stock`, to: '/reloading' })),
-      ...data.queue.filter((q) => q.needsReview || [SYNC_STATUS.FAILED, SYNC_STATUS.CONFLICT, SYNC_STATUS.EXPIRED].includes(q.status)).map((q) => ({ title: 'Sync item needs review', detail: `${q.entityName || 'Record'} ${q.action || ''}: ${q.lastError || (q.needsReview ? 'offline for several days' : q.status)}`, to: '/sync-conflicts' })),
     ];
   }, [data]);
 
